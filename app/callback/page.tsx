@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useStravaAuth } from '@/hooks/use-strava-auth'
 import { useAthleteData } from '@/hooks/use-athlete-data'
+import { RecentActivities } from '@/components/RecentActivities'
 
 export default function CallbackPage() {
   const searchParams = useSearchParams()
@@ -59,6 +60,11 @@ export default function CallbackPage() {
     <div>
       <h1>Welcome, {athleteData.firstname}!</h1>
       <pre>{JSON.stringify(athleteData, null, 2)}</pre>
+      {athleteData && authData?.access_token && (
+        <div className="mt-8">
+          <RecentActivities accessToken={authData.access_token} />
+        </div>
+      )}
     </div>
   )
 } 
