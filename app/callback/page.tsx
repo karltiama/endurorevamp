@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { useStravaAuth } from '@/hooks/use-strava-auth'
 import { useAthleteData } from '@/hooks/use-athlete-data'
 import { RecentActivities } from '@/components/RecentActivities'
-
+import { AthleteHeader } from '@/components/AthleteHeader'
 export default function CallbackPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -62,6 +62,7 @@ export default function CallbackPage() {
       <pre>{JSON.stringify(athleteData, null, 2)}</pre>
       {athleteData && authData?.access_token && (
         <div className="mt-8">
+          <AthleteHeader />
           <RecentActivities accessToken={authData.access_token} />
         </div>
       )}

@@ -4,6 +4,7 @@ interface AthleteData {
   id: number
   firstname: string
   lastname: string
+  profile: string
   // ... other athlete fields
 }
 
