@@ -1,6 +1,5 @@
-
 import { render, screen } from '@testing-library/react'
-import { LoginButton } from './LoginButton'
+import { LoginButton } from '@/components/LoginButton'
 import { getStravaAuthUrl } from '@/lib/strava'
 
 // Mock the strava utility function so we don't make real URL calls during tests
