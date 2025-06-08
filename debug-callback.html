@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Callback Debug Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-scenario {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .test-link {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+        .test-link:hover {
+            background-color: #0056b3;
+        }
+        .error-link {
+            background-color: #dc3545;
+        }
+        .error-link:hover {
+            background-color: #c82333;
+        }
+        .description {
+            margin: 10px 0;
+            color: #666;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #555;
+            margin-top: 30px;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Strava Callback Debug Tool</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Important:</strong> Make sure your Next.js development server is running on http://localhost:3000
+        </div>
+
+        <h2>✅ Success Scenarios</h2>
+        
+        <div class="test-scenario">
+            <h3>Valid Authorization Code</h3>
+            <div class="description">
+                Tests successful OAuth flow with a mock authorization code
+            </div>
+            <a href="http://localhost:3000/callback?code=mock_auth_code_12345" 
+               class="test-link" target="_blank">
+                Test Success Flow
+            </a>
+        </div>
+
+        <h2>❌ Error Scenarios</h2>
+
+        <div class="test-scenario">
+            <h3>Access Denied</h3>
+            <div class="description">
+                User denies access to Strava
+            </div>
+            <a href="http://localhost:3000/callback?error=access_denied&error_description=The+user+denied+the+request" 
+               class="test-link error-link" target="_blank">
+                Test Access Denied
+            </a>
+        </div>
+
+        <div class="test-scenario">
+            <h3>Access Denied (Simple)</h3>
+            <div class="description">
+                User denies access without description
+            </div>
+            <a href="http://localhost:3000/callback?error=access_denied" 
+               class="test-link error-link" target="_blank">
+                Test Access Denied (Simple)
+            </a>
+        </div>
+
+        <div class="test-scenario">
+            <h3>Invalid Request</h3>
+            <div class="description">
+                OAuth error for invalid request
+            </div>
+            <a href="http://localhost:3000/callback?error=invalid_request&error_description=Missing+required+parameter" 
+               class="test-link error-link" target="_blank">
+                Test Invalid Request
+            </a>
+        </div>
+
+        <div class="test-scenario">
+            <h3>Server Error</h3>
+            <div class="description">
+                OAuth server error (should be retryable)
+            </div>
+            <a href="http://localhost:3000/callback?error=server_error&error_description=The+authorization+server+encountered+an+error" 
+               class="test-link error-link" target="_blank">
+                Test Server Error
+            </a>
+        </div>
+
+        <div class="test-scenario">
+            <h3>No Parameters</h3>
+            <div class="description">
+                Missing both code and error parameters
+            </div>
+            <a href="http://localhost:3000/callback" 
+               class="test-link error-link" target="_blank">
+                Test No Parameters
+            </a>
+        </div>
+
+        <h2>🔍 What to Check</h2>
+        <ul>
+            <li><strong>Browser Console:</strong> Open DevTools (F12) to see console logs</li>
+            <li><strong>Network Tab:</strong> Check if API calls are being made</li>
+            <li><strong>Component Rendering:</strong> Does the page load at all?</li>
+            <li><strong>Error Messages:</strong> Are user-friendly errors displayed?</li>
+            <li><strong>Navigation:</strong> Do the buttons work correctly?</li>
+        </ul>
+
+        <h2>🚨 Common Issues</h2>
+        <ul>
+            <li><strong>Blank Page:</strong> Check console for JavaScript errors</li>
+            <li><strong>No Console Logs:</strong> Component might not be mounting</li>
+            <li><strong>API Errors:</strong> Check if Supabase and environment variables are configured</li>
+            <li><strong>Authentication Issues:</strong> Make sure you're logged into your app first</li>
+        </ul>
+
+        <div class="warning">
+            <strong>💡 Tip:</strong> If you see the loading state but no console logs, the useEffect might not be running. Check for JavaScript errors in the console.
+        </div>
+    </div>
+
+    <script>
+        // Add click tracking for debugging
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('test-link')) {
+                console.log('🔗 Testing scenario:', e.target.textContent.trim());
+                console.log('🌐 URL:', e.target.href);
+            }
+        });
+
+        // Log when page loads
+        console.log('🛠️ Callback Debug Tool Ready');
+        console.log('🕐 Time:', new Date().toLocaleTimeString());
+    </script>
+</body>
+</html> 
