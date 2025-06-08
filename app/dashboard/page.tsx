@@ -1,5 +1,7 @@
 import { requireAuth } from '@/lib/auth/server'
 import LogoutButton from '@/components/LogoutButton'
+import { StravaIntegration } from '@/components/strava/StravaIntegration'
+import { Suspense } from 'react'
 
 export default async function DashboardPage() {
   const user = await requireAuth()
@@ -47,11 +49,27 @@ export default async function DashboardPage() {
               </div>
             </div>
             
+            {/* Strava Integration Section */}
+            <div className="mt-8">
+              <Suspense fallback={
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="animate-pulse">
+                    <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+                    <div className="space-y-3">
+                      <div className="h-4 bg-gray-200 rounded w-full"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                  </div>
+                </div>
+              }>
+                <StravaIntegration />
+              </Suspense>
+            </div>
+            
             <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h4 className="text-lg font-medium text-blue-900 mb-2">Next Steps</h4>
               <ul className="text-sm text-blue-700 space-y-1">
                 <li>• Set up your training goals</li>
-                <li>• Connect your Strava account</li>
                 <li>• Import your activity history</li>
                 <li>• Explore training insights</li>
               </ul>
