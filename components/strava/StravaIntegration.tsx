@@ -8,9 +8,11 @@ import { Loader2, Link2, Unlink, RefreshCw, User, Calendar, CheckCircle2, AlertC
 import { useStravaConnection } from '@/hooks/strava/useStravaConnection';
 import { useStravaSync } from '@/hooks/strava/useStravaSync';
 import { useStravaAuth } from '@/hooks/use-strava-auth';
+import { useStravaToken } from '@/hooks/strava/useStravaToken';
 import { getStravaAuthUrl } from '@/lib/strava';
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { ActivitiesDashboard } from './ActivitiesDashboard';
 
 export function StravaIntegration() {
   const searchParams = useSearchParams();
@@ -18,6 +20,7 @@ export function StravaIntegration() {
   const { connectionStatus, isLoading: isCheckingConnection, error: connectionError, refreshStatus, disconnect } = useStravaConnection();
   const { syncData, isLoading: isSyncing, lastSyncResult, error: syncError } = useStravaSync();
   const { mutate: exchangeToken, isPending: isAuthing } = useStravaAuth();
+  const { accessToken } = useStravaToken();
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authSuccess, setAuthSuccess] = useState(false);
@@ -297,5 +300,22 @@ export function StravaIntegration() {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+// Wrapper component to include Activities Dashboard when connected
+export function StravaIntegrationWithActivities() {
+  const { connectionStatus } = useStravaConnection();
+  const { accessToken } = useStravaToken();
+
+  return (
+    <div className="space-y-6">
+      <StravaIntegration />
+      
+      {/* Show Activities Dashboard when connected and we have an access token */}
+      {connectionStatus?.connected && accessToken && (
+        <ActivitiesDashboard accessToken={accessToken} />
+      )}
+    </div>
   );
 } 

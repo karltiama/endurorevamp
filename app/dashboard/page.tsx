@@ -1,6 +1,6 @@
 import { requireAuth } from '@/lib/auth/server'
 import LogoutButton from '@/components/LogoutButton'
-import { StravaIntegration } from '@/components/strava/StravaIntegration'
+import { StravaIntegrationWithActivities } from '@/components/strava/StravaIntegration'
 import { Suspense } from 'react'
 
 export default async function DashboardPage() {
@@ -62,7 +62,7 @@ export default async function DashboardPage() {
                   </div>
                 </div>
               }>
-                <StravaIntegration />
+                <StravaIntegrationWithActivities />
               </Suspense>
             </div>
             
