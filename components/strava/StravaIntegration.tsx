@@ -5,10 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Link2, Unlink, RefreshCw, User, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
-import { useStravaConnection } from '@/hooks/strava/useStravaConnection';
+import { useStravaConnection, STRAVA_CONNECTION_QUERY_KEY } from '@/hooks/strava/useStravaConnection';
 import { useStravaSync } from '@/hooks/strava/useStravaSync';
 import { useStravaAuth } from '@/hooks/use-strava-auth';
-import { useStravaToken } from '@/hooks/strava/useStravaToken';
+import { useStravaToken, STRAVA_TOKEN_QUERY_KEY } from '@/hooks/strava/useStravaToken';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/providers/AuthProvider';
 import { getStravaAuthUrl } from '@/lib/strava';
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -17,6 +19,8 @@ import { ActivitiesDashboard } from './ActivitiesDashboard';
 export function StravaIntegration() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
   const { connectionStatus, isLoading: isCheckingConnection, error: connectionError, refreshStatus, disconnect } = useStravaConnection();
   const { syncData, isLoading: isSyncing, lastSyncResult, error: syncError } = useStravaSync();
   const { mutate: exchangeToken, isPending: isAuthing } = useStravaAuth();
@@ -25,7 +29,7 @@ export function StravaIntegration() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [authSuccess, setAuthSuccess] = useState(false);
 
-  // Handle OAuth callback on dashboard
+  // Handle OAuth callback on dashboard - with race condition protection
   useEffect(() => {
     const code = searchParams.get('code');
     const error = searchParams.get('error');
@@ -52,30 +56,34 @@ export function StravaIntegration() {
       return;
     }
 
-    // Handle successful OAuth code
+    // Handle successful OAuth code with improved race condition protection
     if (code && !connectionStatus?.connected && !isAuthing) {
       console.log('🔄 Processing OAuth code...');
       setAuthError(null);
       
+      // Clear URL parameters immediately to prevent re-processing
+      const newUrl = new URL(window.location.href);
+      const cleanedUrl = newUrl.pathname + newUrl.search.replace(/[?&]code=[^&]*/g, '').replace(/[?&]error=[^&]*/g, '').replace(/[?&]error_description=[^&]*/g, '').replace(/[?&]state=[^&]*/g, '').replace(/[?&]scope=[^&]*/g, '').replace(/^&/, '?').replace(/[?&]$/, '');
+      router.replace(cleanedUrl, { scroll: false });
+      
       exchangeToken(code, {
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
           console.log('✅ Successfully connected to Strava:', data);
           setAuthSuccess(true);
           
-          // Clean up URL parameters
-          const newUrl = new URL(window.location.href);
-          newUrl.searchParams.delete('code');
-          newUrl.searchParams.delete('error');
-          newUrl.searchParams.delete('error_description');
-          newUrl.searchParams.delete('state');
-          newUrl.searchParams.delete('scope');
-          router.replace(newUrl.pathname + newUrl.search, { scroll: false });
+          // Immediately invalidate both connection and token caches for instant update
+          await queryClient.invalidateQueries({ 
+            queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id] 
+          });
+          await queryClient.invalidateQueries({ 
+            queryKey: [STRAVA_TOKEN_QUERY_KEY, user?.id] 
+          });
           
-          // Refresh connection status
+          // Refresh connection status and clear success message
           setTimeout(() => {
             refreshStatus();
             setAuthSuccess(false);
-          }, 2000);
+          }, 1000);
         },
         onError: (error) => {
           console.error('❌ Failed to connect to Strava:', error);
@@ -96,15 +104,6 @@ export function StravaIntegration() {
           }
           
           setAuthError(errorMessage);
-          
-          // Clean up URL parameters
-          const newUrl = new URL(window.location.href);
-          newUrl.searchParams.delete('code');
-          newUrl.searchParams.delete('error');
-          newUrl.searchParams.delete('error_description');
-          newUrl.searchParams.delete('state');
-          newUrl.searchParams.delete('scope');
-          router.replace(newUrl.pathname + newUrl.search, { scroll: false });
         }
       });
     }

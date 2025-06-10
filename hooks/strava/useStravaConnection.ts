@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { StravaAuth } from '@/lib/strava/auth';
 
@@ -21,67 +22,77 @@ export interface UseStravaConnectionReturn {
   disconnect: () => Promise<void>;
 }
 
+const STRAVA_CONNECTION_QUERY_KEY = 'strava-connection';
+
 /**
  * Hook to manage Strava connection status
- * Checks if user is connected and provides connection management
+ * Uses React Query for better caching and state management
  */
 export function useStravaConnection(): UseStravaConnectionReturn {
   const { user } = useAuth();
-  const [connectionStatus, setConnectionStatus] = useState<StravaConnectionStatus | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const {
+    data: connectionStatus,
+    isLoading,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      const stravaAuth = new StravaAuth(false);
+      return await stravaAuth.getConnectionStatus(user.id);
+    },
+    enabled: !!user,
+    staleTime: 30 * 1000, // 30 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   const refreshStatus = useCallback(async () => {
-    if (!user) {
-      setConnectionStatus(null);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const stravaAuth = new StravaAuth(false);
-      const status = await stravaAuth.getConnectionStatus(user.id);
-      setConnectionStatus(status);
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to check connection status';
-      setError(errorMsg);
-      console.error('Error checking Strava connection:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
+    await queryClient.invalidateQueries({ 
+      queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id] 
+    });
+    await refetch();
+  }, [queryClient, user?.id, refetch]);
 
   const disconnect = useCallback(async () => {
     if (!user) return;
 
-    setIsLoading(true);
-    setError(null);
-
     try {
       const stravaAuth = new StravaAuth(false);
       await stravaAuth.disconnectUser(user.id);
-      setConnectionStatus({ connected: false });
+      
+      // Immediately update the cache to reflect disconnection
+      queryClient.setQueryData(
+        [STRAVA_CONNECTION_QUERY_KEY, user.id], 
+        { connected: false }
+      );
+      
+      // Also invalidate to force a fresh fetch
+      await queryClient.invalidateQueries({ 
+        queryKey: [STRAVA_CONNECTION_QUERY_KEY, user.id] 
+      });
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to disconnect';
-      setError(errorMsg);
       console.error('Error disconnecting from Strava:', err);
-    } finally {
-      setIsLoading(false);
+      throw new Error(errorMsg);
     }
-  }, [user]);
+  }, [user, queryClient]);
 
-  // Check connection status on mount and when user changes
-  useEffect(() => {
-    refreshStatus();
-  }, [refreshStatus]);
+  const error = queryError ? 
+    (queryError instanceof Error ? queryError.message : 'Failed to check connection status') : 
+    null;
 
   return {
-    connectionStatus,
+    connectionStatus: connectionStatus || null,
     isLoading,
     error,
     refreshStatus,
     disconnect,
   };
-} 
+}
+
+// Export the query key for use in other hooks
+export { STRAVA_CONNECTION_QUERY_KEY }; 

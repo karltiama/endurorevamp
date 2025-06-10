@@ -120,19 +120,13 @@ export function useSmartZoneAnalysis() {
   const zoneQuery = useZoneAnalysisOptimized()
   const { checkAndInvalidateZones } = useZoneAnalysisInvalidation()
 
-  // Check for invalidation on mount and periodically
+  // Check for invalidation only on mount
   React.useEffect(() => {
     // Check on mount
     checkAndInvalidateZones()
-
-    // Check every 5 minutes when user is active
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        checkAndInvalidateZones()
-      }
-    }, 5 * 60 * 1000) // 5 minutes
-
-    return () => clearInterval(interval)
+    
+    // No periodic checking - zones will be invalidated when sync completes
+    // This reduces unnecessary API calls to check sync status
   }, [checkAndInvalidateZones])
 
   return zoneQuery

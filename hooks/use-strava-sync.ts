@@ -65,7 +65,11 @@ export function useStravaSync() {
   } = useQuery({
     queryKey: ['strava', 'sync-status'],
     queryFn: getSyncStatus,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    staleTime: 5 * 60 * 1000, // Consider fresh for 5 minutes
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    refetchOnWindowFocus: false, // Don't refetch when switching tabs
+    refetchOnReconnect: false, // Don't refetch on network reconnect
+    // No refetchInterval - only fetch when explicitly requested
   })
 
   // Mutation for triggering sync
@@ -114,6 +118,10 @@ export function useStravaSync() {
     triggerSyncMutation(options)
   }
 
+  const refreshStatus = () => {
+    refetchStatus()
+  }
+
   return {
     // Status
     syncStatus,
@@ -133,7 +141,8 @@ export function useStravaSync() {
     syncResult,
     
     // Manual controls
-    refetchStatus
+    refetchStatus,
+    refreshStatus
   }
 }
 
