@@ -1,6 +1,8 @@
 import { requireAuth } from '@/lib/auth/server'
 import LogoutButton from '@/components/LogoutButton'
 import { StravaIntegrationWithActivities } from '@/components/strava/StravaIntegration'
+import SyncDashboard from '@/components/dashboard/SyncDashboard'
+import ZoneAnalysisDashboard from '@/components/training/ZoneAnalysisDashboard'
 import { Suspense } from 'react'
 
 export default async function DashboardPage() {
@@ -65,6 +67,40 @@ export default async function DashboardPage() {
                 <StravaIntegrationWithActivities />
               </Suspense>
             </div>
+
+            {/* Sync Dashboard Section */}
+            <div className="mt-8">
+              <Suspense fallback={
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="animate-pulse">
+                    <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+                    <div className="space-y-3">
+                      <div className="h-4 bg-gray-200 rounded w-full"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                  </div>
+                </div>
+              }>
+                <SyncDashboard />
+              </Suspense>
+            </div>
+
+            {/* Zone Analysis Dashboard Section */}
+            <div className="mt-8">
+              <Suspense fallback={
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="animate-pulse">
+                    <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+                    <div className="space-y-3">
+                      <div className="h-4 bg-gray-200 rounded w-full"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                  </div>
+                </div>
+              }>
+                <ZoneAnalysisDashboard />
+              </Suspense>
+            </div>
             
             <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h4 className="text-lg font-medium text-blue-900 mb-2">Next Steps</h4>
@@ -72,6 +108,8 @@ export default async function DashboardPage() {
                 <li>• Set up your training goals</li>
                 <li>• Import your activity history</li>
                 <li>• Explore training insights</li>
+                <li>• Analyze your heart rate zones</li>
+                <li>• Plan zone-based workouts</li>
               </ul>
             </div>
           </div>

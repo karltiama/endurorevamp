@@ -86,10 +86,8 @@ function CallbackContent() {
         
         setIsProcessing(false)
         
-        // Small delay to show success before redirect
-        setTimeout(() => {
-          router.push('/dashboard')
-        }, 1000)
+        // Redirect to dashboard (OAuth will be handled there)
+        router.push('/dashboard')
       },
       onError: (error) => {
         console.error('❌ Failed to connect to Strava:', error)
@@ -118,7 +116,8 @@ function CallbackContent() {
           }
         }
         
-        setError(errorMessage)
+        // Redirect to dashboard (error will be handled there)
+        router.push('/dashboard')
       }
     })
 

@@ -4,20 +4,54 @@ import { cookies } from 'next/headers'
 
 export async function POST(request: Request) {
   try {
-    const { code } = await request.json()
+    // Add more robust JSON parsing
+    let requestBody
+    try {
+      const text = await request.text()
+      console.log('📥 Request body text:', text)
+      
+      if (!text || text.trim() === '') {
+        throw new Error('Request body is empty')
+      }
+      
+      requestBody = JSON.parse(text)
+    } catch (parseError) {
+      console.error('❌ JSON parsing error:', parseError)
+      return NextResponse.json(
+        { error: 'Invalid request body format' },
+        { status: 400 }
+      )
+    }
+
+    const { code } = requestBody
+    
+    if (!code) {
+      console.error('❌ No authorization code provided')
+      return NextResponse.json(
+        { error: 'Authorization code is required' },
+        { status: 400 }
+      )
+    }
+
+    console.log('🔑 Processing code:', code.substring(0, 10) + '...')
+    
     const cookieStore = await cookies()
     const supabase = await createClient()
 
-    // Get the current user from the session
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) {
+    // Get the authenticated user (secure)
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      console.error('❌ No authenticated user found')
       return NextResponse.json(
         { error: 'No authenticated user found' },
         { status: 401 }
       )
     }
 
+    console.log('👤 User authenticated:', user.id)
+
     // Exchange code for tokens with Strava
+    console.log('🌐 Calling Strava token endpoint...')
     const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
       method: 'POST',
       headers: {
@@ -31,17 +65,26 @@ export async function POST(request: Request) {
       }),
     })
 
+    console.log('📡 Strava response status:', tokenResponse.status)
+
     if (!tokenResponse.ok) {
-      throw new Error('Failed to exchange token with Strava')
+      const errorText = await tokenResponse.text()
+      console.error('❌ Strava API error:', tokenResponse.status, errorText)
+      return NextResponse.json(
+        { error: `Strava API error: ${tokenResponse.status} - ${errorText}` },
+        { status: tokenResponse.status }
+      )
     }
 
     const authData = await tokenResponse.json()
+    console.log('✅ Strava token exchange successful for athlete:', authData.athlete?.id)
 
     // Store tokens in Supabase
+    console.log('💾 Storing tokens in database...')
     const { error: storeError } = await supabase
       .from('strava_tokens')
       .upsert({
-        user_id: session.user.id,
+        user_id: user.id,
         access_token: authData.access_token,
         refresh_token: authData.refresh_token,
         token_type: authData.token_type,
@@ -57,9 +100,14 @@ export async function POST(request: Request) {
       })
 
     if (storeError) {
-      console.error('Error storing tokens:', storeError)
-      throw new Error('Failed to store Strava tokens')
+      console.error('❌ Error storing tokens:', storeError)
+      return NextResponse.json(
+        { error: 'Failed to store Strava tokens in database' },
+        { status: 500 }
+      )
     }
+
+    console.log('✅ Tokens stored successfully')
 
     // Set a cookie to indicate successful connection
     cookieStore.set('strava_connected', 'true', {

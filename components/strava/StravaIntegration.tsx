@@ -25,7 +25,7 @@ export function StravaIntegration() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [authSuccess, setAuthSuccess] = useState(false);
 
-  // Handle OAuth callback
+  // Handle OAuth callback on dashboard
   useEffect(() => {
     const code = searchParams.get('code');
     const error = searchParams.get('error');
@@ -48,7 +48,7 @@ export function StravaIntegration() {
       newUrl.searchParams.delete('error_description');
       newUrl.searchParams.delete('state');
       newUrl.searchParams.delete('scope');
-      router.replace(newUrl.pathname + newUrl.search);
+      router.replace(newUrl.pathname + newUrl.search, { scroll: false });
       return;
     }
 
@@ -69,7 +69,7 @@ export function StravaIntegration() {
           newUrl.searchParams.delete('error_description');
           newUrl.searchParams.delete('state');
           newUrl.searchParams.delete('scope');
-          router.replace(newUrl.pathname + newUrl.search);
+          router.replace(newUrl.pathname + newUrl.search, { scroll: false });
           
           // Refresh connection status
           setTimeout(() => {
@@ -104,7 +104,7 @@ export function StravaIntegration() {
           newUrl.searchParams.delete('error_description');
           newUrl.searchParams.delete('state');
           newUrl.searchParams.delete('scope');
-          router.replace(newUrl.pathname + newUrl.search);
+          router.replace(newUrl.pathname + newUrl.search, { scroll: false });
         }
       });
     }
