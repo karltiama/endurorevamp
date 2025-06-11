@@ -3,6 +3,7 @@ import LogoutButton from '@/components/LogoutButton'
 import { StravaIntegrationWithActivities } from '@/components/strava/StravaIntegration'
 import SyncDashboard from '@/components/dashboard/SyncDashboard'
 import ZoneAnalysisDashboard from '@/components/training/ZoneAnalysisDashboard'
+import { KeyMetrics } from '@/components/dashboard/KeyMetrics'
 import { Suspense } from 'react'
 
 export default async function DashboardPage() {
@@ -16,6 +17,30 @@ export default async function DashboardPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-6">
               Welcome to your Dashboard!
             </h1>
+            
+            {/* Key Metrics Section */}
+            <Suspense fallback={
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white rounded-lg shadow p-6">
+                    <div className="animate-pulse">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+                          <div className="h-8 bg-gray-200 rounded w-16"></div>
+                        </div>
+                        <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                      </div>
+                      <div className="mt-4">
+                        <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            }>
+              <KeyMetrics userId={user.id} />
+            </Suspense>
             
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
