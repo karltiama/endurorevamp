@@ -4,6 +4,7 @@ import { StravaIntegrationWithActivities } from '@/components/strava/StravaInteg
 import SyncDashboard from '@/components/dashboard/SyncDashboard'
 import ZoneAnalysisDashboard from '@/components/training/ZoneAnalysisDashboard'
 import { KeyMetrics } from '@/components/dashboard/KeyMetrics'
+import { ActivityCharts } from '@/components/dashboard/ActivityCharts'
 import { Suspense } from 'react'
 
 export default async function DashboardPage() {
@@ -41,6 +42,24 @@ export default async function DashboardPage() {
             }>
               <KeyMetrics userId={user.id} />
             </Suspense>
+
+            {/* Activity Charts Section */}
+            <div className="mb-8">
+              <Suspense fallback={
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="bg-white rounded-lg shadow p-6">
+                      <div className="animate-pulse">
+                        <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+                        <div className="h-[300px] bg-gray-200 rounded"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              }>
+                <ActivityCharts userId={user.id} />
+              </Suspense>
+            </div>
             
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
