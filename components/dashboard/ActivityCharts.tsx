@@ -1,8 +1,5 @@
-'use client'
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useUserActivities } from '@/hooks/use-user-activities'
 import { Activity } from '@/lib/strava/types'
 import { useMemo } from 'react'
 import {
@@ -22,13 +19,12 @@ import {
 import { ActivityContributionCalendar } from './ActivityContributionCalendar'
 
 interface ActivityChartsProps {
-  userId: string
+  activities: Activity[]
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8']
 
-export function ActivityCharts({ userId }: ActivityChartsProps) {
-  const { data: activities, isLoading, error } = useUserActivities(userId)
+export function ActivityCharts({ activities }: ActivityChartsProps) {
 
   const monthlyData = useMemo(() => {
     if (!activities) return []
@@ -68,35 +64,7 @@ export function ActivityCharts({ userId }: ActivityChartsProps) {
     }))
   }, [activities])
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <div className="h-6 bg-gray-200 rounded w-1/3 animate-pulse" />
-          <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" />
-        </CardHeader>
-        <CardContent>
-          <div className="h-[400px] bg-gray-100 rounded-lg animate-pulse" />
-        </CardContent>
-      </Card>
-    )
-  }
 
-  if (error) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Error</CardTitle>
-          <CardDescription>Failed to load activity data</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-red-500">
-            {error instanceof Error ? error.message : 'Failed to load activity data'}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
 
   return (
     <Card>
