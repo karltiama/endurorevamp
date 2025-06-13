@@ -130,9 +130,9 @@ export function ActivityContributionCalendar({ activities }: ActivityContributio
           
           {/* Calendar */}
           <div className="w-full max-w-full">
-            {/* Month labels */}
+            {/* Month labels - hidden on mobile, abbreviated on medium screens */}
             <div 
-              className="grid mb-1"
+              className="hidden sm:grid mb-1"
               style={{ 
                 gridTemplateColumns: `repeat(${totalWeeks}, 1fr)`,
                 gap: '2px'
@@ -142,7 +142,8 @@ export function ActivityContributionCalendar({ activities }: ActivityContributio
                 const monthLabel = monthLabels.find(m => m.weekIndex === index)
                 return (
                   <div key={index} className="text-xs text-muted-foreground text-left">
-                    {monthLabel?.month || ''}
+                    <span className="hidden md:inline">{monthLabel?.month || ''}</span>
+                    <span className="md:hidden">{monthLabel?.month?.charAt(0) || ''}</span>
                   </div>
                 )
               })}
@@ -150,25 +151,38 @@ export function ActivityContributionCalendar({ activities }: ActivityContributio
             
             {/* Day labels */}
             <div className="flex">
-              <div className="flex flex-col mr-3 text-xs text-muted-foreground justify-between py-1">
-                <div style={{ height: '12px' }}>Mon</div>
+              <div className="flex flex-col mr-2 sm:mr-3 text-xs text-muted-foreground justify-between py-1">
+                <div style={{ height: '12px' }}>
+                  <span className="hidden sm:inline">Mon</span>
+                  <span className="sm:hidden">M</span>
+                </div>
                 <div style={{ height: '12px' }}></div>
-                <div style={{ height: '12px' }}>Wed</div>
+                <div style={{ height: '12px' }}>
+                  <span className="hidden sm:inline">Wed</span>
+                  <span className="sm:hidden">W</span>
+                </div>
                 <div style={{ height: '12px' }}></div>
-                <div style={{ height: '12px' }}>Fri</div>
+                <div style={{ height: '12px' }}>
+                  <span className="hidden sm:inline">Fri</span>
+                  <span className="sm:hidden">F</span>
+                </div>
                 <div style={{ height: '12px' }}></div>
-                <div style={{ height: '12px' }}>Sun</div>
+                <div style={{ height: '12px' }}>
+                  <span className="hidden sm:inline">Sun</span>
+                  <span className="sm:hidden">S</span>
+                </div>
               </div>
               
               {/* Calendar grid */}
               <div 
-                className="grid gap-[2px] flex-1"
+                className="grid gap-[1px] sm:gap-[2px] flex-1"
                 style={{ 
                   gridTemplateColumns: `repeat(${totalWeeks}, 1fr)`,
                   gridTemplateRows: 'repeat(7, 12px)',
-                  rowGap: '2px',
-                  columnGap: '2px'
+                  rowGap: '1px',
+                  columnGap: '1px'
                 }}
+                data-mobile-gaps="true"
               >
                 {contributionData.map((week, weekIndex) =>
                   week.map((day, dayIndex) => (
