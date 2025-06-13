@@ -1,6 +1,7 @@
 import { requireAuth } from '@/lib/auth/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import ZoneAnalysisDashboard from '@/components/training/ZoneAnalysisDashboard'
+import { TrainingLoadChartClient } from '@/components/training/TrainingLoadChartClient'
 import { Suspense } from 'react'
 
 export default async function TrainingPage() {
@@ -21,17 +22,10 @@ export default async function TrainingPage() {
           <ZoneAnalysisDashboard />
         </Suspense>
 
-        {/* Future training load components would go here */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-blue-900 mb-2">Coming Soon</h3>
-          <ul className="text-sm text-blue-700 space-y-1">
-            <li>• Training Stress Score (TSS) analysis</li>
-            <li>• Chronic Training Load (CTL) tracking</li>
-            <li>• Acute Training Load (ATL) monitoring</li>
-            <li>• Training Load Balance insights</li>
-            <li>• Recovery recommendations</li>
-          </ul>
-        </div>
+        {/* Training Load Analysis */}
+        <Suspense fallback={<TrainingLoadSkeleton />}>
+          <TrainingLoadChartClient />
+        </Suspense>
       </div>
     </DashboardLayout>
   )
@@ -44,6 +38,22 @@ function ZoneAnalysisSkeleton() {
         <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
         <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
         <div className="h-64 bg-gray-100 rounded-lg"></div>
+      </div>
+    </div>
+  )
+}
+
+function TrainingLoadSkeleton() {
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="animate-pulse">
+        <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+        <div className="flex gap-2 mb-6">
+          <div className="h-4 bg-gray-200 rounded w-16"></div>
+          <div className="h-4 bg-gray-200 rounded w-20"></div>
+          <div className="h-4 bg-gray-200 rounded w-18"></div>
+        </div>
+        <div className="h-96 bg-gray-100 rounded-lg"></div>
       </div>
     </div>
   )
