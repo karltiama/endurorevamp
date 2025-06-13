@@ -19,6 +19,7 @@ import {
   PieChart,
   Cell,
 } from 'recharts'
+import { ActivityContributionCalendar } from './ActivityContributionCalendar'
 
 interface ActivityChartsProps {
   userId: string
@@ -212,51 +213,7 @@ export function ActivityCharts({ userId }: ActivityChartsProps) {
           </TabsContent>
 
           <TabsContent value="frequency" className="mt-4">
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis 
-                    dataKey="month" 
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="rounded-lg border bg-background p-2 shadow-sm">
-                            <div className="flex flex-col">
-                              <span className="text-[0.70rem] uppercase text-muted-foreground">
-                                Activities
-                              </span>
-                              <span className="font-bold text-muted-foreground">
-                                {payload[0].value}
-                              </span>
-                            </div>
-                          </div>
-                        )
-                      }
-                      return null
-                    }}
-                  />
-                  <Bar
-                    dataKey="count"
-                    fill="hsl(var(--secondary))"
-                    radius={[4, 4, 0, 0]}
-                    className="fill-secondary"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <ActivityContributionCalendar activities={activities || []} />
           </TabsContent>
         </Tabs>
       </CardContent>
