@@ -46,8 +46,10 @@ export function useStravaConnection(): UseStravaConnectionReturn {
       return await stravaAuth.getConnectionStatus(user.id);
     },
     enabled: !!user,
-    staleTime: 30 * 1000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes - longer to prevent frequent checks
+    gcTime: 15 * 60 * 1000, // 15 minutes - longer cache retention
+    refetchOnWindowFocus: false, // Prevent refetch on window focus which might cause disconnected flash
+    refetchOnReconnect: false, // Prevent unnecessary refetch on network reconnect
   });
 
   const refreshStatus = useCallback(async () => {

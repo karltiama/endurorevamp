@@ -71,19 +71,34 @@ export function StravaIntegration() {
           console.log('✅ Successfully connected to Strava:', data);
           setAuthSuccess(true);
           
-          // Immediately invalidate both connection and token caches for instant update
-          await queryClient.invalidateQueries({ 
-            queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id] 
-          });
-          await queryClient.invalidateQueries({ 
-            queryKey: [STRAVA_TOKEN_QUERY_KEY, user?.id] 
-          });
+          // Set the connection status immediately in cache to prevent showing disconnected state
+          queryClient.setQueryData(
+            [STRAVA_CONNECTION_QUERY_KEY, user?.id],
+            {
+              connected: true,
+              athlete: data.athlete ? {
+                id: data.athlete.id,
+                firstname: data.athlete.firstname,
+                lastname: data.athlete.lastname,
+                profile: data.athlete.profile,
+              } : undefined,
+            }
+          );
           
-          // Refresh connection status and clear success message
+          // Invalidate queries to ensure fresh data from server
+          await Promise.all([
+            queryClient.invalidateQueries({ 
+              queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id] 
+            }),
+            queryClient.invalidateQueries({ 
+              queryKey: [STRAVA_TOKEN_QUERY_KEY, user?.id] 
+            })
+          ]);
+          
+          // Clear success message after a delay
           setTimeout(() => {
-            refreshStatus();
             setAuthSuccess(false);
-          }, 1000);
+          }, 3000);
         },
         onError: (error) => {
           console.error('❌ Failed to connect to Strava:', error);
@@ -107,7 +122,7 @@ export function StravaIntegration() {
         }
       });
     }
-  }, [searchParams, connectionStatus?.connected, isAuthing, exchangeToken, router, refreshStatus]);
+  }, [searchParams, connectionStatus?.connected, isAuthing, exchangeToken, router, queryClient, user?.id]);
 
   const handleConnect = () => {
     window.location.href = getStravaAuthUrl(window.location.origin);

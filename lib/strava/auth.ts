@@ -211,13 +211,17 @@ export class StravaAuth {
     expiresAt?: string;
   }> {
     try {
+      console.log('🔍 Checking connection status for user:', userId);
       const tokens = await this.getTokens(userId);
       
       if (!tokens) {
+        console.log('❌ No tokens found for user');
         return { connected: false };
       }
 
+      console.log('✅ Tokens found, checking if connected...');
       const connected = await this.isConnected(userId);
+      console.log('🔗 Connection status:', connected, 'expires at:', tokens.expires_at);
       
       return {
         connected,
