@@ -3,9 +3,12 @@ export interface GoalType {
   id: string;
   name: string;
   display_name: string;
-  description?: string;
-  unit?: string;
-  category: 'distance' | 'time' | 'event' | 'general' | 'health' | 'habit' | 'performance';
+  description: string;
+  category: 'distance' | 'pace' | 'frequency' | 'duration' | 'elevation' | 'heart_rate';
+  metric_type: string; // e.g., 'total_distance', 'average_pace', 'run_count', etc.
+  unit?: string; // km, miles, min/km, min/mile, bpm, m, ft, count, minutes, hours
+  target_guidance?: string; // Guidance for setting realistic targets
+  calculation_method: string; // How progress is calculated from activities
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -15,35 +18,33 @@ export interface UserGoal {
   id: string;
   user_id: string;
   goal_type_id: string;
-  target_value?: number;
-  target_unit?: string;
-  target_date?: string;
-  goal_data: Record<string, any>;
+  target_value?: number; // The numeric target (e.g., 50 km, 5:00 min/km, 4 runs)
+  target_unit?: string; // Unit for the target
+  target_date?: string; // Optional target date for time-bound goals
+  time_period: 'weekly' | 'monthly' | 'single_activity' | 'ongoing';
+  current_progress: number; // Current progress toward target
+  best_result?: number; // Best single result achieved (for pace, distance PRs, etc.)
+  streak_count: number; // For consistency goals
+  goal_data?: GoalData; // Additional goal-specific data
   is_active: boolean;
   is_completed: boolean;
-  priority: number;
-  current_progress: number;
-  progress_unit?: string;
-  last_progress_update?: string;
+  priority: number; // 1-5, higher = more important
   created_at: string;
   updated_at: string;
   completed_at?: string;
-  
-  // Joined data
-  goal_type?: GoalType;
+  last_progress_update?: string;
+  goal_type?: GoalType; // Joined goal type information
 }
 
 export interface GoalProgress {
   id: string;
   user_goal_id: string;
-  progress_value: number;
-  progress_unit: string;
-  progress_date: string;
-  source: 'manual' | 'strava' | 'import';
-  source_id?: string;
+  activity_id?: string; // Strava activity ID
+  activity_date: string;
+  value_achieved?: number; // The value achieved in this activity
+  contribution_amount?: number; // How much this activity contributed to the goal
   notes?: string;
   created_at: string;
-  updated_at: string;
 }
 
 export interface UserOnboarding {
@@ -51,27 +52,38 @@ export interface UserOnboarding {
   user_id: string;
   goals_completed: boolean;
   strava_connected: boolean;
-  profile_completed: boolean;
-  first_sync_completed: boolean;
-  started_at: string;
+  current_step: 'goals' | 'strava' | 'complete';
   completed_at?: string;
-  current_step: 'goals' | 'strava' | 'profile' | 'sync' | 'complete';
   created_at: string;
   updated_at: string;
 }
 
-// Form types for the onboarding modal
-export interface GoalFormData {
-  goalTypeId: string;
-  targetValue?: number;
-  targetUnit?: string;
-  targetDate?: string;
+// Goal-specific data types
+export interface GoalData {
   notes?: string;
-  priority?: number;
-}
-
-export interface OnboardingGoalsForm {
-  selectedGoals: GoalFormData[];
+  // Pace-specific data
+  target_pace_seconds?: number; // Target pace in seconds per km
+  distance_range?: [number, number]; // Distance range for pace goals (e.g., [4.5, 5.5] for 5K)
+  
+  // Heart rate specific data
+  target_zones?: number[]; // HR zones to target (e.g., [1, 2] for aerobic base)
+  zone_ranges?: {
+    zone_1?: [number, number]; // BPM ranges for each zone
+    zone_2?: [number, number];
+    zone_3?: [number, number];
+    zone_4?: [number, number];
+    zone_5?: [number, number];
+  };
+  
+  // Frequency-specific data
+  target_frequency?: number; // Number of runs per week/month
+  
+  // Elevation-specific data
+  elevation_preference?: 'flat' | 'hilly' | 'mixed';
+  
+  // General metadata
+  difficulty_level?: 'beginner' | 'intermediate' | 'advanced';
+  estimated_weeks?: number; // Estimated time to complete goal
 }
 
 // API request/response types
@@ -80,65 +92,159 @@ export interface CreateGoalRequest {
   target_value?: number;
   target_unit?: string;
   target_date?: string;
-  goal_data?: Record<string, any>;
+  time_period?: 'weekly' | 'monthly' | 'single_activity' | 'ongoing';
+  goal_data?: GoalData;
   priority?: number;
 }
 
-export interface CreateGoalResponse {
-  goal: UserGoal;
-  success: boolean;
-  error?: string;
+export interface UpdateGoalRequest {
+  target_value?: number;
+  target_date?: string;
+  goal_data?: GoalData;
+  current_progress?: number;
+  is_completed?: boolean;
+  priority?: number;
 }
 
-export interface UpdateOnboardingRequest {
-  current_step?: string;
-  goals_completed?: boolean;
-  strava_connected?: boolean;
-  profile_completed?: boolean;
-  first_sync_completed?: boolean;
-}
-
-export interface UpdateOnboardingResponse {
-  onboarding: UserOnboarding;
-  success: boolean;
-  error?: string;
-}
-
+// API Response types
 export interface GetGoalTypesResponse {
-  goalTypes: GoalType[];
   success: boolean;
+  goalTypes: GoalType[];
   error?: string;
 }
 
 export interface GetUserGoalsResponse {
+  success: boolean;
   goals: UserGoal[];
   onboarding?: UserOnboarding;
-  success: boolean;
   error?: string;
 }
 
-// UI component types
-export interface GoalOption {
-  id: string;
-  name: string;
-  displayName: string;
-  description: string;
-  category: string;
-  unit?: string;
-  requiresValue: boolean;
-  requiresDate: boolean;
-  placeholder?: string;
-  minValue?: number;
-  maxValue?: number;
+export interface CreateGoalResponse {
+  success: boolean;
+  goal: UserGoal;
+  error?: string;
 }
 
-export interface OnboardingStep {
-  id: string;
-  title: string;
-  description: string;
-  component: string;
+export interface UpdateGoalResponse {
+  success: boolean;
+  goal: UserGoal;
+  error?: string;
+}
+
+export interface DeleteGoalResponse {
+  success: boolean;
+  message: string;
+  error?: string;
+}
+
+// UI component prop types
+export interface GoalCardProps {
+  goal: UserGoal;
+  onEdit: () => void;
+  showCompleted?: boolean;
+}
+
+export interface GoalFormData {
+  goalTypeId: string;
+  targetValue?: number;
+  targetUnit?: string;
+  targetDate?: string;
+  timePeriod?: 'weekly' | 'monthly' | 'single_activity' | 'ongoing';
+  notes?: string;
+  difficultyLevel?: 'beginner' | 'intermediate' | 'advanced';
+  // Pace-specific fields
+  targetPaceMinutes?: number;
+  targetPaceSeconds?: number;
+  // Frequency-specific fields
+  targetFrequency?: number;
+  // Heart rate specific fields
+  targetZones?: number[];
+}
+
+// Helper types for calculations
+export interface GoalProgressSummary {
+  goalId: string;
+  goalName: string;
+  targetValue?: number;
+  currentProgress: number;
+  bestResult?: number;
+  progressPercentage: number;
   isCompleted: boolean;
-  isActive: boolean;
+  daysRemaining?: number;
+  estimatedCompletion?: string;
+  recentTrend: 'improving' | 'declining' | 'stable';
+}
+
+export interface ActivityContribution {
+  activityId: string;
+  activityDate: string;
+  contributionAmount: number;
+  valueAchieved?: number;
+  goalIds: string[]; // Which goals this activity contributed to
+}
+
+// Goal metric calculation types
+export interface MetricCalculation {
+  metricType: string;
+  value: number;
+  unit: string;
+  calculationMethod: string;
+  dataPoints: number; // How many activities contributed to this calculation
+  confidenceLevel: 'high' | 'medium' | 'low'; // Based on data quality
+}
+
+// Target setting guidance
+export interface TargetGuidance {
+  category: string;
+  experience_level: 'beginner' | 'intermediate' | 'advanced';
+  recommended_targets: {
+    conservative: number;
+    moderate: number;
+    aggressive: number;
+  };
+  unit: string;
+  tips: string[];
+  warning?: string;
+}
+
+// Types for different goal categories
+export interface DistanceGoal extends UserGoal {
+  goal_type: GoalType & { category: 'distance' };
+  target_value: number; // Required for distance goals
+  target_unit: 'km' | 'miles';
+}
+
+export interface PaceGoal extends UserGoal {
+  goal_type: GoalType & { category: 'pace' };
+  target_value: number; // Target pace in seconds per km
+  target_unit: 'min/km' | 'min/mile';
+  goal_data: GoalData & {
+    distance_range?: [number, number];
+    target_pace_seconds: number;
+  };
+}
+
+export interface FrequencyGoal extends UserGoal {
+  goal_type: GoalType & { category: 'frequency' };
+  target_value: number; // Number of runs
+  target_unit: 'runs';
+  time_period: 'weekly' | 'monthly';
+}
+
+export interface HeartRateGoal extends UserGoal {
+  goal_type: GoalType & { category: 'heart_rate' };
+  target_value: number; // Minutes in target zones
+  target_unit: 'minutes';
+  goal_data: GoalData & {
+    target_zones: number[];
+    zone_ranges?: GoalData['zone_ranges'];
+  };
+}
+
+// Form types for the onboarding modal
+export interface OnboardingGoalsForm {
+  selectedGoals: GoalFormData[];
 }
 
 // Validation types

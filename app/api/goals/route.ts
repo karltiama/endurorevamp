@@ -112,8 +112,7 @@ export async function POST(request: Request) {
         target_unit: body.target_unit || goalType.unit,
         target_date: body.target_date,
         goal_data: body.goal_data || {},
-        priority: body.priority || 1,
-        progress_unit: body.target_unit || goalType.unit
+        priority: body.priority || 1
       })
       .select(`
         *,
