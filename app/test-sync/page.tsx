@@ -1,77 +1,101 @@
 import { SyncDebugger } from '@/components/strava/SyncDebugger';
 import { SyncButton } from '@/components/strava/SyncButton';
-import { SupabaseTestButton } from '@/components/strava/SupabaseTestButton';
 import { StravaConnectionTester } from '@/components/strava/StravaConnectionTester';
 import { EnvChecker } from '@/components/strava/EnvChecker';
 import { OAuthFlowTester } from '@/components/strava/OAuthFlowTester';
+import { DevFooter } from '@/components/dev/DevFooter';
+import { redirect } from 'next/navigation';
 
 export default function TestSyncPage() {
+  // Redirect to home in production
+  if (process.env.NODE_ENV === 'production') {
+    redirect('/dashboard');
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold">Strava Sync Testing</h1>
-        <p className="text-gray-600 mt-2">
-          Use these tools to diagnose and test your Strava sync functionality
+      {/* Development Environment Warning */}
+      <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse"></div>
+          <span className="font-medium text-orange-800">Development Environment</span>
+        </div>
+        <p className="text-sm text-orange-700 mt-1">
+          This testing page is only available in development mode and will not be accessible in production.
         </p>
       </div>
 
-      {/* Environment Check - Must be first */}
+      <div className="text-center">
+        <h1 className="text-3xl font-bold">Strava Sync Testing</h1>
+        <p className="text-gray-600 mt-2">
+          Comprehensive testing tools for your Strava integration
+        </p>
+      </div>
+
+      {/* Layer 1: Configuration Check */}
       <div className="mb-6">
-        <EnvChecker />
-      </div>
-
-      {/* OAuth Flow Tester - Test the exact flow */}
-      <div className="mb-6">
-        <OAuthFlowTester />
-      </div>
-
-      {/* Connection Tester - Put this second since it's the most likely issue */}
-      <div className="mb-8">
-        <StravaConnectionTester />
-      </div>
-
-      <div className="grid gap-8 lg:grid-cols-2">
-        <div>
-          <h2 className="text-xl font-semibold mb-4">🛠️ Sync Debugger</h2>
-          <p className="text-sm text-gray-600 mb-4">
-            Run comprehensive diagnostics on your Strava integration
-          </p>
-          <SyncDebugger />
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-xl font-semibold mb-4">🔄 Sync Button</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Test your sync functionality (now using the working API route approach)
-            </p>
-            <div className="max-w-md">
-              <SyncButton />
-            </div>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-4">🗄️ Database Test</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Test Supabase database connectivity and data access
-            </p>
-            <div className="max-w-md">
-              <SupabaseTestButton />
-            </div>
-          </div>
+        <h2 className="text-lg font-semibold mb-3">⚙️ Layer 1: Configuration</h2>
+        <div className="w-full max-w-4xl mx-auto">
+          <EnvChecker />
         </div>
       </div>
 
-      <div className="mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-        <h3 className="font-semibold text-yellow-800">🔍 Debugging Tips</h3>
-        <ul className="mt-2 text-sm text-yellow-700 space-y-1">
-          <li>• Open browser DevTools (F12) and check the Console tab for detailed logs</li>
-          <li>• Use the Sync Debugger to identify which step is failing</li>
-          <li>• Check the Network tab to see if API calls are being made correctly</li>
-          <li>• Look for authentication errors or expired tokens</li>
-          <li>• Verify your Strava app permissions include activity:read_all</li>
-        </ul>
+      {/* Layer 2: OAuth Authentication Flow */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-3">🔐 Layer 2: OAuth Authentication</h2>
+        <div className="w-full max-w-4xl mx-auto">
+          <OAuthFlowTester />
+        </div>
       </div>
+
+      {/* Layer 3: Connection & Database */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-3">🗄️ Layer 3: Connection & Database</h2>
+        <div className="w-full max-w-4xl mx-auto">
+          <StravaConnectionTester />
+        </div>
+      </div>
+
+      {/* Layer 4: Sync Functionality */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-3">🔄 Layer 4: Sync Functionality</h2>
+        <div className="w-full max-w-4xl mx-auto">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div>
+              <h3 className="text-base font-medium mb-4">🛠️ Diagnostic Sync (Client-side)</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Step-by-step diagnostics using the client-side approach
+              </p>
+              <SyncDebugger />
+            </div>
+
+            <div>
+              <h3 className="text-base font-medium mb-4">✅ Production Sync (API Route)</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Test the working API route-based sync functionality
+              </p>
+              <div className="w-full">
+                <SyncButton />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <h3 className="font-semibold text-blue-800">🔍 Testing Flow</h3>
+        <ol className="mt-2 text-sm text-blue-700 space-y-1 list-decimal list-inside">
+          <li><strong>Configuration:</strong> Verify environment variables are set correctly</li>
+          <li><strong>OAuth:</strong> Test complete authentication flow with real Strava redirect</li>
+          <li><strong>Database:</strong> Validate connection status and token storage</li>
+          <li><strong>Sync:</strong> Compare diagnostic vs production sync approaches</li>
+        </ol>
+        <p className="mt-3 text-xs text-blue-600">
+          💡 Each layer tests a different part of the data flow. If a layer fails, fix it before testing the next layer.
+        </p>
+      </div>
+
+      <DevFooter />
     </div>
   );
 } 

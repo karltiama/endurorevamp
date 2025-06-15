@@ -39,6 +39,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
+  // Block access to test/debug routes in production
+  if (process.env.NODE_ENV === 'production') {
+    const testPaths = [
+      '/test-sync',
+      '/debug',
+      '/api/test',
+      '/admin/debug'
+    ];
+    
+    if (testPaths.some(path => request.nextUrl.pathname.startsWith(path))) {
+      console.warn(`🚨 Production access blocked for: ${request.nextUrl.pathname}`);
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+  }
+
   return supabaseResponse
 }
 
@@ -46,11 +61,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api (API routes that handle their own protection)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - api (API routes)
      */
-    '/((?!_next/static|_next/image|favicon.ico|api).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 } 
