@@ -101,6 +101,77 @@ export const useCreateGoal = () => {
   });
 };
 
+// Update a goal
+export const useUpdateGoal = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ goalId, updates }: { 
+      goalId: string; 
+      updates: Partial<{
+        target_value: number;
+        target_date: string;
+        goal_data: Record<string, any>;
+        current_progress: number;
+        is_completed: boolean;
+      }>
+    }): Promise<UserGoal> => {
+      const response = await fetch(`/api/goals/${goalId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update goal');
+      }
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to update goal');
+      }
+      
+      return data.goal;
+    },
+    onSuccess: () => {
+      // Invalidate and refetch user goals
+      queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });
+    },
+  });
+};
+
+// Delete a goal
+export const useDeleteGoal = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (goalId: string): Promise<void> => {
+      const response = await fetch(`/api/goals/${goalId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete goal');
+      }
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to delete goal');
+      }
+    },
+    onSuccess: () => {
+      // Invalidate and refetch user goals
+      queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });
+    },
+  });
+};
+
 // Create multiple goals (for onboarding)
 export const useCreateMultipleGoals = () => {
   const queryClient = useQueryClient();
