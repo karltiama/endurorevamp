@@ -2,6 +2,7 @@ import { requireAuth } from '@/lib/auth/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { KeyMetrics } from '@/components/dashboard/KeyMetrics'
 import { ActivityContributionCalendarClient } from '@/components/dashboard/ActivityContributionCalendarClient'
+import { StravaOAuthHandler } from '@/components/dashboard/StravaOAuthHandler'
 import { Suspense } from 'react'
 
 export default async function DashboardPage() {
@@ -9,6 +10,9 @@ export default async function DashboardPage() {
 
   return (
     <DashboardLayout user={user}>
+      {/* Handle Strava OAuth callbacks */}
+      <StravaOAuthHandler />
+      
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
