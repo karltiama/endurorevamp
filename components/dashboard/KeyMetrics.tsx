@@ -1,7 +1,7 @@
 'use client'
 
 import { useUserActivities } from '../../hooks/use-user-activities'
-import { calculateWeeklyDistance, calculateActivityStreak, getLastActivity } from '@/lib/dashboard/metrics'
+import { calculateWeeklyDistance, calculateActivityStreak, calculateMonthlyProgress } from '@/lib/dashboard/metrics'
 import type { Activity } from '@/lib/strava/types'
 
 interface KeyMetricsProps {
@@ -27,13 +27,13 @@ export function KeyMetrics({ userId }: KeyMetricsProps) {
 
   const weeklyDistance = calculateWeeklyDistance(activities)
   const streakData = calculateActivityStreak(activities)
-  const lastActivity = getLastActivity(activities)
+  const monthlyProgress = calculateMonthlyProgress(activities)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
       <WeeklyDistanceCard distance={weeklyDistance} />
       <StreakCard streakData={streakData} />
-      <LastRunCard lastActivity={lastActivity} />
+      <MonthlyGoalCard progress={monthlyProgress} />
     </div>
   )
 }
@@ -60,10 +60,16 @@ function WeeklyDistanceCard({ distance }: { distance: { current: number; previou
           <span className="text-xl">📏</span>
         </div>
       </div>
-      <div className="mt-4 flex items-center">
-        <span className={`text-sm font-medium ${changeColor}`}>
-          {changeIcon} {Math.abs(distance.change)}% vs last week
-        </span>
+      <div className="mt-4 space-y-1">
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">Last week</span>
+          <span className="font-medium">{formatDistance(distance.previous)}</span>
+        </div>
+        <div className="flex items-center">
+          <span className={`text-sm font-medium ${changeColor}`}>
+            {changeIcon} {Math.abs(distance.change)}% change
+          </span>
+        </div>
       </div>
     </div>
   )
@@ -103,75 +109,78 @@ function StreakCard({ streakData }: { streakData: { current: number; longest: nu
   )
 }
 
-function LastRunCard({ lastActivity }: { lastActivity: Activity | null }) {
-  if (!lastActivity) {
-    return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-600">Last Activity</p>
-            <p className="text-lg text-gray-500">No activities yet</p>
-          </div>
-          <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full">
-            <span className="text-xl">🏃‍♂️</span>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
+function MonthlyGoalCard({ progress }: { 
+  progress: { 
+    current: number; 
+    target: number; 
+    progress: number; 
+    daysLeft: number;
+    onTrack: boolean;
+    projectedTotal: number;
+  } 
+}) {
   const formatDistance = (meters: number) => {
-    return `${(meters / 1000).toFixed(1)} km`
-  }
-
-  const formatDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`
-  }
-
-  const getDaysAgo = (dateString: string) => {
-    const daysDiff = Math.floor((Date.now() - new Date(dateString).getTime()) / (1000 * 60 * 60 * 24))
-    if (daysDiff === 0) return 'Today'
-    if (daysDiff === 1) return 'Yesterday'
-    return `${daysDiff} days ago`
-  }
-
-  const getActivityIcon = (sportType: string) => {
-    const icons: Record<string, string> = {
-      'Ride': '🚴‍♂️',
-      'Run': '🏃‍♂️',
-      'Swim': '🏊‍♂️',
-      'Hike': '🥾',
-      'Walk': '🚶‍♂️',
-      'Workout': '💪',
+    if (meters >= 1000) {
+      return `${(meters / 1000).toFixed(1)} km`
     }
-    return icons[sportType] || '🏃‍♂️'
+    return `${meters.toFixed(0)} m`
+  }
+
+  const getProgressColor = () => {
+    if (progress.progress >= 100) return 'text-green-600'
+    if (progress.onTrack) return 'text-blue-600'
+    return 'text-orange-600'
+  }
+
+  const getProgressIcon = () => {
+    if (progress.progress >= 100) return '🎉'
+    if (progress.onTrack) return '🎯'
+    return '⚡'
+  }
+
+  const getStatusMessage = () => {
+    if (progress.progress >= 100) return 'Goal achieved!'
+    if (progress.onTrack) return 'On track'
+    return 'Push harder!'
   }
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">Last Activity</p>
-          <p className="text-lg font-bold text-gray-900 truncate">{lastActivity.name}</p>
+          <p className="text-sm font-medium text-gray-600">Monthly Goal</p>
+          <p className="text-3xl font-bold text-gray-900">{progress.progress.toFixed(1)}%</p>
         </div>
-        <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full">
-          <span className="text-xl">{getActivityIcon(lastActivity.sport_type)}</span>
+        <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full">
+          <span className="text-xl">{getProgressIcon()}</span>
         </div>
       </div>
-      <div className="space-y-1">
+      <div className="mt-4 space-y-1">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Distance</span>
-          <span className="font-medium">{formatDistance(lastActivity.distance)}</span>
+          <span className="text-gray-600">Current</span>
+          <span className="font-medium">{formatDistance(progress.current)}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Duration</span>
-          <span className="font-medium">{formatDuration(lastActivity.moving_time)}</span>
+          <span className="text-gray-600">Target</span>
+          <span className="font-medium">{formatDistance(progress.target)}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-600">When</span>
-          <span className="font-medium">{getDaysAgo(lastActivity.start_date)}</span>
+        <div className="flex items-center justify-between">
+          <span className={`text-sm font-medium ${getProgressColor()}`}>
+            {getStatusMessage()}
+          </span>
+          <span className="text-xs text-gray-500">
+            {progress.daysLeft} days left
+          </span>
+        </div>
+        {/* Progress bar */}
+        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+          <div 
+            className={`h-2 rounded-full transition-all duration-300 ${
+              progress.progress >= 100 ? 'bg-green-500' : 
+              progress.onTrack ? 'bg-blue-500' : 'bg-orange-500'
+            }`}
+            style={{ width: `${Math.min(100, progress.progress)}%` }}
+          ></div>
         </div>
       </div>
     </div>

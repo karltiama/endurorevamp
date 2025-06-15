@@ -123,4 +123,67 @@ export function getLastActivity(activities: Activity[]): Activity | null {
 
   // Return the most recent activity (activities should already be sorted by start_date desc)
   return activities[0] || null
+}
+
+export function calculateMonthlyProgress(activities: Activity[]): { 
+  current: number; 
+  target: number; 
+  progress: number; 
+  daysLeft: number;
+  onTrack: boolean;
+  projectedTotal: number;
+} {
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  
+  // Calculate current month's distance
+  const monthActivities = activities.filter(activity => {
+    const activityDate = new Date(activity.start_date)
+    return activityDate >= monthStart && activityDate <= now
+  })
+  
+  const currentDistance = monthActivities.reduce((sum, activity) => sum + (activity.distance || 0), 0)
+  
+  // Set a reasonable monthly target based on user's average
+  // If user has less than 30 days of data, use a default target
+  const hasEnoughData = activities.length >= 10
+  let monthlyTarget: number
+  
+  if (hasEnoughData) {
+    // Calculate average monthly distance from historical data
+    const totalDistance = activities.reduce((sum, activity) => sum + (activity.distance || 0), 0)
+    const oldestActivity = activities[activities.length - 1]
+    const daysSinceStart = Math.max(1, Math.floor((now.getTime() - new Date(oldestActivity.start_date).getTime()) / (1000 * 60 * 60 * 24)))
+    const avgDailyDistance = totalDistance / daysSinceStart
+    monthlyTarget = avgDailyDistance * 30 // 30-day target
+  } else {
+    // Default target for new users (100km/month for mixed activities)
+    monthlyTarget = 100000 // 100km in meters
+  }
+  
+  // Calculate progress percentage
+  const progress = Math.min(100, (currentDistance / monthlyTarget) * 100)
+  
+  // Calculate days left in month
+  const daysLeft = monthEnd.getDate() - now.getDate()
+  
+  // Calculate if user is on track
+  const daysInMonth = monthEnd.getDate()
+  const daysPassed = now.getDate()
+  const expectedProgress = (daysPassed / daysInMonth) * 100
+  const onTrack = progress >= expectedProgress * 0.8 // Allow 20% buffer
+  
+  // Project total for the month based on current pace
+  const dailyAverage = currentDistance / Math.max(1, daysPassed)
+  const projectedTotal = dailyAverage * daysInMonth
+  
+  return {
+    current: currentDistance,
+    target: monthlyTarget,
+    progress: Math.round(progress * 10) / 10, // Round to 1 decimal
+    daysLeft,
+    onTrack,
+    projectedTotal
+  }
 } 

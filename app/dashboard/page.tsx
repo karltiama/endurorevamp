@@ -1,7 +1,7 @@
 import { requireAuth } from '@/lib/auth/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { KeyMetrics } from '@/components/dashboard/KeyMetrics'
-import { ActivityContributionCalendarClient } from '@/components/dashboard/ActivityContributionCalendarClient'
+import { LastActivityDeepDive } from '@/components/dashboard/LastActivityDeepDive'
 import { StravaOAuthHandler } from '@/components/dashboard/StravaOAuthHandler'
 import { Suspense } from 'react'
 
@@ -26,19 +26,16 @@ export default async function DashboardPage() {
           <KeyMetrics userId={user.id} />
         </Suspense>
 
-        {/* Activity Calendar Section */}
-        <Suspense fallback={<ActivityCalendarSkeleton />}>
-          <ActivityCalendarClientWrapper userId={user.id} />
+        {/* Last Activity Deep Dive Section */}
+        <Suspense fallback={<LastActivitySkeleton />}>
+          <LastActivityDeepDive userId={user.id} />
         </Suspense>
       </div>
     </DashboardLayout>
   )
 }
 
-// Client component wrapper for the activity calendar
-function ActivityCalendarClientWrapper({ userId }: { userId: string }) {
-  return <ActivityContributionCalendarClient userId={userId} />
-}
+// Skeleton components
 
 function KeyMetricsSkeleton() {
   return (
@@ -63,13 +60,13 @@ function KeyMetricsSkeleton() {
   )
 }
 
-function ActivityCalendarSkeleton() {
+function LastActivitySkeleton() {
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="animate-pulse">
         <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
         <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
-        <div className="h-32 bg-gray-100 rounded-lg"></div>
+        <div className="h-40 bg-gray-100 rounded-lg"></div>
       </div>
     </div>
   )

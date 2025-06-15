@@ -101,8 +101,7 @@ describe('KeyMetrics Component', () => {
     // Should show the three main metric cards
     expect(screen.getByText('This Week')).toBeInTheDocument()
     expect(screen.getByText('Current Streak')).toBeInTheDocument()
-    expect(screen.getByText('Last Activity')).toBeInTheDocument()
-    expect(screen.getByText('Recent Run')).toBeInTheDocument()
+    expect(screen.getByText('Monthly Goal')).toBeInTheDocument()
   })
 })
 
