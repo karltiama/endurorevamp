@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
-import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, CheckCircle, Heart, Zap } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, CheckCircle, Heart, Zap, HelpCircle } from 'lucide-react'
 import { useTrainingLoad, useTrainingLoadTrends } from '@/hooks/useTrainingLoad'
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Legend, Line, LineChart, ComposedChart, Bar } from 'recharts'
 import { format, parseISO } from 'date-fns'
@@ -77,32 +78,33 @@ export function TrainingLoadChart({ userId, className }: TrainingLoadChartProps)
   const { metrics, athleteThresholds, dataQuality, totalActivities, activitiesWithHR, activitiesWithPower } = data!
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity className="h-5 w-5" />
-          Training Load Analysis
-        </CardTitle>
-        <div className="flex flex-wrap gap-2 mt-2">
-          <DataQualityBadge quality={dataQuality} />
-          <Badge variant="outline" className="text-xs">
-            {totalActivities} activities
-          </Badge>
-          {hasHRData && (
-            <Badge variant="outline" className="text-xs flex items-center gap-1">
-              <Heart className="h-3 w-3" />
-              {activitiesWithHR} with HR
+    <TooltipProvider>
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Training Load Analysis
+          </CardTitle>
+          <div className="flex flex-wrap gap-2 mt-2">
+            <DataQualityBadge quality={dataQuality} />
+            <Badge variant="outline" className="text-xs">
+              {totalActivities} activities
             </Badge>
-          )}
-          {hasPowerData && (
-            <Badge variant="outline" className="text-xs flex items-center gap-1">
-              <Zap className="h-3 w-3" />
-              {activitiesWithPower} with power
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
+            {hasHRData && (
+              <Badge variant="outline" className="text-xs flex items-center gap-1">
+                <Heart className="h-3 w-3" />
+                {activitiesWithHR} with HR
+              </Badge>
+            )}
+            {hasPowerData && (
+              <Badge variant="outline" className="text-xs flex items-center gap-1">
+                <Zap className="h-3 w-3" />
+                {activitiesWithPower} with power
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -113,33 +115,58 @@ export function TrainingLoadChart({ userId, className }: TrainingLoadChartProps)
           <TabsContent value="overview" className="space-y-6">
             <TrainingLoadMetrics metrics={metrics} />
             {chartData.length > 0 && (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={chartData.slice(-30)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                    <XAxis 
-                      dataKey="formattedDate" 
-                      tick={{ fontSize: 12 }}
-                      interval="preserveStartEnd"
-                    />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Bar dataKey="dailyLoad" fill="#3b82f6" opacity={0.6} />
-                    <Line 
-                      type="monotone" 
-                      dataKey="ctl" 
-                      stroke="#10b981" 
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="atl" 
-                      stroke="#f59e0b" 
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
+              <div className="space-y-4">
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={chartData.slice(-30)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                      <XAxis 
+                        dataKey="formattedDate" 
+                        tick={{ fontSize: 12 }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Bar 
+                        dataKey="dailyLoad" 
+                        fill="#3b82f6" 
+                        opacity={0.6} 
+                        name="Daily Load"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="ctl" 
+                        stroke="#10b981" 
+                        strokeWidth={2}
+                        dot={false}
+                        name="Fitness (CTL)"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="atl" 
+                        stroke="#f59e0b" 
+                        strokeWidth={2}
+                        dot={false}
+                        name="Fatigue (ATL)"
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                {/* Custom Legend */}
+                <div className="flex flex-col gap-2 text-sm items-center">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-3 bg-blue-500 opacity-60 rounded-sm"></div>
+                    <span>Daily Load</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-0.5 bg-green-500 rounded-sm"></div>
+                    <span>Fitness (CTL)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-0.5 bg-amber-500 rounded-sm"></div>
+                    <span>Fatigue (ATL)</span>
+                  </div>
+                </div>
               </div>
             )}
           </TabsContent>
@@ -223,6 +250,7 @@ export function TrainingLoadChart({ userId, className }: TrainingLoadChartProps)
         </Tabs>
       </CardContent>
     </Card>
+    </TooltipProvider>
   )
 }
 
@@ -273,19 +301,49 @@ function TrainingLoadMetrics({ metrics }: { metrics: any }) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">Fitness (CTL)</label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <label className="text-sm font-medium text-muted-foreground cursor-help flex items-center gap-1">
+                Fitness (CTL)
+                <HelpCircle className="h-3 w-3" />
+              </label>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Your chronic training load over 42 days. Higher values indicate better fitness.</p>
+            </TooltipContent>
+          </Tooltip>
           <div className="text-2xl font-bold">{metrics.chronic}</div>
           <Progress value={Math.min(100, (metrics.chronic / 100) * 100)} className="h-2" />
         </div>
         
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">Fatigue (ATL)</label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <label className="text-sm font-medium text-muted-foreground cursor-help flex items-center gap-1">
+                Fatigue (ATL)
+                <HelpCircle className="h-3 w-3" />
+              </label>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Your acute training load over 7 days. Represents short-term fatigue.</p>
+            </TooltipContent>
+          </Tooltip>
           <div className="text-2xl font-bold">{metrics.acute}</div>
           <Progress value={Math.min(100, (metrics.acute / 100) * 100)} className="h-2" />
         </div>
         
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">Form (TSB)</label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <label className="text-sm font-medium text-muted-foreground cursor-help flex items-center gap-1">
+                Form (TSB)
+                <HelpCircle className="h-3 w-3" />
+              </label>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Training Stress Balance = Fitness - Fatigue. Positive values suggest good form for performance.</p>
+            </TooltipContent>
+          </Tooltip>
           <div className="text-2xl font-bold">{metrics.balance > 0 ? '+' : ''}{metrics.balance}</div>
           <div className={`h-2 rounded-full ${metrics.balance > 0 ? 'bg-green-200' : 'bg-red-200'}`}>
             <div 
@@ -296,7 +354,17 @@ function TrainingLoadMetrics({ metrics }: { metrics: any }) {
         </div>
         
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">Ramp Rate</label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <label className="text-sm font-medium text-muted-foreground cursor-help flex items-center gap-1">
+                Ramp Rate
+                <HelpCircle className="h-3 w-3" />
+              </label>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Weekly training load change. Positive values show increasing load, negative values show recovery.</p>
+            </TooltipContent>
+          </Tooltip>
           <div className="text-2xl font-bold">{metrics.rampRate > 0 ? '+' : ''}{metrics.rampRate}</div>
           <Badge 
             variant="secondary" 

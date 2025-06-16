@@ -17,15 +17,18 @@ export default async function TrainingPage() {
           </p>
         </div>
 
-        {/* Zone Analysis Section */}
-        <Suspense fallback={<ZoneAnalysisSkeleton />}>
-          <ZoneAnalysisDashboard />
-        </Suspense>
 
         {/* Training Load Analysis */}
         <Suspense fallback={<TrainingLoadSkeleton />}>
           <TrainingLoadChartClient />
         </Suspense>
+
+        {/* Zone Analysis Section */}
+        <Suspense fallback={<ZoneAnalysisSkeleton />}>
+          <ZoneAnalysisDashboard />
+        </Suspense>
+
+      
       </div>
     </DashboardLayout>
   )
