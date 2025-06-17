@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useAthleteActivities } from '@/hooks/use-athlete-activities'
+import { useUserActivities } from '@/hooks/use-user-activities'
 import { ActivityCard } from './ActivityCard'
 import { ActivityDetailModal } from './ActivityDetailModal'
-import type { StravaActivity } from '@/types/strava'
+import type { Activity } from '@/lib/strava/types'
 
 interface ActivityFeedProps {
   accessToken: string
@@ -13,18 +13,27 @@ interface ActivityFeedProps {
 
 export function ActivityFeed({ accessToken, userId }: ActivityFeedProps) {
   const [currentPage, setCurrentPage] = useState(1)
-  const [selectedActivity, setSelectedActivity] = useState<StravaActivity | null>(null)
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   
-  // Calculate 90 days ago timestamp
-  const ninetyDaysAgo = Math.floor(Date.now() / 1000) - (90 * 24 * 60 * 60)
-  
-  const { data: activities, isLoading, error } = useAthleteActivities(accessToken, {
-    page: currentPage,
-    per_page: 20,
-    after: ninetyDaysAgo, // Only get activities from last 90 days
-  })
+  // Use database instead of direct API - much faster and no rate limits!
+  const { data: allActivities, isLoading, error } = useUserActivities(userId)
 
-  const handleViewDetails = (activity: StravaActivity) => {
+  // Client-side pagination and filtering (since we have all data from DB)
+  const ITEMS_PER_PAGE = 20
+  const ninetyDaysAgo = new Date()
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
+
+  // Filter activities to last 90 days and paginate
+  const filteredActivities = allActivities?.filter(activity => 
+    new Date(activity.start_date) >= ninetyDaysAgo
+  ) || []
+
+  const totalPages = Math.ceil(filteredActivities.length / ITEMS_PER_PAGE)
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  const endIndex = startIndex + ITEMS_PER_PAGE
+  const currentActivities = filteredActivities.slice(startIndex, endIndex)
+
+  const handleViewDetails = (activity: Activity) => {
     setSelectedActivity(activity)
   }
 
@@ -33,7 +42,7 @@ export function ActivityFeed({ accessToken, userId }: ActivityFeedProps) {
   }
 
   const handleNextPage = () => {
-    setCurrentPage(prev => prev + 1)
+    setCurrentPage(prev => Math.min(totalPages, prev + 1))
   }
 
   const handlePrevPage = () => {
@@ -50,22 +59,28 @@ export function ActivityFeed({ accessToken, userId }: ActivityFeedProps) {
         <h3 className="text-lg font-semibold text-red-800 mb-2">
           Unable to Load Activities
         </h3>
-        <p className="text-red-600">
-          {error.message || 'There was an error loading your activities.'}
+        <p className="text-red-600 mb-4">
+          {error.message || 'There was an error loading your activities from the database.'}
+        </p>
+        <p className="text-sm text-red-500">
+          💡 Try syncing your Strava data to populate the database with recent activities.
         </p>
       </div>
     )
   }
 
-  if (!activities?.length) {
+  if (!filteredActivities?.length) {
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
         <div className="text-4xl mb-4">🏃‍♂️</div>
         <h3 className="text-lg font-semibold text-gray-700 mb-2">
           No Activities Found
         </h3>
-        <p className="text-gray-500">
-          No activities found in the last 90 days. Start logging your workouts!
+        <p className="text-gray-500 mb-4">
+          No activities found in the last 90 days in your database.
+        </p>
+        <p className="text-sm text-blue-600">
+          💡 Click "Sync Strava Data" to load your recent activities.
         </p>
       </div>
     )
@@ -78,19 +93,22 @@ export function ActivityFeed({ accessToken, userId }: ActivityFeedProps) {
         <div>
           <h2 className="text-2xl font-bold">Activity Feed</h2>
           <p className="text-gray-600">
-            Your activities from the last 90 days • Page {currentPage}
+            Your activities from the last 90 days • Page {currentPage} of {totalPages}
+          </p>
+          <p className="text-xs text-green-600 mt-1">
+            📊 Loading from database (fast & efficient)
           </p>
         </div>
         <div className="text-sm text-gray-500">
-          {activities.length} activities loaded
+          {filteredActivities.length} activities total • {currentActivities.length} shown
         </div>
       </div>
 
       {/* Activity List */}
       <div className="space-y-3">
-        {activities.map((activity) => (
+        {currentActivities.map((activity) => (
           <ActivityCard
-            key={activity.id}
+            key={activity.strava_activity_id}
             activity={activity}
             onViewDetails={handleViewDetails}
           />
@@ -108,12 +126,12 @@ export function ActivityFeed({ accessToken, userId }: ActivityFeedProps) {
         </button>
         
         <span className="text-sm text-gray-600">
-          Page {currentPage}
+          Page {currentPage} of {totalPages}
         </span>
         
         <button
           onClick={handleNextPage}
-          disabled={!activities.length || activities.length < 20}
+          disabled={currentPage >= totalPages}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Next

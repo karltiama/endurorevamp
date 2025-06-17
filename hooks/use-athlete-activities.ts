@@ -46,7 +46,14 @@ export function useAthleteActivities(
       return data
     },
     enabled: !!accessToken, // Only run query if we have a token
-    staleTime: 2 * 60 * 1000, // 2 minutes (activities change more frequently than athlete data)
+    
+    // 🚀 IMPROVED CACHING STRATEGY - No more refresh spam!
+    staleTime: 15 * 60 * 1000, // Consider data fresh for 15 minutes (was 2 minutes)
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    refetchOnWindowFocus: false, // Don't refetch when user switches tabs
+    refetchOnReconnect: false, // Don't refetch on network reconnect
+    refetchOnMount: false, // Don't refetch when component remounts
+    
     retry: 1,
   })
 }
