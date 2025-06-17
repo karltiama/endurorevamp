@@ -126,7 +126,7 @@ export function ActivityDetailModal({ activity, userId, onClose }: ActivityDetai
     }
 
     // Power (for cycling)
-    if (activity.average_watts) {
+    if (activity.average_watts && activity.average_watts > 0) {
       metrics.push({
         label: 'Average Power',
         value: `${Math.round(activity.average_watts)}w`,
@@ -134,7 +134,7 @@ export function ActivityDetailModal({ activity, userId, onClose }: ActivityDetai
       })
     }
 
-    if (activity.max_watts) {
+    if (activity.max_watts && activity.max_watts > 0) {
       metrics.push({
         label: 'Max Power',
         value: `${activity.max_watts}w`,
@@ -143,7 +143,7 @@ export function ActivityDetailModal({ activity, userId, onClose }: ActivityDetai
     }
 
     // Elevation
-    if (activity.total_elevation_gain > 0) {
+    if (activity.total_elevation_gain && activity.total_elevation_gain > 0) {
       metrics.push({
         label: 'Elevation Gain',
         value: `${activity.total_elevation_gain}m`,

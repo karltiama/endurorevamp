@@ -30,7 +30,10 @@ export function StravaDataAnalyzer() {
     'id', 'name', 'sport_type', 'distance', 'moving_time', 'elapsed_time',
     'start_date', 'start_date_local', 'average_speed', 'max_speed',
     'average_heartrate', 'max_heartrate', 'kudos_count', 'comment_count',
-    'achievement_count', 'trainer', 'commute', 'manual', 'private'
+    'achievement_count', 'trainer', 'commute', 'manual', 'private',
+    // Analytics fields that ARE actually used in components
+    'total_elevation_gain', 'average_watts', 'max_watts', 'weighted_average_watts',
+    'kilojoules', 'has_heartrate', 'has_power'
   ])
 
   const getFieldPriority = (fieldName: string): { priority: 'high' | 'medium' | 'low', phase: 1 | 2 | 3 } => {

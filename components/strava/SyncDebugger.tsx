@@ -7,7 +7,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/providers/AuthProvider';
 import { StravaAuth } from '@/lib/strava/auth';
-import { StravaSync } from '@/lib/strava/sync';
 import { Loader2, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
 interface DebugStep {
@@ -116,11 +115,23 @@ export function SyncDebugger() {
           // Step 5: Sync Process Test
           updateStep(4, { status: 'running' });
           try {
+            console.log('🚀 Starting sync process test with access token:', accessToken ? 'Present' : 'Missing');
+            
+            // Test import first
+            console.log('📦 Importing StravaSync...');
+            const { StravaSync } = await import('@/lib/strava/sync');
+            console.log('✅ StravaSync imported successfully');
+            
+            console.log('🏗️ Creating StravaSync instance...');
             const stravaSync = new StravaSync(accessToken, false);
+            console.log('✅ StravaSync instance created successfully');
+            
+            console.log('🔄 Starting syncAll operation...');
             const result = await stravaSync.syncAll(user.id, {
               maxActivities: 5, // Small test
               sinceDays: 7
             });
+            console.log('🎉 Sync completed with result:', result);
 
             updateStep(4, { 
               status: result.success ? 'success' : 'error',
@@ -131,9 +142,23 @@ export function SyncDebugger() {
             });
 
           } catch (syncError) {
+            console.error('❌ Detailed sync error:', syncError);
+            console.error('❌ Error type:', typeof syncError);
+            console.error('❌ Error constructor:', syncError?.constructor?.name);
+            console.error('❌ Error stack:', syncError instanceof Error ? syncError.stack : 'No stack trace');
+            
+            const errorMessage = syncError instanceof Error 
+              ? syncError.message 
+              : `Unknown error: ${JSON.stringify(syncError)}`;
+              
             updateStep(4, { 
               status: 'error', 
-              message: `Sync error: ${syncError instanceof Error ? syncError.message : 'Unknown error'}` 
+              message: `Sync error: ${errorMessage}`,
+              data: {
+                errorType: typeof syncError,
+                errorConstructor: syncError?.constructor?.name,
+                fullError: syncError
+              }
             });
           }
 

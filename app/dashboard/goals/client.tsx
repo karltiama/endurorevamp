@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useUserGoals, useGoalTypes } from '@/hooks/useGoals';
+import { useAuth } from '@/providers/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,18 +10,26 @@ import { Progress } from '@/components/ui/progress';
 import { GoalCard } from '@/components/goals/GoalCard';
 import { AddGoalModal } from '@/components/goals/AddGoalModal';
 import { EditGoalModal } from '@/components/goals/EditGoalModal';
+import { DynamicGoalSuggestions } from '@/components/goals/DynamicGoalSuggestions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { UserGoal } from '@/types/goals';
 import { Target, Plus, TrendingUp, Calendar, Trophy } from 'lucide-react';
 
 export function GoalsPageClient() {
+  const { user } = useAuth();
   const { data: goalsData, isLoading, error } = useUserGoals();
   const { data: goalTypes = [] } = useGoalTypes();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<UserGoal | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<any>(null);
 
   const activeGoals = goalsData?.goals?.filter(goal => goal.is_active) || [];
   const completedGoals = goalsData?.goals?.filter(goal => goal.is_completed) || [];
+
+  const handleCreateGoalFromSuggestion = (suggestion: any) => {
+    setSelectedSuggestion(suggestion);
+    setShowAddModal(true);
+  };
 
   if (isLoading) {
     return (
@@ -138,6 +147,14 @@ export function GoalsPageClient() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dynamic Goal Suggestions */}
+      {user && (
+        <DynamicGoalSuggestions 
+          userId={user.id} 
+          onCreateGoal={handleCreateGoalFromSuggestion}
+        />
+      )}
 
       {/* Active Goals */}
       {activeGoals.length > 0 ? (

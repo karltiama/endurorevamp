@@ -68,7 +68,12 @@ describe('StravaActivitySync - Upsert Functionality', () => {
       })
 
       mockSupabase.from.mockReturnValue({
-        upsert: mockUpsert
+        upsert: mockUpsert,
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn()
+          }))
+        }))
       })
 
       // Call the private method via reflection (for testing purposes)
@@ -107,7 +112,7 @@ describe('StravaActivitySync - Upsert Functionality', () => {
           strava_activity_id: 12345
         }),
         expect.objectContaining({
-          onConflict: 'user_id,strava_activity_id',
+          onConflict: 'strava_activity_id', // Updated to match actual database schema
           ignoreDuplicates: false
         })
       )
@@ -129,7 +134,12 @@ describe('StravaActivitySync - Upsert Functionality', () => {
               error: null
             })
           })
-        })
+        }),
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn()
+          }))
+        }))
       })
 
       const storeActivity = (stravaSync as any).storeActivity
@@ -175,7 +185,12 @@ describe('StravaActivitySync - Upsert Functionality', () => {
               error: null
             })
           })
-        })
+        }),
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn()
+          }))
+        }))
       })
 
       const storeActivity = (stravaSync as any).storeActivity

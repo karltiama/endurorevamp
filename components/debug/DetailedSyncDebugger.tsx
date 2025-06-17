@@ -355,7 +355,7 @@ export function DetailedSyncDebugger() {
       const { data: insertResult, error: insertError } = await supabase
         .from('activities')
         .upsert(activityData, {
-          onConflict: 'user_id,strava_activity_id', // Use the composite unique constraint
+          onConflict: 'strava_activity_id', // Use the actual unique constraint that exists
           ignoreDuplicates: false
         })
         .select('*')

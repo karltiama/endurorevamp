@@ -320,6 +320,8 @@ export class StravaSync {
       .upsert({
         user_id: userId,
         ...updates,
+      }, {
+        onConflict: 'user_id'
       });
     
     if (error) throw error;
