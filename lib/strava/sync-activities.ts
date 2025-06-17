@@ -286,7 +286,42 @@ export class StravaActivitySync {
   ): Promise<{ isNew: boolean }> {
     const supabase = await createClient()
     
-    // Map Strava activity to our database structure with proper type handling
+    // Helper function to safely convert to number (handle pace strings like "07:04 /km")
+    const safeNumber = (value: any): number | null => {
+      if (value === null || value === undefined || value === '') return null
+      
+      // First, check if it's already a number
+      if (typeof value === 'number') {
+        return isFinite(value) ? value : null
+      }
+      
+      // Handle string values - skip any string with pace indicators
+      if (typeof value === 'string') {
+        const str = value.trim()
+        // More comprehensive pace string detection
+        if (str.includes('/') || (str.includes(':') && (str.includes('km') || str.includes('mi')))) {
+          return null // Skip pace strings
+        }
+        const num = Number(str)
+        return isNaN(num) ? null : num
+      }
+      
+      // For other types, try to convert
+      const num = Number(value)
+      return isNaN(num) ? null : num
+    }
+
+    // Helper for integer fields specifically  
+    const safeInteger = (value: any): number | null => {
+      const num = safeNumber(value)
+      return num !== null ? Math.round(num) : null
+    }
+    
+    // Map Strava activity to your ACTUAL database structure
+    const activityDate = new Date(stravaActivity.start_date)
+    const yearStart = new Date(activityDate.getFullYear(), 0, 1)
+    const weekNumber = Math.ceil((activityDate.getTime() - yearStart.getTime()) / (7 * 24 * 60 * 60 * 1000))
+    
     const activityData = {
       user_id: userId,
       strava_activity_id: stravaActivity.id,
@@ -295,35 +330,51 @@ export class StravaActivitySync {
       start_date: stravaActivity.start_date,
       start_date_local: stravaActivity.start_date_local,
       timezone: stravaActivity.timezone,
-      distance: stravaActivity.distance,
-      moving_time: stravaActivity.moving_time,
-      elapsed_time: stravaActivity.elapsed_time,
-      total_elevation_gain: stravaActivity.total_elevation_gain,
-      average_speed: stravaActivity.average_speed,
-      max_speed: stravaActivity.max_speed,
-      // Round heart rate values to integers
-      average_heartrate: stravaActivity.average_heartrate ? Math.round(stravaActivity.average_heartrate) : null,
-      max_heartrate: stravaActivity.max_heartrate ? Math.round(stravaActivity.max_heartrate) : null,
-      has_heartrate: stravaActivity.has_heartrate,
-      // Round power values to integers if your schema expects integers
-      average_watts: stravaActivity.average_watts ? Math.round(stravaActivity.average_watts) : null,
-      max_watts: stravaActivity.max_watts ? Math.round(stravaActivity.max_watts) : null,
-      weighted_average_watts: stravaActivity.weighted_average_watts ? Math.round(stravaActivity.weighted_average_watts) : null,
-      kilojoules: stravaActivity.kilojoules ? Math.round(stravaActivity.kilojoules) : null,
-      has_power: Boolean(stravaActivity.average_watts),
-      trainer: stravaActivity.trainer,
-      commute: stravaActivity.commute,
-      manual: stravaActivity.manual,
-      achievement_count: stravaActivity.achievement_count,
-      kudos_count: stravaActivity.kudos_count,
-      comment_count: stravaActivity.comment_count
+      distance: safeNumber(stravaActivity.distance),
+      moving_time: safeInteger(stravaActivity.moving_time),
+      elapsed_time: safeInteger(stravaActivity.elapsed_time),
+      total_elevation_gain: safeNumber(stravaActivity.total_elevation_gain),
+      average_speed: safeNumber(stravaActivity.average_speed),
+      max_speed: safeNumber(stravaActivity.max_speed),
+      average_heartrate: safeInteger(stravaActivity.average_heartrate),
+      max_heartrate: safeInteger(stravaActivity.max_heartrate),
+      has_heartrate: Boolean(stravaActivity.has_heartrate),
+      average_watts: safeNumber(stravaActivity.average_watts),
+      max_watts: safeNumber(stravaActivity.max_watts),
+      weighted_average_watts: safeNumber(stravaActivity.weighted_average_watts),
+      kilojoules: safeNumber(stravaActivity.kilojoules),
+      has_power: Boolean(stravaActivity.average_watts || stravaActivity.max_watts),
+      trainer: Boolean(stravaActivity.trainer),
+      commute: Boolean(stravaActivity.commute),
+      manual: Boolean(stravaActivity.manual),
+      achievement_count: safeInteger(stravaActivity.achievement_count) || 0,
+      kudos_count: safeInteger(stravaActivity.kudos_count) || 0,
+      comment_count: safeInteger(stravaActivity.comment_count) || 0,
+      
+      // Computed fields that exist in your database
+      week_number: safeInteger(weekNumber),
+      month_number: safeInteger(activityDate.getMonth() + 1),
+      year_number: safeInteger(activityDate.getFullYear()),
+      day_of_week: safeInteger(activityDate.getDay()),
+      
+      // Calculate pace as seconds per km (NOT pace string)
+      average_pace: stravaActivity.distance && stravaActivity.moving_time ? 
+        safeInteger(stravaActivity.moving_time / (stravaActivity.distance / 1000)) : null,
+        
+      // Calculate elevation per km
+      elevation_per_km: stravaActivity.distance && stravaActivity.total_elevation_gain ? 
+        safeNumber((stravaActivity.total_elevation_gain * 1000) / stravaActivity.distance) : null,
+        
+      // Calculate efficiency score
+      efficiency_score: stravaActivity.distance && stravaActivity.moving_time ? 
+        safeNumber(stravaActivity.distance / (stravaActivity.moving_time / 60)) : null
     }
 
     // Try to insert, if conflict then update
     const { data, error } = await supabase
       .from('activities')
       .upsert(activityData, {
-        onConflict: 'strava_activity_id',
+        onConflict: 'user_id,strava_activity_id',
         ignoreDuplicates: false
       })
       .select('*')

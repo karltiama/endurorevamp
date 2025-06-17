@@ -83,10 +83,17 @@ export function useStravaSync() {
     onSuccess: (data) => {
       console.log('✅ Sync completed:', data)
       
-      // Invalidate related queries
+      // Invalidate related queries - comprehensive cache refresh
       queryClient.invalidateQueries({ queryKey: ['strava', 'sync-status'] })
       queryClient.invalidateQueries({ queryKey: ['strava', 'activities'] })
       queryClient.invalidateQueries({ queryKey: ['strava', 'weekly-metrics'] })
+      
+      // Invalidate database-based queries for consistent UI updates
+      queryClient.invalidateQueries({ queryKey: ['user', 'activities'] })
+      queryClient.invalidateQueries({ queryKey: ['athlete', 'profile'] })
+      queryClient.invalidateQueries({ queryKey: ['training', 'load'] })
+      queryClient.invalidateQueries({ queryKey: ['zone-analysis'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     },
     onError: (error) => {
       console.error('❌ Sync failed:', error)

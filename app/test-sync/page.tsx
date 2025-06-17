@@ -4,6 +4,10 @@ import { StravaConnectionTester } from '@/components/strava/StravaConnectionTest
 import { EnvChecker } from '@/components/strava/EnvChecker';
 import { OAuthFlowTester } from '@/components/strava/OAuthFlowTester';
 import { DevFooter } from '@/components/dev/DevFooter';
+import { DatabaseSchemaChecker } from '@/components/debug/DatabaseSchemaChecker';
+import { DetailedSyncDebugger } from '@/components/debug/DetailedSyncDebugger';
+import { StravaDataAnalyzer } from '@/components/debug/StravaDataAnalyzer';
+import { SchemaComparisonAnalyzer } from '@/components/debug/SchemaComparisonAnalyzer';
 import { redirect } from 'next/navigation';
 
 export default function TestSyncPage() {
@@ -51,15 +55,20 @@ export default function TestSyncPage() {
       {/* Layer 3: Connection & Database */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold mb-3">🗄️ Layer 3: Connection & Database</h2>
-        <div className="w-full max-w-4xl mx-auto">
+        <div className="w-full max-w-4xl mx-auto space-y-6">
           <StravaConnectionTester />
+          <SchemaComparisonAnalyzer />
+          <DatabaseSchemaChecker />
+          <StravaDataAnalyzer />
         </div>
       </div>
 
       {/* Layer 4: Sync Functionality */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold mb-3">🔄 Layer 4: Sync Functionality</h2>
-        <div className="w-full max-w-4xl mx-auto">
+        <div className="w-full max-w-4xl mx-auto space-y-6">
+          <DetailedSyncDebugger />
+          
           <div className="grid gap-6 lg:grid-cols-2">
             <div>
               <h3 className="text-base font-medium mb-4">🛠️ Diagnostic Sync (Client-side)</h3>

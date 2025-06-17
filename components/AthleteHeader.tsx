@@ -1,10 +1,18 @@
 'use client'
 
-import { useAthleteData } from '@/hooks/use-athlete-data'
+import { useAthleteProfile } from '@/hooks/useAthleteProfile'
+import { useAuth } from '@/providers/AuthProvider'
 import { UserCircle } from 'lucide-react'
 
-export function AthleteHeader() {
-  const { data: athlete, isLoading, error } = useAthleteData()
+interface AthleteHeaderProps {
+  userId?: string // Optional prop, falls back to auth user
+}
+
+export function AthleteHeader({ userId }: AthleteHeaderProps = {}) {
+  const { user } = useAuth()
+  const targetUserId = userId || user?.id
+  
+  const { data: athlete, isLoading, error } = useAthleteProfile(targetUserId || '')
   
   if (isLoading) {
     return (
@@ -25,21 +33,41 @@ export function AthleteHeader() {
     )
   }
 
+  if (!athlete) {
+    return (
+      <header className="flex items-center justify-end p-4 bg-white shadow-sm">
+        <div className="flex items-center gap-3">
+          <span className="text-gray-700">Welcome!</span>
+          <UserCircle className="h-8 w-8 text-gray-400" />
+          <div className="text-xs text-blue-600">
+            💡 Sync your Strava profile to see athlete info
+          </div>
+        </div>
+      </header>
+    )
+  }
+
+  // Use profile_large or profile_medium from database
+  const profileImage = athlete.profile_large || athlete.profile_medium
+
   return (
     <header className="flex items-center justify-end p-4 bg-white shadow-sm">
       <div className="flex items-center gap-3">
         <span className="text-gray-700">
-          Welcome back, <span className="font-semibold">{athlete?.firstname}</span>!
+          Welcome back, <span className="font-semibold">{athlete.firstname}</span>!
         </span>
-        {athlete?.profile ? (
+        {profileImage ? (
           <img 
-            src={athlete.profile} 
+            src={profileImage} 
             alt={`${athlete.firstname}'s profile`}
             className="h-8 w-8 rounded-full object-cover"
           />
         ) : (
           <UserCircle className="h-8 w-8 text-gray-400" />
         )}
+        <div className="text-xs text-green-600">
+          📊 Database
+        </div>
       </div>
     </header>
   )

@@ -15,16 +15,17 @@ ALTER TABLE public.activities
 ADD COLUMN IF NOT EXISTS has_power BOOLEAN DEFAULT false;
 
 -- Update existing records to have default values
+-- Note: Set default values for newly added columns only where they're NULL
 UPDATE public.sync_state 
 SET 
   sync_enabled = true,
-  sync_requests_today = COALESCE(requests_used_today, 0),
+  sync_requests_today = 0,
   last_sync_date = CASE 
     WHEN last_activity_sync IS NOT NULL 
     THEN to_char(last_activity_sync, 'Mon DD YYYY')
     ELSE to_char(NOW(), 'Mon DD YYYY')
   END,
-  total_activities_synced = COALESCE(activities_synced_count, 0)
+  total_activities_synced = 0
 WHERE sync_enabled IS NULL;
 
 -- Update activities to set has_power based on existing data

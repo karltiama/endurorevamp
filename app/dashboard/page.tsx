@@ -3,6 +3,10 @@ import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { KeyMetrics } from '@/components/dashboard/KeyMetrics'
 import { LastActivityDeepDive } from '@/components/dashboard/LastActivityDeepDive'
 import { StravaOAuthHandler } from '@/components/dashboard/StravaOAuthHandler'
+import SyncDashboard from '@/components/dashboard/SyncDashboard'
+import { DatabaseActivityChecker } from '@/components/debug/DatabaseActivityChecker'
+import { SyncDebugger } from '@/components/debug/SyncDebugger'
+import { DetailedSyncDebugger } from '@/components/debug/DetailedSyncDebugger'
 import { Suspense } from 'react'
 
 export default async function DashboardPage() {
@@ -30,6 +34,28 @@ export default async function DashboardPage() {
         <Suspense fallback={<LastActivitySkeleton />}>
           <LastActivityDeepDive userId={user.id} />
         </Suspense>
+
+        {/* Debug Section - Temporary for debugging */}
+        <div className="border border-orange-200 bg-orange-50 rounded-lg p-4 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold text-orange-800 mb-2">🔧 Debug: Data Architecture</h3>
+            <p className="text-sm text-orange-700 mb-4">
+              This section helps debug why your latest run isn't appearing. Remove this after fixing.
+            </p>
+          </div>
+          
+          {/* Database Activity Checker */}
+          <DatabaseActivityChecker userId={user.id} />
+          
+          {/* Sync Debugger */}
+          <SyncDebugger />
+          
+          {/* Detailed Activity Storage Debugger */}
+          <DetailedSyncDebugger />
+          
+          {/* Sync Dashboard */}
+          <SyncDashboard />
+        </div>
       </div>
     </DashboardLayout>
   )
