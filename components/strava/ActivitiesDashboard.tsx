@@ -15,6 +15,8 @@ import {
   RefreshCw
 } from 'lucide-react'
 import { useUserActivities } from '@/hooks/use-user-activities'
+import { useUnitPreferences } from '@/hooks/useUnitPreferences'
+import { formatDistance } from '@/lib/utils'
 import { Activity } from '@/lib/strava/types'
 import { Button } from '@/components/ui/button'
 
@@ -46,15 +48,20 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
     return `${minutes}m`
   }
 
+  const { preferences } = useUnitPreferences()
+  
   // Format distance from meters to km/miles
-  const formatDistance = (meters: number): string => {
-    const km = meters / 1000
-    return `${km.toFixed(1)} km`
+  const formatDistanceWithUnits = (meters: number): string => {
+    return formatDistance(meters, preferences.distance)
   }
 
-  // Format speed from m/s to km/h
+  // Format speed from m/s to km/h or mph
   const formatSpeed = (metersPerSecond: number): string => {
     const kmh = metersPerSecond * 3.6
+    if (preferences.distance === 'miles') {
+      const mph = kmh * 0.621371
+      return `${mph.toFixed(1)} mph`
+    }
     return `${kmh.toFixed(1)} km/h`
   }
 
@@ -245,7 +252,7 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
                       {/* Distance */}
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-gray-500" />
-                        <span>{formatDistance(activity.distance)}</span>
+                        <span>{formatDistanceWithUnits(activity.distance)}</span>
                       </div>
                       
                       {/* Duration */}

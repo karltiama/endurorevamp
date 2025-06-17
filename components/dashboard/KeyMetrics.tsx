@@ -1,7 +1,9 @@
 'use client'
 
 import { useUserActivities } from '../../hooks/use-user-activities'
+import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { calculateWeeklyDistance, calculateActivityStreak, calculateMonthlyProgress } from '@/lib/dashboard/metrics'
+import { formatDistance } from '@/lib/utils'
 import type { Activity } from '@/lib/strava/types'
 
 interface KeyMetricsProps {
@@ -10,6 +12,7 @@ interface KeyMetricsProps {
 
 export function KeyMetrics({ userId }: KeyMetricsProps) {
   const { data: activities, isLoading, error } = useUserActivities(userId)
+  const { preferences } = useUnitPreferences()
 
   if (isLoading) {
     return <KeyMetricsSkeleton />
@@ -31,19 +34,19 @@ export function KeyMetrics({ userId }: KeyMetricsProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-      <WeeklyDistanceCard distance={weeklyDistance} />
+      <WeeklyDistanceCard distance={weeklyDistance} unit={preferences.distance} />
       <StreakCard streakData={streakData} />
-      <MonthlyGoalCard progress={monthlyProgress} />
+      <MonthlyGoalCard progress={monthlyProgress} unit={preferences.distance} />
     </div>
   )
 }
 
-function WeeklyDistanceCard({ distance }: { distance: { current: number; previous: number; change: number } }) {
-  const formatDistance = (meters: number) => {
-    if (meters >= 1000) {
-      return `${(meters / 1000).toFixed(1)} km`
-    }
-    return `${meters.toFixed(0)} m`
+function WeeklyDistanceCard({ distance, unit }: { 
+  distance: { current: number; previous: number; change: number }
+  unit: 'km' | 'miles'
+}) {
+  const formatDistanceWithUnit = (meters: number) => {
+    return formatDistance(meters, unit)
   }
 
   const changeIcon = distance.change > 0 ? '↗️' : distance.change < 0 ? '↘️' : '➡️'
@@ -54,7 +57,7 @@ function WeeklyDistanceCard({ distance }: { distance: { current: number; previou
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600">This Week</p>
-          <p className="text-3xl font-bold text-gray-900">{formatDistance(distance.current)}</p>
+          <p className="text-3xl font-bold text-gray-900">{formatDistanceWithUnit(distance.current)}</p>
         </div>
         <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full">
           <span className="text-xl">📏</span>
@@ -63,7 +66,7 @@ function WeeklyDistanceCard({ distance }: { distance: { current: number; previou
       <div className="mt-4 space-y-1">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Last week</span>
-          <span className="font-medium">{formatDistance(distance.previous)}</span>
+          <span className="font-medium">{formatDistanceWithUnit(distance.previous)}</span>
         </div>
         <div className="flex items-center">
           <span className={`text-sm font-medium ${changeColor}`}>
@@ -109,7 +112,7 @@ function StreakCard({ streakData }: { streakData: { current: number; longest: nu
   )
 }
 
-function MonthlyGoalCard({ progress }: { 
+function MonthlyGoalCard({ progress, unit }: { 
   progress: { 
     current: number; 
     target: number; 
@@ -117,13 +120,11 @@ function MonthlyGoalCard({ progress }: {
     daysLeft: number;
     onTrack: boolean;
     projectedTotal: number;
-  } 
+  }
+  unit: 'km' | 'miles'
 }) {
-  const formatDistance = (meters: number) => {
-    if (meters >= 1000) {
-      return `${(meters / 1000).toFixed(1)} km`
-    }
-    return `${meters.toFixed(0)} m`
+  const formatDistanceWithUnit = (meters: number) => {
+    return formatDistance(meters, unit)
   }
 
   const getProgressColor = () => {
@@ -158,11 +159,11 @@ function MonthlyGoalCard({ progress }: {
       <div className="mt-4 space-y-1">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Current</span>
-          <span className="font-medium">{formatDistance(progress.current)}</span>
+          <span className="font-medium">{formatDistanceWithUnit(progress.current)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Target</span>
-          <span className="font-medium">{formatDistance(progress.target)}</span>
+          <span className="font-medium">{formatDistanceWithUnit(progress.target)}</span>
         </div>
         <div className="flex items-center justify-between">
           <span className={`text-sm font-medium ${getProgressColor()}`}>

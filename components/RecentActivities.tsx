@@ -1,6 +1,8 @@
 'use client'
 
 import { useUserActivities } from '@/hooks/use-user-activities'
+import { useUnitPreferences } from '@/hooks/useUnitPreferences'
+import { formatDistance } from '@/lib/utils'
 import type { Activity } from '@/lib/strava/types'
 
 interface RecentActivitiesProps {
@@ -48,16 +50,18 @@ export function RecentActivities({ userId }: RecentActivitiesProps) {
       </div>
       <div className="space-y-3">
         {recentActivities.map((activity) => (
-          <ActivityCard key={activity.strava_activity_id} activity={activity} />
+          <ActivityCard key={activity.strava_activity_id} activity={activity} userId={userId} />
         ))}
       </div>
     </div>
   )
 }
 
-function ActivityCard({ activity }: { activity: Activity }) {
-  const formatDistance = (meters: number) => {
-    return `${(meters / 1000).toFixed(1)} km`
+function ActivityCard({ activity, userId }: { activity: Activity; userId: string }) {
+  const { preferences } = useUnitPreferences()
+  
+  const formatDistanceWithUnits = (meters: number) => {
+    return formatDistance(meters, preferences.distance)
   }
 
   const formatDuration = (seconds: number) => {
@@ -92,14 +96,17 @@ function ActivityCard({ activity }: { activity: Activity }) {
         <div>
           <h3 className="font-semibold text-lg">{activity.name}</h3>
           <p className="text-sm text-gray-600">
-            {activityType} • {formatDistance(activity.distance)}
+            {activityType} • {formatDistanceWithUnits(activity.distance)}
             {activity.total_elevation_gain && activity.total_elevation_gain > 0 && (
               <span> • ↗ {activity.total_elevation_gain}m</span>
             )}
           </p>
           {activity.average_speed && (
             <p className="text-xs text-gray-500">
-              Avg Speed: {(activity.average_speed * 3.6).toFixed(1)} km/h
+              Avg Speed: {preferences.distance === 'miles' 
+                ? `${(activity.average_speed * 3.6 * 0.621371).toFixed(1)} mph`
+                : `${(activity.average_speed * 3.6).toFixed(1)} km/h`
+              }
             </p>
           )}
         </div>

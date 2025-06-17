@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useUserActivities } from '@/hooks/use-user-activities'
+import { useUnitPreferences } from '@/hooks/useUnitPreferences'
+import { formatDistance, formatPace } from '@/lib/utils'
 import { Activity } from '@/lib/strava/types'
 import { useMemo } from 'react'
 import {
@@ -27,6 +29,7 @@ interface LastActivityDeepDiveProps {
 
 export function LastActivityDeepDive({ userId }: LastActivityDeepDiveProps) {
   const { data: activities, isLoading, error } = useUserActivities(userId)
+  const { preferences } = useUnitPreferences()
 
   const lastActivity = useMemo(() => {
     if (!activities || activities.length === 0) return null
@@ -69,9 +72,8 @@ export function LastActivityDeepDive({ userId }: LastActivityDeepDiveProps) {
   }, [lastActivity, activities])
 
   // Helper functions
-  const formatDistance = (meters: number): string => {
-    const km = meters / 1000
-    return `${km.toFixed(1)} km`
+  const formatDistanceWithUnits = (meters: number): string => {
+    return formatDistance(meters, preferences.distance)
   }
 
   const formatDuration = (seconds: number): string => {
@@ -84,10 +86,8 @@ export function LastActivityDeepDive({ userId }: LastActivityDeepDiveProps) {
     return `${minutes}m`
   }
 
-  const formatPace = (secondsPerKm: number): string => {
-    const minutes = Math.floor(secondsPerKm / 60)
-    const seconds = Math.floor(secondsPerKm % 60)
-    return `${minutes}:${seconds.toString().padStart(2, '0')}/km`
+  const formatPaceWithUnits = (secondsPerKm: number): string => {
+    return formatPace(secondsPerKm, preferences.pace)
   }
 
   const formatDate = (dateString: string): string => {
@@ -215,7 +215,7 @@ export function LastActivityDeepDive({ userId }: LastActivityDeepDiveProps) {
                   <MapPin className="h-4 w-4 text-gray-500" />
                   <span className="text-sm text-gray-600">Distance</span>
                 </div>
-                <div className="text-2xl font-bold">{formatDistance(lastActivity.distance)}</div>
+                <div className="text-2xl font-bold">{formatDistanceWithUnits(lastActivity.distance)}</div>
               </div>
 
               <div className="bg-gray-50 p-4 rounded-lg">
@@ -232,7 +232,7 @@ export function LastActivityDeepDive({ userId }: LastActivityDeepDiveProps) {
                   <span className="text-sm text-gray-600">Avg Pace</span>
                 </div>
                 <div className="text-2xl font-bold">
-                  {activityAnalysis ? formatPace(activityAnalysis.currentPace) : 'N/A'}
+                  {activityAnalysis ? formatPaceWithUnits(activityAnalysis.currentPace) : 'N/A'}
                 </div>
               </div>
 
@@ -299,7 +299,7 @@ export function LastActivityDeepDive({ userId }: LastActivityDeepDiveProps) {
                         <TrendingUp className={`h-4 w-4 ${activityAnalysis.distanceImprovement >= 0 ? 'text-green-500' : 'text-red-500'}`} />
                       </div>
                       <div className={`text-lg font-bold ${activityAnalysis.distanceImprovement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {activityAnalysis.distanceImprovement >= 0 ? '+' : ''}{formatDistance(activityAnalysis.distanceImprovement)}
+                        {activityAnalysis.distanceImprovement >= 0 ? '+' : ''}{formatDistanceWithUnits(activityAnalysis.distanceImprovement)}
                       </div>
                     </div>
 

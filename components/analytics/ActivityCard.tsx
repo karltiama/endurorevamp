@@ -1,5 +1,7 @@
 'use client'
 
+import { useUnitPreferences } from '@/hooks/useUnitPreferences'
+import { formatDistance, formatPace } from '@/lib/utils'
 import type { StravaActivity } from '@/types/strava'
 import type { Activity } from '@/lib/strava/types'
 
@@ -9,9 +11,11 @@ type ActivityCardActivity = StravaActivity | Activity
 interface ActivityCardProps {
   activity: ActivityCardActivity
   onViewDetails: (activity: ActivityCardActivity) => void
+  userId: string
 }
 
-export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
+export function ActivityCard({ activity, onViewDetails, userId }: ActivityCardProps) {
+  const { preferences } = useUnitPreferences()
   // Helper to normalize activity data between database and API types
   const normalizeActivity = (act: ActivityCardActivity) => {
     // Check if it's a database Activity (has strava_activity_id) or API StravaActivity (has id)
@@ -52,8 +56,8 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
 
   const normalized = normalizeActivity(activity)
 
-  const formatDistance = (meters: number) => {
-    return `${(meters / 1000).toFixed(1)} km`
+  const formatDistanceWithUnits = (meters: number) => {
+    return formatDistance(meters, preferences.distance)
   }
 
   const formatDuration = (seconds: number) => {
@@ -91,16 +95,21 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
     return icons[type] || '🏃‍♂️'
   }
 
-  const formatPace = (normalized: ReturnType<typeof normalizeActivity>) => {
+  const formatPaceWithUnits = (normalized: ReturnType<typeof normalizeActivity>) => {
     if (normalized.type === 'Run' && normalized.distance > 0) {
       const paceSecondsPerKm = normalized.moving_time / (normalized.distance / 1000)
-      const minutes = Math.floor(paceSecondsPerKm / 60)
-      const seconds = Math.floor(paceSecondsPerKm % 60)
-      return `${minutes}:${seconds.toString().padStart(2, '0')} /km`
+      return formatPace(paceSecondsPerKm, preferences.pace)
     }
     
     if ((normalized.type === 'Ride' || normalized.type === 'VirtualRide') && normalized.average_speed) {
-      return `${(normalized.average_speed * 3.6).toFixed(1)} km/h`
+      // For cycling, show speed in km/h or mph based on distance unit preference
+      const speedKmh = normalized.average_speed * 3.6
+      if (preferences.distance === 'miles') {
+        const speedMph = speedKmh * 0.621371
+        return `${speedMph.toFixed(1)} mph`
+      } else {
+        return `${speedKmh.toFixed(1)} km/h`
+      }
     }
     
     return null
@@ -118,7 +127,7 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
   }
 
   const tss = calculateTSS(normalized)
-  const pace = formatPace(normalized)
+  const pace = formatPaceWithUnits(normalized)
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -142,7 +151,7 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
             <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
               <span className="font-medium">{normalized.type}</span>
               <span>•</span>
-              <span>{formatDistance(normalized.distance)}</span>
+              <span>{formatDistanceWithUnits(normalized.distance)}</span>
               <span>•</span>
               <span>{formatDuration(normalized.moving_time)}</span>
               {normalized.total_elevation_gain > 0 && (

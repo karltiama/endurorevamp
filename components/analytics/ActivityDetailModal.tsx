@@ -3,6 +3,8 @@
 import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
+import { useUnitPreferences } from '@/hooks/useUnitPreferences'
+import { formatDistance, formatPace } from '@/lib/utils'
 import type { StravaActivity } from '@/types/strava'
 
 interface ActivityDetailModalProps {
@@ -12,8 +14,10 @@ interface ActivityDetailModalProps {
 }
 
 export function ActivityDetailModal({ activity, userId, onClose }: ActivityDetailModalProps) {
-  const formatDistance = (meters: number) => {
-    return `${(meters / 1000).toFixed(2)} km`
+  const { preferences } = useUnitPreferences()
+  
+  const formatDistanceWithUnits = (meters: number) => {
+    return formatDistance(meters, preferences.distance)
   }
 
   const formatDuration = (seconds: number) => {
@@ -62,7 +66,7 @@ export function ActivityDetailModal({ activity, userId, onClose }: ActivityDetai
     // Distance and Duration
     metrics.push({
       label: 'Distance',
-      value: formatDistance(activity.distance),
+      value: formatDistanceWithUnits(activity.distance),
       icon: '📏'
     })
 
@@ -84,28 +88,46 @@ export function ActivityDetailModal({ activity, userId, onClose }: ActivityDetai
     if (activity.average_speed) {
       if (activity.type === 'Run') {
         const paceSecondsPerKm = activity.moving_time / (activity.distance / 1000)
-        const minutes = Math.floor(paceSecondsPerKm / 60)
-        const seconds = Math.floor(paceSecondsPerKm % 60)
         metrics.push({
           label: 'Average Pace',
-          value: `${minutes}:${seconds.toString().padStart(2, '0')} /km`,
+          value: formatPace(paceSecondsPerKm, preferences.pace),
           icon: '🏃‍♂️'
         })
       } else {
-        metrics.push({
-          label: 'Average Speed',
-          value: `${(activity.average_speed * 3.6).toFixed(1)} km/h`,
-          icon: '💨'
-        })
+        const speedKmh = activity.average_speed * 3.6
+        if (preferences.distance === 'miles') {
+          const speedMph = speedKmh * 0.621371
+          metrics.push({
+            label: 'Average Speed',
+            value: `${speedMph.toFixed(1)} mph`,
+            icon: '💨'
+          })
+        } else {
+          metrics.push({
+            label: 'Average Speed',
+            value: `${speedKmh.toFixed(1)} km/h`,
+            icon: '💨'
+          })
+        }
       }
     }
 
     if (activity.max_speed) {
-      metrics.push({
-        label: 'Max Speed',
-        value: `${(activity.max_speed * 3.6).toFixed(1)} km/h`,
-        icon: '⚡'
-      })
+      const speedKmh = activity.max_speed * 3.6
+      if (preferences.distance === 'miles') {
+        const speedMph = speedKmh * 0.621371
+        metrics.push({
+          label: 'Max Speed',
+          value: `${speedMph.toFixed(1)} mph`,
+          icon: '⚡'
+        })
+      } else {
+        metrics.push({
+          label: 'Max Speed',
+          value: `${speedKmh.toFixed(1)} km/h`,
+          icon: '⚡'
+        })
+      }
     }
 
     // Heart Rate

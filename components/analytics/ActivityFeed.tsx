@@ -111,6 +111,7 @@ export function ActivityFeed({ accessToken, userId }: ActivityFeedProps) {
             key={activity.strava_activity_id}
             activity={activity}
             onViewDetails={handleViewDetails}
+            userId={userId}
           />
         ))}
       </div>
