@@ -83,6 +83,36 @@ export function DetailedSyncDebugger() {
         return
       }
 
+      // DEBUG: Check the raw targetActivity for pace strings  
+      console.log('🔍 Raw targetActivity from Strava API:', targetActivity)
+      
+      // Check for ALL fields that might contain problematic strings
+      Object.entries(targetActivity).forEach(([key, value]) => {
+        if (typeof value === 'string') {
+          // Log ALL string fields to see what we might be missing
+          console.log(`📝 String field '${key}': "${value}"`)
+          
+          // Check for pace patterns
+          if (value.includes('/km') || value.includes('/mi') || value.includes(':')) {
+            console.warn(`⚠️ Found pace string in raw Strava data field '${key}': "${value}"`)
+          }
+        }
+      })
+
+      // Also check if there are nested objects that might contain pace strings
+      Object.entries(targetActivity).forEach(([key, value]) => {
+        if (typeof value === 'object' && value !== null) {
+          console.log(`📦 Object field '${key}':`, value)
+          if (Array.isArray(value)) {
+            value.forEach((item, index) => {
+              if (typeof item === 'string' && (item.includes('/km') || item.includes('/mi') || item.includes(':'))) {
+                console.warn(`⚠️ Found pace string in array ${key}[${index}]: "${item}"`)
+              }
+            })
+          }
+        }
+      })
+
       updateLastResult({
         status: 'success',
         message: `Found "${targetActivity.name}" in Strava API`,
@@ -308,10 +338,10 @@ export function DetailedSyncDebugger() {
         average_heartrate: safeInteger(targetActivity.average_heartrate, 'average_heartrate'),
         max_heartrate: safeInteger(targetActivity.max_heartrate, 'max_heartrate'),
         has_heartrate: Boolean(targetActivity.has_heartrate),
-        average_watts: safeNumber(targetActivity.average_watts, 'average_watts'),
-        max_watts: safeNumber(targetActivity.max_watts, 'max_watts'),
-        weighted_average_watts: safeNumber(targetActivity.weighted_average_watts, 'weighted_average_watts'),
-        kilojoules: safeNumber(targetActivity.kilojoules, 'kilojoules'),
+        average_watts: safeInteger(targetActivity.average_watts, 'average_watts'),
+        max_watts: safeInteger(targetActivity.max_watts, 'max_watts'),
+        weighted_average_watts: safeInteger(targetActivity.weighted_average_watts, 'weighted_average_watts'),
+        kilojoules: safeInteger(targetActivity.kilojoules, 'kilojoules'),
         has_power: Boolean(targetActivity.average_watts || targetActivity.max_watts), // Computed field
         trainer: Boolean(targetActivity.trainer),
         commute: Boolean(targetActivity.commute),
@@ -352,10 +382,47 @@ export function DetailedSyncDebugger() {
         isNull: value === null
       })))
 
+      // SAFETY CHECK: Filter out any remaining pace strings before database insert
+      const safeActivityData = Object.fromEntries(
+        Object.entries(activityData).filter(([key, value]) => {
+          // Filter out pace strings but NOT timestamps or other valid data
+          if (typeof value === 'string') {
+            // Check for pace patterns specifically (minutes:seconds followed by distance unit)
+            const pacePattern = /\d{1,2}:\d{2}\s*\/\s*(km|mi|mile)/i
+            if (pacePattern.test(value)) {
+              console.error(`🚫 FILTERING OUT pace string in field '${key}': "${value}"`)
+              return false
+            }
+          }
+          return true
+        })
+      )
+
+      // ADDITIONAL DEBUG: Check if we're missing any fields from the raw data
+      console.log('🔍 Fields in raw targetActivity:', Object.keys(targetActivity))
+      console.log('🔍 Fields in processed activityData:', Object.keys(activityData))
+      console.log('🔍 Fields in safeActivityData:', Object.keys(safeActivityData))
+      
+      // Check for any unmapped fields that might contain pace strings
+      const unmappedFields = Object.keys(targetActivity).filter(key => 
+        !Object.keys(activityData).includes(key) && 
+        typeof targetActivity[key] === 'string' &&
+        (targetActivity[key].includes('/km') || targetActivity[key].includes('/mi') || targetActivity[key].includes(':'))
+      )
+      
+      if (unmappedFields.length > 0) {
+        console.error(`🚨 UNMAPPED FIELDS WITH PACE STRINGS:`, unmappedFields.map(key => ({
+          field: key,
+          value: targetActivity[key]
+        })))
+      }
+
+      console.log('🔒 Safe activity data for database:', safeActivityData)
+
       const { data: insertResult, error: insertError } = await supabase
         .from('activities')
-        .upsert(activityData, {
-          onConflict: 'strava_activity_id', // Use the actual unique constraint that exists
+        .upsert(safeActivityData, {
+          onConflict: 'user_id,strava_activity_id', // Use the composite unique constraint
           ignoreDuplicates: false
         })
         .select('*')

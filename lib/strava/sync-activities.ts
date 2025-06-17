@@ -8,18 +8,26 @@ function safeNumber(value: any, fieldName?: string): number | null {
   if (typeof value === 'string') {
     // Handle pace strings like "07:04 /km" 
     if (value.includes('/km')) {
-      // Convert pace string to seconds per km
+      console.warn(`⚠️ Converting pace string to seconds: "${value}" for field: ${fieldName || 'unknown'}`)
       const timeMatch = value.match(/(\d{1,2}):(\d{2})/)
       if (timeMatch) {
         const minutes = parseInt(timeMatch[1])
         const seconds = parseInt(timeMatch[2])
-        return (minutes * 60) + seconds // Return total seconds per km
+        const totalSeconds = (minutes * 60) + seconds
+        console.log(`✅ Pace converted: "${value}" -> ${totalSeconds} seconds per km`)
+        return totalSeconds // Return total seconds per km
       }
+      console.error(`❌ Failed to parse pace string: "${value}"`)
       return null
     }
     const parsed = parseFloat(value)
-    return isNaN(parsed) ? null : parsed
+    if (isNaN(parsed)) {
+      console.warn(`⚠️ Cannot convert to number: "${value}" for field: ${fieldName || 'unknown'}`)
+      return null
+    }
+    return parsed
   }
+  console.warn(`⚠️ Unexpected value type for ${fieldName || 'unknown'}: ${typeof value}`)
   return null
 }
 
@@ -27,6 +35,12 @@ function safeNumber(value: any, fieldName?: string): number | null {
 function safeNumberRequired(value: any, fallback: number = 0): number {
   const result = safeNumber(value)
   return result !== null ? result : fallback
+}
+
+// Helper for fields that should be integers (rounds decimal values)
+function safeInteger(value: any): number | null {
+  const result = safeNumber(value)
+  return result !== null ? Math.round(result) : null
 }
 
 // Helper function to calculate computed fields
@@ -95,9 +109,33 @@ export class StravaActivitySync {
   }
 
   async storeActivity(userId: string, activity: StravaActivity) {
-    const computedFields = calculateComputedFields(activity)
+    // Debug: Log the raw activity data to see what fields contain pace strings
+    console.log('🔍 Raw activity data from Strava:', activity)
     
-    // Map to your EXACT database schema
+    // Check for any fields that might contain pace strings
+    Object.entries(activity).forEach(([key, value]) => {
+      if (typeof value === 'string' && value.includes('/km')) {
+        console.warn(`⚠️ Found pace string in field '${key}': "${value}"`)
+      }
+    })
+    
+    // Create a clean activity object without any pace-related fields that might interfere
+    const cleanActivity = { ...activity } as any
+    
+    // Remove any pace-related fields from Strava that might contain strings
+    const paceFieldsToRemove = ['average_pace', 'best_efforts', 'pace', 'splits_metric', 'splits_standard']
+    paceFieldsToRemove.forEach(field => {
+      if (field in cleanActivity) {
+        console.log(`🧹 Removing potential pace field: ${field}`)
+        delete cleanActivity[field]
+      }
+    })
+    
+    console.log('🧹 Cleaned activity (removed pace fields):', cleanActivity)
+    
+    const computedFields = calculateComputedFields(cleanActivity)
+    
+    // Map to your EXACT database schema - explicitly handle each field
     const activityData = {
       user_id: userId,
       strava_activity_id: activity.id,
@@ -114,13 +152,13 @@ export class StravaActivitySync {
       total_elevation_gain: safeNumber(activity.total_elevation_gain),
       average_speed: safeNumber(activity.average_speed),
       max_speed: safeNumber(activity.max_speed),
-      average_heartrate: safeNumber(activity.average_heartrate),
-      max_heartrate: safeNumber(activity.max_heartrate),
+      average_heartrate: safeInteger(activity.average_heartrate),
+      max_heartrate: safeInteger(activity.max_heartrate),
       has_heartrate: Boolean(activity.has_heartrate),
-      average_watts: safeNumber(activity.average_watts),
-      max_watts: safeNumber(activity.max_watts),
-      weighted_average_watts: safeNumber(activity.weighted_average_watts),
-      kilojoules: safeNumber(activity.kilojoules),
+      average_watts: safeInteger(activity.average_watts),
+      max_watts: safeInteger(activity.max_watts),
+      weighted_average_watts: safeInteger(activity.weighted_average_watts),
+      kilojoules: safeInteger(activity.kilojoules),
       has_power: Boolean(activity.device_watts || activity.average_watts),
       trainer: Boolean(activity.trainer),
       commute: Boolean(activity.commute),
@@ -128,15 +166,41 @@ export class StravaActivitySync {
       achievement_count: safeNumberRequired(activity.achievement_count),
       kudos_count: safeNumberRequired(activity.kudos_count),
       comment_count: safeNumberRequired(activity.comment_count),
-      // Computed fields
+      // Computed fields - these override any potential pace strings from Strava
       ...computedFields
     }
+    
+    // Debug: Log the processed activity data
+    console.log('🔍 Processed activity data for database:', activityData)
+    
+    // Check for any remaining pace strings in the processed data
+    Object.entries(activityData).forEach(([key, value]) => {
+      if (typeof value === 'string' && value.includes('/km')) {
+        console.error(`❌ ERROR: Pace string found in processed data field '${key}': "${value}"`)
+        console.error('This will cause a database error. Filtering out...')
+        delete (activityData as any)[key]
+      }
+    })
+    
+    // Final safety check: ensure all values are valid for database
+    const safeActivityData = Object.fromEntries(
+      Object.entries(activityData).filter(([key, value]) => {
+        // Filter out any string values that contain pace patterns
+        if (typeof value === 'string' && (value.includes('/km') || value.includes('/mi') || value.includes(':'))) {
+          console.error(`🚫 Filtering out suspicious value for ${key}: "${value}"`)
+          return false
+        }
+        return true
+      })
+    )
 
+    console.log('🔒 Final safe activity data for database:', safeActivityData)
+    
     // Use the correct unique constraint that exists in your database
     const { data, error } = await this.supabase
       .from('activities')
-      .upsert(activityData, { 
-        onConflict: 'strava_activity_id', // Use actual constraint from schema analysis
+      .upsert(safeActivityData, { 
+        onConflict: 'user_id,strava_activity_id', // Use composite constraint to prevent duplicates per user
         ignoreDuplicates: false 
       })
       .select()
