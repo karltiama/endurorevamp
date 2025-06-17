@@ -1,23 +1,25 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ActivitiesDashboard } from '@/components/strava/ActivitiesDashboard'
-import { useRecentActivities } from '@/hooks/use-athlete-activities'
-import { StravaActivity } from '@/types/strava'
+import { useUserActivities } from '@/hooks/use-user-activities'
+import { Activity } from '@/lib/strava/types'
 
 // Mock the hook
-jest.mock('@/hooks/use-athlete-activities')
-const mockUseRecentActivities = useRecentActivities as jest.MockedFunction<typeof useRecentActivities>
+jest.mock('@/hooks/use-user-activities')
+const mockUseUserActivities = useUserActivities as jest.MockedFunction<typeof useUserActivities>
 
-// Mock activities data
-const mockActivities: StravaActivity[] = [
+// Mock activities data (database format)
+const mockActivities: Activity[] = [
   {
-    id: 1,
+    id: '1',
+    user_id: 'test-user-id',
+    strava_activity_id: 123456789,
     name: 'Morning Run',
     distance: 5000, // 5km
     moving_time: 1800, // 30 minutes
     elapsed_time: 1900,
     total_elevation_gain: 50,
-    type: 'Run',
+    activity_type: 'Run',
     sport_type: 'Run',
     start_date: '2024-01-15T08:00:00Z',
     start_date_local: '2024-01-15T08:00:00Z',
@@ -25,7 +27,6 @@ const mockActivities: StravaActivity[] = [
     average_speed: 2.78, // 10 km/h
     max_speed: 3.5,
     average_heartrate: 150,
-    achievement_count: 2,
     kudos_count: 5,
     comment_count: 1,
     athlete_count: 1,
@@ -34,19 +35,19 @@ const mockActivities: StravaActivity[] = [
     commute: false,
     manual: false,
     private: false,
-    athlete: {
-      id: 123,
-      resource_state: 1
-    }
+    created_at: '2024-01-15T08:00:00Z',
+    updated_at: '2024-01-15T08:00:00Z'
   },
   {
-    id: 2,
+    id: '2',
+    user_id: 'test-user-id',
+    strava_activity_id: 123456790,
     name: 'Evening Bike Ride',
     distance: 25000, // 25km
     moving_time: 3600, // 1 hour
     elapsed_time: 3720,
     total_elevation_gain: 200,
-    type: 'Ride',
+    activity_type: 'Ride',
     sport_type: 'Ride',
     start_date: '2024-01-14T18:00:00Z',
     start_date_local: '2024-01-14T18:00:00Z',
@@ -55,7 +56,6 @@ const mockActivities: StravaActivity[] = [
     max_speed: 8.33,
     average_heartrate: 140,
     average_watts: 180,
-    achievement_count: 1,
     kudos_count: 8,
     comment_count: 2,
     athlete_count: 1,
@@ -64,10 +64,8 @@ const mockActivities: StravaActivity[] = [
     commute: false,
     manual: false,
     private: false,
-    athlete: {
-      id: 123,
-      resource_state: 1
-    }
+    created_at: '2024-01-14T18:00:00Z',
+    updated_at: '2024-01-14T18:00:00Z'
   }
 ]
 
@@ -89,7 +87,7 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
 
 describe('ActivitiesDashboard', () => {
   const defaultProps = {
-    accessToken: 'mock-access-token'
+    userId: 'test-user-id'
   }
 
   beforeEach(() => {
@@ -98,7 +96,7 @@ describe('ActivitiesDashboard', () => {
 
   describe('Loading State', () => {
     it('shows loading state when data is being fetched', () => {
-      mockUseRecentActivities.mockReturnValue({
+      mockUseUserActivities.mockReturnValue({
         data: undefined,
         isLoading: true,
         error: null,
@@ -116,7 +114,7 @@ describe('ActivitiesDashboard', () => {
       )
 
       expect(screen.getByText('Recent Activities')).toBeInTheDocument()
-      expect(screen.getByText('Loading your latest activities from Strava...')).toBeInTheDocument()
+      expect(screen.getByText('Loading your latest activities from database...')).toBeInTheDocument()
       
       // Should show skeleton loaders
       const skeletons = screen.getAllByRole('generic')
@@ -132,7 +130,7 @@ describe('ActivitiesDashboard', () => {
 
     it('shows error state when there is an error', () => {
       const error = new Error('Failed to fetch activities')
-      mockUseRecentActivities.mockReturnValue({
+      mockUseUserActivities.mockReturnValue({
         data: undefined,
         isLoading: false,
         error,
@@ -150,14 +148,15 @@ describe('ActivitiesDashboard', () => {
       )
 
       expect(screen.getByText('Recent Activities')).toBeInTheDocument()
-      expect(screen.getByText('Unable to load your activities')).toBeInTheDocument()
+      expect(screen.getByText('Unable to load your activities from database')).toBeInTheDocument()
       expect(screen.getByText('Failed to fetch activities')).toBeInTheDocument()
       expect(screen.getByText('Try Again')).toBeInTheDocument()
+      expect(screen.getByText('💡 Try syncing your Strava data to populate the database.')).toBeInTheDocument()
     })
 
     it('calls refetch when try again button is clicked', () => {
       const error = new Error('Failed to fetch activities')
-      mockUseRecentActivities.mockReturnValue({
+      mockUseUserActivities.mockReturnValue({
         data: undefined,
         isLoading: false,
         error,
@@ -182,7 +181,7 @@ describe('ActivitiesDashboard', () => {
 
     it('shows loading state on try again button when refetching', () => {
       const error = new Error('Failed to fetch activities')
-      mockUseRecentActivities.mockReturnValue({
+      mockUseUserActivities.mockReturnValue({
         data: undefined,
         isLoading: false,
         error,
@@ -206,7 +205,7 @@ describe('ActivitiesDashboard', () => {
 
   describe('Empty State', () => {
     it('shows empty state when no activities are returned', () => {
-      mockUseRecentActivities.mockReturnValue({
+      mockUseUserActivities.mockReturnValue({
         data: [],
         isLoading: false,
         error: null,
@@ -225,11 +224,12 @@ describe('ActivitiesDashboard', () => {
 
       expect(screen.getByText('Recent Activities')).toBeInTheDocument()
       expect(screen.getByText('No activities found')).toBeInTheDocument()
-      expect(screen.getByText('Start recording activities on Strava to see them here!')).toBeInTheDocument()
+      expect(screen.getByText('No activities found in your database.')).toBeInTheDocument()
+      expect(screen.getByText('💡 Click "Sync Strava Data" to load your activities from Strava.')).toBeInTheDocument()
     })
 
     it('shows empty state when activities data is undefined', () => {
-      mockUseRecentActivities.mockReturnValue({
+      mockUseUserActivities.mockReturnValue({
         data: undefined,
         isLoading: false,
         error: null,
@@ -247,6 +247,8 @@ describe('ActivitiesDashboard', () => {
       )
 
       expect(screen.getByText('No activities found')).toBeInTheDocument()
+      expect(screen.getByText('No activities found in your database.')).toBeInTheDocument()
+      expect(screen.getByText('💡 Click "Sync Strava Data" to load your activities from Strava.')).toBeInTheDocument()
     })
   })
 
@@ -254,7 +256,7 @@ describe('ActivitiesDashboard', () => {
     const mockRefetch = jest.fn()
 
     beforeEach(() => {
-      mockUseRecentActivities.mockReturnValue({
+      mockUseUserActivities.mockReturnValue({
         data: mockActivities,
         isLoading: false,
         error: null,
@@ -274,7 +276,7 @@ describe('ActivitiesDashboard', () => {
       )
 
       expect(screen.getByText('Recent Activities')).toBeInTheDocument()
-      expect(screen.getByText('Your latest 2 activities from Strava')).toBeInTheDocument()
+      expect(screen.getByText('Your latest 2 activities from database')).toBeInTheDocument()
       
       // Check that activities are displayed
       expect(screen.getByText('Morning Run')).toBeInTheDocument()
@@ -332,8 +334,8 @@ describe('ActivitiesDashboard', () => {
         </TestWrapper>
       )
 
-      expect(screen.getByText('150')).toBeInTheDocument() // Morning Run heart rate
-      expect(screen.getByText('140')).toBeInTheDocument() // Evening Bike Ride heart rate
+      expect(screen.getByText('150 bpm')).toBeInTheDocument() // Morning Run heart rate
+      expect(screen.getByText('140 bpm')).toBeInTheDocument() // Evening Bike Ride heart rate
     })
 
     it('displays power when available', () => {
@@ -343,7 +345,7 @@ describe('ActivitiesDashboard', () => {
         </TestWrapper>
       )
 
-      expect(screen.getByText('180W')).toBeInTheDocument() // Evening Bike Ride power
+      expect(screen.getByText('180w')).toBeInTheDocument() // Evening Bike Ride power
     })
 
     it('has refresh functionality', () => {
@@ -360,7 +362,7 @@ describe('ActivitiesDashboard', () => {
     })
 
     it('shows loading state on refresh button when refetching', () => {
-      mockUseRecentActivities.mockReturnValue({
+      mockUseUserActivities.mockReturnValue({
         data: mockActivities,
         isLoading: false,
         error: null,
@@ -396,7 +398,7 @@ describe('ActivitiesDashboard', () => {
 
   describe('Accessibility', () => {
     it('has proper ARIA labels and roles', () => {
-      mockUseRecentActivities.mockReturnValue({
+      mockUseUserActivities.mockReturnValue({
         data: mockActivities,
         isLoading: false,
         error: null,

@@ -320,15 +320,15 @@ export function StravaIntegration() {
 // Wrapper component to include Activities Dashboard when connected
 export function StravaIntegrationWithActivities() {
   const { connectionStatus } = useStravaConnection();
-  const { accessToken } = useStravaToken();
+  const { user } = useAuth();
 
   return (
     <div className="space-y-6">
       <StravaIntegration />
       
-      {/* Show Activities Dashboard when connected and we have an access token */}
-      {connectionStatus?.connected && accessToken && (
-        <ActivitiesDashboard accessToken={accessToken} />
+      {/* Show Activities Dashboard when connected and we have a user */}
+      {connectionStatus?.connected && user?.id && (
+        <ActivitiesDashboard userId={user.id} />
       )}
     </div>
   );

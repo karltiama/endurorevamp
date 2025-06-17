@@ -14,22 +14,26 @@ import {
   AlertCircle,
   RefreshCw
 } from 'lucide-react'
-import { useRecentActivities } from '@/hooks/use-athlete-activities'
-import { StravaActivity } from '@/types/strava'
+import { useUserActivities } from '@/hooks/use-user-activities'
+import { Activity } from '@/lib/strava/types'
 import { Button } from '@/components/ui/button'
 
 interface ActivitiesDashboardProps {
-  accessToken: string
+  userId: string // Changed from accessToken to userId for database queries
 }
 
-export function ActivitiesDashboard({ accessToken }: ActivitiesDashboardProps) {
+export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
+  // Use database instead of API - much faster and no rate limits!
   const { 
-    data: activities, 
+    data: allActivities, 
     isLoading, 
-    error, 
+    error,
     refetch,
     isRefetching 
-  } = useRecentActivities(accessToken, 10)
+  } = useUserActivities(userId)
+
+  // Client-side filtering to get recent activities (last 10)
+  const activities = allActivities?.slice(0, 10) || []
 
   // Format duration from seconds to readable format
   const formatDuration = (seconds: number): string => {
@@ -65,9 +69,10 @@ export function ActivitiesDashboard({ accessToken }: ActivitiesDashboardProps) {
     })
   }
 
-  // Get activity type color
-  const getActivityTypeColor = (type: string): string => {
-    switch (type.toLowerCase()) {
+  // Get activity type color - handle both sport_type and activity_type
+  const getActivityTypeColor = (activity: Activity): string => {
+    const type = (activity.sport_type || activity.activity_type || '').toLowerCase()
+    switch (type) {
       case 'ride':
       case 'virtualride':
         return 'bg-blue-100 text-blue-800'
@@ -94,7 +99,7 @@ export function ActivitiesDashboard({ accessToken }: ActivitiesDashboardProps) {
             Recent Activities
           </CardTitle>
           <CardDescription>
-            Loading your latest activities from Strava...
+            Loading your latest activities from database...
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -126,29 +131,33 @@ export function ActivitiesDashboard({ accessToken }: ActivitiesDashboardProps) {
             Recent Activities
           </CardTitle>
           <CardDescription>
-            Unable to load your activities
+            Unable to load your activities from database
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              {error instanceof Error ? error.message : 'Failed to load activities'}
+              {error instanceof Error ? error.message : 'Failed to load activities from database'}
             </AlertDescription>
           </Alert>
-          <Button 
-            variant="outline" 
-            className="mt-4" 
-            onClick={() => refetch()}
-            disabled={isRefetching}
-          >
-            {isRefetching ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <RefreshCw className="h-4 w-4 mr-2" />
-            )}
-            Try Again
-          </Button>
+          <div className="mt-4 space-y-2">
+            <Button 
+              variant="outline" 
+              onClick={() => refetch()}
+              disabled={isRefetching}
+            >
+              {isRefetching ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Try Again
+            </Button>
+            <p className="text-sm text-blue-600">
+              💡 Try syncing your Strava data to populate the database.
+            </p>
+          </div>
         </CardContent>
       </Card>
     )
@@ -164,16 +173,21 @@ export function ActivitiesDashboard({ accessToken }: ActivitiesDashboardProps) {
             Recent Activities
           </CardTitle>
           <CardDescription>
-            Your latest activities from Strava
+            Your latest activities from database
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <ActivityIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No activities found</h3>
-            <p className="text-gray-500">
-              Start recording activities on Strava to see them here!
-            </p>
+            <div className="space-y-2">
+              <p className="text-gray-500">
+                No activities found in your database.
+              </p>
+              <p className="text-sm text-blue-600">
+                💡 Click "Sync Strava Data" to load your activities from Strava.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -191,8 +205,11 @@ export function ActivitiesDashboard({ accessToken }: ActivitiesDashboardProps) {
               Recent Activities
             </CardTitle>
             <CardDescription>
-              Your latest {activities.length} activities from Strava
+              Your latest {activities.length} activities from database
             </CardDescription>
+            <div className="text-xs text-green-600 mt-1">
+              📊 Database source ({allActivities?.length || 0} total activities)
+            </div>
           </div>
           <Button 
             variant="outline" 
@@ -210,67 +227,80 @@ export function ActivitiesDashboard({ accessToken }: ActivitiesDashboardProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {activities.map((activity: StravaActivity) => (
-            <div 
-              key={activity.id} 
-              className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              {/* Activity Type Icon */}
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                  <ActivityIcon className="h-6 w-6 text-orange-600" />
-                </div>
-              </div>
-
-              {/* Activity Details */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="text-sm font-medium text-gray-900 truncate">
-                    {activity.name}
-                  </h4>
-                  <Badge className={getActivityTypeColor(activity.type)}>
-                    {activity.type}
-                  </Badge>
-                </div>
-                
-                <div className="flex items-center gap-4 text-sm text-gray-500">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {formatDate(activity.start_date_local)}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {formatDistance(activity.distance)}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Timer className="h-3 w-3" />
-                    {formatDuration(activity.moving_time)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Activity Stats */}
-              <div className="flex-shrink-0 text-right">
-                <div className="text-sm text-gray-900 font-medium">
-                  {formatSpeed(activity.average_speed)}
-                </div>
-                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                  {activity.average_heartrate && (
-                    <div className="flex items-center gap-1">
-                      <Heart className="h-3 w-3" />
-                      {Math.round(activity.average_heartrate)}
+          {activities.map((activity) => {
+            const activityType = activity.sport_type || activity.activity_type || 'Activity'
+            
+            return (
+              <div key={activity.strava_activity_id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Badge variant="secondary" className={getActivityTypeColor(activity)}>
+                        {activityType}
+                      </Badge>
+                      <h3 className="font-semibold text-lg truncate">{activity.name}</h3>
                     </div>
-                  )}
-                  {activity.average_watts && (
-                    <div className="flex items-center gap-1">
-                      <Zap className="h-3 w-3" />
-                      {Math.round(activity.average_watts)}W
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      {/* Distance */}
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-gray-500" />
+                        <span>{formatDistance(activity.distance)}</span>
+                      </div>
+                      
+                      {/* Duration */}
+                      <div className="flex items-center gap-2">
+                        <Timer className="h-4 w-4 text-gray-500" />
+                        <span>{formatDuration(activity.moving_time)}</span>
+                      </div>
+                      
+                      {/* Heart Rate */}
+                      {activity.average_heartrate && (
+                        <div className="flex items-center gap-2">
+                          <Heart className="h-4 w-4 text-red-500" />
+                          <span>{Math.round(activity.average_heartrate)} bpm</span>
+                        </div>
+                      )}
+                      
+                      {/* Power */}
+                      {activity.average_watts && (
+                        <div className="flex items-center gap-2">
+                          <Zap className="h-4 w-4 text-yellow-500" />
+                          <span>{Math.round(activity.average_watts)}w</span>
+                        </div>
+                      )}
+                      
+                      {/* Speed */}
+                      {activity.average_speed && (
+                        <div className="flex items-center gap-2">
+                          <ActivityIcon className="h-4 w-4 text-blue-500" />
+                          <span>{formatSpeed(activity.average_speed)}</span>
+                        </div>
+                      )}
+                      
+                      {/* Elevation */}
+                      {activity.total_elevation_gain && activity.total_elevation_gain > 0 && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">↗</span>
+                          <span>{activity.total_elevation_gain}m</span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
+                  
+                  <div className="text-right text-sm text-gray-500 ml-4">
+                    <div className="flex items-center gap-1 mb-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>{formatDate(activity.start_date_local)}</span>
+                    </div>
+                    {activity.kudos_count && activity.kudos_count > 0 && (
+                      <div className="text-xs">❤️ {activity.kudos_count}</div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </CardContent>
     </Card>
