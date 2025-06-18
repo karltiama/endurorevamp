@@ -1,6 +1,6 @@
 import { requireAuth } from '@/lib/auth/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
-import { StravaIntegrationWithActivities } from '@/components/strava/StravaIntegration'
+import { StravaConnectionStatus } from '@/components/strava/StravaConnectionStatus'
 import SyncDashboard from '@/components/dashboard/SyncDashboard'
 import LogoutButton from '@/components/LogoutButton'
 import UnitPreferences from '@/components/settings/UnitPreferences'
@@ -60,9 +60,9 @@ export default async function SettingsPage() {
           <UnitPreferences />
         </Suspense>
 
-        {/* Strava Integration Section */}
+        {/* Strava Connection Section */}
         <Suspense fallback={<IntegrationSkeleton />}>
-          <StravaIntegrationWithActivities />
+          <StravaConnectionStatus />
         </Suspense>
 
         {/* Sync Dashboard Section */}

@@ -2,6 +2,7 @@ import { requireAuth } from '@/lib/auth/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { ActivityChartsClient } from '@/components/dashboard/ActivityChartsClient'
 import { ActivityFeedClient } from '../../../components/analytics/ActivityFeedClient'
+import { HashScrollHandler } from '@/components/HashScrollHandler'
 import { Suspense } from 'react'
 
 export default async function AnalyticsPage() {
@@ -9,6 +10,7 @@ export default async function AnalyticsPage() {
 
   return (
     <DashboardLayout user={user}>
+      <HashScrollHandler />
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Activity Analysis</h1>
@@ -23,7 +25,7 @@ export default async function AnalyticsPage() {
         </Suspense>
 
         {/* Activity Feed Section */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div id="activity-feed" className="bg-white rounded-lg shadow p-6 scroll-mt-20">
           <Suspense fallback={<ActivityFeedSkeletonFallback />}>
             <ActivityFeedClient userId={user.id} />
           </Suspense>

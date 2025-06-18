@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { useSearchParams } from 'next/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { StravaIntegration } from '@/components/strava/StravaIntegration';
+import { StravaConnectionStatus } from '@/components/strava/StravaConnectionStatus';
 
 // Mock the hooks
 jest.mock('next/navigation', () => ({
@@ -54,7 +54,7 @@ jest.mock('@/hooks/strava/useStravaToken', () => ({
 
 const mockUseSearchParams = useSearchParams as jest.MockedFunction<typeof useSearchParams>;
 
-describe('StravaIntegration OAuth Callback', () => {
+describe('StravaConnectionStatus OAuth Callback', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
@@ -95,7 +95,7 @@ describe('StravaIntegration OAuth Callback', () => {
 
     require('next/navigation').useRouter.mockReturnValue(mockRouter);
 
-    renderWithQueryClient(<StravaIntegration />);
+    renderWithQueryClient(<StravaConnectionStatus />);
 
     await waitFor(() => {
       expect(mockExchangeToken).toHaveBeenCalledWith(
@@ -125,7 +125,7 @@ describe('StravaIntegration OAuth Callback', () => {
 
     require('next/navigation').useRouter.mockReturnValue(mockRouter);
 
-    renderWithQueryClient(<StravaIntegration />);
+    renderWithQueryClient(<StravaConnectionStatus />);
 
     await waitFor(() => {
       expect(screen.getByText(/User denied access/)).toBeInTheDocument();
@@ -160,7 +160,7 @@ describe('StravaIntegration OAuth Callback', () => {
       isPending: false,
     });
 
-    renderWithQueryClient(<StravaIntegration />);
+    renderWithQueryClient(<StravaConnectionStatus />);
 
     // Should not call exchangeToken when already connected
     expect(mockExchangeToken).not.toHaveBeenCalled();
@@ -183,7 +183,7 @@ describe('StravaIntegration OAuth Callback', () => {
       isPending: true,
     });
 
-    renderWithQueryClient(<StravaIntegration />);
+    renderWithQueryClient(<StravaConnectionStatus />);
 
     // Should not call exchangeToken when already in progress
     expect(mockExchangeToken).not.toHaveBeenCalled();
@@ -215,7 +215,7 @@ describe('StravaIntegration OAuth Callback', () => {
       isPending: false,
     });
 
-    renderWithQueryClient(<StravaIntegration />);
+    renderWithQueryClient(<StravaConnectionStatus />);
 
     // Get the onSuccess callback that was passed to exchangeToken
     await waitFor(() => {
@@ -229,10 +229,7 @@ describe('StravaIntegration OAuth Callback', () => {
 
     // Verify cache invalidation
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-      queryKey: ['strava-connection', 'test-user'],
-    });
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-      queryKey: ['strava-token', 'test-user'],
+      queryKey: ['strava', 'connection'],
     });
   });
 }); 

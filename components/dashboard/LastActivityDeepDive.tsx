@@ -180,7 +180,7 @@ export function LastActivityDeepDive({ userId }: LastActivityDeepDiveProps) {
               Detailed analysis of your most recent workout
             </CardDescription>
           </div>
-          <Link href="/dashboard/analytics">
+          <Link href="/dashboard/analytics#activity-feed" scroll={true}>
             <Button variant="outline" size="sm" className="flex items-center gap-2">
               <ActivityIcon className="h-4 w-4" />
               View All Activities

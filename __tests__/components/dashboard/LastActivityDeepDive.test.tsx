@@ -180,4 +180,31 @@ describe('LastActivityDeepDive', () => {
     expect(screen.queryByText('Heart Rate')).not.toBeInTheDocument();
     expect(screen.queryByText('Power')).not.toBeInTheDocument();
   });
+
+  it('should link to analytics page with activity feed hash fragment', () => {
+    const mockActivity = createMockActivity({
+      name: 'Test Activity',
+      sport_type: 'Run',
+      distance: 5000,
+      moving_time: 1800,
+      total_elevation_gain: 50,
+      average_heartrate: 150,
+      max_heartrate: 170,
+      average_watts: undefined,
+      max_watts: undefined
+    });
+
+    // Mock the hook to return a test activity
+    mockUseUserActivities.mockReturnValue({
+      data: [mockActivity],
+      isLoading: false,
+      error: null
+    });
+
+    renderWithQueryClient(<LastActivityDeepDive userId="test-user" />);
+    
+    const viewAllActivitiesLink = screen.getByRole('link', { name: /view all activities/i });
+    expect(viewAllActivitiesLink).toBeInTheDocument();
+    expect(viewAllActivitiesLink).toHaveAttribute('href', '/dashboard/analytics#activity-feed');
+  });
 }); 

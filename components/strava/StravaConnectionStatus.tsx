@@ -4,38 +4,34 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Link2, Unlink, RefreshCw, User, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
-import { useStravaConnection, STRAVA_CONNECTION_QUERY_KEY } from '@/hooks/strava/useStravaConnection';
-import { useStravaSync } from '@/hooks/strava/useStravaSync';
+import { Loader2, Link2, Unlink, User, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useStravaConnection } from '@/hooks/strava/useStravaConnection';
 import { useStravaAuth } from '@/hooks/use-strava-auth';
-import { useStravaToken, STRAVA_TOKEN_QUERY_KEY } from '@/hooks/strava/useStravaToken';
+import { useStravaToken } from '@/hooks/strava/useStravaToken';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/providers/AuthProvider';
 import { getStravaAuthUrl } from '@/lib/strava';
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ActivitiesDashboard } from './ActivitiesDashboard';
 
-export function StravaIntegration() {
+export function StravaConnectionStatus() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { connectionStatus, isLoading: isCheckingConnection, error: connectionError, refreshStatus, disconnect } = useStravaConnection();
-  const { syncData, isLoading: isSyncing, lastSyncResult, error: syncError } = useStravaSync();
+  const { connectionStatus, isLoading: isCheckingConnection, error: connectionError, disconnect } = useStravaConnection();
   const { mutate: exchangeToken, isPending: isAuthing } = useStravaAuth();
-  const { accessToken } = useStravaToken();
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authSuccess, setAuthSuccess] = useState(false);
 
-  // Handle OAuth callback on dashboard - with race condition protection
+  // Handle OAuth callback
   useEffect(() => {
     const code = searchParams.get('code');
     const error = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
 
-    console.log('🔍 Dashboard OAuth check:', { code: !!code, error, errorDescription });
+    console.log('🔍 OAuth check:', { code: !!code, error, errorDescription });
 
     // Handle OAuth errors from Strava
     if (error) {
@@ -56,7 +52,7 @@ export function StravaIntegration() {
       return;
     }
 
-    // Handle successful OAuth code with improved race condition protection
+    // Handle successful OAuth code
     if (code && !connectionStatus?.connected && !isAuthing) {
       console.log('🔄 Processing OAuth code...');
       setAuthError(null);
@@ -71,31 +67,12 @@ export function StravaIntegration() {
           console.log('✅ Successfully connected to Strava:', data);
           setAuthSuccess(true);
           
-          // Set the connection status immediately in cache to prevent showing disconnected state
-          queryClient.setQueryData(
-            [STRAVA_CONNECTION_QUERY_KEY, user?.id],
-            {
-              connected: true,
-              athlete: data.athlete ? {
-                id: data.athlete.id,
-                firstname: data.athlete.firstname,
-                lastname: data.athlete.lastname,
-                profile: data.athlete.profile,
-              } : undefined,
-            }
-          );
+          // Invalidate queries to ensure fresh data
+          await queryClient.invalidateQueries({ 
+            queryKey: ['strava', 'connection'] 
+          });
           
-          // Invalidate queries to ensure fresh data from server
-          await Promise.all([
-            queryClient.invalidateQueries({ 
-              queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id] 
-            }),
-            queryClient.invalidateQueries({ 
-              queryKey: [STRAVA_TOKEN_QUERY_KEY, user?.id] 
-            })
-          ]);
-          
-          // Clear success message after a delay
+          // Clear success message after delay
           setTimeout(() => {
             setAuthSuccess(false);
           }, 3000);
@@ -128,14 +105,6 @@ export function StravaIntegration() {
     window.location.href = getStravaAuthUrl(window.location.origin);
   };
 
-  const handleSync = async () => {
-    try {
-      await syncData({ forceRefresh: false, maxActivities: 50 });
-    } catch (error) {
-      console.error('Sync failed:', error);
-    }
-  };
-
   const handleDisconnect = async () => {
     setIsDisconnecting(true);
     try {
@@ -153,7 +122,7 @@ export function StravaIntegration() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Loader2 className="h-5 w-5 animate-spin" />
-            Strava Integration
+            Strava Connection
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -172,7 +141,7 @@ export function StravaIntegration() {
           <div className="h-6 w-6 bg-orange-500 rounded flex items-center justify-center">
             <span className="text-white font-bold text-xs">S</span>
           </div>
-          Strava Integration
+          Strava Connection
         </CardTitle>
         <CardDescription>
           Connect your Strava account to sync activities and track your training progress.
@@ -220,31 +189,11 @@ export function StravaIntegration() {
         )}
 
         {/* Error Messages */}
-        {(connectionError || syncError || authError) && (
+        {(connectionError || authError) && (
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              {authError || connectionError || syncError}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Sync Results */}
-        {lastSyncResult && (
-          <Alert>
-            <CheckCircle2 className="h-4 w-4" />
-            <AlertDescription>
-              {lastSyncResult.success ? (
-                <>
-                  Sync completed successfully! 
-                  {lastSyncResult.activitiesProcessed > 0 && (
-                    <> Processed {lastSyncResult.activitiesProcessed} activities.</>
-                  )}
-                  {lastSyncResult.profileUpdated && <> Profile updated.</>}
-                </>
-              ) : (
-                <>Sync failed: {lastSyncResult.errors.join(', ')}</>
-              )}
+              {authError || connectionError}
             </AlertDescription>
           </Alert>
         )}
@@ -252,32 +201,24 @@ export function StravaIntegration() {
         {/* Action Buttons */}
         <div className="flex gap-2">
           {connectionStatus?.connected ? (
-            <>
-              <Button onClick={handleSync} disabled={isSyncing} className="flex-1">
-                {isSyncing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Syncing...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Sync Data
-                  </>
-                )}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleDisconnect} 
-                disabled={isDisconnecting}
-              >
-                {isDisconnecting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Unlink className="h-4 w-4" />
-                )}
-              </Button>
-            </>
+            <Button 
+              variant="outline" 
+              onClick={handleDisconnect} 
+              disabled={isDisconnecting}
+              className="w-full"
+            >
+              {isDisconnecting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Disconnecting...
+                </>
+              ) : (
+                <>
+                  <Unlink className="h-4 w-4 mr-2" />
+                  Disconnect
+                </>
+              )}
+            </Button>
           ) : (
             <Button onClick={handleConnect} className="w-full">
               <Link2 className="h-4 w-4 mr-2" />
@@ -314,22 +255,5 @@ export function StravaIntegration() {
         )}
       </CardContent>
     </Card>
-  );
-}
-
-// Wrapper component to include Activities Dashboard when connected
-export function StravaIntegrationWithActivities() {
-  const { connectionStatus } = useStravaConnection();
-  const { user } = useAuth();
-
-  return (
-    <div className="space-y-6">
-      <StravaIntegration />
-      
-      {/* Show Activities Dashboard when connected and we have a user */}
-      {connectionStatus?.connected && user?.id && (
-        <ActivitiesDashboard userId={user.id} />
-      )}
-    </div>
   );
 } 
