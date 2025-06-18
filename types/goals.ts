@@ -4,7 +4,7 @@ export interface GoalType {
   name: string;
   display_name: string;
   description: string;
-  category: 'distance' | 'pace' | 'frequency' | 'duration' | 'elevation' | 'heart_rate';
+  category: 'distance' | 'pace' | 'frequency' | 'duration' | 'elevation' | 'heart_rate' | 'event';
   metric_type: string; // e.g., 'total_distance', 'average_pace', 'run_count', etc.
   unit?: string; // km, miles, min/km, min/mile, bpm, m, ft, count, minutes, hours
   target_guidance?: string; // Guidance for setting realistic targets
@@ -259,10 +259,10 @@ export interface GoalValidationResult {
 }
 
 // Helper types for goal calculations
-export interface GoalProgressSummary {
+export interface GoalProgressCalculation {
   goalId: string;
   goalType: string;
-  targetValue: number;
+  targetValue?: number;
   currentProgress: number;
   progressPercentage: number;
   isOnTrack: boolean;

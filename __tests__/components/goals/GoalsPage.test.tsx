@@ -51,7 +51,10 @@ describe('GoalCard', () => {
        display_name: 'Weekly Distance',
        description: 'Run a certain distance per week',
        category: 'distance',
+       metric_type: 'total_distance',
        unit: 'km',
+       target_guidance: 'Beginners: 15-25km',
+       calculation_method: 'Sum of all run distances in the week',
        is_active: true,
        created_at: '2024-01-01',
        updated_at: '2024-01-01'
@@ -273,12 +276,18 @@ describe('AddGoalModal', () => {
 describe('Goals Page Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Mock all hooks properly
+    const mockHooks = require('@/hooks/useGoals');
+    mockHooks.useUserGoals = jest.fn();
+    mockHooks.useGoalTypes = jest.fn();
+    mockHooks.useCreateGoal = jest.fn();
   });
 
   it('handles empty state correctly', () => {
-    const { useUserGoals } = require('@/hooks/useGoals');
+    const mockHooks = require('@/hooks/useGoals');
     
-    useUserGoals.mockReturnValue({
+    mockHooks.useUserGoals.mockReturnValue({
       data: { goals: [], onboarding: null },
       isLoading: false,
       error: null,
@@ -289,9 +298,9 @@ describe('Goals Page Integration', () => {
   });
 
   it('handles loading state correctly', () => {
-    const { useUserGoals } = require('@/hooks/useGoals');
+    const mockHooks = require('@/hooks/useGoals');
     
-    useUserGoals.mockReturnValue({
+    mockHooks.useUserGoals.mockReturnValue({
       data: undefined,
       isLoading: true,
       error: null,
@@ -301,9 +310,9 @@ describe('Goals Page Integration', () => {
   });
 
   it('handles error state correctly', () => {
-    const { useUserGoals } = require('@/hooks/useGoals');
+    const mockHooks = require('@/hooks/useGoals');
     
-    useUserGoals.mockReturnValue({
+    mockHooks.useUserGoals.mockReturnValue({
       data: undefined,
       isLoading: false,
       error: new Error('Failed to fetch goals'),

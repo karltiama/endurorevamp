@@ -18,20 +18,70 @@ const CONTRIBUTION_COLORS = {
 
 export function ActivityContributionCalendar({ activities }: ActivityContributionCalendarProps) {
   const contributionData = useMemo(() => {
+    // Use end of today to ensure we include today's activities
     const today = new Date()
+    today.setHours(23, 59, 59, 999) // Set to end of today
+    
     const startDate = new Date(today)
     startDate.setMonth(today.getMonth() - 11)
     startDate.setDate(1)
+    startDate.setHours(0, 0, 0, 0) // Set to start of day
+
+    // Helper function to generate consistent date keys
+    const getDateKey = (date: Date) => {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+
+    // Debug logging
+    console.log('ActivityContributionCalendar Debug:', {
+      totalActivities: activities.length,
+      dateRange: {
+        start: getDateKey(startDate),
+        end: getDateKey(today)
+      },
+      recentActivities: activities.slice(0, 5).map(a => ({
+        name: a.name,
+        start_date: a.start_date,
+        start_date_local: a.start_date_local
+      }))
+    })
 
     // Create a map of dates to activity counts
     const activityCounts = new Map<string, number>()
-    activities.forEach(activity => {
-      const date = new Date(activity.start_date)
+    activities.forEach((activity, index) => {
+      // Use start_date_local if available for better timezone handling
+      const activityDateStr = activity.start_date_local || activity.start_date
+      const date = new Date(activityDateStr)
+      
+      // Debug logging for first few activities to see date parsing
+      if (index < 3) {
+        console.log(`Activity ${index + 1} date parsing:`, {
+          name: activity.name,
+          original_start_date: activity.start_date,
+          original_start_date_local: activity.start_date_local,
+          using_date_string: activityDateStr,
+          parsed_date: date.toISOString(),
+          parsed_local_date: date.toLocaleDateString(),
+          generated_key: getDateKey(date),
+          date_components: {
+            year: date.getFullYear(),
+            month: date.getMonth() + 1,
+            day: date.getDate()
+          }
+        })
+      }
+      
       if (date >= startDate && date <= today) {
-        const dateKey = date.toISOString().split('T')[0]
+        // Use consistent date key generation
+        const dateKey = getDateKey(date)
         activityCounts.set(dateKey, (activityCounts.get(dateKey) || 0) + 1)
       }
     })
+
+    console.log('Activity counts by date:', Object.fromEntries(activityCounts))
 
     // Generate calendar data as a flat array of weeks
     const weeks: { date: string; count: number }[][] = []
@@ -42,11 +92,23 @@ export function ActivityContributionCalendar({ activities }: ActivityContributio
     startOfWeek.setDate(currentDate.getDate() - currentDate.getDay())
     currentDate = startOfWeek
     
+    // Debug: Log some calendar dates for comparison
+    const calendarDebugDates: string[] = []
+    let tempDate = new Date(currentDate)
+    for (let i = 0; i < 14; i++) { // Show first 2 weeks
+      if (tempDate >= startDate && tempDate <= today) {
+        calendarDebugDates.push(getDateKey(tempDate))
+      }
+      tempDate.setDate(tempDate.getDate() + 1)
+    }
+    console.log('Calendar generating date keys (first 2 weeks):', calendarDebugDates)
+    
     while (currentDate <= today) {
       const week: { date: string; count: number }[] = []
       
       for (let i = 0; i < 7; i++) {
-        const dateKey = currentDate.toISOString().split('T')[0]
+        // Use the same date key generation method
+        const dateKey = getDateKey(currentDate)
         const count = currentDate >= startDate && currentDate <= today 
           ? (activityCounts.get(dateKey) || 0)
           : 0

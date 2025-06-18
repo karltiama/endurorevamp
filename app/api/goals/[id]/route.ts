@@ -5,7 +5,7 @@ import { getUser } from '@/lib/auth/server';
 // PATCH - Update a goal
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUser();
@@ -17,7 +17,7 @@ export async function PATCH(
       );
     }
 
-    const goalId = params.id;
+    const { id: goalId } = await params;
     const body = await request.json();
     
     const supabase = await createClient();
@@ -81,7 +81,7 @@ export async function PATCH(
 // DELETE - Delete a goal
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUser();
@@ -93,7 +93,7 @@ export async function DELETE(
       );
     }
 
-    const goalId = params.id;
+    const { id: goalId } = await params;
     const supabase = await createClient();
     
     // Verify the goal belongs to the user

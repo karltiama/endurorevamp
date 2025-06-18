@@ -2,6 +2,7 @@
 
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { ActivityContributionCalendar } from './ActivityContributionCalendar'
+import { useEffect } from 'react'
 
 interface ActivityContributionCalendarClientProps {
   userId: string
@@ -10,7 +11,17 @@ interface ActivityContributionCalendarClientProps {
 export function ActivityContributionCalendarClient({ userId }: ActivityContributionCalendarClientProps) {
   const { data: activities, isLoading, error } = useUserActivities(userId)
 
+  useEffect(() => {
+    console.log('ActivityContributionCalendarClient: Component mounted/updated', {
+      userId,
+      isLoading,
+      error: error?.message,
+      activitiesCount: activities?.length || 0
+    })
+  }, [userId, isLoading, error, activities])
+
   if (isLoading) {
+    console.log('ActivityContributionCalendarClient: Loading state')
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <div className="animate-pulse">
@@ -23,14 +34,16 @@ export function ActivityContributionCalendarClient({ userId }: ActivityContribut
   }
 
   if (error) {
+    console.error('ActivityContributionCalendarClient: Error state', error)
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <div className="text-red-500">
-          Failed to load activity data
+          Failed to load activity data: {error.message}
         </div>
       </div>
     )
   }
 
+  console.log('ActivityContributionCalendarClient: Rendering calendar with activities:', activities?.length || 0)
   return <ActivityContributionCalendar activities={activities || []} />
 } 

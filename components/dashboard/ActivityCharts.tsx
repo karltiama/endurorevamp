@@ -25,6 +25,14 @@ interface ActivityChartsProps {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8']
 
 export function ActivityCharts({ activities }: ActivityChartsProps) {
+  console.log('ActivityCharts: Received activities prop', {
+    activitiesCount: activities?.length || 0,
+    sampleActivities: activities?.slice(0, 3).map(a => ({
+      name: a.name,
+      start_date: a.start_date,
+      start_date_local: a.start_date_local
+    }))
+  })
 
   const monthlyData = useMemo(() => {
     if (!activities) return []

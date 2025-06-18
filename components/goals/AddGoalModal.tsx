@@ -63,6 +63,26 @@ export function AddGoalModal({ open, onOpenChange }: AddGoalModalProps) {
       return;
     }
 
+    if (goalType.category === 'frequency' && !formData.targetValue) {
+      setError('Please enter a target value for frequency goals.');
+      return;
+    }
+
+    if (goalType.category === 'pace' && !formData.targetValue) {
+      setError('Please enter a target pace for pace goals.');
+      return;
+    }
+
+    if (goalType.category === 'duration' && !formData.targetValue) {
+      setError('Please enter a target duration for duration goals.');
+      return;
+    }
+
+    if (goalType.category === 'elevation' && !formData.targetValue) {
+      setError('Please enter a target elevation for elevation goals.');
+      return;
+    }
+
     if (goalType.category === 'event' && !formData.targetDate) {
       setError('Please select a target date for event goals.');
       return;
@@ -179,6 +199,95 @@ export function AddGoalModal({ open, onOpenChange }: AddGoalModalProps) {
                       id="targetValue"
                       type="number"
                       placeholder={selectedGoal.name.includes('weekly') ? '20' : '100'}
+                      value={formData.targetValue || ''}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        targetValue: parseFloat(e.target.value) || undefined
+                      }))}
+                      className="mt-1"
+                    />
+                  </div>
+                )}
+
+                {selectedGoal?.category === 'frequency' && (
+                  <div>
+                    <Label htmlFor="targetValue" className="text-sm font-medium">
+                      Target {selectedGoal.unit === 'runs' ? 'Runs' : selectedGoal.unit || 'Activities'} *
+                    </Label>
+                    <Input
+                      id="targetValue"
+                      type="number"
+                      placeholder={selectedGoal.name.includes('weekly') ? '3' : '12'}
+                      value={formData.targetValue || ''}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        targetValue: parseFloat(e.target.value) || undefined
+                      }))}
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {selectedGoal.name.includes('weekly') 
+                        ? 'Number of runs per week you want to maintain'
+                        : 'Number of runs per month you want to maintain'
+                      }
+                    </p>
+                  </div>
+                )}
+
+                                 {selectedGoal?.category === 'pace' && (
+                   <div>
+                     <Label htmlFor="targetValue" className="text-sm font-medium">
+                       Target Pace (minutes per km) *
+                     </Label>
+                     <Input
+                       id="targetValue"
+                       type="number"
+                       step="0.1"
+                       placeholder="e.g., 5.5"
+                       value={formData.targetValue || ''}
+                       onChange={(e) => setFormData(prev => ({
+                         ...prev,
+                         targetValue: parseFloat(e.target.value) || undefined
+                       }))}
+                       className="mt-1"
+                     />
+                     <p className="text-xs text-muted-foreground mt-1">
+                       Enter pace in minutes per kilometer (e.g., 5.5 for 5:30/km)
+                     </p>
+                   </div>
+                 )}
+
+                 {selectedGoal?.category === 'duration' && (
+                   <div>
+                     <Label htmlFor="targetValue" className="text-sm font-medium">
+                       Target Minutes *
+                     </Label>
+                     <Input
+                       id="targetValue"
+                       type="number"
+                       placeholder="e.g., 60"
+                       value={formData.targetValue || ''}
+                       onChange={(e) => setFormData(prev => ({
+                         ...prev,
+                         targetValue: parseFloat(e.target.value) || undefined
+                       }))}
+                       className="mt-1"
+                     />
+                     <p className="text-xs text-muted-foreground mt-1">
+                       Enter duration in minutes
+                     </p>
+                   </div>
+                 )}
+
+                {selectedGoal?.category === 'elevation' && (
+                  <div>
+                    <Label htmlFor="targetValue" className="text-sm font-medium">
+                      Target Elevation *
+                    </Label>
+                    <Input
+                      id="targetValue"
+                      type="number"
+                      placeholder="e.g., 1000 meters"
                       value={formData.targetValue || ''}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
