@@ -4,11 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { formatDistance, formatPace } from '@/lib/utils'
 import { Activity } from '@/lib/strava/types'
 import { useMemo } from 'react'
+import Link from 'next/link'
 import {
   Calendar,
   Timer,
@@ -20,7 +22,8 @@ import {
   Target,
   Activity as ActivityIcon,
   Clock,
-  Mountain
+  Mountain,
+  ArrowRight
 } from 'lucide-react'
 
 interface LastActivityDeepDiveProps {
@@ -167,13 +170,24 @@ export function LastActivityDeepDive({ userId }: LastActivityDeepDiveProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <span className="text-2xl">{getActivityIcon(lastActivity.sport_type)}</span>
-          Last Activity Deep Dive
-        </CardTitle>
-        <CardDescription>
-          Detailed analysis of your most recent workout
-        </CardDescription>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-2xl">{getActivityIcon(lastActivity.sport_type)}</span>
+              Last Activity Deep Dive
+            </CardTitle>
+            <CardDescription>
+              Detailed analysis of your most recent workout
+            </CardDescription>
+          </div>
+          <Link href="/dashboard/analytics">
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <ActivityIcon className="h-4 w-4" />
+              View All Activities
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="overview" className="w-full">
