@@ -61,6 +61,11 @@ export interface UserOnboarding {
 // Goal-specific data types
 export interface GoalData {
   notes?: string;
+  
+  // Dashboard display settings
+  show_on_dashboard?: boolean; // Whether this goal appears on the dashboard
+  dashboard_priority?: number; // Order priority on dashboard (1-3)
+  
   // Pace-specific data
   target_pace_seconds?: number; // Target pace in seconds per km
   distance_range?: [number, number]; // Distance range for pace goals (e.g., [4.5, 5.5] for 5K)
@@ -153,6 +158,7 @@ export interface GoalFormData {
   timePeriod?: 'weekly' | 'monthly' | 'single_activity' | 'ongoing';
   notes?: string;
   difficultyLevel?: 'beginner' | 'intermediate' | 'advanced';
+  priority?: number;
   // Pace-specific fields
   targetPaceMinutes?: number;
   targetPaceSeconds?: number;

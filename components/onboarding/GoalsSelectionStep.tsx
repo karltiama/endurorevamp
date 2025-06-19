@@ -20,6 +20,7 @@ export function GoalsSelectionStep({ onComplete }: GoalsSelectionStepProps) {
   const createGoalsMutation = useCreateMultipleGoals();
   
   const [selectedGoals, setSelectedGoals] = useState<GoalFormData[]>([]);
+  const [dashboardGoals, setDashboardGoals] = useState<string[]>([]);
   const [error, setError] = useState<string>('');
 
   const handleGoalToggle = (goalTypeId: string) => {
@@ -27,6 +28,7 @@ export function GoalsSelectionStep({ onComplete }: GoalsSelectionStepProps) {
     
     if (isSelected) {
       setSelectedGoals(prev => prev.filter(g => g.goalTypeId !== goalTypeId));
+      setDashboardGoals(prev => prev.filter(id => id !== goalTypeId));
     } else {
       const goalType = goalTypes.find(gt => gt.id === goalTypeId);
       if (goalType) {
@@ -36,6 +38,16 @@ export function GoalsSelectionStep({ onComplete }: GoalsSelectionStepProps) {
           priority: prev.length + 1
         }]);
       }
+    }
+  };
+
+  const handleDashboardToggle = (goalTypeId: string) => {
+    const isOnDashboard = dashboardGoals.includes(goalTypeId);
+    
+    if (isOnDashboard) {
+      setDashboardGoals(prev => prev.filter(id => id !== goalTypeId));
+    } else if (dashboardGoals.length < 3) {
+      setDashboardGoals(prev => [...prev, goalTypeId]);
     }
   };
 
@@ -52,6 +64,11 @@ export function GoalsSelectionStep({ onComplete }: GoalsSelectionStepProps) {
   const handleSubmit = async () => {
     if (selectedGoals.length === 0) {
       setError('Please select at least one goal to continue.');
+      return;
+    }
+
+    if (dashboardGoals.length === 0) {
+      setError('Please select at least one goal to track on your dashboard.');
       return;
     }
 
@@ -81,7 +98,9 @@ export function GoalsSelectionStep({ onComplete }: GoalsSelectionStepProps) {
         target_unit: goal.targetUnit,
         target_date: goal.targetDate,
         goal_data: {
-          notes: goal.notes
+          notes: goal.notes,
+          show_on_dashboard: dashboardGoals.includes(goal.goalTypeId),
+          dashboard_priority: dashboardGoals.indexOf(goal.goalTypeId) + 1
         },
         priority: goal.priority
       }));
@@ -119,9 +138,16 @@ export function GoalsSelectionStep({ onComplete }: GoalsSelectionStepProps) {
     <div className="space-y-6">
       <div className="text-center">
         <h3 className="text-xl font-semibold mb-2">What do you want to achieve?</h3>
-        <p className="text-muted-foreground">
-          Select one or more goals to help track your running progress
+        <p className="text-muted-foreground mb-4">
+          Select your goals and choose up to 3 to track on your dashboard
         </p>
+        {dashboardGoals.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+            <p className="text-sm text-blue-700">
+              🎯 Dashboard Goals ({dashboardGoals.length}/3): These will appear as key metrics on your dashboard
+            </p>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -134,27 +160,52 @@ export function GoalsSelectionStep({ onComplete }: GoalsSelectionStepProps) {
         {goalTypes.map((goalType) => {
           const isSelected = selectedGoals.some(g => g.goalTypeId === goalType.id);
           const selectedGoal = selectedGoals.find(g => g.goalTypeId === goalType.id);
+          const isOnDashboard = dashboardGoals.includes(goalType.id);
 
           return (
             <Card 
               key={goalType.id}
               className={cn(
                 "cursor-pointer transition-all hover:shadow-md",
-                isSelected ? "ring-2 ring-primary" : ""
+                isSelected ? "ring-2 ring-primary" : "",
+                isOnDashboard ? "bg-blue-50 border-blue-200" : ""
               )}
               onClick={() => handleGoalToggle(goalType.id)}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-lg">{goalType.display_name}</CardTitle>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      {goalType.display_name}
+                      {isOnDashboard && (
+                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                          Dashboard #{dashboardGoals.indexOf(goalType.id) + 1}
+                        </Badge>
+                      )}
+                    </CardTitle>
                     <CardDescription className="mt-1">
                       {goalType.description}
                     </CardDescription>
                   </div>
-                  <Badge variant={goalType.category === 'distance' ? 'default' : 'secondary'}>
-                    {goalType.category}
-                  </Badge>
+                  <div className="flex flex-col gap-1">
+                    <Badge variant={goalType.category === 'distance' ? 'default' : 'secondary'}>
+                      {goalType.category}
+                    </Badge>
+                    {isSelected && (
+                      <Button
+                        variant={isOnDashboard ? "default" : "outline"}
+                        size="sm"
+                        className="text-xs"
+                        disabled={!isOnDashboard && dashboardGoals.length >= 3}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDashboardToggle(goalType.id);
+                        }}
+                      >
+                        {isOnDashboard ? "On Dashboard" : "Add to Dashboard"}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
 

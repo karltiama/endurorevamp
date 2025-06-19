@@ -4,12 +4,26 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { KeyMetrics } from '@/components/dashboard/KeyMetrics';
 import { Activity } from '@/lib/strava/types';
 
-// Mock the hook
-jest.mock('@/hooks/use-user-activities', () => ({
-  useUserActivities: jest.fn(),
+// Mock the hooks
+jest.mock('@/hooks/useGoals', () => ({
+  useUserGoals: jest.fn()
 }));
 
-const mockUseUserActivities = require('@/hooks/use-user-activities').useUserActivities;
+jest.mock('@/hooks/use-user-activities', () => ({
+  useUserActivities: jest.fn()
+}));
+
+jest.mock('@/hooks/useUnitPreferences', () => ({
+  useUnitPreferences: jest.fn()
+}));
+
+import { useUserGoals } from '@/hooks/useGoals';
+import { useUserActivities } from '@/hooks/use-user-activities';
+import { useUnitPreferences } from '@/hooks/useUnitPreferences';
+
+const mockUseUserGoals = useUserGoals as jest.MockedFunction<typeof useUserGoals>;
+const mockUseUserActivities = useUserActivities as jest.MockedFunction<typeof useUserActivities>;
+const mockUseUnitPreferences = useUnitPreferences as jest.MockedFunction<typeof useUnitPreferences>;
 
 const createMockActivity = (overrides: Partial<Activity> = {}): Activity => ({
   id: '1',
@@ -27,153 +41,205 @@ const createMockActivity = (overrides: Partial<Activity> = {}): Activity => ({
   ...overrides,
 });
 
-const renderWithQueryClient = (component: React.ReactElement) => {
+const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
       mutations: { retry: false },
     },
   });
-
-  return render(
-    <QueryClientProvider client={queryClient}>
-      {component}
-    </QueryClientProvider>
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 
 describe('KeyMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Default mock for unit preferences
+    mockUseUnitPreferences.mockReturnValue({
+      preferences: { distance: 'km', pace: 'min/km' },
+      updatePreferences: jest.fn(),
+      setDistanceUnit: jest.fn(),
+      toggleUnits: jest.fn(),
+      isLoading: false
+    });
   });
 
-  it('renders loading state', () => {
+  it('renders loading skeleton when data is loading', () => {
+    mockUseUserGoals.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      error: null,
+      refetch: jest.fn()
+    } as any);
+    
     mockUseUserActivities.mockReturnValue({
       data: undefined,
       isLoading: true,
       error: null,
-    });
+      refetch: jest.fn()
+    } as any);
 
-    renderWithQueryClient(<KeyMetrics userId="user-1" />);
+    render(<KeyMetrics userId="test-user" />, { wrapper: createWrapper() });
     
-    // Should show skeleton loading
-    expect(document.querySelectorAll('.animate-pulse')).toHaveLength(3);
+    // Should show skeleton loading cards
+    expect(screen.getAllByRole('generic')).toHaveLength(3); // 3 skeleton cards
   });
 
-  it('renders error state', () => {
-    mockUseUserActivities.mockReturnValue({
-      data: null,
-      isLoading: false,
-      error: new Error('Failed to fetch'),
-    });
-
-    renderWithQueryClient(<KeyMetrics userId="user-1" />);
-    
-    expect(screen.getByText('Unable to load metrics')).toBeInTheDocument();
-  });
-
-  it('renders key metrics with data', () => {
-    const thisWeekActivity = createMockActivity({
-      start_date: new Date().toISOString(), // This week
-      distance: 10000, // 10km
-    });
-    
-    const lastWeekActivity = createMockActivity({
-      start_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // Last week
-      distance: 8000, // 8km
-    });
-
-    mockUseUserActivities.mockReturnValue({
-      data: [thisWeekActivity, lastWeekActivity],
+  it('renders setup message when no dashboard goals are configured', () => {
+    mockUseUserGoals.mockReturnValue({
+      data: { goals: [], onboarding: null },
       isLoading: false,
       error: null,
-    });
-
-    renderWithQueryClient(<KeyMetrics userId="user-1" />);
+      refetch: jest.fn()
+    } as any);
     
-    // Check weekly distance card
-    expect(screen.getByText('This Week')).toBeInTheDocument();
-    expect(screen.getByText('10.0 km')).toBeInTheDocument(); // Current week
-    expect(screen.getByText('8.0 km')).toBeInTheDocument(); // Last week
-    
-    // Check streak card
-    expect(screen.getByText('Current Streak')).toBeInTheDocument();
-    expect(screen.getByText('1 days', { selector: 'p' })).toBeInTheDocument();
-    
-    // Check monthly goal card
-    expect(screen.getByText('Monthly Goal')).toBeInTheDocument();
-    expect(screen.getByText(/days left/)).toBeInTheDocument();
-  });
-
-  it('shows weekly distance comparison correctly', () => {
-    const thisWeekActivity = createMockActivity({
-      start_date: new Date().toISOString(),
-      distance: 12000, // 12km this week
-    });
-    
-    const lastWeekActivity = createMockActivity({
-      start_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      distance: 10000, // 10km last week
-    });
-
-    mockUseUserActivities.mockReturnValue({
-      data: [thisWeekActivity, lastWeekActivity],
-      isLoading: false,
-      error: null,
-    });
-
-    renderWithQueryClient(<KeyMetrics userId="user-1" />);
-    
-    // Should show improvement
-    expect(screen.getByText('12.0 km')).toBeInTheDocument(); // This week
-    expect(screen.getByText('10.0 km')).toBeInTheDocument(); // Last week
-    expect(screen.getByText((content, element) => {
-      return element?.textContent === '↗️ 20% change'
-    })).toBeInTheDocument(); // 20% increase
-  });
-
-  it('shows monthly goal progress', () => {
-    // Create activities for current month
-    const activities = Array.from({ length: 5 }, (_, i) => 
-      createMockActivity({
-        start_date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-        distance: 5000, // 5km each
-      })
-    );
-
-    mockUseUserActivities.mockReturnValue({
-      data: activities,
-      isLoading: false,
-      error: null,
-    });
-
-    renderWithQueryClient(<KeyMetrics userId="user-1" />);
-    
-    // Should show monthly goal card
-    expect(screen.getByText('Monthly Goal')).toBeInTheDocument();
-    expect(screen.getByText('Current')).toBeInTheDocument();
-    expect(screen.getByText('Target')).toBeInTheDocument();
-    
-    // Should show progress percentage (more specific)
-    expect(screen.getByText(/\d+\.\d+%/)).toBeInTheDocument();
-  });
-
-  it('handles empty activities array', () => {
     mockUseUserActivities.mockReturnValue({
       data: [],
       isLoading: false,
       error: null,
-    });
+      refetch: jest.fn()
+    } as any);
 
-    renderWithQueryClient(<KeyMetrics userId="user-1" />);
+    render(<KeyMetrics userId="test-user" />, { wrapper: createWrapper() });
     
-    // Should still render all cards with zero values
-    expect(screen.getByText('This Week')).toBeInTheDocument();
-    expect(screen.getByText('Current Streak')).toBeInTheDocument();
-    expect(screen.getByText('Monthly Goal')).toBeInTheDocument();
+    expect(screen.getByText('Set Up Your Dashboard Goals')).toBeInTheDocument();
+    expect(screen.getByText('Choose Dashboard Goals')).toBeInTheDocument();
+  });
+
+  it('renders goal metrics for dashboard goals', () => {
+    const mockGoals = [
+      {
+        id: '1',
+        user_id: 'test-user',
+        goal_type_id: 'weekly-distance',
+        target_value: 20,
+        target_unit: 'km',
+        time_period: 'weekly',
+        current_progress: 15,
+        is_active: true,
+        is_completed: false,
+        priority: 1,
+        goal_data: {
+          show_on_dashboard: true,
+          dashboard_priority: 1
+        },
+        goal_type: {
+          id: 'weekly-distance',
+          display_name: 'Weekly Distance',
+          category: 'distance',
+          name: 'weekly_distance_goal'
+        }
+      },
+      {
+        id: '2',
+        user_id: 'test-user',
+        goal_type_id: 'frequency',
+        target_value: 3,
+        target_unit: 'runs',
+        time_period: 'weekly',
+        current_progress: 2,
+        is_active: true,
+        is_completed: false,
+        priority: 2,
+        goal_data: {
+          show_on_dashboard: true,
+          dashboard_priority: 2
+        },
+        goal_type: {
+          id: 'frequency',
+          display_name: 'Weekly Runs',
+          category: 'frequency',
+          name: 'weekly_frequency_goal'
+        }
+      }
+    ];
+
+    mockUseUserGoals.mockReturnValue({
+      data: { goals: mockGoals, onboarding: null },
+      isLoading: false,
+      error: null,
+      refetch: jest.fn()
+    } as any);
     
-    // Should show 0 values (more specific selectors)
-    expect(screen.getByText('0 days', { selector: 'p' })).toBeInTheDocument(); // Streak main value
-    expect(screen.getAllByText('0 m')).toHaveLength(3); // Distance appears in multiple places
+    mockUseUserActivities.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn()
+    } as any);
+
+    render(<KeyMetrics userId="test-user" />, { wrapper: createWrapper() });
+    
+    // Should show goal metric cards
+    expect(screen.getByText('Weekly Distance')).toBeInTheDocument();
+    expect(screen.getByText('Weekly Runs')).toBeInTheDocument();
+    expect(screen.getByText('15.0 km')).toBeInTheDocument(); // current progress
+    expect(screen.getByText('2 runs')).toBeInTheDocument(); // current progress
+    expect(screen.getByText('75.0%')).toBeInTheDocument(); // 15/20 * 100
+    expect(screen.getByText('66.7%')).toBeInTheDocument(); // 2/3 * 100
+  });
+
+  it('sorts dashboard goals by priority', () => {
+    const mockGoals = [
+      {
+        id: '1',
+        user_id: 'test-user',
+        goal_type_id: 'goal-1',
+        target_value: 20,
+        is_active: true,
+        is_completed: false,
+        current_progress: 10,
+        goal_data: {
+          show_on_dashboard: true,
+          dashboard_priority: 3
+        },
+        goal_type: {
+          id: 'goal-1',
+          display_name: 'Third Priority',
+          category: 'distance'
+        }
+      },
+      {
+        id: '2',
+        user_id: 'test-user',
+        goal_type_id: 'goal-2',
+        target_value: 30,
+        is_active: true,
+        is_completed: false,
+        current_progress: 15,
+        goal_data: {
+          show_on_dashboard: true,
+          dashboard_priority: 1
+        },
+        goal_type: {
+          id: 'goal-2',
+          display_name: 'First Priority',
+          category: 'distance'
+        }
+      }
+    ];
+
+    mockUseUserGoals.mockReturnValue({
+      data: { goals: mockGoals, onboarding: null },
+      isLoading: false,
+      error: null,
+      refetch: jest.fn()
+    } as any);
+    
+    mockUseUserActivities.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn()
+    } as any);
+
+    render(<KeyMetrics userId="test-user" />, { wrapper: createWrapper() });
+    
+    const priorityBadges = screen.getAllByText(/#\d/);
+    expect(priorityBadges[0]).toHaveTextContent('#1'); // First Priority should be first
+    expect(priorityBadges[1]).toHaveTextContent('#2'); // Third Priority should be second
   });
 }); 
