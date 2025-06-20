@@ -7,11 +7,10 @@ import { ActivityDetailModal } from './ActivityDetailModal'
 import type { Activity } from '@/lib/strava/types'
 
 interface ActivityFeedProps {
-  accessToken: string
   userId: string
 }
 
-export function ActivityFeed({ accessToken, userId }: ActivityFeedProps) {
+export function ActivityFeed({ userId }: ActivityFeedProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   
@@ -33,7 +32,7 @@ export function ActivityFeed({ accessToken, userId }: ActivityFeedProps) {
   const endIndex = startIndex + ITEMS_PER_PAGE
   const currentActivities = filteredActivities.slice(startIndex, endIndex)
 
-  const handleViewDetails = (activity: Activity) => {
+  const handleViewDetails = (activity: any) => {
     setSelectedActivity(activity)
   }
 
@@ -142,7 +141,7 @@ export function ActivityFeed({ accessToken, userId }: ActivityFeedProps) {
       {/* Activity Detail Modal */}
       {selectedActivity && (
         <ActivityDetailModal
-          activity={selectedActivity}
+          activity={selectedActivity as any}
           userId={userId}
           onClose={handleCloseModal}
         />

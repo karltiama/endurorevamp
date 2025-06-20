@@ -1,9 +1,13 @@
 'use client'
 
+import React, { useState } from 'react'
 import { useUserGoals } from '@/hooks/useGoals'
 import { useUserActivities } from '../../hooks/use-user-activities'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { formatDistance } from '@/lib/utils'
+import { DashboardGoalSelector } from './DashboardGoalSelector'
+import { Button } from '@/components/ui/button'
+import { Target, Settings } from 'lucide-react'
 import type { UserGoal } from '@/types/goals'
 import type { Activity } from '@/lib/strava/types'
 
@@ -15,6 +19,7 @@ export function KeyMetrics({ userId }: KeyMetricsProps) {
   const { data: goalsData, isLoading: goalsLoading } = useUserGoals()
   const { data: activities, isLoading: activitiesLoading } = useUserActivities(userId)
   const { preferences } = useUnitPreferences()
+  const [showGoalSelector, setShowGoalSelector] = useState(false)
 
   if (goalsLoading || activitiesLoading) {
     return <KeyMetricsSkeleton />
@@ -32,35 +37,64 @@ export function KeyMetrics({ userId }: KeyMetricsProps) {
   // If no dashboard goals are set, show message to set them up
   if (dashboardGoals.length === 0) {
     return (
-      <div className="grid grid-cols-1 gap-4 mb-8">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">Set Up Your Dashboard Goals</h3>
-          <p className="text-blue-700 mb-4">
-            Choose up to 3 goals to track as key metrics on your dashboard.
-          </p>
-          <button 
-            onClick={() => window.location.href = '/dashboard/goals'}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Choose Dashboard Goals
-          </button>
+      <>
+        <div className="grid grid-cols-1 gap-4 mb-8">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+            <Target className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">Set Up Your Dashboard Goals</h3>
+            <p className="text-blue-700 mb-4">
+              Choose up to 3 goals to track as key metrics on your dashboard.
+            </p>
+            <Button 
+              onClick={() => setShowGoalSelector(true)}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Target className="h-4 w-4 mr-2" />
+              Choose Dashboard Goals
+            </Button>
+          </div>
         </div>
-      </div>
+        
+        <DashboardGoalSelector
+          open={showGoalSelector}
+          onOpenChange={setShowGoalSelector}
+        />
+      </>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-      {dashboardGoals.slice(0, 3).map((goal, index) => (
-        <GoalMetricCard 
-          key={goal.id}
-          goal={goal}
-          activities={activities || []}
-          unit={preferences.distance}
-          priority={index + 1}
-        />
-      ))}
-    </div>
+    <>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">Key Metrics</h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowGoalSelector(true)}
+          className="text-gray-600 hover:text-gray-900"
+        >
+          <Settings className="h-4 w-4 mr-2" />
+          Manage Goals
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {dashboardGoals.slice(0, 3).map((goal, index) => (
+          <GoalMetricCard 
+            key={goal.id}
+            goal={goal}
+            activities={activities || []}
+            unit={preferences.distance}
+            priority={index + 1}
+          />
+        ))}
+      </div>
+      
+      <DashboardGoalSelector
+        open={showGoalSelector}
+        onOpenChange={setShowGoalSelector}
+      />
+    </>
   )
 }
 

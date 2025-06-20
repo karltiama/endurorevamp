@@ -8,6 +8,8 @@ import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { useUserGoals } from '@/hooks/useGoals'
+import { useUnitPreferences } from '@/hooks/useUnitPreferences'
+import { formatDistance, formatPace } from '@/lib/utils'
 import { DynamicGoalEngine, DynamicGoalSuggestion, UserPerformanceProfile } from '@/lib/goals/dynamic-suggestions'
 import { 
   TrendingUp, 
@@ -28,7 +30,8 @@ interface DynamicGoalSuggestionsProps {
 export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSuggestionsProps) {
   const { data: activities = [] } = useUserActivities(userId)
   const { data: goalsData } = useUserGoals()
-  const existingGoals = goalsData?.goals || []
+  const { preferences } = useUnitPreferences()
+  const activeGoals = goalsData?.goals || []
   
   const [profile, setProfile] = useState<UserPerformanceProfile | null>(null)
   const [suggestions, setSuggestions] = useState<DynamicGoalSuggestion[]>([])
@@ -39,25 +42,24 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
     if (activities.length > 0) {
       analyzePerformance()
     }
-  }, [activities, existingGoals])
+  }, [activities, activeGoals])
 
   const analyzePerformance = async () => {
     setIsAnalyzing(true)
     
     try {
-      // Analyze user performance
-      const userProfile = DynamicGoalEngine.analyzeUserPerformance(activities, existingGoals)
+      // Convert database activities to the format expected by DynamicGoalEngine
+      const formattedActivities = activities.map(activity => ({
+        ...activity,
+        start_date: activity.start_date_local,
+        sport_type: activity.sport_type || activity.activity_type || 'Run'
+      }))
+
+      const userProfile = DynamicGoalEngine.analyzeUserPerformance(formattedActivities, activeGoals)
+      const goalSuggestions = DynamicGoalEngine.generateDynamicSuggestions(userProfile, activeGoals, [])
+      
       setProfile(userProfile)
-      
-      // Generate dynamic suggestions (mock goal types for now)
-      const mockGoalTypes: any[] = [] // Would come from your goal types API
-      const dynamicSuggestions = DynamicGoalEngine.generateDynamicSuggestions(
-        userProfile, 
-        existingGoals, 
-        mockGoalTypes
-      )
-      
-      setSuggestions(dynamicSuggestions)
+      setSuggestions(goalSuggestions)
     } catch (error) {
       console.error('Error analyzing performance:', error)
     } finally {
@@ -134,7 +136,7 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-3 bg-blue-50 rounded-lg">
               <div className="text-lg font-bold text-blue-600">
-                {profile.weeklyDistance.toFixed(1)} km
+                {formatDistance(profile.weeklyDistance * 1000, preferences.distance)}
               </div>
               <div className="text-sm text-gray-600">Weekly Distance</div>
               <Badge variant="outline" className="mt-1">
@@ -146,9 +148,9 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
             
             <div className="text-center p-3 bg-green-50 rounded-lg">
               <div className="text-lg font-bold text-green-600">
-                {Math.floor(profile.averagePace / 60)}:{String(Math.floor(profile.averagePace % 60)).padStart(2, '0')}
+                {formatPace(profile.averagePace, preferences.pace)}
               </div>
-              <div className="text-sm text-gray-600">Avg Pace/km</div>
+              <div className="text-sm text-gray-600">Avg Pace</div>
               <Badge variant="outline" className="mt-1">
                 {profile.paceTrend === 'improving' ? '📈' : 
                  profile.paceTrend === 'declining' ? '📉' : '➡️'} 

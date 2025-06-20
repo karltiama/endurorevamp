@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { GoalType } from '@/types/goals';
+import { useUnitPreferences } from '@/hooks/useUnitPreferences';
+import { formatDistance, formatPace as formatPaceUtil } from '@/lib/utils';
 import { 
   Brain,
   Target,
@@ -41,22 +43,26 @@ export function SmartTargetRecommendations({
 }: SmartTargetRecommendationsProps) {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('moderate');
   const [customTarget, setCustomTarget] = useState<number | null>(null);
+  const { preferences } = useUnitPreferences();
 
   const recommendations = generateSmartRecommendations(goalType, userPerformance);
 
   return (
     <div className="space-y-6">
-      {/* AI Recommendations Header */}
-      <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50">
+      {/* AI Insights Header */}
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5 text-blue-500" />
+            <Brain className="h-5 w-5 text-purple-500" />
             AI-Powered Target Recommendations
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Based on your running history and current performance level
-          </p>
         </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            Our AI analyzes your recent performance, training history, and injury patterns to suggest the optimal target for your goal. 
+            Choose a difficulty level that matches your commitment and timeline.
+          </p>
+        </CardContent>
       </Card>
 
       {/* Performance Analysis */}
@@ -71,11 +77,11 @@ export function SmartTargetRecommendations({
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <div className="font-semibold">{userPerformance.weeklyDistance}km</div>
+                <div className="font-semibold">{formatDistance(userPerformance.weeklyDistance * 1000, preferences.distance)}</div>
                 <div className="text-muted-foreground">Weekly Distance</div>
               </div>
               <div className="text-center p-3 bg-green-50 rounded-lg">
-                <div className="font-semibold">{formatPace(userPerformance.averagePace)}</div>
+                <div className="font-semibold">{formatPaceUtil(userPerformance.averagePace, preferences.pace)}</div>
                 <div className="text-muted-foreground">Average Pace</div>
               </div>
               <div className="text-center p-3 bg-purple-50 rounded-lg">
@@ -83,7 +89,7 @@ export function SmartTargetRecommendations({
                 <div className="text-muted-foreground">Run Frequency</div>
               </div>
               <div className="text-center p-3 bg-orange-50 rounded-lg">
-                <div className="font-semibold">{userPerformance.longestRun}km</div>
+                <div className="font-semibold">{formatDistance(userPerformance.longestRun * 1000, preferences.distance)}</div>
                 <div className="text-muted-foreground">Longest Run</div>
               </div>
             </div>
@@ -438,7 +444,7 @@ function getDefaultRecommendations(goalType: GoalType) {
   const guidance = goalType.target_guidance || '';
   const matches = guidance.match(/(\d+)-?(\d+)?/g) || [];
   
-  const baseTarget = matches.length > 0 ? parseInt(matches[0]) : 20;
+  const baseTarget = matches.length > 0 ? parseInt(matches[0] || '20') : 20;
   
   return [
     {
@@ -483,7 +489,7 @@ function getDefaultRecommendations(goalType: GoalType) {
   ];
 }
 
-function getGoalTips(goalType: GoalType, difficulty: string): string[] {
+function getGoalTips(goalType: GoalType, difficulty: string = 'moderate'): string[] {
   const baseTips = {
     distance: [
       'Increase distance gradually - no more than 10% per week',
@@ -517,15 +523,16 @@ function getGoalTips(goalType: GoalType, difficulty: string): string[] {
     ambitious: ['Consider working with a coach or structured plan', 'Pay extra attention to recovery and nutrition']
   };
 
-  const category = goalType.category as keyof typeof baseTips;
+  const category = (goalType.category || 'distance') as keyof typeof baseTips;
   const categoryTips = baseTips[category] || baseTips.distance;
-  const levelTips = difficultyTips[difficulty as keyof typeof difficultyTips] || [];
+  const levelTips = difficultyTips[(difficulty || 'moderate') as keyof typeof difficultyTips] || [];
 
   return [...categoryTips.slice(0, 3), ...levelTips];
 }
 
-function formatPace(seconds: number): string {
+function formatPaceLocal(seconds: number, unit: string = 'km'): string {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.round(seconds % 60);
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}/km`;
+  const unitSuffix = unit === 'miles' ? '/mi' : '/km';
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}${unitSuffix}`;
 } 

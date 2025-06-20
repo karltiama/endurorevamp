@@ -1,33 +1,93 @@
 'use client'
 
+import { useUserActivities } from '@/hooks/use-user-activities'
 import { useStravaToken } from '@/hooks/strava/useStravaToken'
 import { ActivityFeed } from './ActivityFeed'
+import { StravaReconnectionPrompt } from '@/components/strava/StravaReconnectionPrompt'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Info, RefreshCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface ActivityFeedClientProps {
   userId: string
 }
 
 export function ActivityFeedClient({ userId }: ActivityFeedClientProps) {
-  const { accessToken, isLoading, error } = useStravaToken()
+  const { data: activities, isLoading: activitiesLoading, error: activitiesError } = useUserActivities(userId)
+  const { accessToken, isLoading: tokenLoading, error: tokenError, refreshToken } = useStravaToken()
 
-  if (isLoading) {
+  // Show loading while checking for activities
+  if (activitiesLoading) {
     return <ActivityFeedSkeleton />
   }
 
-  if (error || !accessToken) {
+  // If there are activities in the database, show them regardless of Strava connection
+  if (activities && activities.length > 0) {
+    return (
+      <div className="space-y-4">
+        {/* Optional: Show sync notice if Strava connection has issues */}
+        {(tokenError || !accessToken) && (
+          <Alert className="bg-blue-50 border-blue-200">
+            <Info className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              <div className="flex items-center justify-between">
+                <span>
+                  <strong>Sync Notice:</strong> Your Strava connection has expired. You can still view your existing activities, but new activities won't sync automatically.
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => refreshToken()}
+                  className="ml-4 text-blue-600 border-blue-200 hover:bg-blue-100"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Reconnect
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        <ActivityFeed userId={userId} />
+      </div>
+    )
+  }
+
+  // If there's an error loading activities from database
+  if (activitiesError) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-red-800 mb-2">
-          Strava Connection Required
+          Unable to Load Activities
         </h3>
-        <p className="text-red-600">
-          {error || 'Unable to connect to Strava. Please check your connection settings.'}
+        <p className="text-red-600 mb-4">
+          {activitiesError.message || 'There was an error loading your activities from the database.'}
         </p>
       </div>
     )
   }
 
-  return <ActivityFeed accessToken={accessToken} userId={userId} />
+  // No activities in database - this is when we need Strava connection to sync data
+  return (
+    <div className="space-y-6">
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+        <div className="text-4xl mb-4">🏃‍♂️</div>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+          No Activities Found
+        </h3>
+        <p className="text-gray-500 mb-6">
+          You don't have any activities in your database yet. Connect to Strava to sync your activities and start analyzing your training data.
+        </p>
+      </div>
+
+      {/* Show Strava connection prompt only when we need to sync data */}
+      <StravaReconnectionPrompt 
+        error={tokenError} 
+        onRefresh={refreshToken}
+        title="Connect to Sync Your Activities"
+      />
+    </div>
+  )
 }
 
 function ActivityFeedSkeleton() {

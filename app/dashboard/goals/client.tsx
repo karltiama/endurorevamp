@@ -7,13 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GoalCard } from '@/components/goals/GoalCard';
 import { AddGoalModal } from '@/components/goals/AddGoalModal';
 import { EditGoalModal } from '@/components/goals/EditGoalModal';
 import { DynamicGoalSuggestions } from '@/components/goals/DynamicGoalSuggestions';
+import { AutomaticGoalTracker } from '@/components/goals/AutomaticGoalTracker';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { UserGoal } from '@/types/goals';
-import { Target, Plus, TrendingUp, Calendar, Trophy } from 'lucide-react';
+import { Target, Plus, TrendingUp, Calendar, Trophy, Zap } from 'lucide-react';
 
 export function GoalsPageClient() {
   const { user } = useAuth();
@@ -77,6 +79,21 @@ export function GoalsPageClient() {
           Add Goal
         </Button>
       </div>
+
+      {/* Main Content with Tabs */}
+      <Tabs defaultValue="goals" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="goals" className="flex items-center gap-2">
+            <Target className="h-4 w-4" />
+            My Goals
+          </TabsTrigger>
+          <TabsTrigger value="tracking" className="flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            Auto Tracking
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="goals" className="space-y-6">
 
       {/* Overview Cards */}
       <div className="grid gap-6 md:grid-cols-4">
@@ -233,19 +250,25 @@ export function GoalsPageClient() {
         </CardContent>
       </Card>
 
-      {/* Modals */}
-      <AddGoalModal
-        open={showAddModal}
-        onOpenChange={setShowAddModal}
-      />
-
-      {editingGoal && (
-        <EditGoalModal
-          goal={editingGoal}
-          open={!!editingGoal}
-          onOpenChange={(open: boolean) => !open && setEditingGoal(null)}
+        {/* Modals */}
+        <AddGoalModal
+          open={showAddModal}
+          onOpenChange={setShowAddModal}
         />
-      )}
+
+        {editingGoal && (
+          <EditGoalModal
+            goal={editingGoal}
+            open={!!editingGoal}
+            onOpenChange={(open: boolean) => !open && setEditingGoal(null)}
+          />
+        )}
+        </TabsContent>
+
+        <TabsContent value="tracking">
+          <AutomaticGoalTracker />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 

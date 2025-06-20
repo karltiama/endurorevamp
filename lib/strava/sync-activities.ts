@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import type { StravaActivity } from './types'
+import { AutomaticGoalProgress } from '@/lib/goals/automatic-progress'
 
 // Helper function to safely convert values to numbers
 function safeNumber(value: any, fieldName?: string): number | null {
@@ -213,6 +214,20 @@ export class StravaActivitySync {
 
     // Determine if this was a new activity or update
     const isNew = data.created_at === data.updated_at
+
+    // 🎯 AUTOMATIC GOAL PROGRESS UPDATE
+    // This connects your activities to your goals automatically!
+    try {
+      await AutomaticGoalProgress.updateProgressFromActivity(userId, {
+        ...safeActivityData,
+        strava_activity_id: activity.id, // Ensure we have the original activity ID
+        start_date: activity.start_date
+      } as any);
+      console.log(`🎯 Updated goal progress for activity ${activity.id}`);
+    } catch (goalError) {
+      console.error('Goal progress update failed (non-critical):', goalError);
+      // Don't fail the sync if goal update fails - it's supplementary
+    }
 
     return {
       data,
