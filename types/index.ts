@@ -1,5 +1,8 @@
 // Central type exports for the application
 
+// Auth
+export * from './auth'
+
 // Goals
 export * from './goals'
 
