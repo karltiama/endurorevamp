@@ -2,7 +2,7 @@
 
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { formatDistance, formatPace } from '@/lib/utils'
-import type { StravaActivity } from '@/types/strava'
+import type { StravaActivity } from '@/lib/strava/types'
 import type { Activity } from '@/lib/strava/types'
 
 // Union type to handle both database and API activity types
@@ -40,7 +40,7 @@ export function ActivityCard({ activity, onViewDetails, userId }: ActivityCardPr
       return {
         id: act.id,
         name: act.name,
-        type: act.type,
+        type: act.type || act.sport_type,
         distance: act.distance,
         moving_time: act.moving_time,
         start_date_local: act.start_date_local,

@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { StravaAuth } from '@/lib/strava/auth';
-import type { StravaAuthResponse } from '@/types/strava';
+import type { StravaAuthResponse } from '@/lib/strava/types';
 
 // Consolidated interfaces
 export interface StravaConnectionStatus {

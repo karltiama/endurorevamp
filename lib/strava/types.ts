@@ -1,4 +1,19 @@
 // Strava API response types
+export interface StravaAuthResponse {
+  token_type: string;
+  expires_at: number;
+  expires_in: number;
+  refresh_token: string;
+  access_token: string;
+  athlete: {
+    id: number;
+    firstname: string;
+    lastname: string;
+    profile: string;
+    // Add other athlete fields as needed
+  };
+}
+
 export interface StravaAthlete {
   id: number;
   username?: string;
@@ -22,17 +37,17 @@ export interface StravaActivity {
   name: string;
   sport_type: string;
   type?: string; // deprecated but still returned
-  distance: number;
-  moving_time: number;
-  elapsed_time: number;
-  total_elevation_gain: number;
-  start_date: string;
-  start_date_local: string;
+  distance: number; // meters
+  moving_time: number; // seconds
+  elapsed_time: number; // seconds
+  total_elevation_gain: number; // meters
+  start_date: string; // ISO date
+  start_date_local: string; // ISO date
   timezone: string;
   
   // Performance metrics
-  average_speed?: number;
-  max_speed?: number;
+  average_speed?: number; // m/s
+  max_speed?: number; // m/s
   average_heartrate?: number;
   max_heartrate?: number;
   average_watts?: number;
@@ -62,10 +77,28 @@ export interface StravaActivity {
   achievement_count?: number;
   pr_count?: number;
   
-  // Additional
+  // Additional fields from API
   calories?: number;
   description?: string;
   gear_id?: string;
+  workout_type?: number;
+  athlete?: {
+    id: number;
+    resource_state: number;
+  };
+  map?: {
+    id: string;
+    summary_polyline?: string;
+    resource_state: number;
+  };
+}
+
+// API request types
+export interface ActivityFilters {
+  page?: number;
+  per_page?: number;
+  before?: number; // timestamp
+  after?: number; // timestamp
 }
 
 // Database types

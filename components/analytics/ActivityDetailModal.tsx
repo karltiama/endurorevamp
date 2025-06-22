@@ -5,7 +5,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { formatDistance, formatPace } from '@/lib/utils'
-import type { StravaActivity } from '@/types/strava'
+import type { StravaActivity } from '@/lib/strava/types'
 
 interface ActivityDetailModalProps {
   activity: StravaActivity
@@ -217,7 +217,7 @@ export function ActivityDetailModal({ activity, userId, onClose }: ActivityDetai
                 {/* Header */}
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-start space-x-4">
-                    <div className="text-4xl">{getActivityIcon(activity.type)}</div>
+                    <div className="text-4xl">{getActivityIcon(activity.type || activity.sport_type)}</div>
                     <div>
                       <Dialog.Title as="h3" className="text-xl font-semibold text-gray-900">
                         {activity.name}
@@ -227,7 +227,7 @@ export function ActivityDetailModal({ activity, userId, onClose }: ActivityDetai
                       </p>
                       <div className="flex items-center space-x-2 mt-1">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {activity.type}
+                          {activity.type || activity.sport_type}
                         </span>
                         {activity.private && (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -287,13 +287,13 @@ export function ActivityDetailModal({ activity, userId, onClose }: ActivityDetai
                 {/* Social Stats */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    {activity.kudos_count > 0 && (
+                    {(activity.kudos_count || 0) > 0 && (
                       <span>👍 {activity.kudos_count} kudos</span>
                     )}
-                    {activity.comment_count > 0 && (
+                    {(activity.comment_count || 0) > 0 && (
                       <span>💬 {activity.comment_count} comments</span>
                     )}
-                    {activity.achievement_count > 0 && (
+                    {(activity.achievement_count || 0) > 0 && (
                       <span>🏆 {activity.achievement_count} achievements</span>
                     )}
                   </div>

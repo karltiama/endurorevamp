@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { StravaAuthResponse } from '@/types/strava';
+import type { StravaAuthResponse } from '@/lib/strava/types';
 
 export interface StravaTokens {
   id?: string;

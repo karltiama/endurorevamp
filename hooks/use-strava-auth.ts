@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import type { StravaAuthResponse } from '@/types/strava'
+import type { StravaAuthResponse } from '@/lib/strava/types'
 
 export function useStravaAuth() {
   return useMutation({
