@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useUserActivities } from '@/hooks/use-user-activities'
+import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { Activity } from '@/lib/strava/types'
 import { useMemo } from 'react'
 import {
@@ -13,6 +14,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts'
+import { convertDistance, getDistanceUnit } from '@/lib/utils'
 
 interface MonthlyActivityChartProps {
   userId: string
@@ -20,6 +22,7 @@ interface MonthlyActivityChartProps {
 
 export function MonthlyActivityChart({ userId }: MonthlyActivityChartProps) {
   const { data: activities, isLoading, error } = useUserActivities(userId)
+  const { preferences } = useUnitPreferences()
 
   const monthlyData = useMemo(() => {
     if (!activities) return []
@@ -39,10 +42,10 @@ export function MonthlyActivityChart({ userId }: MonthlyActivityChartProps) {
 
     return monthlyTotals.map((distance, index) => ({
       month: new Date(2024, index, 1).toLocaleString('default', { month: 'short' }),
-      distance: Math.round(distance / 1000), // Convert to kilometers
+      distance: Math.round(convertDistance(distance, preferences.distance)), // Convert based on user preference
       count: monthlyCounts[index]
     }))
-  }, [activities])
+  }, [activities, preferences.distance])
 
   if (isLoading) {
     return (
@@ -97,7 +100,7 @@ export function MonthlyActivityChart({ userId }: MonthlyActivityChartProps) {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `${value}km`}
+                tickFormatter={(value) => `${value}${getDistanceUnit(preferences.distance)}`}
               />
               <Tooltip
                 content={({ active, payload }) => {
@@ -110,7 +113,7 @@ export function MonthlyActivityChart({ userId }: MonthlyActivityChartProps) {
                               Distance
                             </span>
                             <span className="font-bold text-muted-foreground">
-                              {payload[0].value}km
+                              {payload[0].value}{getDistanceUnit(preferences.distance)}
                             </span>
                           </div>
                           <div className="flex flex-col">

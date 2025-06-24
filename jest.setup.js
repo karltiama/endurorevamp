@@ -13,6 +13,13 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_UR
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
 }
 
+// Mock ResizeObserver for Recharts
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}))
+
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(() => ({
