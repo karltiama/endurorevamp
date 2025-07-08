@@ -7,8 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit --skipLibCheck",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage --watchAll=false",
+    "ci": "npm run type-check && npm run lint && npm run test:coverage && npm run build"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",

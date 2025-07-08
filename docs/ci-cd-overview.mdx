@@ -1,5 +1,37 @@
 # CI/CD Overview: GitHub Actions for Next.js Development
 
+## 🚨 **UPDATED: Strict Quality Gates Now Enforced**
+
+**As of [Current Date]**: The CI pipeline now enforces **mandatory quality gates**. All checks must pass before code can be merged.
+
+### **What Changed:**
+- ❌ **TypeScript compilation errors**: Pipeline fails immediately
+- ❌ **Linting errors**: Must be fixed before merge
+- ❌ **Test failures**: All tests must pass
+- ❌ **Build failures**: Code must build successfully
+- ⚠️ **Security audit**: Warnings only (doesn't block merge)
+
+### **Local Development Commands:**
+```bash
+# Run all quality checks locally (same as CI)
+npm run ci
+
+# Individual checks:
+npm run type-check    # TypeScript compilation
+npm run lint          # ESLint checks  
+npm run lint:fix      # Auto-fix linting issues
+npm run test:coverage # Run tests with coverage
+npm run build         # Verify build works
+```
+
+### **If Your PR Fails CI:**
+1. **Check the failed step** in GitHub Actions logs
+2. **Run the same command locally** to reproduce the issue
+3. **Fix the issue** and commit the fix
+4. **Push the fix** - CI will re-run automatically
+
+---
+
 ## What is CI/CD?
 
 **CI/CD** stands for **Continuous Integration** and **Continuous Deployment/Delivery**:
