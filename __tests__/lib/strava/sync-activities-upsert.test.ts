@@ -1,10 +1,17 @@
 import { StravaActivitySync } from '@/lib/strava/sync-activities'
 import { createClient } from '@/lib/supabase/client'
 
-// Mock the Supabase client
+// Mock the Supabase clients
 jest.mock('@/lib/supabase/client')
 jest.mock('@/lib/supabase/server', () => ({
   createClient: jest.fn()
+}))
+
+// Mock AutomaticGoalProgress to prevent server-side calls
+jest.mock('@/lib/goals/automatic-progress', () => ({
+  AutomaticGoalProgress: {
+    updateProgressFromActivity: jest.fn().mockResolvedValue({}),
+  },
 }))
 
 const mockUpsert = jest.fn()
@@ -29,6 +36,10 @@ const mockSupabase = {
 }
 
 ;(createClient as jest.Mock).mockReturnValue(mockSupabase)
+
+// Also mock server-side createClient
+const { createClient: createServerClient } = require('@/lib/supabase/server')
+;(createServerClient as jest.Mock).mockReturnValue(mockSupabase)
 
 // Mock the StravaAuth
 jest.mock('@/lib/strava/auth', () => ({
@@ -57,10 +68,10 @@ describe('StravaActivitySync - Upsert Functionality', () => {
 
   describe('Activity Storage', () => {
     it('should use correct onConflict specification for upsert', async () => {
-      // Mock successful upsert
-      const mockUpsert = jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          single: jest.fn().mockResolvedValue({
+      // Mock successful upsert using the global mockUpsert that gets tracked
+      mockUpsert.mockReturnValue({
+        select: mockSelect.mockReturnValue({
+          single: mockSingle.mockResolvedValue({
             data: { ...mockActivityData, created_at: new Date(), updated_at: new Date() },
             error: null
           })
@@ -112,7 +123,7 @@ describe('StravaActivitySync - Upsert Functionality', () => {
           strava_activity_id: 12345
         }),
         expect.objectContaining({
-          onConflict: 'strava_activity_id', // Updated to match actual database schema
+          onConflict: 'user_id,strava_activity_id', // Fixed: Use composite constraint to prevent duplicates per user
           ignoreDuplicates: false
         })
       )
@@ -177,15 +188,18 @@ describe('StravaActivitySync - Upsert Functionality', () => {
 
   describe('Data Type Safety', () => {
     it('should handle null and undefined values safely', async () => {
-      mockSupabase.from.mockReturnValue({
-        upsert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockActivityData,
-              error: null
-            })
+      // Reset and setup mocks properly
+      mockUpsert.mockReturnValue({
+        select: mockSelect.mockReturnValue({
+          single: mockSingle.mockResolvedValue({
+            data: mockActivityData,
+            error: null
           })
-        }),
+        })
+      })
+
+      mockSupabase.from.mockReturnValue({
+        upsert: mockUpsert,
         select: jest.fn(() => ({
           eq: jest.fn(() => ({
             single: jest.fn()
@@ -221,13 +235,14 @@ describe('StravaActivitySync - Upsert Functionality', () => {
         // Expected since we're mocking
       }
 
-      const upsertCall = mockSupabase.from().upsert.mock.calls[0][0]
+      // Access the upsert call arguments directly from the global mock
+      const upsertCall = mockUpsert.mock.calls[0][0]
       
       // Verify null/undefined handling
-      expect(upsertCall.distance).toBeNull()
-      expect(upsertCall.moving_time).toBeNull()
-      expect(upsertCall.elapsed_time).toBeNull()
-      expect(upsertCall.total_elevation_gain).toBeNull()
+      expect(upsertCall.distance).toBe(0) // safeNumberRequired fallback
+      expect(upsertCall.moving_time).toBe(0) // safeNumberRequired fallback  
+      expect(upsertCall.elapsed_time).toBe(0) // safeNumberRequired fallback
+      expect(upsertCall.total_elevation_gain).toBeNull() // safeNumber allows null
     })
   })
 })

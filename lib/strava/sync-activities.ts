@@ -188,9 +188,16 @@ export class StravaActivitySync {
     // Final safety check: ensure all values are valid for database
     const safeActivityData = Object.fromEntries(
       Object.entries(activityData).filter(([key, value]) => {
-        // Filter out any string values that contain pace patterns
-        if (typeof value === 'string' && (value.includes('/km') || value.includes('/mi') || value.includes(':'))) {
-          console.error(`🚫 Filtering out suspicious value for ${key}: "${value}"`)
+        // Filter out any string values that contain pace patterns, but allow dates and other valid strings
+        if (typeof value === 'string' && (value.includes('/km') || value.includes('/mi'))) {
+          console.error(`🚫 Filtering out pace string for ${key}: "${value}"`)
+          return false
+        }
+        // Check for pace time patterns (like "07:04") but exclude ISO dates and timezone strings
+        if (typeof value === 'string' && value.includes(':') && 
+            !key.includes('date') && !key.includes('timezone') && 
+            value.match(/^\d{1,2}:\d{2}$/)) {
+          console.error(`🚫 Filtering out pace time pattern for ${key}: "${value}"`)
           return false
         }
         return true
