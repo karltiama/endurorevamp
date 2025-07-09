@@ -3,12 +3,12 @@ import { createClient } from '@/lib/supabase/server';
 import { ErrorHandler, AppError, ErrorType } from '@/lib/error-handling';
 
 // ✨ API Response utilities
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
   message?: string;
-  details?: any;
+  details?: unknown;
 }
 
 export class ApiUtils {
@@ -29,7 +29,7 @@ export class ApiUtils {
   static error(
     error: string | AppError | Error,
     status: number = 500,
-    details?: any
+    details?: unknown
   ): NextResponse<ApiResponse> {
     let message: string;
 
@@ -72,7 +72,7 @@ export class ApiUtils {
   /**
    * Parse request body safely
    */
-  static async parseRequestBody<T = any>(request: NextRequest): Promise<T> {
+  static async parseRequestBody<T = unknown>(request: NextRequest): Promise<T> {
     try {
       const text = await request.text();
       
@@ -112,7 +112,7 @@ export class ApiUtils {
   /**
    * Validate required fields in request body
    */
-  static validateRequiredFields<T extends Record<string, any>>(
+  static validateRequiredFields<T extends Record<string, unknown>>(
     data: T,
     requiredFields: Array<keyof T>
   ): void {
@@ -233,7 +233,7 @@ export class ApiUtils {
 
 // ✨ Common middleware functions
 export async function withAuth<T>(
-  handler: (request: NextRequest, user: any) => Promise<T>
+  handler: (request: NextRequest, user: { id: string; email?: string }) => Promise<T>
 ) {
   return async (request: NextRequest): Promise<NextResponse> => {
     try {
@@ -283,7 +283,7 @@ export class StravaApiUtils {
     url: string,
     authHeader: string,
     options?: RequestInit
-  ): Promise<any> {
+  ): Promise<unknown> {
     const response = await fetch(url, {
       ...options,
       headers: {

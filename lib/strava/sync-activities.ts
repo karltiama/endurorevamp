@@ -3,7 +3,7 @@ import type { StravaActivity } from './types'
 import { AutomaticGoalProgress } from '@/lib/goals/automatic-progress'
 
 // Helper function to safely convert values to numbers
-function safeNumber(value: any, fieldName?: string): number | null {
+function safeNumber(value: unknown, fieldName?: string): number | null {
   if (value === null || value === undefined) return null
   if (typeof value === 'number') return isNaN(value) ? null : value
   if (typeof value === 'string') {
@@ -33,13 +33,13 @@ function safeNumber(value: any, fieldName?: string): number | null {
 }
 
 // Helper for required fields that should default to 0
-function safeNumberRequired(value: any, fallback: number = 0): number {
+function safeNumberRequired(value: unknown, fallback: number = 0): number {
   const result = safeNumber(value)
   return result !== null ? result : fallback
 }
 
 // Helper for fields that should be integers (rounds decimal values)
-function safeInteger(value: any): number | null {
+function safeInteger(value: unknown): number | null {
   const result = safeNumber(value)
   return result !== null ? Math.round(result) : null
 }
@@ -121,7 +121,8 @@ export class StravaActivitySync {
     })
     
     // Create a clean activity object without any pace-related fields that might interfere
-    const cleanActivity = { ...activity } as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cleanActivity = { ...activity } as any // Need dynamic property access for field removal
     
     // Remove any pace-related fields from Strava that might contain strings
     const paceFieldsToRemove = ['average_pace', 'best_efforts', 'pace', 'splits_metric', 'splits_standard']
@@ -179,7 +180,8 @@ export class StravaActivitySync {
       if (typeof value === 'string' && value.includes('/km')) {
         console.error(`❌ ERROR: Pace string found in processed data field '${key}': "${value}"`)
         console.error('This will cause a database error. Filtering out...')
-        delete (activityData as any)[key]
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (activityData as any)[key] // Dynamic property deletion
       }
     })
     
@@ -222,7 +224,8 @@ export class StravaActivitySync {
         ...safeActivityData,
         strava_activity_id: activity.id, // Ensure we have the original activity ID
         start_date: activity.start_date
-      } as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any); // Complex activity data structure - interface would be too complex
       console.log(`🎯 Updated goal progress for activity ${activity.id}`);
     } catch (goalError) {
       console.error('Goal progress update failed (non-critical):', goalError);

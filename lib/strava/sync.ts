@@ -355,7 +355,7 @@ export class StravaSync {
     return Math.floor(thirtyDaysAgo.getTime() / 1000);
   }
 
-  private profileNeedsUpdate(existing: any, updated: any): boolean {
+  private profileNeedsUpdate(existing: Record<string, unknown>, updated: Record<string, unknown>): boolean {
     const fieldsToCheck = [
       'firstname', 'lastname', 'username', 'city', 'state', 'country',
       'ftp', 'weight', 'premium', 'profile_medium', 'profile_large'
@@ -364,7 +364,7 @@ export class StravaSync {
     return fieldsToCheck.some(field => existing[field] !== updated[field]);
   }
 
-  private activityNeedsUpdate(existing: any): boolean {
+  private activityNeedsUpdate(existing: { last_synced_at: string }): boolean {
     // Check if activity was synced more than 24 hours ago
     const lastSync = new Date(existing.last_synced_at);
     const hoursSinceSync = (Date.now() - lastSync.getTime()) / (1000 * 60 * 60);
