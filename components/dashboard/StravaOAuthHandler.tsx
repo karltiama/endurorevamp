@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
 import { useStravaAuth } from '@/hooks/use-strava-auth';
@@ -24,6 +24,16 @@ export function StravaOAuthHandler() {
     status: 'idle' | 'processing' | 'success' | 'error';
     message?: string;
   }>({ status: 'idle' });
+
+  const cleanUpUrl = useCallback(() => {
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.delete('code');
+    newUrl.searchParams.delete('error');
+    newUrl.searchParams.delete('error_description');
+    newUrl.searchParams.delete('state');
+    newUrl.searchParams.delete('scope');
+    router.replace(newUrl.pathname + newUrl.search, { scroll: false });
+  }, [router]);
 
   useEffect(() => {
     const code = searchParams.get('code');
@@ -118,17 +128,7 @@ export function StravaOAuthHandler() {
         }
       });
     }
-  }, [searchParams, user, isAuthing, authStatus.status, exchangeToken, queryClient, router]);
-
-  const cleanUpUrl = () => {
-    const newUrl = new URL(window.location.href);
-    newUrl.searchParams.delete('code');
-    newUrl.searchParams.delete('error');
-    newUrl.searchParams.delete('error_description');
-    newUrl.searchParams.delete('state');
-    newUrl.searchParams.delete('scope');
-    router.replace(newUrl.pathname + newUrl.search, { scroll: false });
-  };
+  }, [searchParams, user, isAuthing, authStatus.status, exchangeToken, queryClient, router, cleanUpUrl]);
 
   // Don't render anything if we're not processing
   if (authStatus.status === 'idle') return null;

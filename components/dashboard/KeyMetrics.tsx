@@ -83,7 +83,6 @@ export function KeyMetrics({ userId }: KeyMetricsProps) {
           <GoalMetricCard 
             key={goal.id}
             goal={goal}
-            activities={activities || []}
             unit={preferences.distance}
             priority={index + 1}
           />
@@ -100,13 +99,12 @@ export function KeyMetrics({ userId }: KeyMetricsProps) {
 
 interface GoalMetricCardProps {
   goal: UserGoal
-  activities: Activity[]
   unit: 'km' | 'miles'
   priority: number
 }
 
-function GoalMetricCard({ goal, activities, unit, priority }: GoalMetricCardProps) {
-  const progress = calculateGoalProgress(goal, activities)
+function GoalMetricCard({ goal, unit, priority }: GoalMetricCardProps) {
+  const progress = calculateGoalProgress(goal)
   
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -160,7 +158,7 @@ function GoalMetricCard({ goal, activities, unit, priority }: GoalMetricCardProp
         </div>
         
         <div className="text-xs text-gray-500 mt-2">
-          {getProgressMessage(progress, goal)}
+          {getProgressMessage(progress)}
         </div>
       </div>
     </div>
@@ -168,7 +166,7 @@ function GoalMetricCard({ goal, activities, unit, priority }: GoalMetricCardProp
 }
 
 // Helper functions
-function calculateGoalProgress(goal: UserGoal, activities: Activity[]) {
+function calculateGoalProgress(goal: UserGoal) {
   const current = goal.current_progress || 0
   const target = goal.target_value || 1
   const percentage = (current / target) * 100
@@ -247,7 +245,7 @@ function calculateTimeRemaining(goal: UserGoal): string {
   return `${Math.ceil(diffDays / 30)} months`
 }
 
-function getProgressMessage(progress: { percentage: number }, goal: UserGoal): string {
+function getProgressMessage(progress: { percentage: number }): string {
   const percentage = progress.percentage
   
   if (percentage >= 100) return '🎉 Goal achieved!'

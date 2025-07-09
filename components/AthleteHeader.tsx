@@ -3,6 +3,7 @@
 import { useAthleteProfile } from '@/hooks/useAthleteProfile'
 import { useAuth } from '@/providers/AuthProvider'
 import { UserCircle } from 'lucide-react'
+import Image from 'next/image'
 
 interface AthleteHeaderProps {
   userId?: string // Optional prop, falls back to auth user
@@ -57,9 +58,11 @@ export function AthleteHeader({ userId }: AthleteHeaderProps = {}) {
           Welcome back, <span className="font-semibold">{athlete.firstname}</span>!
         </span>
         {profileImage ? (
-          <img 
+          <Image 
             src={profileImage} 
             alt={`${athlete.firstname}'s profile`}
+            width={32}
+            height={32}
             className="h-8 w-8 rounded-full object-cover"
           />
         ) : (

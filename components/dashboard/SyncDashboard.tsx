@@ -96,7 +96,7 @@ export default function SyncDashboard() {
         </div>
         
         <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm font-medium text-gray-600">Today's Syncs</div>
+          <div className="text-sm font-medium text-gray-600">Today&apos;s Syncs</div>
           <div className="text-lg font-semibold text-gray-900">{todaySyncs}/{maxSyncs}</div>
         </div>
       </div>
