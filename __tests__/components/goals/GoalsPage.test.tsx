@@ -94,8 +94,10 @@ describe('GoalCard', () => {
       <GoalCard goal={mockGoal} onEdit={mockOnEdit} />
     );
 
-    // Click the dropdown menu trigger
-    const menuTrigger = screen.getByRole('button', { name: /more/i });
+    // Click the dropdown menu trigger (it's the button with just an icon)
+    const buttons = screen.getAllByRole('button');
+    const menuTrigger = buttons.find(button => button.classList.contains('h-8'));
+    if (!menuTrigger) throw new Error('Menu trigger not found');
     fireEvent.click(menuTrigger);
 
     // Wait for menu to appear and click edit

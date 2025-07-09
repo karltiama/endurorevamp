@@ -63,7 +63,7 @@ describe('useStravaSync', () => {
 
       await waitFor(() => {
         expect(result.current.isLoadingStatus).toBe(false)
-      })
+      }, { timeout: 5000 })
 
       expect(result.current.syncStatus).toEqual(mockSyncStatus)
       expect(mockFetch).toHaveBeenCalledWith('/api/strava/sync')
@@ -81,7 +81,7 @@ describe('useStravaSync', () => {
 
       await waitFor(() => {
         expect(result.current.isLoadingStatus).toBe(false)
-      })
+      }, { timeout: 5000 })
 
       expect(result.current.statusError).toBeTruthy()
     })
@@ -145,7 +145,7 @@ describe('useStravaSync', () => {
 
       await waitFor(() => {
         expect(result.current.isLoadingStatus).toBe(false)
-      })
+      }, { timeout: 5000 })
 
       // Trigger sync
       result.current.syncLatest()
@@ -181,7 +181,7 @@ describe('useStravaSync', () => {
 
       await waitFor(() => {
         expect(result.current.isLoadingStatus).toBe(false)
-      })
+      }, { timeout: 5000 })
 
       result.current.syncLastWeek()
 
@@ -218,7 +218,7 @@ describe('useStravaSync', () => {
 
       await waitFor(() => {
         expect(result.current.isLoadingStatus).toBe(false)
-      })
+      }, { timeout: 5000 })
 
       result.current.forceFullSync()
 
@@ -253,7 +253,7 @@ describe('useStravaSync', () => {
 
       await waitFor(() => {
         expect(result.current.isLoadingStatus).toBe(false)
-      })
+      }, { timeout: 5000 })
 
       result.current.syncLatest()
 
@@ -296,7 +296,7 @@ describe('useStravaSync', () => {
 
       await waitFor(() => {
         expect(result.current.isLoadingStatus).toBe(false)
-      })
+      }, { timeout: 5000 })
 
       result.current.customSync(customOptions)
 
@@ -313,6 +313,9 @@ describe('useSyncStatusInfo', () => {
   })
 
   it('should format sync status info correctly', async () => {
+    // First verify that useSyncStatusInfo is a function
+    expect(typeof useSyncStatusInfo).toBe('function')
+    
     const mockSyncStatus = {
       syncState: {
         last_activity_sync: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago

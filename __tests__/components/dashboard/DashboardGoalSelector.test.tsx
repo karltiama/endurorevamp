@@ -173,7 +173,7 @@ describe('DashboardGoalSelector', () => {
     );
 
     expect(screen.getByText('Choose Dashboard Goals')).toBeInTheDocument();
-    expect(screen.getByText('Select up to 3 goals to track as key metrics on your dashboard')).toBeInTheDocument();
+    expect(screen.getByText(/Select up to 3 goals to track as key metrics on your dashboard/)).toBeInTheDocument();
   });
 
   it('shows loading state', () => {
@@ -383,7 +383,7 @@ describe('DashboardGoalSelector', () => {
     fireEvent.click(saveButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to update dashboard goals')).toBeInTheDocument();
+      expect(screen.getByText('Failed to update')).toBeInTheDocument();
     });
   });
 

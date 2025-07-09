@@ -96,7 +96,7 @@ export function AddGoalModal({ open, onOpenChange }: AddGoalModalProps) {
         target_unit: formData.targetUnit || goalType.unit,
         target_date: formData.targetDate,
         goal_data: {
-          notes: formData.notes
+          notes: formData.notes || ''
         },
         priority: 1
       });

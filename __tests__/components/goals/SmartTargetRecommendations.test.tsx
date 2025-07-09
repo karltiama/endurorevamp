@@ -128,13 +128,13 @@ describe('SmartTargetRecommendations Component', () => {
     );
 
     // Check for different difficulty levels
-    expect(screen.getByText('Beginner Friendly')).toBeInTheDocument();
-    expect(screen.getByText('Balanced Target')).toBeInTheDocument();
-    expect(screen.getByText('Challenge Mode')).toBeInTheDocument();
+    expect(screen.getByText('Safe Progress')).toBeInTheDocument();
+    expect(screen.getByText('Balanced Challenge')).toBeInTheDocument();
+    expect(screen.getByText('Push Your Limits')).toBeInTheDocument();
     
-    // Check for success rates
-    expect(screen.getByText('90% Success Rate')).toBeInTheDocument();
-    expect(screen.getByText('75% Success Rate')).toBeInTheDocument();
+    // Check for success rates  
+    expect(screen.getByText('95% Success Rate')).toBeInTheDocument();
+    expect(screen.getByText('80% Success Rate')).toBeInTheDocument();
     expect(screen.getByText('60% Success Rate')).toBeInTheDocument();
   });
 
@@ -166,7 +166,7 @@ describe('SmartTargetRecommendations Component', () => {
     );
 
     // Click on the ambitious target
-    const ambitiousTarget = screen.getByText('Challenge Mode').closest('div');
+    const ambitiousTarget = screen.getByText('Push Your Limits').closest('.p-4');
     fireEvent.click(ambitiousTarget!);
 
     // Check that it's selected (border should change to blue)

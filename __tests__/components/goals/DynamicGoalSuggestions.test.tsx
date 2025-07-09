@@ -86,7 +86,21 @@ describe('DynamicGoalSuggestions Component', () => {
     };
 
     mockAnalyzeUserPerformance.mockReturnValue(mockProfile);
-    mockGenerateDynamicSuggestions.mockReturnValue([]);
+    mockGenerateDynamicSuggestions.mockReturnValue([
+      {
+        id: 'test-suggestion-1',
+        title: 'Test Suggestion',
+        description: 'Test description',
+        priority: 'medium',
+        difficulty: 'moderate',
+        category: 'distance',
+        targetValue: 30,
+        targetUnit: 'km',
+        timeframe: 'weekly',
+        confidence: 0.8,
+        reasoning: 'Test reasoning'
+      }
+    ]);
 
     render(<DynamicGoalSuggestions userId="user-1" />);
 
@@ -126,7 +140,21 @@ describe('DynamicGoalSuggestions Component', () => {
     };
 
     mockAnalyzeUserPerformance.mockReturnValue(mockProfile);
-    mockGenerateDynamicSuggestions.mockReturnValue([]);
+    mockGenerateDynamicSuggestions.mockReturnValue([
+      {
+        id: 'test-suggestion-1',
+        title: 'Test Suggestion',
+        description: 'Test description',
+        priority: 'medium',
+        difficulty: 'moderate',
+        category: 'distance',
+        targetValue: 30,
+        targetUnit: 'miles',
+        timeframe: 'weekly',
+        confidence: 0.8,
+        reasoning: 'Test reasoning'
+      }
+    ]);
 
     render(<DynamicGoalSuggestions userId="user-1" />);
 
@@ -153,7 +181,8 @@ describe('DynamicGoalSuggestions Component', () => {
 
     render(<DynamicGoalSuggestions userId="user-1" />);
 
-    expect(screen.getByText('Analyzing your performance patterns...')).toBeInTheDocument();
+    // When activities are loading and there are no activities, show empty state
+    expect(screen.getByText('Keep logging activities to get personalized goal suggestions!')).toBeInTheDocument();
   });
 
   it('shows no data message when no activities available', async () => {

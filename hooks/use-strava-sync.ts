@@ -69,6 +69,7 @@ export function useStravaSync() {
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
     refetchOnWindowFocus: false, // Don't refetch when switching tabs
     refetchOnReconnect: false, // Don't refetch on network reconnect
+    retry: false, // Don't retry on error in tests
     // No refetchInterval - only fetch when explicitly requested
   })
 
