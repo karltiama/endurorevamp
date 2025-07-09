@@ -12,11 +12,10 @@ import { useGoalTypes, useCreateGoal } from '@/hooks/useGoals';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { GoalFormData } from '@/types/goals';
-import { cn } from '@/lib/utils';
 import { Plus } from 'lucide-react';
 
 interface AddGoalModalProps {

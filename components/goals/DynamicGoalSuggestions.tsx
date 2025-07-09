@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { useUserGoals } from '@/hooks/useGoals'
@@ -14,7 +13,6 @@ import { DynamicGoalEngine, DynamicGoalSuggestion, UserPerformanceProfile } from
 import { 
   TrendingUp, 
   Target, 
-  Calendar, 
   Award,
   Lightbulb,
   CheckCircle,
@@ -38,13 +36,7 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [selectedSuggestion, setSelectedSuggestion] = useState<DynamicGoalSuggestion | null>(null)
 
-  useEffect(() => {
-    if (activities.length > 0) {
-      analyzePerformance()
-    }
-  }, [activities, activeGoals])
-
-  const analyzePerformance = async () => {
+  const analyzePerformance = useCallback(async () => {
     setIsAnalyzing(true)
     
     try {
@@ -65,25 +57,13 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
     } finally {
       setIsAnalyzing(false)
     }
-  }
+  }, [activities, activeGoals])
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200'
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'low': return 'bg-green-100 text-green-800 border-green-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+  useEffect(() => {
+    if (activities.length > 0) {
+      analyzePerformance()
     }
-  }
-
-  const getDifficultyIcon = (difficulty: string) => {
-    switch (difficulty) {
-      case 'conservative': return '🛡️'
-      case 'moderate': return '🎯'
-      case 'ambitious': return '⚡'
-      default: return '📈'
-    }
-  }
+  }, [activities, activeGoals, analyzePerformance])
 
   if (isAnalyzing) {
     return (

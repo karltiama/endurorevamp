@@ -9,7 +9,6 @@ import { DashboardGoalSelector } from './DashboardGoalSelector'
 import { Button } from '@/components/ui/button'
 import { Target, Settings } from 'lucide-react'
 import type { UserGoal } from '@/types/goals'
-import type { Activity } from '@/lib/strava/types'
 
 interface KeyMetricsProps {
   userId: string
@@ -17,7 +16,7 @@ interface KeyMetricsProps {
 
 export function KeyMetrics({ userId }: KeyMetricsProps) {
   const { data: goalsData, isLoading: goalsLoading } = useUserGoals()
-  const { data: activities, isLoading: activitiesLoading } = useUserActivities(userId)
+  const { isLoading: activitiesLoading } = useUserActivities(userId)
   const { preferences } = useUnitPreferences()
   const [showGoalSelector, setShowGoalSelector] = useState(false)
 

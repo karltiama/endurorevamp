@@ -13,10 +13,9 @@ interface Step {
 
 interface OnboardingProgressProps {
   steps: Step[];
-  currentStep: string;
 }
 
-export function OnboardingProgress({ steps, currentStep }: OnboardingProgressProps) {
+export function OnboardingProgress({ steps }: OnboardingProgressProps) {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between">

@@ -7,7 +7,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Link2, Unlink, User, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useStravaConnection } from '@/hooks/strava/useStravaConnection';
 import { useStravaAuth } from '@/hooks/use-strava-auth';
-import { useStravaToken } from '@/hooks/strava/useStravaToken';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/providers/AuthProvider';
 import { getStravaAuthUrl } from '@/lib/strava';

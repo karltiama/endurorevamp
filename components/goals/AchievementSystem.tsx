@@ -28,7 +28,7 @@ interface Achievement {
   id: string;
   name: string;
   description: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   category: 'streak' | 'milestone' | 'performance' | 'consistency';
   points: number;
@@ -46,7 +46,7 @@ interface AchievementSystemProps {
 export function AchievementSystem({ goal, goalProgress, userGoals }: AchievementSystemProps) {
   const [showCelebration, setShowCelebration] = useState(false);
   
-  const achievements = calculateAchievements(goal, goalProgress, userGoals);
+  const achievements = calculateAchievements(goal, goalProgress);
   const stats = calculateUserStats(userGoals, goalProgress);
 
   const triggerCelebration = () => {
@@ -247,7 +247,7 @@ export function AchievementSystem({ goal, goalProgress, userGoals }: Achievement
             <div className="text-6xl mb-4">🎉</div>
             <h2 className="text-2xl font-bold mb-2">Achievement Unlocked!</h2>
             <p className="text-muted-foreground mb-4">
-              You've earned points and unlocked a new achievement!
+              You&apos;ve earned points and unlocked a new achievement!
             </p>
             <Button onClick={() => setShowCelebration(false)}>
               <Gift className="h-4 w-4 mr-2" />
@@ -260,7 +260,7 @@ export function AchievementSystem({ goal, goalProgress, userGoals }: Achievement
   );
 }
 
-function calculateAchievements(goal: UserGoal, goalProgress: GoalProgress[], userGoals: UserGoal[]): Achievement[] {
+function calculateAchievements(goal: UserGoal, goalProgress: GoalProgress[]): Achievement[] {
   const achievements: Achievement[] = [];
 
   // Current progress stats
@@ -443,7 +443,7 @@ function calculateCurrentStreak(progress: GoalProgress[]): number {
     .sort((a, b) => new Date(b.activity_date).getTime() - new Date(a.activity_date).getTime());
 
   let streak = 0;
-  let currentDate = new Date();
+  const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
 
   for (const p of sortedProgress) {
