@@ -48,7 +48,7 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
       }))
 
       const userProfile = DynamicGoalEngine.analyzeUserPerformance(formattedActivities, activeGoals)
-      const goalSuggestions = DynamicGoalEngine.generateDynamicSuggestions(userProfile, activeGoals, [])
+      const goalSuggestions = DynamicGoalEngine.generateDynamicSuggestions(userProfile, activeGoals)
       
       setProfile(userProfile)
       setSuggestions(goalSuggestions)

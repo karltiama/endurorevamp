@@ -46,7 +46,7 @@ describe('ErrorHandler', () => {
       const result = ErrorHandler.parseOAuthError(searchParams)
       
       expect(result?.message).toBe('Custom error message')
-      expect(result?.details.errorDescription).toBe('Custom error message')
+      expect((result?.details as any)?.errorDescription).toBe('Custom error message')
     })
 
     it('should mark server errors as retryable', () => {
@@ -112,7 +112,7 @@ describe('ErrorHandler', () => {
       const result = ErrorHandler.parseApiError(response, responseData)
       
       expect(result.message).toBe('Invalid input')
-      expect(result.details.responseData).toEqual(responseData)
+      expect((result.details as any).responseData).toEqual(responseData)
     })
   })
 
