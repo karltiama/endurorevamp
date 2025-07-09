@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { AutomaticGoalProgress } from '@/lib/goals/automatic-progress';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -49,13 +49,7 @@ export function AutomaticGoalTracker() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      loadGoalStats();
-    }
-  }, [user]);
-
-  const loadGoalStats = async () => {
+  const loadGoalStats = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -72,7 +66,13 @@ export function AutomaticGoalTracker() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadGoalStats();
+    }
+  }, [user, loadGoalStats]);
 
   const handleRecalculateProgress = async () => {
     if (!user) return;

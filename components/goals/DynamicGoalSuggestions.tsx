@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -29,7 +29,7 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
   const { data: activities = [] } = useUserActivities(userId)
   const { data: goalsData } = useUserGoals()
   const { preferences } = useUnitPreferences()
-  const activeGoals = goalsData?.goals || []
+  const activeGoals = useMemo(() => goalsData?.goals || [], [goalsData?.goals])
   
   const [profile, setProfile] = useState<UserPerformanceProfile | null>(null)
   const [suggestions, setSuggestions] = useState<DynamicGoalSuggestion[]>([])

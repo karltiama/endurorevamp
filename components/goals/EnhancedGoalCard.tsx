@@ -11,7 +11,6 @@ import {
   Calendar, 
   TrendingUp, 
   Edit, 
-  CheckCircle, 
   MoreHorizontal,
   Archive,
   Trophy,
