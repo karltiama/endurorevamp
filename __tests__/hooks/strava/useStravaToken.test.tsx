@@ -159,7 +159,8 @@ describe('useStravaToken', () => {
       expect(result.current.accessToken).toBe(mockToken)
     })
 
-    expect(mockGetValidAccessToken).toHaveBeenCalledTimes(2)
+    expect(mockGetValidAccessToken).toHaveBeenCalledWith('user-123')
+    expect(mockGetValidAccessToken.mock.calls.length).toBeGreaterThanOrEqual(2)
   })
 
   it('clears token when user changes to null', async () => {

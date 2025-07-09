@@ -29,7 +29,7 @@ jest.mock('@/hooks/strava/useStravaConnection', () => ({
   STRAVA_CONNECTION_QUERY_KEY: 'strava-connection',
 }));
 
-jest.mock('@/hooks/strava/useStravaSync', () => ({
+jest.mock('@/hooks/use-strava-sync', () => ({
   useStravaSync: jest.fn(() => ({
     syncData: jest.fn(),
     isLoading: false,

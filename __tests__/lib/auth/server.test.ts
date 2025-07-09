@@ -1,13 +1,14 @@
 import { getUser, requireAuth, redirectIfAuthenticated } from '@/lib/auth/server'
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 
 // Mock dependencies
 jest.mock('@/lib/supabase/server')
-jest.mock('next/navigation')
+jest.mock('next/navigation', () => ({
+  redirect: jest.fn(),
+}))
 
 const mockCreateClient = createClient as jest.MockedFunction<typeof createClient>
-const mockRedirect = redirect as jest.MockedFunction<typeof redirect>
+const mockRedirect = require('next/navigation').redirect
 
 describe('Auth Server Helpers', () => {
   const mockSupabase = {

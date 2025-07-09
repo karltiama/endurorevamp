@@ -9,22 +9,22 @@ import { useUnitPreferences } from '@/hooks/useUnitPreferences';
 jest.mock('@/hooks/use-user-activities');
 jest.mock('@/hooks/useGoals');
 jest.mock('@/hooks/useUnitPreferences');
-jest.mock('@/lib/goals/dynamic-suggestions');
+
+jest.mock('@/lib/goals/dynamic-suggestions', () => ({
+  DynamicGoalEngine: {
+    analyzeUserPerformance: jest.fn(),
+    generateDynamicSuggestions: jest.fn(),
+  }
+}));
 
 const mockUseUserActivities = useUserActivities as jest.MockedFunction<typeof useUserActivities>;
 const mockUseUserGoals = useUserGoals as jest.MockedFunction<typeof useUserGoals>;
 const mockUseUnitPreferences = useUnitPreferences as jest.MockedFunction<typeof useUnitPreferences>;
 
-// Mock the DynamicGoalEngine
-const mockAnalyzeUserPerformance = jest.fn();
-const mockGenerateDynamicSuggestions = jest.fn();
-
-jest.mock('@/lib/goals/dynamic-suggestions', () => ({
-  DynamicGoalEngine: {
-    analyzeUserPerformance: mockAnalyzeUserPerformance,
-    generateDynamicSuggestions: mockGenerateDynamicSuggestions,
-  }
-}));
+// Get the mocked functions from the module
+const { DynamicGoalEngine } = require('@/lib/goals/dynamic-suggestions');
+const mockAnalyzeUserPerformance = DynamicGoalEngine.analyzeUserPerformance as jest.MockedFunction<any>;
+const mockGenerateDynamicSuggestions = DynamicGoalEngine.generateDynamicSuggestions as jest.MockedFunction<any>;
 
 describe('DynamicGoalSuggestions Component', () => {
   beforeEach(() => {

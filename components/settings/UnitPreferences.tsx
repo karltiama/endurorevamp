@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { formatDistance, formatPace } from '@/lib/utils'
+import { Check } from 'lucide-react'
 
 export default function UnitPreferences() {
   const { preferences, isLoading, toggleUnits } = useUnitPreferences()
@@ -12,8 +13,8 @@ export default function UnitPreferences() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Unit Preferences</CardTitle>
-          <CardDescription>Choose your preferred units for distance and pace</CardDescription>
+          <CardTitle>Units & Display</CardTitle>
+          <CardDescription>Choose your preferred units for distances and pace</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="animate-pulse">
@@ -28,8 +29,8 @@ export default function UnitPreferences() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Unit Preferences</CardTitle>
-        <CardDescription>Choose your preferred units for distance and pace</CardDescription>
+        <CardTitle>Units & Display</CardTitle>
+        <CardDescription>Choose your preferred units for distances and pace</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
@@ -38,6 +39,7 @@ export default function UnitPreferences() {
             onClick={() => toggleUnits()}
             disabled={preferences.distance === 'km'}
           >
+            {preferences.distance === 'km' && <Check className="w-4 h-4 mr-1" />}
             Kilometers (km)
           </Button>
           <Button
@@ -45,16 +47,27 @@ export default function UnitPreferences() {
             onClick={() => toggleUnits()}
             disabled={preferences.distance === 'miles'}
           >
-            Miles
+            {preferences.distance === 'miles' && <Check className="w-4 h-4 mr-1" />}
+            Miles (mi)
           </Button>
         </div>
 
-        <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-          <div className="font-medium mb-2">Examples with current setting:</div>
-          <div className="space-y-1">
-            <div>• Distance: {formatDistance(5000, preferences.distance)}</div>
-            <div>• Pace: {formatPace(300, preferences.pace)} (5:00 per km converted)</div>
-            <div>• Long run: {formatDistance(21097, preferences.distance)}</div>
+        <div className="space-y-4">
+          <div>
+            <h4 className="font-medium mb-2">Current Settings</h4>
+            <div className="text-sm text-gray-600">
+              <div>Distance: {preferences.distance === 'km' ? 'Kilometers (km)' : 'Miles (mi)'}</div>
+              <div>Pace: {preferences.pace}</div>
+            </div>
+          </div>
+
+          <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+            <div className="font-medium mb-2">Examples with current setting:</div>
+            <div className="space-y-1">
+              <div>• Distance: {formatDistance(5000, preferences.distance)}</div>
+              <div>• Pace: {formatPace(300, preferences.pace)} (5:00 per km converted)</div>
+              <div>• Long run: {formatDistance(21097, preferences.distance)}</div>
+            </div>
           </div>
         </div>
       </CardContent>

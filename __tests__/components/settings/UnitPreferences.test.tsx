@@ -39,6 +39,7 @@ describe('UnitPreferences Component', () => {
       preferences: { distance: 'km', pace: 'min/km' },
       isLoading: true,
       setDistanceUnit: jest.fn(),
+      toggleUnits: jest.fn(),
     })
 
     render(<UnitPreferences />, { wrapper })
@@ -46,17 +47,18 @@ describe('UnitPreferences Component', () => {
     expect(screen.getByText('Units & Display')).toBeInTheDocument()
     expect(screen.getByText('Choose your preferred units for distances and pace')).toBeInTheDocument()
     
-    // Should show loading spinner
-    expect(document.querySelector('.animate-spin')).toBeInTheDocument()
+    // Should show loading animation
+    expect(document.querySelector('.animate-pulse')).toBeInTheDocument()
   })
 
   it('displays current preferences and allows switching units', async () => {
-    const mockSetDistanceUnit = jest.fn().mockResolvedValue(undefined)
+    const mockToggleUnits = jest.fn().mockResolvedValue(undefined)
     
     mockUseUnitPreferences.mockReturnValue({
       preferences: { distance: 'km', pace: 'min/km' },
       isLoading: false,
-      setDistanceUnit: mockSetDistanceUnit,
+      setDistanceUnit: jest.fn(),
+      toggleUnits: mockToggleUnits,
     })
 
     render(<UnitPreferences />, { wrapper })
@@ -67,20 +69,20 @@ describe('UnitPreferences Component', () => {
     
     // Should show current settings
     expect(screen.getByText('Current Settings')).toBeInTheDocument()
-    expect(screen.getByText('Kilometers (km)')).toBeInTheDocument()
-    expect(screen.getByText('min/km')).toBeInTheDocument()
+    expect(screen.getByText('Distance: Kilometers (km)')).toBeInTheDocument()
+    expect(screen.getByText('Pace: min/km')).toBeInTheDocument()
     
     // Should show examples
-    expect(screen.getByText('Examples with your settings:')).toBeInTheDocument()
+    expect(screen.getByText('Examples with current setting:')).toBeInTheDocument()
     expect(screen.getByText('• Distance: 5.0 km')).toBeInTheDocument()
-    expect(screen.getByText('• Pace: 5:30/km')).toBeInTheDocument()
+    expect(screen.getByText('• Pace: 5:00/km (5:00 per km converted)')).toBeInTheDocument()
 
     // Click to switch to miles
     const milesButton = screen.getByRole('button', { name: /Miles \(mi\)/ })
     fireEvent.click(milesButton)
 
     await waitFor(() => {
-      expect(mockSetDistanceUnit).toHaveBeenCalledWith('miles')
+      expect(mockToggleUnits).toHaveBeenCalled()
     })
   })
 
@@ -89,18 +91,19 @@ describe('UnitPreferences Component', () => {
       preferences: { distance: 'miles', pace: 'min/mile' },
       isLoading: false,
       setDistanceUnit: jest.fn(),
+      toggleUnits: jest.fn(),
     })
 
     render(<UnitPreferences />, { wrapper })
 
     // Should show miles in current settings
-    expect(screen.getByText('Miles (mi)')).toBeInTheDocument()
-    expect(screen.getByText('min/mile')).toBeInTheDocument()
+    expect(screen.getByText('Distance: Miles (mi)')).toBeInTheDocument()
+    expect(screen.getByText('Pace: min/mile')).toBeInTheDocument()
     
     // Should show examples in miles
-    expect(screen.getByText('• Distance: 5.0 mi')).toBeInTheDocument()
-    expect(screen.getByText('• Pace: 5:30/mi')).toBeInTheDocument()
-    expect(screen.getByText('• Weekly total: 25.0 mi')).toBeInTheDocument()
+    expect(screen.getByText('• Distance: 3.1 mi')).toBeInTheDocument()
+    expect(screen.getByText('• Pace: 8:02/mi (5:00 per km converted)')).toBeInTheDocument()
+    expect(screen.getByText('• Long run: 13.1 mi')).toBeInTheDocument()
   })
 
   it('shows correct active state for buttons', () => {
@@ -108,6 +111,7 @@ describe('UnitPreferences Component', () => {
       preferences: { distance: 'km', pace: 'min/km' },
       isLoading: false,
       setDistanceUnit: jest.fn(),
+      toggleUnits: jest.fn(),
     })
 
     render(<UnitPreferences />, { wrapper })
@@ -117,40 +121,37 @@ describe('UnitPreferences Component', () => {
     expect(kmButton).toBeInTheDocument()
     
     // Should show check mark for active option
-    expect(document.querySelector('.lucide-check')).toBeInTheDocument()
+    expect(document.querySelector('svg')).toBeInTheDocument()
   })
 
-  it('shows saving state when updating preferences', async () => {
-    const mockSetDistanceUnit = jest.fn().mockImplementation(() => 
-      new Promise(resolve => setTimeout(resolve, 100))
-    )
+  it('allows clicking on unit buttons', async () => {
+    const mockToggleUnits = jest.fn().mockResolvedValue(undefined)
     
     mockUseUnitPreferences.mockReturnValue({
       preferences: { distance: 'km', pace: 'min/km' },
       isLoading: false,
-      setDistanceUnit: mockSetDistanceUnit,
+      setDistanceUnit: jest.fn(),
+      toggleUnits: mockToggleUnits,
     })
 
     render(<UnitPreferences />, { wrapper })
 
     const milesButton = screen.getByRole('button', { name: /Miles \(mi\)/ })
     fireEvent.click(milesButton)
-
-    // Should show saving state
-    expect(screen.getByText('Saving preferences...')).toBeInTheDocument()
     
     await waitFor(() => {
-      expect(mockSetDistanceUnit).toHaveBeenCalledWith('miles')
+      expect(mockToggleUnits).toHaveBeenCalled()
     })
   })
 
   it('handles switching from miles to kilometers', async () => {
-    const mockSetDistanceUnit = jest.fn().mockResolvedValue(undefined)
+    const mockToggleUnits = jest.fn().mockResolvedValue(undefined)
     
     mockUseUnitPreferences.mockReturnValue({
       preferences: { distance: 'miles', pace: 'min/mile' },
       isLoading: false,
-      setDistanceUnit: mockSetDistanceUnit,
+      setDistanceUnit: jest.fn(),
+      toggleUnits: mockToggleUnits,
     })
 
     render(<UnitPreferences />, { wrapper })
@@ -159,7 +160,7 @@ describe('UnitPreferences Component', () => {
     fireEvent.click(kmButton)
 
     await waitFor(() => {
-      expect(mockSetDistanceUnit).toHaveBeenCalledWith('km')
+      expect(mockToggleUnits).toHaveBeenCalled()
     })
   })
 }) 

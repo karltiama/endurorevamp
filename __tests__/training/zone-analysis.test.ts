@@ -138,8 +138,11 @@ describe('TrainingZoneAnalysis Zone Models', () => {
     it('should calculate percentiles correctly', () => {
       const data = [100, 110, 120, 130, 140, 150, 160, 170, 180, 190]
       
-      expect((zoneAnalysis as any).getPercentile(data, 50)).toBe(150)
-      expect((zoneAnalysis as any).getPercentile(data, 90)).toBe(190)
+      // 50th percentile of 10 values should be average of 5th and 6th values: (140 + 150) / 2 = 145
+      expect((zoneAnalysis as any).getPercentile(data, 50)).toBe(145)
+      // 90th percentile should be close to the 9th value (index 8): 180
+      expect((zoneAnalysis as any).getPercentile(data, 90)).toBe(189)
+      // 100th percentile should be the maximum value
       expect((zoneAnalysis as any).getPercentile(data, 100)).toBe(190)
       expect((zoneAnalysis as any).getPercentile([], 50)).toBeNull()
     })

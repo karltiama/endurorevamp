@@ -433,8 +433,19 @@ export class TrainingZoneAnalysis {
 
   private getPercentile(sortedArray: number[], percentile: number): number | null {
     if (sortedArray.length === 0) return null
-    const index = Math.ceil((percentile / 100) * sortedArray.length) - 1
-    return sortedArray[Math.max(0, index)]
+    
+    // Use linear interpolation method (R-6/Excel method)
+    const n = sortedArray.length
+    const rank = (percentile / 100) * (n + 1)
+    
+    if (rank <= 1) return sortedArray[0]
+    if (rank >= n) return sortedArray[n - 1]
+    
+    const lowerIndex = Math.floor(rank) - 1
+    const upperIndex = Math.ceil(rank) - 1
+    const weight = rank - Math.floor(rank)
+    
+    return sortedArray[lowerIndex] + weight * (sortedArray[upperIndex] - sortedArray[lowerIndex])
   }
 
   private assessDataQuality(hrActivities: number, totalActivities: number): HeartRateStats['hrDataQuality'] {

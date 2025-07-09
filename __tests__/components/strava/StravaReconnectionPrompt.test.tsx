@@ -7,19 +7,13 @@ jest.mock('@/lib/strava', () => ({
   getStravaAuthUrl: jest.fn(() => 'https://strava.com/oauth/authorize?client_id=test')
 }));
 
-// Mock window.location.href
-const mockLocationHref = jest.fn();
-Object.defineProperty(window, 'location', {
-  value: {
-    href: ''
-  },
-  writable: true,
-});
+// Use the global window.location mock from jest.setup.js
 
 describe('StravaReconnectionPrompt', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockLocationHref.mockClear();
+    // Reset location href for each test
+    window.location.href = '';
   });
 
   it('renders with default title when no specific error', () => {

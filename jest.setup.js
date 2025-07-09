@@ -1,18 +1,23 @@
 // Global test setup
 import '@testing-library/jest-dom'
 
+// Create global router mocks that can be overridden in tests
+const mockRouterFunctions = {
+  push: jest.fn(),
+  replace: jest.fn(),
+  back: jest.fn(),
+  forward: jest.fn(),
+  refresh: jest.fn(),
+  prefetch: jest.fn(),
+}
+
 // Mock Next.js server-side functions globally
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    back: jest.fn(),
-    forward: jest.fn(),
-    refresh: jest.fn(),
-    prefetch: jest.fn(),
-  }),
+  useRouter: jest.fn(() => mockRouterFunctions),
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => '/',
+  redirect: jest.fn(),
+  __mockRouterFunctions: mockRouterFunctions, // Export for test access
 }))
 
 // Mock Next.js cookies and headers (server-side)
@@ -87,21 +92,43 @@ jest.mock('@/hooks/useGoals', () => ({
   useUpdateGoal: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
   useCreateGoal: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
   useDeleteGoal: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
+  useGoalTypes: jest.fn(() => ({ data: [], isLoading: false, error: null })),
+  useCreateMultipleGoals: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
 }))
 
 jest.mock('@/hooks/use-user-activities', () => ({
   useUserActivities: jest.fn(() => ({ data: [], isLoading: false, error: null, refetch: jest.fn() })),
 }))
 
-jest.mock('@/hooks/useUnitPreferences', () => ({
-  useUnitPreferences: jest.fn(() => ({
-    preferences: { distance: 'km', pace: 'min/km' },
-    updatePreferences: jest.fn(),
-    setDistanceUnit: jest.fn(),
-    toggleUnits: jest.fn(),
-    isLoading: false
+jest.mock('@/hooks/use-strava-sync', () => ({
+  useStravaSync: jest.fn(() => ({
+    syncData: jest.fn(),
+    isLoading: false,
+    error: null,
+    lastSyncTime: null,
   })),
 }))
+
+jest.mock('@/hooks/useUnitPreferences', () => {
+  const mockSetDistanceUnit = jest.fn()
+  const mockToggleUnits = jest.fn()
+  const mockUpdatePreferences = jest.fn()
+  
+  return {
+    useUnitPreferences: jest.fn(() => ({
+      preferences: { distance: 'km', pace: 'min/km' },
+      updatePreferences: mockUpdatePreferences,
+      setDistanceUnit: mockSetDistanceUnit,
+      toggleUnits: mockToggleUnits,
+      isLoading: false
+    })),
+    __mocks: {
+      setDistanceUnit: mockSetDistanceUnit,
+      toggleUnits: mockToggleUnits,
+      updatePreferences: mockUpdatePreferences,
+    }
+  }
+})
 
 jest.mock('@/providers/AuthProvider', () => ({
   useAuth: jest.fn(() => ({
@@ -153,8 +180,15 @@ global.fetch = jest.fn(() =>
   })
 )
 
-// Skip problematic window.location mock that causes JSDOM issues
-// Tests can mock this individually if needed
+// Mock window.location in a safe way that works with JSDOM
+delete window.location
+window.location = {
+  href: '',
+  assign: jest.fn(),
+  replace: jest.fn(),
+  reload: jest.fn(),
+  toString: jest.fn(() => 'http://localhost/'),
+}
 
 // Mock ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(() => ({

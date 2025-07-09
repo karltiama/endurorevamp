@@ -1,24 +1,14 @@
 import { renderHook } from '@testing-library/react'
-import { useRouter } from 'next/navigation'
 import { useRequireAuth } from '@/hooks/auth/useRequireAuth'
-import { useAuth } from '@/providers/AuthProvider'
 
-// Mock dependencies
-jest.mock('next/navigation')
-jest.mock('@/providers/AuthProvider')
-
-const mockUseRouter = useRouter as jest.MockedFunction<typeof useRouter>
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>
+// Get the mocked functions from global setup
+const { useAuth } = require('@/providers/AuthProvider')
+const { __mockRouterFunctions } = require('next/navigation')
 
 describe('useRequireAuth', () => {
-  const mockPush = jest.fn()
-
   beforeEach(() => {
     jest.clearAllMocks()
-    mockUseRouter.mockReturnValue({
-      push: mockPush,
-      refresh: jest.fn(),
-    } as any)
+    // Router functions are already mocked globally, no need to override
   })
 
   it('should return user data when authenticated', () => {
@@ -28,7 +18,7 @@ describe('useRequireAuth', () => {
       created_at: '2024-01-01T00:00:00Z',
     }
 
-    mockUseAuth.mockReturnValue({
+    ;(useAuth as jest.Mock).mockReturnValue({
       user: mockUser as any,
       isLoading: false,
       isAuthenticated: true,
@@ -41,11 +31,11 @@ describe('useRequireAuth', () => {
     expect(result.current.user).toEqual(mockUser)
     expect(result.current.isLoading).toBe(false)
     expect(result.current.isAuthenticated).toBe(true)
-    expect(mockPush).not.toHaveBeenCalled()
+    expect(__mockRouterFunctions.push).not.toHaveBeenCalled()
   })
 
   it('should redirect to login when not authenticated and not loading', () => {
-    mockUseAuth.mockReturnValue({
+    ;(useAuth as jest.Mock).mockReturnValue({
       user: null,
       isLoading: false,
       isAuthenticated: false,
@@ -58,11 +48,11 @@ describe('useRequireAuth', () => {
     expect(result.current.user).toBeNull()
     expect(result.current.isLoading).toBe(false)
     expect(result.current.isAuthenticated).toBe(false)
-    expect(mockPush).toHaveBeenCalledWith('/auth/login')
+    expect(__mockRouterFunctions.push).toHaveBeenCalledWith('/auth/login')
   })
 
   it('should not redirect when loading', () => {
-    mockUseAuth.mockReturnValue({
+    ;(useAuth as jest.Mock).mockReturnValue({
       user: null,
       isLoading: true,
       isAuthenticated: false,
@@ -75,7 +65,7 @@ describe('useRequireAuth', () => {
     expect(result.current.user).toBeNull()
     expect(result.current.isLoading).toBe(true)
     expect(result.current.isAuthenticated).toBe(false)
-    expect(mockPush).not.toHaveBeenCalled()
+    expect(__mockRouterFunctions.push).not.toHaveBeenCalled()
   })
 
   it('should not redirect when user exists', () => {
@@ -85,7 +75,7 @@ describe('useRequireAuth', () => {
       created_at: '2024-01-01T00:00:00Z',
     }
 
-    mockUseAuth.mockReturnValue({
+    ;(useAuth as jest.Mock).mockReturnValue({
       user: mockUser as any,
       isLoading: false,
       isAuthenticated: true,
@@ -95,6 +85,6 @@ describe('useRequireAuth', () => {
 
     renderHook(() => useRequireAuth())
 
-    expect(mockPush).not.toHaveBeenCalled()
+    expect(__mockRouterFunctions.push).not.toHaveBeenCalled()
   })
 }) 
