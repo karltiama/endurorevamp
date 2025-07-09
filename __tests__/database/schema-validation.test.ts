@@ -117,7 +117,7 @@ describe('Database Schema Validation', () => {
       expect(error).toBeNull()
 
       if (onboarding && onboarding.length > 0) {
-        const userIds = onboarding.map(o => o.user_id)
+        const userIds = onboarding.map((o: any) => o.user_id)
         const uniqueUserIds = [...new Set(userIds)]
         
         // Should have same length if all user_ids are unique
@@ -140,7 +140,7 @@ describe('Database Schema Validation', () => {
       expect(error).toBeNull()
 
       if (goalTypes) {
-        goalTypes.forEach(goalType => {
+        goalTypes.forEach((goalType: any) => {
           expect(validCategories).toContain(goalType.category)
         })
       }
@@ -156,7 +156,7 @@ describe('Database Schema Validation', () => {
       expect(error).toBeNull()
 
       if (userGoals) {
-        userGoals.forEach(goal => {
+        userGoals.forEach((goal: any) => {
           expect(validTimePeriods).toContain(goal.time_period)
         })
       }
@@ -173,7 +173,7 @@ describe('Database Schema Validation', () => {
       if (activities) {
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
         
-        activities.forEach(activity => {
+        activities.forEach((activity: any) => {
           expect(activity.user_id).toMatch(uuidRegex)
         })
       }
@@ -318,7 +318,12 @@ export async function runSchemaHealthCheck() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const results = {
+  const results: {
+    tables: Record<string, any>;
+    relationships: Record<string, any>;
+    dataIntegrity: Record<string, any>;
+    performance: Record<string, any>;
+  } = {
     tables: {},
     relationships: {},
     dataIntegrity: {},
@@ -343,7 +348,7 @@ export async function runSchemaHealthCheck() {
       } catch (e) {
         results.tables[table] = { 
           accessible: false, 
-          error: e.message 
+          error: e instanceof Error ? e.message : 'Unknown error'
         }
       }
     }

@@ -1,6 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+interface TableInfo {
+  exists: boolean;
+  recordCount?: number;
+  error?: string;
+  columns?: string[] | string;
+  columnTypes?: Record<string, string>;
+  sampleRecord?: Record<string, unknown> | null;
+  sampleError?: string;
+}
+
 export async function GET() {
   try {
     const supabase = await createClient()
@@ -15,7 +25,7 @@ export async function GET() {
       'users' // Auth table
     ]
     
-    const tableInfo: Record<string, any> = {}
+    const tableInfo: Record<string, TableInfo> = {}
     const existingTables: string[] = []
     
     // For each expected table, try to:
@@ -50,7 +60,7 @@ export async function GET() {
           .limit(1)
           .maybeSingle()
         
-        const tableData: any = {
+        const tableData: TableInfo = {
           exists: true,
           recordCount: count || 0
         }

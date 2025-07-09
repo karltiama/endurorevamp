@@ -195,7 +195,11 @@ export async function generateSchemaReport() {
   )
 
   // Get simplified schema info
-  const schema = {
+  const schema: {
+    tables: Record<string, any>;
+    relationships: any[];
+    summary: Record<string, any>;
+  } = {
     tables: {},
     relationships: [],
     summary: {}

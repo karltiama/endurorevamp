@@ -39,7 +39,9 @@ describe('GoalCard', () => {
     goal_type_id: 'type1',
     target_value: 100,
     target_unit: 'km',
+    time_period: 'weekly',
     current_progress: 50,
+    streak_count: 0,
     is_active: true,
     is_completed: false,
     priority: 1,
@@ -135,8 +137,12 @@ describe('AddGoalModal', () => {
       display_name: 'Weekly Distance',
       description: 'Run a certain distance per week',
       category: 'distance',
+      metric_type: 'total_distance',
       unit: 'km',
-      created_at: '2024-01-01'
+      calculation_method: 'sum',
+      is_active: true,
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01'
     },
     {
       id: 'type2',
@@ -144,8 +150,11 @@ describe('AddGoalModal', () => {
       display_name: 'Race Preparation',
       description: 'Prepare for an upcoming race',
       category: 'event',
-      unit: null,
-      created_at: '2024-01-01'
+      metric_type: 'event_date',
+      calculation_method: 'date_target',
+      is_active: true,
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01'
     }
   ];
 

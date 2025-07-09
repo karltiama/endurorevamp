@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { UnitPreferences } from '@/components/settings/UnitPreferences'
+import UnitPreferences from '@/components/settings/UnitPreferences'
 
 // Mock the useUnitPreferences hook
 jest.mock('@/hooks/useUnitPreferences', () => ({
@@ -41,7 +41,7 @@ describe('UnitPreferences Component', () => {
       setDistanceUnit: jest.fn(),
     })
 
-    render(<UnitPreferences userId="user-1" />, { wrapper })
+    render(<UnitPreferences />, { wrapper })
 
     expect(screen.getByText('Units & Display')).toBeInTheDocument()
     expect(screen.getByText('Choose your preferred units for distances and pace')).toBeInTheDocument()
@@ -59,7 +59,7 @@ describe('UnitPreferences Component', () => {
       setDistanceUnit: mockSetDistanceUnit,
     })
 
-    render(<UnitPreferences userId="user-1" />, { wrapper })
+    render(<UnitPreferences />, { wrapper })
 
     // Should show the unit selection buttons
     expect(screen.getByText('Kilometers (km)')).toBeInTheDocument()
@@ -91,7 +91,7 @@ describe('UnitPreferences Component', () => {
       setDistanceUnit: jest.fn(),
     })
 
-    render(<UnitPreferences userId="user-1" />, { wrapper })
+    render(<UnitPreferences />, { wrapper })
 
     // Should show miles in current settings
     expect(screen.getByText('Miles (mi)')).toBeInTheDocument()
@@ -110,7 +110,7 @@ describe('UnitPreferences Component', () => {
       setDistanceUnit: jest.fn(),
     })
 
-    render(<UnitPreferences userId="user-1" />, { wrapper })
+    render(<UnitPreferences />, { wrapper })
 
     // km button should show active state (check mark)
     const kmButton = screen.getByRole('button', { name: /Kilometers \(km\)/ })
@@ -131,7 +131,7 @@ describe('UnitPreferences Component', () => {
       setDistanceUnit: mockSetDistanceUnit,
     })
 
-    render(<UnitPreferences userId="user-1" />, { wrapper })
+    render(<UnitPreferences />, { wrapper })
 
     const milesButton = screen.getByRole('button', { name: /Miles \(mi\)/ })
     fireEvent.click(milesButton)
@@ -153,7 +153,7 @@ describe('UnitPreferences Component', () => {
       setDistanceUnit: mockSetDistanceUnit,
     })
 
-    render(<UnitPreferences userId="user-1" />, { wrapper })
+    render(<UnitPreferences />, { wrapper })
 
     const kmButton = screen.getByRole('button', { name: /Kilometers \(km\)/ })
     fireEvent.click(kmButton)

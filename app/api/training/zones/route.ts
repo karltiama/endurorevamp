@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { TrainingZoneAnalysis } from '@/lib/training/zone-analysis'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   console.log('🎯 Zone Analysis API - GET request')
 
   try {
@@ -106,13 +106,13 @@ export async function POST(request: NextRequest) {
     if (maxHeartRate && typeof maxHeartRate === 'number' && maxHeartRate > 100) {
       // Override with custom max HR
       const customZoneAnalysis = new TrainingZoneAnalysis()
-      const customModels = (customZoneAnalysis as any).createZoneModels(maxHeartRate)
+      const customModels = customZoneAnalysis.createZoneModels(maxHeartRate)
       
-      analysis.suggestedZoneModel = customModels.find((m: any) => 
+      analysis.suggestedZoneModel = customModels.find(m => 
         m.name.toLowerCase().includes(zoneModel.toLowerCase())
       ) || customModels[0]
       
-      analysis.alternativeModels = customModels.filter((m: any) => 
+      analysis.alternativeModels = customModels.filter(m => 
         m.name !== analysis.suggestedZoneModel.name
       )
       

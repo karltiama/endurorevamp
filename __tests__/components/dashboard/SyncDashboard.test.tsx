@@ -45,7 +45,8 @@ describe('SyncDashboard', () => {
        isLoadingStatus: false,
        syncStatus: undefined,
        statusError: null,
-       refetchStatus: jest.fn()
+       refetchStatus: jest.fn(),
+       refreshStatus: jest.fn()
      })
 
     mockUseSyncStatusInfo.mockReturnValue({

@@ -217,7 +217,7 @@ export class TrainingZoneAnalysis {
   /**
    * Create different zone models based on max heart rate
    */
-  private createZoneModels(maxHR: number | null): ZoneModel[] {
+  public createZoneModels(maxHR: number | null): ZoneModel[] {
     if (!maxHR || maxHR < 120) {
       // Use age-based estimation if no valid max HR
       const estimatedMaxHR = 220 - 30 // Assume 30 years old as default

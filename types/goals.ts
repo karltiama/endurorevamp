@@ -52,10 +52,20 @@ export interface UserOnboarding {
   user_id: string;
   goals_completed: boolean;
   strava_connected: boolean;
+  profile_completed?: boolean;
+  first_sync_completed?: boolean;
   current_step: 'goals' | 'strava' | 'complete';
   completed_at?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface UpdateOnboardingRequest {
+  goals_completed?: boolean;
+  strava_connected?: boolean;
+  profile_completed?: boolean;
+  first_sync_completed?: boolean;
+  current_step?: 'goals' | 'strava' | 'complete';
 }
 
 // Goal-specific data types

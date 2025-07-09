@@ -92,7 +92,10 @@ export async function PATCH(request: Request) {
       body.profile_completed && 
       body.first_sync_completed;
 
-    const updateData: any = { ...body };
+    const updateData: UpdateOnboardingRequest & { 
+      completed_at?: string; 
+      current_step?: 'goals' | 'strava' | 'complete'; 
+    } = { ...body };
     
     if (shouldMarkComplete) {
       updateData.completed_at = new Date().toISOString();

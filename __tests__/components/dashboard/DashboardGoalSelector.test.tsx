@@ -295,8 +295,9 @@ describe('DashboardGoalSelector', () => {
 
     // Click first 3 goals
     for (let i = 0; i < Math.min(3, goalCards.length); i++) {
-      if (goalCards[i]) {
-        fireEvent.click(goalCards[i]);
+      const goalCard = goalCards[i];
+      if (goalCard) {
+        fireEvent.click(goalCard);
       }
     }
 

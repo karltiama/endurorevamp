@@ -148,7 +148,7 @@ export class DynamicGoalEngine {
       : 0
     
     // Goal achievement analysis
-    const completedGoals = existingGoals.filter(g => g.status === 'completed').length
+    const completedGoals = existingGoals.filter(g => g.is_completed).length
     const goalCompletionRate = existingGoals.length > 0 
       ? (completedGoals / existingGoals.length) * 100 
       : 50 // Default for new users
@@ -189,8 +189,8 @@ export class DynamicGoalEngine {
     
     // Get active goal categories to avoid duplicates
     const activeGoalCategories = existingGoals
-      .filter(g => g.status === 'active')
-      .map(g => g.category)
+      .filter(g => g.is_active && g.goal_type?.category)
+      .map(g => g.goal_type!.category)
     
     // 1. Performance Improvement Suggestions
     if (profile.distanceTrend === 'improving' && !activeGoalCategories.includes('distance')) {

@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint to check sync status
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get authenticated user (secure)
     const supabase = await createClient()
@@ -128,7 +128,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function checkCanSync(userId: string, syncState: any): Promise<boolean> {
+async function checkCanSync(userId: string, syncState: {
+  sync_enabled?: boolean;
+  last_sync_date?: string;
+  sync_requests_today?: number;
+  last_activity_sync?: string;
+} | null): Promise<boolean> {
   if (!syncState) return true // First time sync
 
   if (!syncState.sync_enabled) return false
@@ -140,7 +145,7 @@ async function checkCanSync(userId: string, syncState: any): Promise<boolean> {
   }
 
   // Check daily rate limit
-  if (syncState.sync_requests_today >= 5) {
+  if ((syncState.sync_requests_today || 0) >= 5) {
     return false
   }
 
