@@ -2,13 +2,6 @@
  * Performance monitoring utilities for development and production
  */
 
-interface PerformanceMetric {
-  name: string
-  duration: number
-  startTime: number
-  endTime: number
-}
-
 class PerformanceMonitor {
   private metrics: Map<string, number> = new Map()
   private isEnabled: boolean

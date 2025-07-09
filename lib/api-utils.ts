@@ -32,17 +32,13 @@ export class ApiUtils {
     details?: any
   ): NextResponse<ApiResponse> {
     let message: string;
-    let errorType: ErrorType;
 
     if (typeof error === 'string') {
       message = error;
-      errorType = ErrorType.API_ERROR;
     } else if (error instanceof Error) {
       message = error.message;
-      errorType = ErrorType.API_ERROR;
     } else {
       message = error.message;
-      errorType = error.type;
     }
 
     const response: ApiResponse = {
@@ -57,7 +53,7 @@ export class ApiUtils {
   /**
    * Get authenticated user from request
    */
-  static async getAuthenticatedUser(request?: NextRequest) {
+  static async getAuthenticatedUser() {
     try {
       const supabase = await createClient();
       const { data: { user }, error } = await supabase.auth.getUser();
@@ -168,7 +164,6 @@ export class ApiUtils {
     // In a real implementation, you'd use Redis or similar
     // This is a simplified in-memory implementation
     const key = `${userId}:${operation}`;
-    const now = Date.now();
     
     // For demonstration - in production, use proper rate limiting
     console.log(`Rate limit check: ${key} (${limit}/${windowMs}ms)`);
@@ -242,7 +237,7 @@ export async function withAuth<T>(
 ) {
   return async (request: NextRequest): Promise<NextResponse> => {
     try {
-      const user = await ApiUtils.getAuthenticatedUser(request);
+      const user = await ApiUtils.getAuthenticatedUser();
       const result = await handler(request, user);
       return result instanceof NextResponse ? result : ApiUtils.success(result);
     } catch (error) {

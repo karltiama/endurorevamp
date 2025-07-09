@@ -279,7 +279,7 @@ export class StravaSync {
         
         if (error) throw error;
         return true;
-      } else if (forceUpdate || this.activityNeedsUpdate(existingActivity, activityData)) {
+      } else if (forceUpdate || this.activityNeedsUpdate(existingActivity)) {
         // Update existing activity
         const { error } = await supabase
           .from('activities')
@@ -364,7 +364,7 @@ export class StravaSync {
     return fieldsToCheck.some(field => existing[field] !== updated[field]);
   }
 
-  private activityNeedsUpdate(existing: any, updated: any): boolean {
+  private activityNeedsUpdate(existing: any): boolean {
     // Check if activity was synced more than 24 hours ago
     const lastSync = new Date(existing.last_synced_at);
     const hoursSinceSync = (Date.now() - lastSync.getTime()) / (1000 * 60 * 60);

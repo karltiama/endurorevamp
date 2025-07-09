@@ -81,10 +81,10 @@ export class TrainingZoneAnalysis {
       const zoneModels = this.createZoneModels(hrStats.maxHeartRate)
       
       // 5. Select best zone model
-      const suggestedModel = this.selectBestZoneModel(zoneModels, hrStats)
+      const suggestedModel = this.selectBestZoneModel(zoneModels)
 
       // 6. Determine confidence level
-      const confidence = this.calculateConfidence(hrStats, sportAnalysis)
+      const confidence = this.calculateConfidence(hrStats)
 
       return {
         overall: hrStats,
@@ -157,7 +157,7 @@ export class TrainingZoneAnalysis {
     }
 
     // Determine data quality
-    const hrDataQuality = this.assessDataQuality(activitiesWithHR, totalActivities, maxHeartRate)
+    const hrDataQuality = this.assessDataQuality(activitiesWithHR, totalActivities)
 
     return {
       maxHeartRate,
@@ -197,7 +197,7 @@ export class TrainingZoneAnalysis {
 
     // Analyze each sport
     return Object.entries(sportGroups)
-      .filter(([sport, activities]) => activities.length >= 3) // Minimum 3 activities for analysis
+      .filter(([, activities]) => activities.length >= 3) // Minimum 3 activities for analysis
       .map(([sport, activities]) => {
         const maxHR = Math.max(...activities.map(a => a.max_heartrate || a.average_heartrate))
         const avgHRs = activities.map(a => a.average_heartrate)
@@ -431,7 +431,7 @@ export class TrainingZoneAnalysis {
     return sortedArray[Math.max(0, index)]
   }
 
-  private assessDataQuality(hrActivities: number, totalActivities: number, maxHR: number | null): HeartRateStats['hrDataQuality'] {
+  private assessDataQuality(hrActivities: number, totalActivities: number): HeartRateStats['hrDataQuality'] {
     const hrPercentage = totalActivities > 0 ? (hrActivities / totalActivities) * 100 : 0
 
     if (hrPercentage === 0) return 'none'
@@ -450,13 +450,13 @@ export class TrainingZoneAnalysis {
     return sportType
   }
 
-  private selectBestZoneModel(models: ZoneModel[], stats: HeartRateStats): ZoneModel {
+  private selectBestZoneModel(models: ZoneModel[]): ZoneModel {
     // For now, default to 5-zone model
     // Could be more intelligent based on user data in the future
     return models.find(m => m.name === '5-Zone Model') || models[0]
   }
 
-  private calculateConfidence(stats: HeartRateStats, sportAnalysis: SportSpecificAnalysis[]): 'high' | 'medium' | 'low' {
+  private calculateConfidence(stats: HeartRateStats): 'high' | 'medium' | 'low' {
     if (stats.hrDataQuality === 'excellent' && stats.activitiesWithHR >= 20) return 'high'
     if (stats.hrDataQuality === 'good' && stats.activitiesWithHR >= 10) return 'medium'
     return 'low'

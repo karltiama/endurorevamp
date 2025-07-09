@@ -182,8 +182,7 @@ export class DynamicGoalEngine {
   
   static generateDynamicSuggestions(
     profile: UserPerformanceProfile,
-    existingGoals: UserGoal[],
-    availableGoalTypes: GoalType[]
+    existingGoals: UserGoal[]
   ): DynamicGoalSuggestion[] {
     const suggestions: DynamicGoalSuggestion[] = []
     
@@ -221,7 +220,7 @@ export class DynamicGoalEngine {
     }
     
     // 5. Experience-Based Suggestions
-    suggestions.push(...this.suggestExperienceBasedGoals(profile, existingGoals))
+    suggestions.push(...this.suggestExperienceBasedGoals(profile))
     
     // Sort by priority and return top 5
     return suggestions
@@ -486,7 +485,7 @@ export class DynamicGoalEngine {
     }
   }
   
-  private static suggestExperienceBasedGoals(profile: UserPerformanceProfile, existingGoals: UserGoal[]): DynamicGoalSuggestion[] {
+  private static suggestExperienceBasedGoals(profile: UserPerformanceProfile): DynamicGoalSuggestion[] {
     const suggestions: DynamicGoalSuggestion[] = []
     
     // Beginner-specific suggestions

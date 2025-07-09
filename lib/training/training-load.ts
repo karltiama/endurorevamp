@@ -214,7 +214,7 @@ export class TrainingLoadCalculator {
     const status = this.determineTrainingStatus(ctl, atl, tsb, rampRate)
     
     // Generate recommendation
-    const recommendation = this.generateRecommendation(status, tsb, rampRate)
+    const recommendation = this.generateRecommendation(status)
 
     return {
       acute: Math.round(atl),
@@ -310,7 +310,7 @@ export class TrainingLoadCalculator {
     return 'maintain'
   }
 
-  private generateRecommendation(status: TrainingLoadMetrics['status'], tsb: number, rampRate: number): string {
+  private generateRecommendation(status: TrainingLoadMetrics['status']): string {
     switch (status) {
       case 'peak':
         return 'High training stress detected. Consider reducing intensity and incorporating recovery.'

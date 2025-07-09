@@ -83,7 +83,7 @@ function calculateComputedFields(activity: StravaActivity) {
 export class StravaActivitySync {
   private supabase = createClient()
 
-  async syncUserActivities(userId: string, options: any = {}) {
+  async syncUserActivities(userId: string) {
     const startTime = Date.now()
     
     try {
