@@ -102,7 +102,7 @@ export function OnboardingModal({
 
         <div className="space-y-8">
           {/* Progress indicator */}
-          <OnboardingProgress steps={steps} currentStep={internalStep} />
+          <OnboardingProgress steps={steps} />
 
           {/* Step content */}
           <div className="min-h-[400px]">
