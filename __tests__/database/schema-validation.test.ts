@@ -323,6 +323,11 @@ describe('Database Schema Validation', () => {
       // This would require a more complex query to check actual indexes
       // For now, we'll just verify that foreign key queries perform reasonably
       
+      if (!supabase) {
+        console.log('Skipping test - no database connection')
+        return
+      }
+      
       const start = Date.now()
       
       const { data, error } = await supabase
