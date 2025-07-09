@@ -18,7 +18,7 @@ interface TrainingLoadChartProps {
 
 export function TrainingLoadChart({ userId, className }: TrainingLoadChartProps) {
   const { data, isLoading, error, hasData, hasHRData, hasPowerData } = useTrainingLoad(userId, { days: 90 })
-  const { data: trends, isLoading: trendsLoading } = useTrainingLoadTrends(userId, 90)
+  const { data: trends } = useTrainingLoadTrends(userId, 90)
 
   const chartData = useMemo(() => {
     if (!trends) return []

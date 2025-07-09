@@ -219,7 +219,6 @@ export function SmartTargetRecommendations({
 }
 
 function generateSmartRecommendations(goalType: GoalType, userPerformance?: UserPerformanceData) {
-  const category = goalType.category;
   const metricType = goalType.metric_type;
 
   // Default recommendations if no performance data
@@ -530,9 +529,3 @@ function getGoalTips(goalType: GoalType, difficulty: string = 'moderate'): strin
   return [...categoryTips.slice(0, 3), ...levelTips];
 }
 
-function formatPaceLocal(seconds: number, unit: string = 'km'): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.round(seconds % 60);
-  const unitSuffix = unit === 'miles' ? '/mi' : '/km';
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}${unitSuffix}`;
-} 

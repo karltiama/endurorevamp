@@ -62,14 +62,14 @@ export function StravaReconnectionPrompt({
                 <Alert className="bg-blue-50 border-blue-200">
                   <Info className="h-4 w-4 text-blue-600" />
                   <AlertDescription className="text-blue-800">
-                    <strong>Quick fix:</strong> Click "Reconnect to Strava" below to restore access to your activities and continue viewing your data.
+                    <strong>Quick fix:</strong> Click &quot;Reconnect to Strava&quot; below to restore access to your activities and continue viewing your data.
                   </AlertDescription>
                 </Alert>
               </div>
             ) : isNetworkError ? (
               <div className="space-y-3">
                 <p className="text-gray-600">
-                  There's a temporary connection issue with Strava. This usually resolves itself quickly.
+                  There&apos;s a temporary connection issue with Strava. This usually resolves itself quickly.
                 </p>
                 <Alert className="bg-yellow-50 border-yellow-200">
                   <Info className="h-4 w-4 text-yellow-600" />
@@ -114,7 +114,7 @@ export function StravaReconnectionPrompt({
           </div>
 
           <div className="text-sm text-gray-500">
-            <p className="font-medium mb-1">After reconnecting, you'll be able to:</p>
+            <p className="font-medium mb-1">After reconnecting, you&apos;ll be able to:</p>
             <ul className="space-y-1 text-xs ml-4">
               <li>• View your recent activity data and analytics</li>
               <li>• Sync new activities automatically</li>

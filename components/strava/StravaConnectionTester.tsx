@@ -11,12 +11,22 @@ import { createClient } from '@/lib/supabase/client';
 import { getStravaAuthUrl } from '@/lib/strava';
 import { Loader2, CheckCircle, AlertCircle, Link2, RefreshCw, Database } from 'lucide-react';
 
+interface DatabaseTestResult {
+  canRead: boolean;
+  canWrite: boolean;
+  hasExistingTokens: boolean;
+  existingTokensData?: Record<string, unknown> | null;
+  readError?: string;
+  writeError?: string;
+  error?: string;
+}
+
 export function StravaConnectionTester() {
   const { user } = useAuth();
   const { connectionStatus, isLoading: isCheckingConnection, error: connectionError, refreshStatus } = useStravaConnection();
   const { accessToken, isLoading: isLoadingToken, error: tokenError, refreshToken } = useStravaToken();
   const [isTestingDb, setIsTestingDb] = useState(false);
-  const [dbTestResult, setDbTestResult] = useState<any>(null);
+  const [dbTestResult, setDbTestResult] = useState<DatabaseTestResult | null>(null);
 
   // Test database connection and token storage
   const testDatabaseConnection = async () => {
@@ -70,7 +80,7 @@ export function StravaConnectionTester() {
       setDbTestResult({
         canRead: !tokensError,
         canWrite: !insertError,
-        hasExistingTokens: tokensData && tokensData.length > 0,
+        hasExistingTokens: !!(tokensData && tokensData.length > 0),
         existingTokensData: tokensData?.[0] || null,
         readError: tokensError?.message,
         writeError: insertError?.message,
@@ -278,7 +288,7 @@ export function StravaConnectionTester() {
               <li>If database works, try connecting to Strava using the button above</li>
               <li>Check browser console for OAuth errors during connection</li>
               <li>After connecting, refresh status to see if tokens were stored properly</li>
-              <li>If connection shows as successful but tokens aren't found, there's an issue with the OAuth callback handling</li>
+              <li>If connection shows as successful but tokens aren&apos;t found, there&apos;s an issue with the OAuth callback handling</li>
             </ol>
           </AlertDescription>
         </Alert>

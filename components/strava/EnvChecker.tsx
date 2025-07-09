@@ -55,7 +55,7 @@ export function EnvChecker() {
                 <p>You need to set up your Strava OAuth environment variables:</p>
                 <ol className="mt-2 list-decimal list-inside space-y-1 text-sm">
                   <li>Go to <a href="https://www.strava.com/settings/api" className="underline text-blue-600" target="_blank" rel="noopener noreferrer">Strava API Settings</a></li>
-                  <li>Create a Strava application if you haven't already</li>
+                  <li>Create a Strava application if you haven&apos;t already</li>
                   <li>Add these to your <code className="bg-gray-100 px-1 rounded">.env.local</code> file:</li>
                 </ol>
                 <pre className="mt-2 p-2 bg-gray-100 rounded text-xs">
@@ -72,11 +72,11 @@ NEXT_PUBLIC_STRAVA_REDIRECT_URI=http://localhost:3000/dashboard`}
           <Alert>
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              Environment variables appear to be configured correctly. If you're still having issues, check:
+              Environment variables appear to be configured correctly. If you&apos;re still having issues, check:
               <ul className="mt-2 list-disc list-inside space-y-1 text-sm">
-                <li>Your Strava app's Authorization Callback Domain is set to your domain</li>
+                <li>Your Strava app&apos;s Authorization Callback Domain is set to your domain</li>
                 <li>Your STRAVA_CLIENT_SECRET is correctly set in .env.local</li>
-                <li>You've restarted the development server after adding env vars</li>
+                <li>You&apos;ve restarted the development server after adding env vars</li>
               </ul>
             </AlertDescription>
           </Alert>

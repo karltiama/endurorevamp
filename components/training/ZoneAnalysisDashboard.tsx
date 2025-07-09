@@ -307,7 +307,7 @@ export default function ZoneAnalysisDashboard() {
             <CardHeader>
               <CardTitle>Sport-Specific Analysis</CardTitle>
               <CardDescription>
-                Heart rate patterns vary by sport - here's your data by activity type
+                Heart rate patterns vary by sport - here&apos;s your data by activity type
               </CardDescription>
             </CardHeader>
             <CardContent>

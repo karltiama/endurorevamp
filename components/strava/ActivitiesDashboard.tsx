@@ -192,7 +192,7 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
                 No activities found in your database.
               </p>
               <p className="text-sm text-blue-600">
-                💡 Click "Sync Strava Data" to load your activities from Strava.
+                💡 Click &quot;Sync Strava Data&quot; to load your activities from Strava.
               </p>
             </div>
           </div>

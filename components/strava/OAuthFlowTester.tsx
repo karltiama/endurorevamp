@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useSearchParams } from 'next/navigation';
-import { getStravaAuthUrl } from '@/lib/strava';
 import { CheckCircle, AlertCircle, ArrowRight, Link2, Eye } from 'lucide-react';
 
 export function OAuthFlowTester() {
@@ -284,7 +283,7 @@ export function OAuthFlowTester() {
                     OAuth flow in progress. Check browser console for detailed logs.
                     {flowState.step === 3 && (
                       <div className="mt-2">
-                        <strong>Next:</strong> User needs to authorize on Strava, then they'll be redirected back to this test page.
+                        <strong>Next:</strong> User needs to authorize on Strava, then they&apos;ll be redirected back to this test page.
                       </div>
                     )}
                     {flowState.step >= 6 && (
@@ -329,7 +328,7 @@ export function OAuthFlowTester() {
               <li><strong>Note:</strong> This stores real tokens in your database!</li>
             </ol>
             <div className="mt-3 p-2 bg-yellow-50 rounded text-sm">
-              <strong>⚠️ Important:</strong> Make sure your Strava app's "Authorization Callback Domain" 
+              <strong>⚠️ Important:</strong> Make sure your Strava app&apos;s &quot;Authorization Callback Domain&quot; 
               includes <code className="bg-white px-1 rounded">localhost</code> for this test to work.
             </div>
           </AlertDescription>
