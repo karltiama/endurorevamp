@@ -274,7 +274,16 @@ function DataQualityBadge({ quality }: { quality: string }) {
   )
 }
 
-function TrainingLoadMetrics({ metrics }: { metrics: any }) {
+interface TrainingLoadMetricsData {
+  acute: number;
+  chronic: number;
+  balance: number;
+  rampRate: number;
+  status: string;
+  recommendation: string;
+}
+
+function TrainingLoadMetrics({ metrics }: { metrics: TrainingLoadMetricsData }) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'peak': return 'bg-red-500'
@@ -384,7 +393,14 @@ function TrainingLoadMetrics({ metrics }: { metrics: any }) {
   )
 }
 
-function AthleteThresholds({ thresholds }: { thresholds: any }) {
+interface AthleteThresholdsData {
+  maxHeartRate: number;
+  restingHeartRate: number;
+  functionalThresholdPower?: number;
+  lactateThreshold?: number;
+}
+
+function AthleteThresholds({ thresholds }: { thresholds: AthleteThresholdsData }) {
   return (
     <div className="space-y-4">
       <h4 className="font-medium">Estimated Thresholds</h4>

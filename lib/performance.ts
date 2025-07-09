@@ -113,7 +113,7 @@ export function usePerformance(componentName: string) {
 /**
  * Decorator for measuring API route performance
  */
-export function withPerformanceLogging<T extends any[], R>(
+export function withPerformanceLogging<T extends unknown[], R>(
   name: string,
   fn: (...args: T) => Promise<R>
 ) {

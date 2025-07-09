@@ -188,7 +188,7 @@ export interface SyncState {
   last_activity_id?: number;
   activities_synced_count?: number;
   last_profile_sync?: string;
-  last_sync_error?: any;
+  last_sync_error?: unknown;
   consecutive_errors?: number;
   requests_used_today?: number;
   rate_limit_reset_at?: string;

@@ -198,7 +198,7 @@ export default function ZoneAnalysisDashboard() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="zoneModel">Zone Model</Label>
-                <Select value={selectedZoneModel} onValueChange={(value: any) => setSelectedZoneModel(value)}>
+                <Select value={selectedZoneModel} onValueChange={(value: string) => setSelectedZoneModel(value as "5-zone" | "3-zone" | "coggan")}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

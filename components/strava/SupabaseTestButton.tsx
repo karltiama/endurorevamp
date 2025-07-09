@@ -7,10 +7,27 @@ import { useAuth } from '@/providers/AuthProvider';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
+interface SupabaseTestResult {
+  authWorking: boolean;
+  tokensFound: boolean;
+  tokensData: {
+    athleteId: string;
+    expiresAt: string;
+    hasAccessToken: boolean;
+  } | null;
+  activitiesCount: number;
+  syncStateExists: boolean;
+  syncStateData: {
+    lastSync: string;
+    requestsToday: number;
+    syncEnabled: boolean;
+  } | null;
+}
+
 export function SupabaseTestButton() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<SupabaseTestResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const testSupabaseAccess = async () => {

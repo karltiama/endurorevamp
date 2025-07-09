@@ -13,7 +13,8 @@ interface DebugStep {
   name: string;
   status: 'pending' | 'running' | 'success' | 'error';
   message?: string;
-  data?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data?: any; // Debug data can have various shapes from different APIs
 }
 
 export function SyncDebugger() {

@@ -8,6 +8,11 @@ const supabase = createClient();
  * Automatically calculate and update goal progress based on activity data
  * This connects your actual Strava activities to your goal progress
  */
+interface GoalProgressRecord {
+  activity_date: string;
+  contribution_amount: number;
+}
+
 export class AutomaticGoalProgress {
   
   /**
@@ -195,12 +200,12 @@ export class AutomaticGoalProgress {
       : this.getStartOfMonth(now);
 
     // Get progress within current period
-    const periodProgress = goal.goal_progress?.filter((progress: any) => 
+    const periodProgress = goal.goal_progress?.filter((progress: GoalProgressRecord) => 
       new Date(progress.activity_date) >= startOfPeriod
     ) || [];
 
     const currentPeriodProgress = periodProgress.reduce(
-      (sum: number, p: any) => sum + (p.contribution_amount || 0), 
+      (sum: number, p: GoalProgressRecord) => sum + (p.contribution_amount || 0), 
       0
     );
 

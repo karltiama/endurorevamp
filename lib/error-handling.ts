@@ -10,7 +10,7 @@ export enum ErrorType {
 export interface AppError {
   type: ErrorType;
   message: string;
-  details?: any;
+  details?: unknown;
   code?: string | number;
   retryable?: boolean;
 }
@@ -50,7 +50,7 @@ export class ErrorHandler {
   /**
    * Parse API errors from HTTP responses
    */
-  static parseApiError(response: Response, responseData?: any): AppError {
+  static parseApiError(response: Response, responseData?: unknown): AppError {
     const status = response.status;
     const statusText = response.statusText;
 
@@ -59,7 +59,9 @@ export class ErrorHandler {
 
     switch (status) {
       case 400:
-        message = responseData?.error || 'Invalid request';
+        message = (responseData && typeof responseData === 'object' && 'error' in responseData && typeof responseData.error === 'string') 
+          ? responseData.error 
+          : 'Invalid request';
         break;
       case 401:
         message = 'Invalid authorization code. Please try connecting again.';
@@ -85,7 +87,9 @@ export class ErrorHandler {
         retryable = true;
         break;
       default:
-        message = responseData?.error || `HTTP ${status}: ${statusText}`;
+        message = (responseData && typeof responseData === 'object' && 'error' in responseData && typeof responseData.error === 'string') 
+          ? responseData.error 
+          : `HTTP ${status}: ${statusText}`;
     }
 
     return {

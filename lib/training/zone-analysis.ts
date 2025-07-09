@@ -193,15 +193,21 @@ export class TrainingZoneAnalysis {
       if (!groups[sport]) groups[sport] = []
       groups[sport].push(activity)
       return groups
-    }, {} as Record<string, any[]>)
+    }, {} as Record<string, Array<{ sport_type: string; max_heartrate?: number; average_heartrate?: number }>>)
 
     // Analyze each sport
     return Object.entries(sportGroups)
       .filter(([, activities]) => activities.length >= 3) // Minimum 3 activities for analysis
       .map(([sport, activities]) => {
-        const maxHR = Math.max(...activities.map(a => a.max_heartrate || a.average_heartrate))
-        const avgHRs = activities.map(a => a.average_heartrate)
-        const avgHR = Math.round(avgHRs.reduce((sum, hr) => sum + hr, 0) / avgHRs.length)
+        const heartRates = activities
+          .map(a => a.max_heartrate || a.average_heartrate)
+          .filter((hr): hr is number => hr !== undefined && hr > 0)
+        const maxHR = heartRates.length > 0 ? Math.max(...heartRates) : 0
+        
+        const avgHRs = activities
+          .map(a => a.average_heartrate)
+          .filter((hr): hr is number => hr !== undefined && hr > 0)
+        const avgHR = avgHRs.length > 0 ? Math.round(avgHRs.reduce((sum, hr) => sum + hr, 0) / avgHRs.length) : 0
         
         return {
           sport,
