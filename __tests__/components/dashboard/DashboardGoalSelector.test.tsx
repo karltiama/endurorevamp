@@ -221,7 +221,7 @@ describe('DashboardGoalSelector', () => {
     );
 
     // Click on Weekly Distance goal
-    const weeklyGoal = screen.getByText('Weekly Distance').closest('.cursor-pointer');
+    const weeklyGoal = screen.getByText('Weekly Distance').closest('.cursor-pointer') as HTMLElement;
     
     if (weeklyGoal) {
       fireEvent.click(weeklyGoal);
@@ -291,7 +291,7 @@ describe('DashboardGoalSelector', () => {
     // Select first three goals  
     const goalCards = screen.getAllByText(/Weekly Distance|Monthly Runs|5K Pace|Monthly Elevation/)
       .map(text => text.closest('.cursor-pointer'))
-      .filter(Boolean);
+      .filter(Boolean) as HTMLElement[];
 
     // Click first 3 goals
     for (let i = 0; i < Math.min(3, goalCards.length); i++) {
@@ -322,7 +322,7 @@ describe('DashboardGoalSelector', () => {
     );
 
     // Select a goal
-    const weeklyGoal = screen.getByText('Weekly Distance').closest('.cursor-pointer');
+    const weeklyGoal = screen.getByText('Weekly Distance').closest('.cursor-pointer') as HTMLElement;
     if (weeklyGoal) {
       fireEvent.click(weeklyGoal);
     }

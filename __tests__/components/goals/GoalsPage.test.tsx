@@ -47,20 +47,20 @@ describe('GoalCard', () => {
     priority: 1,
     created_at: '2024-01-01',
     updated_at: '2024-01-01',
-         goal_type: {
-       id: 'type1',
-       name: 'weekly_distance',
-       display_name: 'Weekly Distance',
-       description: 'Run a certain distance per week',
-       category: 'distance',
-       metric_type: 'total_distance',
-       unit: 'km',
-       target_guidance: 'Beginners: 15-25km',
-       calculation_method: 'Sum of all run distances in the week',
-       is_active: true,
-       created_at: '2024-01-01',
-       updated_at: '2024-01-01'
-     }
+    goal_type: {
+      id: 'type1',
+      name: 'weekly_distance',
+      display_name: 'Weekly Distance',
+      description: 'Run a certain distance per week',
+      category: 'distance',
+      metric_type: 'total_distance',
+      unit: 'km',
+      target_guidance: 'Beginners: 15-25km',
+      calculation_method: 'Sum of all run distances in the week',
+      is_active: true,
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01'
+    }
   };
 
   it('renders goal information correctly', () => {
