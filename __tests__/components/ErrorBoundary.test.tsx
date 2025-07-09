@@ -50,9 +50,11 @@ describe('ErrorBoundary', () => {
 
   it('shows error details in development mode', () => {
     const originalNodeEnv = process.env.NODE_ENV
+    
+    // Set NODE_ENV before rendering
     Object.defineProperty(process.env, 'NODE_ENV', {
-      value: 'development',
-      configurable: true
+      writable: true,
+      value: 'development'
     })
 
     render(
@@ -61,19 +63,30 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     )
 
-    expect(screen.getByText('Error Details (Dev Mode)')).toBeInTheDocument()
+    // Look for the details element instead of the summary text
+    const detailsElement = screen.getByRole('group')
+    expect(detailsElement).toBeInTheDocument()
+    
+    // Click to expand details
+    fireEvent.click(detailsElement)
+    
+    // Now check for error content
+    expect(screen.getByText(/Error: Test error/)).toBeInTheDocument()
 
+    // Restore NODE_ENV
     Object.defineProperty(process.env, 'NODE_ENV', {
-      value: originalNodeEnv,
-      configurable: true
+      writable: true,
+      value: originalNodeEnv
     })
   })
 
   it('hides error details in production mode', () => {
     const originalNodeEnv = process.env.NODE_ENV
+    
+    // Set NODE_ENV before rendering  
     Object.defineProperty(process.env, 'NODE_ENV', {
-      value: 'production',
-      configurable: true
+      writable: true,
+      value: 'production'
     })
 
     render(
@@ -82,27 +95,42 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     )
 
-    expect(screen.queryByText('Error Details (Dev Mode)')).not.toBeInTheDocument()
+    // Should not have details element in production
+    expect(screen.queryByRole('group')).not.toBeInTheDocument()
 
+    // Restore NODE_ENV
     Object.defineProperty(process.env, 'NODE_ENV', {
-      value: originalNodeEnv,
-      configurable: true
+      writable: true,
+      value: originalNodeEnv
     })
   })
 
   it('allows retry functionality', () => {
+    // Create a component that can toggle error state
+    let shouldThrow = true
+    const ToggleError = () => {
+      if (shouldThrow) {
+        throw new Error('Test error')
+      }
+      return <div>No error</div>
+    }
+
     const { rerender } = render(
       <ErrorBoundary>
-        <ThrowError shouldThrow={true} />
+        <ToggleError />
       </ErrorBoundary>
     )
 
     expect(screen.getByText('Something went wrong')).toBeInTheDocument()
 
     const retryButton = screen.getByRole('button', { name: 'Try Again' })
+    
+    // Change the error condition before retry
+    shouldThrow = false
+    
     fireEvent.click(retryButton)
 
-    // After retry, re-render with no error
+    // Force re-render with new component that doesn't throw
     rerender(
       <ErrorBoundary>
         <ThrowError shouldThrow={false} />

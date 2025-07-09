@@ -6,7 +6,11 @@ import { Activity } from '@/lib/strava/types';
 
 // Mock the hooks
 jest.mock('@/hooks/useGoals', () => ({
-  useUserGoals: jest.fn()
+  useUserGoals: jest.fn(),
+  useUpdateGoal: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
+  useCreateGoal: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
+  useDeleteGoal: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
+  useGoalTypes: jest.fn(() => ({ data: [], isLoading: false, error: null })),
 }));
 
 jest.mock('@/hooks/use-user-activities', () => ({
@@ -82,10 +86,11 @@ describe('KeyMetrics', () => {
       refetch: jest.fn()
     } as any);
 
-    render(<KeyMetrics userId="test-user" />, { wrapper: createWrapper() });
+    const { container } = render(<KeyMetrics userId="test-user" />, { wrapper: createWrapper() });
     
-    // Should show skeleton loading cards
-    expect(screen.getAllByRole('generic')).toHaveLength(3); // 3 skeleton cards
+    // Should show skeleton loading cards - look for the specific skeleton structure
+    const skeletonCards = container.querySelectorAll('.animate-pulse');
+    expect(skeletonCards).toHaveLength(3); // 3 skeleton cards
   });
 
   it('renders setup message when no dashboard goals are configured', () => {
