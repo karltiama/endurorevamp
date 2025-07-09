@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:ci": "next lint --ignore-path .eslintignore-ci",
     "lint:fix": "next lint --fix",
     "type-check": "tsc --noEmit --skipLibCheck",
     "test": "jest",

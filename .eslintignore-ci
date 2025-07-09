@@ -1,0 +1,20 @@
+# CI-specific ESLint ignore patterns
+# These files are excluded from CI/CD linting but can still be linted locally
+
+# Debug and development components
+components/debug/
+components/dev/
+
+# Test utilities that don't need strict linting
+__tests__/setup/
+__tests__/helpers/
+__mocks__/
+
+# Development scripts
+debug-*.js
+debug-*.ts
+test-*.js
+
+# Generated or temporary files
+*.generated.ts
+*.temp.tsx 
