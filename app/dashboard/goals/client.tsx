@@ -5,8 +5,6 @@ import { useUserGoals, useGoalTypes } from '@/hooks/useGoals';
 import { useAuth } from '@/providers/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GoalCard } from '@/components/goals/GoalCard';
 import { AddGoalModal } from '@/components/goals/AddGoalModal';
@@ -23,13 +21,11 @@ export function GoalsPageClient() {
   const { data: goalTypes = [] } = useGoalTypes();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<UserGoal | null>(null);
-  const [selectedSuggestion, setSelectedSuggestion] = useState<any>(null);
 
   const activeGoals = goalsData?.goals?.filter(goal => goal.is_active) || [];
   const completedGoals = goalsData?.goals?.filter(goal => goal.is_completed) || [];
 
-  const handleCreateGoalFromSuggestion = (suggestion: any) => {
-    setSelectedSuggestion(suggestion);
+  const handleCreateGoalFromSuggestion = () => {
     setShowAddModal(true);
   };
 

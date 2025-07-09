@@ -9,11 +9,10 @@ import type { StravaActivity } from '@/lib/strava/types'
 
 interface ActivityDetailModalProps {
   activity: StravaActivity
-  userId: string
   onClose: () => void
 }
 
-export function ActivityDetailModal({ activity, userId, onClose }: ActivityDetailModalProps) {
+export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalProps) {
   const { preferences } = useUnitPreferences()
   
   const formatDistanceWithUnits = (meters: number) => {

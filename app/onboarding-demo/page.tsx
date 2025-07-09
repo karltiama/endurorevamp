@@ -148,7 +148,7 @@ export default function OnboardingDemoPage() {
           <div className="text-sm text-muted-foreground">
             <p><strong>Instructions:</strong></p>
             <ol className="list-decimal list-inside space-y-1 mt-2">
-              <li>Click "Open Onboarding Modal" to start the flow</li>
+              <li>Click &quot;Open Onboarding Modal&quot; to start the flow</li>
               <li>Select one or more goals and configure them</li>
               <li>Complete the goals step to proceed</li>
               <li>The modal will guide you through each step</li>

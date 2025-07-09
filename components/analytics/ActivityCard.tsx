@@ -11,10 +11,9 @@ type ActivityCardActivity = StravaActivity | Activity
 interface ActivityCardProps {
   activity: ActivityCardActivity
   onViewDetails: (activity: ActivityCardActivity) => void
-  userId: string
 }
 
-export function ActivityCard({ activity, onViewDetails, userId }: ActivityCardProps) {
+export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
   const { preferences } = useUnitPreferences()
   // Helper to normalize activity data between database and API types
   const normalizeActivity = (act: ActivityCardActivity) => {

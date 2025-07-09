@@ -35,7 +35,7 @@ export function RecentActivities({ userId }: RecentActivitiesProps) {
     <div className="p-4">
       <div>No recent activities found in database</div>
       <div className="text-sm text-blue-600 mt-1">
-        💡 Click "Sync Strava Data" to load your activities.
+        💡 Click &quot;Sync Strava Data&quot; to load your activities.
       </div>
     </div>
   )
@@ -50,14 +50,14 @@ export function RecentActivities({ userId }: RecentActivitiesProps) {
       </div>
       <div className="space-y-3">
         {recentActivities.map((activity) => (
-          <ActivityCard key={activity.strava_activity_id} activity={activity} userId={userId} />
+          <ActivityCard key={activity.strava_activity_id} activity={activity} />
         ))}
       </div>
     </div>
   )
 }
 
-function ActivityCard({ activity, userId }: { activity: Activity; userId: string }) {
+function ActivityCard({ activity }: { activity: Activity }) {
   const { preferences } = useUnitPreferences()
   
   const formatDistanceWithUnits = (meters: number) => {

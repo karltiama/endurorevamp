@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { formatDistance, formatPace } from '@/lib/utils'
-import { Activity } from '@/lib/strava/types'
 import { useMemo } from 'react'
 import Link from 'next/link'
 import {
@@ -399,7 +398,7 @@ export function LastActivityDeepDive({ userId }: LastActivityDeepDiveProps) {
                     <span className="font-medium text-orange-800">Recovery Time</span>
                   </div>
                   <p className="text-sm text-orange-700">
-                    Based on this activity's intensity, consider waiting{' '}
+                    Based on this activity&apos;s intensity, consider waiting{' '}
                     {activityAnalysis.effortLevel > 80 ? '24-48 hours' : 
                      activityAnalysis.effortLevel > 60 ? '12-24 hours' : '6-12 hours'}{' '}
                     before your next high-intensity session.

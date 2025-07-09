@@ -14,7 +14,7 @@ interface ActivityFeedClientProps {
 
 export function ActivityFeedClient({ userId }: ActivityFeedClientProps) {
   const { data: activities, isLoading: activitiesLoading, error: activitiesError } = useUserActivities(userId)
-  const { accessToken, isLoading: tokenLoading, error: tokenError, refreshToken } = useStravaToken()
+  const { accessToken, error: tokenError, refreshToken } = useStravaToken()
 
   // Show loading while checking for activities
   if (activitiesLoading) {
@@ -32,7 +32,7 @@ export function ActivityFeedClient({ userId }: ActivityFeedClientProps) {
             <AlertDescription className="text-blue-800">
               <div className="flex items-center justify-between">
                 <span>
-                  <strong>Sync Notice:</strong> Your Strava connection has expired. You can still view your existing activities, but new activities won't sync automatically.
+                  <strong>Sync Notice:</strong> Your Strava connection has expired. You can still view your existing activities, but new activities won&apos;t sync automatically.
                 </span>
                 <Button
                   size="sm"
@@ -76,7 +76,7 @@ export function ActivityFeedClient({ userId }: ActivityFeedClientProps) {
           No Activities Found
         </h3>
         <p className="text-gray-500 mb-6">
-          You don't have any activities in your database yet. Connect to Strava to sync your activities and start analyzing your training data.
+          You don&apos;t have any activities in your database yet. Connect to Strava to sync your activities and start analyzing your training data.
         </p>
       </div>
 

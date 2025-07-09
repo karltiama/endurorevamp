@@ -4,7 +4,10 @@ import { useState } from 'react'
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { ActivityCard } from './ActivityCard'
 import { ActivityDetailModal } from './ActivityDetailModal'
-import type { Activity } from '@/lib/strava/types'
+import type { Activity, StravaActivity } from '@/lib/strava/types'
+
+// Union type for activities from database or API
+type ActivityFeedActivity = Activity | StravaActivity
 
 interface ActivityFeedProps {
   userId: string
@@ -12,8 +15,8 @@ interface ActivityFeedProps {
 
 export function ActivityFeed({ userId }: ActivityFeedProps) {
   const [currentPage, setCurrentPage] = useState(1)
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
-  
+    const [selectedActivity, setSelectedActivity] = useState<ActivityFeedActivity | null>(null)
+
   // Use database instead of direct API - much faster and no rate limits!
   const { data: allActivities, isLoading, error } = useUserActivities(userId)
 
@@ -32,7 +35,7 @@ export function ActivityFeed({ userId }: ActivityFeedProps) {
   const endIndex = startIndex + ITEMS_PER_PAGE
   const currentActivities = filteredActivities.slice(startIndex, endIndex)
 
-  const handleViewDetails = (activity: any) => {
+  const handleViewDetails = (activity: ActivityFeedActivity) => {
     setSelectedActivity(activity)
   }
 
@@ -79,7 +82,7 @@ export function ActivityFeed({ userId }: ActivityFeedProps) {
           No activities found in the last 90 days in your database.
         </p>
         <p className="text-sm text-blue-600">
-          💡 Click "Sync Strava Data" to load your recent activities.
+          💡 Click &quot;Sync Strava Data&quot; to load your recent activities.
         </p>
       </div>
     )
@@ -110,7 +113,6 @@ export function ActivityFeed({ userId }: ActivityFeedProps) {
             key={activity.strava_activity_id}
             activity={activity}
             onViewDetails={handleViewDetails}
-            userId={userId}
           />
         ))}
       </div>
@@ -141,8 +143,7 @@ export function ActivityFeed({ userId }: ActivityFeedProps) {
       {/* Activity Detail Modal */}
       {selectedActivity && (
         <ActivityDetailModal
-          activity={selectedActivity as any}
-          userId={userId}
+          activity={selectedActivity as StravaActivity}
           onClose={handleCloseModal}
         />
       )}

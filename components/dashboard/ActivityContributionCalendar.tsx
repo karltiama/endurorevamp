@@ -94,7 +94,7 @@ export function ActivityContributionCalendar({ activities }: ActivityContributio
     
     // Debug: Log some calendar dates for comparison
     const calendarDebugDates: string[] = []
-    let tempDate = new Date(currentDate)
+    const tempDate = new Date(currentDate)
     for (let i = 0; i < 14; i++) { // Show first 2 weeks
       if (tempDate >= startDate && tempDate <= today) {
         calendarDebugDates.push(getDateKey(tempDate))
@@ -134,8 +134,6 @@ export function ActivityContributionCalendar({ activities }: ActivityContributio
     startDate.setDate(1)
 
     const months: { month: string; weekIndex: number }[] = []
-    let currentDate = new Date(startDate)
-    let weekIndex = 0
     let lastMonth = -1
 
     contributionData.forEach((week, index) => {

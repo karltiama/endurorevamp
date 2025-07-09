@@ -7,8 +7,6 @@ import { convertDistance, getDistanceUnit } from '@/lib/utils'
 import {
   Bar,
   BarChart,
-  Line,
-  LineChart,
   ResponsiveContainer,
   XAxis,
   YAxis,

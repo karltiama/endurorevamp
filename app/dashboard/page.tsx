@@ -3,10 +3,6 @@ import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { KeyMetrics } from '@/components/dashboard/KeyMetrics'
 import { LastActivityDeepDive } from '@/components/dashboard/LastActivityDeepDive'
 import { StravaOAuthHandler } from '@/components/dashboard/StravaOAuthHandler'
-import SyncDashboard from '@/components/dashboard/SyncDashboard'
-import { DatabaseActivityChecker } from '@/components/debug/DatabaseActivityChecker'
-import { SyncDebugger } from '@/components/debug/SyncDebugger'
-import { DetailedSyncDebugger } from '@/components/debug/DetailedSyncDebugger'
 import { Suspense } from 'react'
 
 export default async function DashboardPage() {
@@ -21,7 +17,7 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back! Here's an overview of your training activity.
+            Welcome back! Here&apos;s an overview of your training activity.
           </p>
         </div>
 

@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { UserGoal } from '@/types/goals';
 import { Target, Plus, Check } from 'lucide-react';
 import { AddGoalModal } from '@/components/goals/AddGoalModal';
 import { cn } from '@/lib/utils';
@@ -25,7 +24,6 @@ interface DashboardGoalSelectorProps {
 
 export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelectorProps) {
   const { data: goalsData, isLoading } = useUserGoals();
-  const { data: goalTypes = [] } = useGoalTypes();
   const updateGoalMutation = useUpdateGoal();
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
@@ -171,7 +169,7 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Your Active Goals</h3>
                 <div className="grid gap-4">
-                  {activeGoals.map((goal, index) => {
+                  {activeGoals.map((goal) => {
                     const isSelected = selectedGoals.includes(goal.id);
                     const priority = selectedGoals.indexOf(goal.id) + 1;
                     const canSelect = isSelected || selectedGoals.length < 3;
