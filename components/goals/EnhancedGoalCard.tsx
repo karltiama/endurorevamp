@@ -305,7 +305,11 @@ function formatDate(dateString: string) {
 }
 
 function calculateGoalInsights(goal: UserGoal, progressPercentage: number) {
-  const insights: any = {};
+  const insights: {
+    weeklyAverage?: string;
+    prediction?: string;
+    recommendation?: string;
+  } = {};
 
   // Calculate weekly average for cumulative goals
   if (goal.goal_type?.metric_type?.includes('total')) {

@@ -264,7 +264,7 @@ function calculateStreak(recentProgress: GoalProgress[]): number {
     .sort((a, b) => new Date(b.activity_date).getTime() - new Date(a.activity_date).getTime());
 
   let streak = 0;
-  let currentDate = new Date();
+  const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
 
   for (const progress of sortedProgress) {
@@ -336,7 +336,13 @@ function calculateSuccessProbability(
   return 25;
 }
 
-function generateRecommendations(goal: UserGoal, metrics: any) {
+function generateRecommendations(goal: UserGoal, metrics: {
+  progressPercentage: number;
+  trend: { direction: string };
+  weeklyAverage: number;
+  requiredWeeklyRate: number;
+  successProbability: number;
+}) {
   const recommendations = [];
 
   // Performance-based recommendations
