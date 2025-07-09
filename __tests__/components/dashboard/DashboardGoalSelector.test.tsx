@@ -5,7 +5,13 @@ import { DashboardGoalSelector } from '@/components/dashboard/DashboardGoalSelec
 import { useUserGoals, useUpdateGoal, useGoalTypes } from '@/hooks/useGoals';
 
 // Mock the hooks
-jest.mock('@/hooks/useGoals');
+jest.mock('@/hooks/useGoals', () => ({
+  useUserGoals: jest.fn(),
+  useUpdateGoal: jest.fn(),
+  useGoalTypes: jest.fn(),
+  useCreateGoal: jest.fn(),
+  useDeleteGoal: jest.fn(),
+}));
 
 const mockUseUserGoals = useUserGoals as jest.MockedFunction<typeof useUserGoals>;
 const mockUseUpdateGoal = useUpdateGoal as jest.MockedFunction<typeof useUpdateGoal>;
