@@ -210,7 +210,7 @@ export class StravaActivitySync {
     const { data, error } = await this.supabase
       .from('activities')
       .upsert(safeActivityData, { 
-        onConflict: 'user_id,strava_activity_id', // Use composite constraint to prevent duplicates per user
+        onConflict: 'user_id,strava_activity_id', // Use composite constraint columns (order matters)
         ignoreDuplicates: false 
       })
       .select()
