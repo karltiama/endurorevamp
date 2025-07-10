@@ -1,0 +1,106 @@
+01a592dfe37bacfee7d7cd49b1c12eaf
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+const _utils = require("../../lib/utils");
+describe('Unit Conversion Utilities', ()=>{
+    describe('formatDistance', ()=>{
+        it('formats distance in kilometers by default', ()=>{
+            expect((0, _utils.formatDistance)(5000)).toBe('5.0 km');
+            expect((0, _utils.formatDistance)(1500)).toBe('1.5 km');
+            expect((0, _utils.formatDistance)(500)).toBe('0.5 km');
+        });
+        it('formats distance in miles when specified', ()=>{
+            expect((0, _utils.formatDistance)(5000, 'miles')).toBe('3.1 mi');
+            expect((0, _utils.formatDistance)(1609.34, 'miles')).toBe('1.0 mi') // 1 mile = 1609.34 meters
+            ;
+            expect((0, _utils.formatDistance)(3218.69, 'miles')).toBe('2.0 mi') // 2 miles
+            ;
+        });
+        it('handles zero distance', ()=>{
+            expect((0, _utils.formatDistance)(0)).toBe('0.0 km');
+            expect((0, _utils.formatDistance)(0, 'miles')).toBe('0.0 mi');
+        });
+    });
+    describe('formatPace', ()=>{
+        it('formats pace in min/km by default', ()=>{
+            expect((0, _utils.formatPace)(300)).toBe('5:00/km') // 5 minutes per km
+            ;
+            expect((0, _utils.formatPace)(330)).toBe('5:30/km') // 5 minutes 30 seconds per km
+            ;
+            expect((0, _utils.formatPace)(275)).toBe('4:35/km') // 4 minutes 35 seconds per km
+            ;
+        });
+        it('formats pace in min/mile when specified', ()=>{
+            expect((0, _utils.formatPace)(300, 'min/mile')).toBe('8:02/mi') // ~8:02 per mile (300 * 1.60934 / 60 = 8.047 minutes)
+            ;
+            expect((0, _utils.formatPace)(240, 'min/mile')).toBe('6:26/mi') // ~6:26 per mile
+            ;
+        });
+        it('handles zero pace', ()=>{
+            expect((0, _utils.formatPace)(0)).toBe('0:00/km');
+            expect((0, _utils.formatPace)(0, 'min/mile')).toBe('0:00/mi');
+        });
+        it('rounds seconds correctly', ()=>{
+            expect((0, _utils.formatPace)(305)).toBe('5:05/km') // Should round to 5 seconds
+            ;
+            expect((0, _utils.formatPace)(302)).toBe('5:02/km') // Should round to 2 seconds
+            ;
+        });
+    });
+    describe('convertDistance', ()=>{
+        it('converts meters to kilometers', ()=>{
+            expect((0, _utils.convertDistance)(5000, 'km')).toBe(5.0);
+            expect((0, _utils.convertDistance)(1500, 'km')).toBe(1.5);
+        });
+        it('converts meters to miles', ()=>{
+            expect((0, _utils.convertDistance)(1609.34, 'miles')).toBeCloseTo(1.0, 2);
+            expect((0, _utils.convertDistance)(5000, 'miles')).toBeCloseTo(3.107, 2);
+        });
+        it('handles zero distance', ()=>{
+            expect((0, _utils.convertDistance)(0, 'km')).toBe(0);
+            expect((0, _utils.convertDistance)(0, 'miles')).toBe(0);
+        });
+    });
+    describe('convertPace', ()=>{
+        it('returns same pace for min/km', ()=>{
+            expect((0, _utils.convertPace)(300, 'min/km')).toBe(300);
+            expect((0, _utils.convertPace)(240, 'min/km')).toBe(240);
+        });
+        it('converts pace from min/km to min/mile', ()=>{
+            const paceKm = 300 // 5:00/km
+            ;
+            const paceMile = (0, _utils.convertPace)(paceKm, 'min/mile');
+            expect(paceMile).toBeCloseTo(paceKm * _utils.CONVERSION_CONSTANTS.MILES_TO_KM, 1);
+        });
+        it('handles zero pace', ()=>{
+            expect((0, _utils.convertPace)(0, 'min/km')).toBe(0);
+            expect((0, _utils.convertPace)(0, 'min/mile')).toBe(0);
+        });
+    });
+    describe('getDistanceUnit', ()=>{
+        it('returns correct unit strings', ()=>{
+            expect((0, _utils.getDistanceUnit)('km')).toBe('km');
+            expect((0, _utils.getDistanceUnit)('miles')).toBe('mi');
+        });
+    });
+    describe('getPaceUnit', ()=>{
+        it('returns correct pace unit strings', ()=>{
+            expect((0, _utils.getPaceUnit)('min/km')).toBe('/km');
+            expect((0, _utils.getPaceUnit)('min/mile')).toBe('/mi');
+        });
+    });
+    describe('CONVERSION_CONSTANTS', ()=>{
+        it('has correct conversion factors', ()=>{
+            expect(_utils.CONVERSION_CONSTANTS.KM_TO_MILES).toBeCloseTo(0.621371, 5);
+            expect(_utils.CONVERSION_CONSTANTS.MILES_TO_KM).toBeCloseTo(1.60934, 5);
+        });
+        it('conversion factors are reciprocals', ()=>{
+            const product = _utils.CONVERSION_CONSTANTS.KM_TO_MILES * _utils.CONVERSION_CONSTANTS.MILES_TO_KM;
+            expect(product).toBeCloseTo(1.0, 3);
+        });
+    });
+});
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIkM6XFxVc2Vyc1xcdGlhbWFcXERlc2t0b3BcXENvZGluZ1xcZW5kdXJvcmV2YW1wXFxfX3Rlc3RzX19cXGxpYlxcdXRpbHMudGVzdC50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBcclxuICBmb3JtYXREaXN0YW5jZSwgXHJcbiAgZm9ybWF0UGFjZSwgXHJcbiAgY29udmVydERpc3RhbmNlLCBcclxuICBjb252ZXJ0UGFjZSwgXHJcbiAgZ2V0RGlzdGFuY2VVbml0LCBcclxuICBnZXRQYWNlVW5pdCxcclxuICBDT05WRVJTSU9OX0NPTlNUQU5UUyBcclxufSBmcm9tICdAL2xpYi91dGlscydcclxuXHJcbmRlc2NyaWJlKCdVbml0IENvbnZlcnNpb24gVXRpbGl0aWVzJywgKCkgPT4ge1xyXG4gIGRlc2NyaWJlKCdmb3JtYXREaXN0YW5jZScsICgpID0+IHtcclxuICAgIGl0KCdmb3JtYXRzIGRpc3RhbmNlIGluIGtpbG9tZXRlcnMgYnkgZGVmYXVsdCcsICgpID0+IHtcclxuICAgICAgZXhwZWN0KGZvcm1hdERpc3RhbmNlKDUwMDApKS50b0JlKCc1LjAga20nKVxyXG4gICAgICBleHBlY3QoZm9ybWF0RGlzdGFuY2UoMTUwMCkpLnRvQmUoJzEuNSBrbScpXHJcbiAgICAgIGV4cGVjdChmb3JtYXREaXN0YW5jZSg1MDApKS50b0JlKCcwLjUga20nKVxyXG4gICAgfSlcclxuXHJcbiAgICBpdCgnZm9ybWF0cyBkaXN0YW5jZSBpbiBtaWxlcyB3aGVuIHNwZWNpZmllZCcsICgpID0+IHtcclxuICAgICAgZXhwZWN0KGZvcm1hdERpc3RhbmNlKDUwMDAsICdtaWxlcycpKS50b0JlKCczLjEgbWknKVxyXG4gICAgICBleHBlY3QoZm9ybWF0RGlzdGFuY2UoMTYwOS4zNCwgJ21pbGVzJykpLnRvQmUoJzEuMCBtaScpIC8vIDEgbWlsZSA9IDE2MDkuMzQgbWV0ZXJzXHJcbiAgICAgIGV4cGVjdChmb3JtYXREaXN0YW5jZSgzMjE4LjY5LCAnbWlsZXMnKSkudG9CZSgnMi4wIG1pJykgLy8gMiBtaWxlc1xyXG4gICAgfSlcclxuXHJcbiAgICBpdCgnaGFuZGxlcyB6ZXJvIGRpc3RhbmNlJywgKCkgPT4ge1xyXG4gICAgICBleHBlY3QoZm9ybWF0RGlzdGFuY2UoMCkpLnRvQmUoJzAuMCBrbScpXHJcbiAgICAgIGV4cGVjdChmb3JtYXREaXN0YW5jZSgwLCAnbWlsZXMnKSkudG9CZSgnMC4wIG1pJylcclxuICAgIH0pXHJcbiAgfSlcclxuXHJcbiAgZGVzY3JpYmUoJ2Zvcm1hdFBhY2UnLCAoKSA9PiB7XHJcbiAgICBpdCgnZm9ybWF0cyBwYWNlIGluIG1pbi9rbSBieSBkZWZhdWx0JywgKCkgPT4ge1xyXG4gICAgICBleHBlY3QoZm9ybWF0UGFjZSgzMDApKS50b0JlKCc1OjAwL2ttJykgLy8gNSBtaW51dGVzIHBlciBrbVxyXG4gICAgICBleHBlY3QoZm9ybWF0UGFjZSgzMzApKS50b0JlKCc1OjMwL2ttJykgLy8gNSBtaW51dGVzIDMwIHNlY29uZHMgcGVyIGttXHJcbiAgICAgIGV4cGVjdChmb3JtYXRQYWNlKDI3NSkpLnRvQmUoJzQ6MzUva20nKSAvLyA0IG1pbnV0ZXMgMzUgc2Vjb25kcyBwZXIga21cclxuICAgIH0pXHJcblxyXG4gICAgaXQoJ2Zvcm1hdHMgcGFjZSBpbiBtaW4vbWlsZSB3aGVuIHNwZWNpZmllZCcsICgpID0+IHtcclxuICAgICAgZXhwZWN0KGZvcm1hdFBhY2UoMzAwLCAnbWluL21pbGUnKSkudG9CZSgnODowMi9taScpIC8vIH44OjAyIHBlciBtaWxlICgzMDAgKiAxLjYwOTM0IC8gNjAgPSA4LjA0NyBtaW51dGVzKVxyXG4gICAgICBleHBlY3QoZm9ybWF0UGFjZSgyNDAsICdtaW4vbWlsZScpKS50b0JlKCc2OjI2L21pJykgLy8gfjY6MjYgcGVyIG1pbGVcclxuICAgIH0pXHJcblxyXG4gICAgaXQoJ2hhbmRsZXMgemVybyBwYWNlJywgKCkgPT4ge1xyXG4gICAgICBleHBlY3QoZm9ybWF0UGFjZSgwKSkudG9CZSgnMDowMC9rbScpXHJcbiAgICAgIGV4cGVjdChmb3JtYXRQYWNlKDAsICdtaW4vbWlsZScpKS50b0JlKCcwOjAwL21pJylcclxuICAgIH0pXHJcblxyXG4gICAgaXQoJ3JvdW5kcyBzZWNvbmRzIGNvcnJlY3RseScsICgpID0+IHtcclxuICAgICAgZXhwZWN0KGZvcm1hdFBhY2UoMzA1KSkudG9CZSgnNTowNS9rbScpIC8vIFNob3VsZCByb3VuZCB0byA1IHNlY29uZHNcclxuICAgICAgZXhwZWN0KGZvcm1hdFBhY2UoMzAyKSkudG9CZSgnNTowMi9rbScpIC8vIFNob3VsZCByb3VuZCB0byAyIHNlY29uZHNcclxuICAgIH0pXHJcbiAgfSlcclxuXHJcbiAgZGVzY3JpYmUoJ2NvbnZlcnREaXN0YW5jZScsICgpID0+IHtcclxuICAgIGl0KCdjb252ZXJ0cyBtZXRlcnMgdG8ga2lsb21ldGVycycsICgpID0+IHtcclxuICAgICAgZXhwZWN0KGNvbnZlcnREaXN0YW5jZSg1MDAwLCAna20nKSkudG9CZSg1LjApXHJcbiAgICAgIGV4cGVjdChjb252ZXJ0RGlzdGFuY2UoMTUwMCwgJ2ttJykpLnRvQmUoMS41KVxyXG4gICAgfSlcclxuXHJcbiAgICBpdCgnY29udmVydHMgbWV0ZXJzIHRvIG1pbGVzJywgKCkgPT4ge1xyXG4gICAgICBleHBlY3QoY29udmVydERpc3RhbmNlKDE2MDkuMzQsICdtaWxlcycpKS50b0JlQ2xvc2VUbygxLjAsIDIpXHJcbiAgICAgIGV4cGVjdChjb252ZXJ0RGlzdGFuY2UoNTAwMCwgJ21pbGVzJykpLnRvQmVDbG9zZVRvKDMuMTA3LCAyKVxyXG4gICAgfSlcclxuXHJcbiAgICBpdCgnaGFuZGxlcyB6ZXJvIGRpc3RhbmNlJywgKCkgPT4ge1xyXG4gICAgICBleHBlY3QoY29udmVydERpc3RhbmNlKDAsICdrbScpKS50b0JlKDApXHJcbiAgICAgIGV4cGVjdChjb252ZXJ0RGlzdGFuY2UoMCwgJ21pbGVzJykpLnRvQmUoMClcclxuICAgIH0pXHJcbiAgfSlcclxuXHJcbiAgZGVzY3JpYmUoJ2NvbnZlcnRQYWNlJywgKCkgPT4ge1xyXG4gICAgaXQoJ3JldHVybnMgc2FtZSBwYWNlIGZvciBtaW4va20nLCAoKSA9PiB7XHJcbiAgICAgIGV4cGVjdChjb252ZXJ0UGFjZSgzMDAsICdtaW4va20nKSkudG9CZSgzMDApXHJcbiAgICAgIGV4cGVjdChjb252ZXJ0UGFjZSgyNDAsICdtaW4va20nKSkudG9CZSgyNDApXHJcbiAgICB9KVxyXG5cclxuICAgIGl0KCdjb252ZXJ0cyBwYWNlIGZyb20gbWluL2ttIHRvIG1pbi9taWxlJywgKCkgPT4ge1xyXG4gICAgICBjb25zdCBwYWNlS20gPSAzMDAgLy8gNTowMC9rbVxyXG4gICAgICBjb25zdCBwYWNlTWlsZSA9IGNvbnZlcnRQYWNlKHBhY2VLbSwgJ21pbi9taWxlJylcclxuICAgICAgZXhwZWN0KHBhY2VNaWxlKS50b0JlQ2xvc2VUbyhwYWNlS20gKiBDT05WRVJTSU9OX0NPTlNUQU5UUy5NSUxFU19UT19LTSwgMSlcclxuICAgIH0pXHJcblxyXG4gICAgaXQoJ2hhbmRsZXMgemVybyBwYWNlJywgKCkgPT4ge1xyXG4gICAgICBleHBlY3QoY29udmVydFBhY2UoMCwgJ21pbi9rbScpKS50b0JlKDApXHJcbiAgICAgIGV4cGVjdChjb252ZXJ0UGFjZSgwLCAnbWluL21pbGUnKSkudG9CZSgwKVxyXG4gICAgfSlcclxuICB9KVxyXG5cclxuICBkZXNjcmliZSgnZ2V0RGlzdGFuY2VVbml0JywgKCkgPT4ge1xyXG4gICAgaXQoJ3JldHVybnMgY29ycmVjdCB1bml0IHN0cmluZ3MnLCAoKSA9PiB7XHJcbiAgICAgIGV4cGVjdChnZXREaXN0YW5jZVVuaXQoJ2ttJykpLnRvQmUoJ2ttJylcclxuICAgICAgZXhwZWN0KGdldERpc3RhbmNlVW5pdCgnbWlsZXMnKSkudG9CZSgnbWknKVxyXG4gICAgfSlcclxuICB9KVxyXG5cclxuICBkZXNjcmliZSgnZ2V0UGFjZVVuaXQnLCAoKSA9PiB7XHJcbiAgICBpdCgncmV0dXJucyBjb3JyZWN0IHBhY2UgdW5pdCBzdHJpbmdzJywgKCkgPT4ge1xyXG4gICAgICBleHBlY3QoZ2V0UGFjZVVuaXQoJ21pbi9rbScpKS50b0JlKCcva20nKVxyXG4gICAgICBleHBlY3QoZ2V0UGFjZVVuaXQoJ21pbi9taWxlJykpLnRvQmUoJy9taScpXHJcbiAgICB9KVxyXG4gIH0pXHJcblxyXG4gIGRlc2NyaWJlKCdDT05WRVJTSU9OX0NPTlNUQU5UUycsICgpID0+IHtcclxuICAgIGl0KCdoYXMgY29ycmVjdCBjb252ZXJzaW9uIGZhY3RvcnMnLCAoKSA9PiB7XHJcbiAgICAgIGV4cGVjdChDT05WRVJTSU9OX0NPTlNUQU5UUy5LTV9UT19NSUxFUykudG9CZUNsb3NlVG8oMC42MjEzNzEsIDUpXHJcbiAgICAgIGV4cGVjdChDT05WRVJTSU9OX0NPTlNUQU5UUy5NSUxFU19UT19LTSkudG9CZUNsb3NlVG8oMS42MDkzNCwgNSlcclxuICAgIH0pXHJcblxyXG4gICAgaXQoJ2NvbnZlcnNpb24gZmFjdG9ycyBhcmUgcmVjaXByb2NhbHMnLCAoKSA9PiB7XHJcbiAgICAgIGNvbnN0IHByb2R1Y3QgPSBDT05WRVJTSU9OX0NPTlNUQU5UUy5LTV9UT19NSUxFUyAqIENPTlZFUlNJT05fQ09OU1RBTlRTLk1JTEVTX1RPX0tNXHJcbiAgICAgIGV4cGVjdChwcm9kdWN0KS50b0JlQ2xvc2VUbygxLjAsIDMpXHJcbiAgICB9KVxyXG4gIH0pXHJcbn0pICJdLCJuYW1lcyI6WyJkZXNjcmliZSIsIml0IiwiZXhwZWN0IiwiZm9ybWF0RGlzdGFuY2UiLCJ0b0JlIiwiZm9ybWF0UGFjZSIsImNvbnZlcnREaXN0YW5jZSIsInRvQmVDbG9zZVRvIiwiY29udmVydFBhY2UiLCJwYWNlS20iLCJwYWNlTWlsZSIsIkNPTlZFUlNJT05fQ09OU1RBTlRTIiwiTUlMRVNfVE9fS00iLCJnZXREaXN0YW5jZVVuaXQiLCJnZXRQYWNlVW5pdCIsIktNX1RPX01JTEVTIiwicHJvZHVjdCJdLCJtYXBwaW5ncyI6Ijs7Ozt1QkFRTztBQUVQQSxTQUFTLDZCQUE2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

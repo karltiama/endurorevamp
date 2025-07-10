@@ -100,14 +100,8 @@ jest.mock('@/hooks/use-user-activities', () => ({
   useUserActivities: jest.fn(() => ({ data: [], isLoading: false, error: null, refetch: jest.fn() })),
 }))
 
-jest.mock('@/hooks/use-strava-sync', () => ({
-  useStravaSync: jest.fn(() => ({
-    syncData: jest.fn(),
-    isLoading: false,
-    error: null,
-    lastSyncTime: null,
-  })),
-}))
+// Remove the global mock for use-strava-sync to allow individual tests to control it
+// This was causing conflicts with test-specific mocks
 
 jest.mock('@/hooks/useUnitPreferences', () => {
   const mockSetDistanceUnit = jest.fn()
@@ -145,29 +139,8 @@ process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key'
 
-// Mock console methods to reduce noise in tests
-const originalConsole = {
-  log: console.log,
-  warn: console.warn,
-  error: console.error,
-}
-
-beforeEach(() => {
-  // Reset all mocks between tests
-  jest.clearAllMocks()
-  
-  // Restore console methods for clean test output
-  console.log = jest.fn()
-  console.warn = jest.fn()
-  console.error = jest.fn()
-})
-
-afterEach(() => {
-  // Restore console for debugging if needed
-  console.log = originalConsole.log
-  console.warn = originalConsole.warn
-  console.error = originalConsole.error
-})
+// REMOVED: Heavy console mocking that was running before every test
+// REMOVED: beforeEach/afterEach hooks that were adding overhead
 
 // Mock fetch globally
 global.fetch = jest.fn(() =>

@@ -19,11 +19,15 @@ const mockSelect = jest.fn()
 const mockSingle = jest.fn()
 const mockRpc = jest.fn()
 
+// Create a properly chained mock that captures the actual call sequence
 const mockSupabase = {
-  from: jest.fn(() => ({
+  from: jest.fn((table: string) => ({
     upsert: mockUpsert.mockReturnValue({
       select: mockSelect.mockReturnValue({
-        single: mockSingle
+        single: mockSingle.mockResolvedValue({
+          data: { id: 'test-id', created_at: '2023-01-01T10:00:00Z', updated_at: '2023-01-01T10:00:00Z' },
+          error: null
+        })
       })
     }),
     select: jest.fn(() => ({
@@ -68,54 +72,32 @@ describe('StravaActivitySync - Upsert Functionality', () => {
 
   describe('Activity Storage', () => {
     it('should use correct onConflict specification for upsert', async () => {
-      // Mock successful upsert using the global mockUpsert that gets tracked
-      mockUpsert.mockReturnValue({
-        select: mockSelect.mockReturnValue({
-          single: mockSingle.mockResolvedValue({
-            data: { ...mockActivityData, created_at: new Date(), updated_at: new Date() },
-            error: null
-          })
-        })
+      // Call the storeActivity method and await the result
+      const result = await stravaSync.storeActivity(mockUserId, {
+        id: 12345,
+        name: 'Test Run',
+        sport_type: 'Run',
+        distance: 5000,
+        moving_time: 1800,
+        elapsed_time: 1900,
+        start_date: '2023-01-01T10:00:00Z',
+        start_date_local: '2023-01-01T10:00:00Z',
+        timezone: 'UTC',
+        total_elevation_gain: 100,
+        average_speed: 2.78,
+        max_speed: 4.17,
+        trainer: false,
+        commute: false,
+        manual: false,
+        achievement_count: 0,
+        kudos_count: 0,
+        comment_count: 0,
+        has_heartrate: false
       })
 
-      mockSupabase.from.mockReturnValue({
-        upsert: mockUpsert,
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn()
-          }))
-        }))
-      })
-
-      // Call the private method via reflection (for testing purposes)
-      const storeActivity = (stravaSync as any).storeActivity
+      // Verify that from was called with 'activities' table
+      expect(mockSupabase.from).toHaveBeenCalledWith('activities')
       
-      try {
-        await storeActivity(mockUserId, {
-          id: 12345,
-          name: 'Test Run',
-          sport_type: 'Run',
-          distance: 5000,
-          moving_time: 1800,
-          elapsed_time: 1900,
-          start_date: '2023-01-01T10:00:00Z',
-          start_date_local: '2023-01-01T10:00:00Z',
-          timezone: 'UTC',
-          total_elevation_gain: 100,
-          average_speed: 2.78,
-          max_speed: 4.17,
-          trainer: false,
-          commute: false,
-          manual: false,
-          achievement_count: 0,
-          kudos_count: 0,
-          comment_count: 0,
-          has_heartrate: false
-        })
-      } catch (error) {
-        // Expected since we're mocking
-      }
-
       // Verify that upsert was called with the correct onConflict specification
       expect(mockUpsert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -127,115 +109,80 @@ describe('StravaActivitySync - Upsert Functionality', () => {
           ignoreDuplicates: false
         })
       )
+      
+      // Verify the method completed successfully
+      expect(result.data).toBeDefined()
+      expect(result.isNew).toBeDefined()
     })
 
     it('should handle duplicate activities correctly', async () => {
-      // Mock conflict resolution
+      // Mock an updated activity (created_at != updated_at means it was updated)
       const mockData = {
-        ...mockActivityData,
+        id: 'test-id',
         created_at: '2023-01-01T10:00:00Z',
         updated_at: '2023-01-01T10:05:00Z' // 5 minutes later = update
       }
 
-      mockSupabase.from.mockReturnValue({
-        upsert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: mockData,
-              error: null
-            })
-          })
-        }),
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn()
-          }))
-        }))
+      // Override the single mock to return the updated activity data
+      mockSingle.mockResolvedValueOnce({
+        data: mockData,
+        error: null
       })
 
-      const storeActivity = (stravaSync as any).storeActivity
-      
-      try {
-        const result = await storeActivity(mockUserId, {
-          id: 12345,
-          name: 'Test Run',
-          sport_type: 'Run',
-          distance: 5000,
-          moving_time: 1800,
-          elapsed_time: 1900,
-          start_date: '2023-01-01T10:00:00Z',
-          start_date_local: '2023-01-01T10:00:00Z',
-          timezone: 'UTC',
-          total_elevation_gain: 100,
-          average_speed: 2.78,
-          max_speed: 4.17,
-          trainer: false,
-          commute: false,
-          manual: false,
-          achievement_count: 0,
-          kudos_count: 0,
-          comment_count: 0,
-          has_heartrate: false
-        })
+      const result = await stravaSync.storeActivity(mockUserId, {
+        id: 12345,
+        name: 'Test Run',
+        sport_type: 'Run',
+        distance: 5000,
+        moving_time: 1800,
+        elapsed_time: 1900,
+        start_date: '2023-01-01T10:00:00Z',
+        start_date_local: '2023-01-01T10:00:00Z',
+        timezone: 'UTC',
+        total_elevation_gain: 100,
+        average_speed: 2.78,
+        max_speed: 4.17,
+        trainer: false,
+        commute: false,
+        manual: false,
+        achievement_count: 0,
+        kudos_count: 0,
+        comment_count: 0,
+        has_heartrate: false
+      })
 
-        // Should detect this as an update, not a new activity
-        expect(result.isNew).toBe(false)
-      } catch (error) {
-        // Expected since we're mocking
-      }
+      // Should detect this as an update, not a new activity
+      expect(result.isNew).toBe(false)
+      expect(result.data).toEqual(mockData)
     })
   })
 
   describe('Data Type Safety', () => {
     it('should handle null and undefined values safely', async () => {
-      // Reset and setup mocks properly
-      mockUpsert.mockReturnValue({
-        select: mockSelect.mockReturnValue({
-          single: mockSingle.mockResolvedValue({
-            data: mockActivityData,
-            error: null
-          })
-        })
+      await stravaSync.storeActivity(mockUserId, {
+        id: 12345,
+        name: 'Test Run',
+        sport_type: 'Run',
+        distance: null as any, // Should handle null
+        moving_time: undefined as any, // Should handle undefined
+        elapsed_time: '' as any, // Should handle empty string
+        start_date: '2023-01-01T10:00:00Z',
+        start_date_local: '2023-01-01T10:00:00Z',
+        timezone: 'UTC',
+        total_elevation_gain: 'invalid' as any, // Should handle invalid number
+        average_speed: 2.78,
+        max_speed: 4.17,
+        trainer: false,
+        commute: false,
+        manual: false,
+        achievement_count: 0,
+        kudos_count: 0,
+        comment_count: 0,
+        has_heartrate: false
       })
 
-      mockSupabase.from.mockReturnValue({
-        upsert: mockUpsert,
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn()
-          }))
-        }))
-      })
-
-      const storeActivity = (stravaSync as any).storeActivity
-      
-      try {
-        await storeActivity(mockUserId, {
-          id: 12345,
-          name: 'Test Run',
-          sport_type: 'Run',
-          distance: null, // Should handle null
-          moving_time: undefined, // Should handle undefined
-          elapsed_time: '', // Should handle empty string
-          start_date: '2023-01-01T10:00:00Z',
-          start_date_local: '2023-01-01T10:00:00Z',
-          timezone: 'UTC',
-          total_elevation_gain: 'invalid', // Should handle invalid number
-          average_speed: 2.78,
-          max_speed: 4.17,
-          trainer: false,
-          commute: false,
-          manual: false,
-          achievement_count: 0,
-          kudos_count: 0,
-          comment_count: 0,
-          has_heartrate: false
-        })
-      } catch (error) {
-        // Expected since we're mocking
-      }
-
-      // Access the upsert call arguments directly from the global mock
+      // Access the upsert call arguments directly from the mock
+      expect(mockUpsert).toHaveBeenCalledTimes(1)
       const upsertCall = mockUpsert.mock.calls[0][0]
       
       // Verify null/undefined handling
@@ -248,21 +195,23 @@ describe('StravaActivitySync - Upsert Functionality', () => {
 })
 
 describe('Activity Upsert Conflict Resolution', () => {
-  let mockSupabase: any
+  let mockUpsertCall: jest.Mock
 
   beforeEach(() => {
     jest.clearAllMocks()
     
-    mockSupabase = {
+    mockUpsertCall = jest.fn(() => ({
+      select: jest.fn(() => ({
+        single: jest.fn().mockResolvedValue({
+          data: { id: 'test-id', strava_activity_id: 12345 },
+          error: null
+        })
+      }))
+    }))
+    
+    const mockSupabaseInstance = {
       from: jest.fn(() => ({
-        upsert: jest.fn(() => ({
-          select: jest.fn(() => ({
-            single: jest.fn().mockResolvedValue({
-              data: { id: 'test-id', strava_activity_id: 12345 },
-              error: null
-            })
-          }))
-        })),
+        upsert: mockUpsertCall,
         select: jest.fn(() => ({
           eq: jest.fn(() => ({
             single: jest.fn().mockResolvedValue({
@@ -274,7 +223,7 @@ describe('Activity Upsert Conflict Resolution', () => {
       }))
     }
     
-    ;(createClient as jest.Mock).mockReturnValue(mockSupabase)
+    ;(createClient as jest.Mock).mockReturnValue(mockSupabaseInstance)
   })
 
   it('should demonstrate the fix for onConflict specification', async () => {
@@ -285,8 +234,11 @@ describe('Activity Upsert Conflict Resolution', () => {
       sport_type: 'Run'
     }
 
+    // Get the mock supabase instance
+    const mockSupabaseInstance = (createClient as jest.Mock)()
+    
     // Simulate what the fixed code should do
-    const { data, error } = await mockSupabase
+    const { data, error } = await mockSupabaseInstance
       .from('activities')
       .upsert(testData, {
         onConflict: 'user_id,strava_activity_id', // This is the fix
@@ -296,10 +248,9 @@ describe('Activity Upsert Conflict Resolution', () => {
       .single()
 
     // Verify the upsert was called with correct conflict specification
-    expect(mockSupabase.from).toHaveBeenCalledWith('activities')
+    expect(mockSupabaseInstance.from).toHaveBeenCalledWith('activities')
     
-    const upsertCall = mockSupabase.from().upsert
-    expect(upsertCall).toHaveBeenCalledWith(
+    expect(mockUpsertCall).toHaveBeenCalledWith(
       testData,
       {
         onConflict: 'user_id,strava_activity_id',
@@ -319,9 +270,12 @@ describe('Activity Upsert Conflict Resolution', () => {
       sport_type: 'Run'
     }
 
+    // Get the mock supabase instance
+    const mockSupabaseInstance = (createClient as jest.Mock)()
+
     // Simulate what the old broken code would do
     // This would fail in a real database but passes in mocks
-    await mockSupabase
+    await mockSupabaseInstance
       .from('activities')
       .upsert(testData, {
         onConflict: 'strava_activity_id', // Old broken way
@@ -331,8 +285,7 @@ describe('Activity Upsert Conflict Resolution', () => {
       .single()
 
     // The mock will pass, but this demonstrates the difference
-    const upsertCall = mockSupabase.from().upsert
-    expect(upsertCall).toHaveBeenCalledWith(
+    expect(mockUpsertCall).toHaveBeenCalledWith(
       testData,
       {
         onConflict: 'strava_activity_id', // This would cause DB error: 42P10

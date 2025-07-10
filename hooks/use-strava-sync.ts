@@ -24,6 +24,72 @@ interface SyncStatus {
   canSync: boolean
 }
 
+// Helper function to format sync status info
+function formatSyncStatusInfo(syncStatus: SyncStatus | undefined) {
+  if (!syncStatus) {
+    return {
+      lastSyncText: 'Never synced',
+      canSync: true,
+      syncDisabledReason: null,
+      activityCount: 0,
+      todaySyncs: 0,
+      maxSyncs: 5
+    }
+  }
+
+  const { syncState, activityCount, canSync } = syncStatus
+
+  // Format last sync time
+  let lastSyncText = 'Never synced'
+  if (syncState?.last_activity_sync) {
+    const lastSync = new Date(syncState.last_activity_sync)
+    const now = new Date()
+    const diffMs = now.getTime() - lastSync.getTime()
+    const diffMins = Math.floor(diffMs / (1000 * 60))
+    const diffHours = Math.floor(diffMins / 60)
+    const diffDays = Math.floor(diffHours / 24)
+
+    if (diffMins < 1) {
+      lastSyncText = 'Just now'
+    } else if (diffMins < 60) {
+      lastSyncText = `${diffMins} minutes ago`
+    } else if (diffHours < 24) {
+      lastSyncText = `${diffHours} hours ago`
+    } else if (diffDays === 1) {
+      lastSyncText = 'Yesterday'
+    } else {
+      lastSyncText = `${diffDays} days ago`
+    }
+  }
+
+  // Determine why sync might be disabled
+  let syncDisabledReason = null
+  if (!canSync) {
+    if (!syncState?.sync_enabled) {
+      syncDisabledReason = 'Sync is disabled for your account'
+    } else if (syncState?.sync_requests_today >= 5) {
+      syncDisabledReason = 'Daily sync limit reached (5/day)'
+    } else if (syncState?.last_activity_sync) {
+      const lastSync = new Date(syncState.last_activity_sync)
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+      if (lastSync > oneHourAgo) {
+        syncDisabledReason = 'Please wait 1 hour between syncs'
+      }
+    }
+  }
+
+  return {
+    lastSyncText,
+    canSync,
+    syncDisabledReason,
+    activityCount,
+    todaySyncs: syncState?.sync_requests_today || 0,
+    maxSyncs: 5,
+    consecutiveErrors: syncState?.consecutive_errors || 0,
+    lastError: syncState?.last_error_message
+  }
+}
+
 // Trigger activity sync
 async function triggerSync(options: SyncOptions = {}): Promise<SyncResult> {
   const response = await fetch('/api/strava/sync', {
@@ -130,6 +196,8 @@ export function useStravaSync() {
     refetchStatus()
   }
 
+  const syncStatusInfo = formatSyncStatusInfo(syncStatus)
+
   return {
     // Status
     syncStatus,
@@ -150,74 +218,15 @@ export function useStravaSync() {
     
     // Manual controls
     refetchStatus,
-    refreshStatus
+    refreshStatus,
+    
+    // Formatted sync info
+    syncStatusInfo
   }
 }
 
 // Hook for getting formatted sync information
 export function useSyncStatusInfo() {
   const { syncStatus } = useStravaSync()
-
-  if (!syncStatus) {
-    return {
-      lastSyncText: 'Never synced',
-      canSync: true,
-      syncDisabledReason: null,
-      activityCount: 0,
-      todaySyncs: 0,
-      maxSyncs: 5
-    }
-  }
-
-  const { syncState, activityCount, canSync } = syncStatus
-
-  // Format last sync time
-  let lastSyncText = 'Never synced'
-  if (syncState?.last_activity_sync) {
-    const lastSync = new Date(syncState.last_activity_sync)
-    const now = new Date()
-    const diffMs = now.getTime() - lastSync.getTime()
-    const diffMins = Math.floor(diffMs / (1000 * 60))
-    const diffHours = Math.floor(diffMins / 60)
-    const diffDays = Math.floor(diffHours / 24)
-
-    if (diffMins < 1) {
-      lastSyncText = 'Just now'
-    } else if (diffMins < 60) {
-      lastSyncText = `${diffMins} minutes ago`
-    } else if (diffHours < 24) {
-      lastSyncText = `${diffHours} hours ago`
-    } else if (diffDays === 1) {
-      lastSyncText = 'Yesterday'
-    } else {
-      lastSyncText = `${diffDays} days ago`
-    }
-  }
-
-  // Determine why sync might be disabled
-  let syncDisabledReason = null
-  if (!canSync) {
-    if (!syncState?.sync_enabled) {
-      syncDisabledReason = 'Sync is disabled for your account'
-    } else if (syncState?.sync_requests_today >= 5) {
-      syncDisabledReason = 'Daily sync limit reached (5/day)'
-    } else if (syncState?.last_activity_sync) {
-      const lastSync = new Date(syncState.last_activity_sync)
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
-      if (lastSync > oneHourAgo) {
-        syncDisabledReason = 'Please wait 1 hour between syncs'
-      }
-    }
-  }
-
-  return {
-    lastSyncText,
-    canSync,
-    syncDisabledReason,
-    activityCount,
-    todaySyncs: syncState?.sync_requests_today || 0,
-    maxSyncs: 5,
-    consecutiveErrors: syncState?.consecutive_errors || 0,
-    lastError: syncState?.last_error_message
-  }
+  return formatSyncStatusInfo(syncStatus)
 } 

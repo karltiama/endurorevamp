@@ -1,0 +1,184 @@
+8f7331b0d8e4bb8413444593fa3d0bf5
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "StravaReconnectionPrompt", {
+    enumerable: true,
+    get: function() {
+        return StravaReconnectionPrompt;
+    }
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _button = require("../ui/button");
+const _alert = require("../ui/alert");
+const _strava = require("../../lib/strava");
+const _lucidereact = require("lucide-react");
+function StravaReconnectionPrompt({ error, onRefresh, title = "Strava Connection Issue", className = "" }) {
+    const handleReconnect = ()=>{
+        const authUrl = (0, _strava.getStravaAuthUrl)(window.location.origin);
+        window.location.href = authUrl;
+    };
+    const handleRefresh = async ()=>{
+        if (!onRefresh) {
+            handleReconnect();
+            return;
+        }
+        try {
+            await onRefresh();
+        } catch (err) {
+            console.error('Failed to refresh token:', err);
+            // If refresh fails, redirect to full OAuth flow
+            handleReconnect();
+        }
+    };
+    // Determine the type of error and show appropriate messaging
+    const isTokenExpired = error?.includes('expired') || error?.includes('401') || error?.includes('invalid');
+    const isNetworkError = error?.includes('network') || error?.includes('fetch');
+    return /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+        className: `bg-white border border-gray-200 rounded-lg p-6 ${className}`,
+        children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+            className: "flex items-start space-x-4",
+            children: [
+                /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                    className: "flex-shrink-0",
+                    children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.AlertCircle, {
+                        className: "h-6 w-6 text-orange-500"
+                    })
+                }),
+                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                    className: "flex-1 space-y-4",
+                    children: [
+                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                            children: [
+                                /*#__PURE__*/ (0, _jsxruntime.jsx)("h3", {
+                                    className: "text-lg font-semibold text-gray-900 mb-2",
+                                    children: isTokenExpired ? 'Strava Connection Expired' : title
+                                }),
+                                isTokenExpired ? /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                    className: "space-y-3",
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                            className: "text-gray-600",
+                                            children: "Your Strava connection has expired. This is normal and happens periodically for security reasons."
+                                        }),
+                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)(_alert.Alert, {
+                                            className: "bg-blue-50 border-blue-200",
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Info, {
+                                                    className: "h-4 w-4 text-blue-600"
+                                                }),
+                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)(_alert.AlertDescription, {
+                                                    className: "text-blue-800",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("strong", {
+                                                            children: "Quick fix:"
+                                                        }),
+                                                        ' Click "Reconnect to Strava" below to restore access to your activities and continue viewing your data.'
+                                                    ]
+                                                })
+                                            ]
+                                        })
+                                    ]
+                                }) : isNetworkError ? /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                    className: "space-y-3",
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                            className: "text-gray-600",
+                                            children: "There's a temporary connection issue with Strava. This usually resolves itself quickly."
+                                        }),
+                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)(_alert.Alert, {
+                                            className: "bg-yellow-50 border-yellow-200",
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Info, {
+                                                    className: "h-4 w-4 text-yellow-600"
+                                                }),
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)(_alert.AlertDescription, {
+                                                    className: "text-yellow-800",
+                                                    children: "Try refreshing your connection first, or reconnect if the issue persists."
+                                                })
+                                            ]
+                                        })
+                                    ]
+                                }) : /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                    className: "space-y-3",
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                            className: "text-gray-600",
+                                            children: "Unable to connect to Strava. This might be due to an expired connection or configuration issue."
+                                        }),
+                                        error && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                            className: "text-sm text-gray-500 bg-gray-50 p-3 rounded border",
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("strong", {
+                                                    children: "Error details:"
+                                                }),
+                                                " ",
+                                                error
+                                            ]
+                                        })
+                                    ]
+                                })
+                            ]
+                        }),
+                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                            className: "flex flex-col sm:flex-row gap-3",
+                            children: [
+                                onRefresh && (isNetworkError || !isTokenExpired) && /*#__PURE__*/ (0, _jsxruntime.jsxs)(_button.Button, {
+                                    onClick: handleRefresh,
+                                    variant: "outline",
+                                    className: "flex items-center gap-2",
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.RefreshCw, {
+                                            className: "h-4 w-4"
+                                        }),
+                                        "Refresh Connection"
+                                    ]
+                                }),
+                                /*#__PURE__*/ (0, _jsxruntime.jsxs)(_button.Button, {
+                                    onClick: handleReconnect,
+                                    className: "flex items-center gap-2 bg-orange-600 hover:bg-orange-700",
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Link2, {
+                                            className: "h-4 w-4"
+                                        }),
+                                        isTokenExpired ? 'Reconnect to Strava' : 'Connect to Strava'
+                                    ]
+                                })
+                            ]
+                        }),
+                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                            className: "text-sm text-gray-500",
+                            children: [
+                                /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                    className: "font-medium mb-1",
+                                    children: "After reconnecting, you'll be able to:"
+                                }),
+                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("ul", {
+                                    className: "space-y-1 text-xs ml-4",
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("li", {
+                                            children: "• View your recent activity data and analytics"
+                                        }),
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("li", {
+                                            children: "• Sync new activities automatically"
+                                        }),
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("li", {
+                                            children: "• Access detailed performance metrics"
+                                        }),
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("li", {
+                                            children: "• Track your training progress over time"
+                                        })
+                                    ]
+                                })
+                            ]
+                        })
+                    ]
+                })
+            ]
+        })
+    });
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIkM6XFxVc2Vyc1xcdGlhbWFcXERlc2t0b3BcXENvZGluZ1xcZW5kdXJvcmV2YW1wXFxjb21wb25lbnRzXFxzdHJhdmFcXFN0cmF2YVJlY29ubmVjdGlvblByb21wdC50c3giXSwic291cmNlc0NvbnRlbnQiOlsiJ3VzZSBjbGllbnQnXHJcblxyXG5pbXBvcnQgeyBCdXR0b24gfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvYnV0dG9uJ1xyXG5pbXBvcnQgeyBBbGVydCwgQWxlcnREZXNjcmlwdGlvbiB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9hbGVydCdcclxuaW1wb3J0IHsgZ2V0U3RyYXZhQXV0aFVybCB9IGZyb20gJ0AvbGliL3N0cmF2YSdcclxuaW1wb3J0IHsgTGluazIsIFJlZnJlc2hDdywgQWxlcnRDaXJjbGUsIEluZm8gfSBmcm9tICdsdWNpZGUtcmVhY3QnXHJcblxyXG5pbnRlcmZhY2UgU3RyYXZhUmVjb25uZWN0aW9uUHJvbXB0UHJvcHMge1xyXG4gIGVycm9yPzogc3RyaW5nIHwgbnVsbFxyXG4gIG9uUmVmcmVzaD86ICgpID0+IFByb21pc2U8dm9pZD5cclxuICB0aXRsZT86IHN0cmluZ1xyXG4gIGNsYXNzTmFtZT86IHN0cmluZ1xyXG59XHJcblxyXG5leHBvcnQgZnVuY3Rpb24gU3RyYXZhUmVjb25uZWN0aW9uUHJvbXB0KHsgXHJcbiAgZXJyb3IsIFxyXG4gIG9uUmVmcmVzaCwgXHJcbiAgdGl0bGUgPSBcIlN0cmF2YSBDb25uZWN0aW9uIElzc3VlXCIsXHJcbiAgY2xhc3NOYW1lID0gXCJcIlxyXG59OiBTdHJhdmFSZWNvbm5lY3Rpb25Qcm9tcHRQcm9wcykge1xyXG4gIGNvbnN0IGhhbmRsZVJlY29ubmVjdCA9ICgpID0+IHtcclxuICAgIGNvbnN0IGF1dGhVcmwgPSBnZXRTdHJhdmFBdXRoVXJsKHdpbmRvdy5sb2NhdGlvbi5vcmlnaW4pXHJcbiAgICB3aW5kb3cubG9jYXRpb24uaHJlZiA9IGF1dGhVcmxcclxuICB9XHJcblxyXG4gIGNvbnN0IGhhbmRsZVJlZnJlc2ggPSBhc3luYyAoKSA9PiB7XHJcbiAgICBpZiAoIW9uUmVmcmVzaCkge1xyXG4gICAgICBoYW5kbGVSZWNvbm5lY3QoKVxyXG4gICAgICByZXR1cm5cclxuICAgIH1cclxuXHJcbiAgICB0cnkge1xyXG4gICAgICBhd2FpdCBvblJlZnJlc2goKVxyXG4gICAgfSBjYXRjaCAoZXJyKSB7XHJcbiAgICAgIGNvbnNvbGUuZXJyb3IoJ0ZhaWxlZCB0byByZWZyZXNoIHRva2VuOicsIGVycilcclxuICAgICAgLy8gSWYgcmVmcmVzaCBmYWlscywgcmVkaXJlY3QgdG8gZnVsbCBPQXV0aCBmbG93XHJcbiAgICAgIGhhbmRsZVJlY29ubmVjdCgpXHJcbiAgICB9XHJcbiAgfVxyXG5cclxuICAvLyBEZXRlcm1pbmUgdGhlIHR5cGUgb2YgZXJyb3IgYW5kIHNob3cgYXBwcm9wcmlhdGUgbWVzc2FnaW5nXHJcbiAgY29uc3QgaXNUb2tlbkV4cGlyZWQgPSBlcnJvcj8uaW5jbHVkZXMoJ2V4cGlyZWQnKSB8fCBlcnJvcj8uaW5jbHVkZXMoJzQwMScpIHx8IGVycm9yPy5pbmNsdWRlcygnaW52YWxpZCcpXHJcbiAgY29uc3QgaXNOZXR3b3JrRXJyb3IgPSBlcnJvcj8uaW5jbHVkZXMoJ25ldHdvcmsnKSB8fCBlcnJvcj8uaW5jbHVkZXMoJ2ZldGNoJylcclxuICBcclxuICByZXR1cm4gKFxyXG4gICAgPGRpdiBjbGFzc05hbWU9e2BiZy13aGl0ZSBib3JkZXIgYm9yZGVyLWdyYXktMjAwIHJvdW5kZWQtbGcgcC02ICR7Y2xhc3NOYW1lfWB9PlxyXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtc3RhcnQgc3BhY2UteC00XCI+XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4LXNocmluay0wXCI+XHJcbiAgICAgICAgICA8QWxlcnRDaXJjbGUgY2xhc3NOYW1lPVwiaC02IHctNiB0ZXh0LW9yYW5nZS01MDBcIiAvPlxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleC0xIHNwYWNlLXktNFwiPlxyXG4gICAgICAgICAgPGRpdj5cclxuICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT1cInRleHQtbGcgZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktOTAwIG1iLTJcIj5cclxuICAgICAgICAgICAgICB7aXNUb2tlbkV4cGlyZWQgPyAnU3RyYXZhIENvbm5lY3Rpb24gRXhwaXJlZCcgOiB0aXRsZX1cclxuICAgICAgICAgICAgPC9oMz5cclxuICAgICAgICAgICAgXHJcbiAgICAgICAgICAgIHtpc1Rva2VuRXhwaXJlZCA/IChcclxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktM1wiPlxyXG4gICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1ncmF5LTYwMFwiPlxyXG4gICAgICAgICAgICAgICAgICBZb3VyIFN0cmF2YSBjb25uZWN0aW9uIGhhcyBleHBpcmVkLiBUaGlzIGlzIG5vcm1hbCBhbmQgaGFwcGVucyBwZXJpb2RpY2FsbHkgZm9yIHNlY3VyaXR5IHJlYXNvbnMuXHJcbiAgICAgICAgICAgICAgICA8L3A+XHJcbiAgICAgICAgICAgICAgICA8QWxlcnQgY2xhc3NOYW1lPVwiYmctYmx1ZS01MCBib3JkZXItYmx1ZS0yMDBcIj5cclxuICAgICAgICAgICAgICAgICAgPEluZm8gY2xhc3NOYW1lPVwiaC00IHctNCB0ZXh0LWJsdWUtNjAwXCIgLz5cclxuICAgICAgICAgICAgICAgICAgPEFsZXJ0RGVzY3JpcHRpb24gY2xhc3NOYW1lPVwidGV4dC1ibHVlLTgwMFwiPlxyXG4gICAgICAgICAgICAgICAgICAgIDxzdHJvbmc+UXVpY2sgZml4Ojwvc3Ryb25nPiBDbGljayAmcXVvdDtSZWNvbm5lY3QgdG8gU3RyYXZhJnF1b3Q7IGJlbG93IHRvIHJlc3RvcmUgYWNjZXNzIHRvIHlvdXIgYWN0aXZpdGllcyBhbmQgY29udGludWUgdmlld2luZyB5b3VyIGRhdGEuXHJcbiAgICAgICAgICAgICAgICAgIDwvQWxlcnREZXNjcmlwdGlvbj5cclxuICAgICAgICAgICAgICAgIDwvQWxlcnQ+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICkgOiBpc05ldHdvcmtFcnJvciA/IChcclxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktM1wiPlxyXG4gICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1ncmF5LTYwMFwiPlxyXG4gICAgICAgICAgICAgICAgICBUaGVyZSZhcG9zO3MgYSB0ZW1wb3JhcnkgY29ubmVjdGlvbiBpc3N1ZSB3aXRoIFN0cmF2YS4gVGhpcyB1c3VhbGx5IHJlc29sdmVzIGl0c2VsZiBxdWlja2x5LlxyXG4gICAgICAgICAgICAgICAgPC9wPlxyXG4gICAgICAgICAgICAgICAgPEFsZXJ0IGNsYXNzTmFtZT1cImJnLXllbGxvdy01MCBib3JkZXIteWVsbG93LTIwMFwiPlxyXG4gICAgICAgICAgICAgICAgICA8SW5mbyBjbGFzc05hbWU9XCJoLTQgdy00IHRleHQteWVsbG93LTYwMFwiIC8+XHJcbiAgICAgICAgICAgICAgICAgIDxBbGVydERlc2NyaXB0aW9uIGNsYXNzTmFtZT1cInRleHQteWVsbG93LTgwMFwiPlxyXG4gICAgICAgICAgICAgICAgICAgIFRyeSByZWZyZXNoaW5nIHlvdXIgY29ubmVjdGlvbiBmaXJzdCwgb3IgcmVjb25uZWN0IGlmIHRoZSBpc3N1ZSBwZXJzaXN0cy5cclxuICAgICAgICAgICAgICAgICAgPC9BbGVydERlc2NyaXB0aW9uPlxyXG4gICAgICAgICAgICAgICAgPC9BbGVydD5cclxuICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgKSA6IChcclxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktM1wiPlxyXG4gICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1ncmF5LTYwMFwiPlxyXG4gICAgICAgICAgICAgICAgICBVbmFibGUgdG8gY29ubmVjdCB0byBTdHJhdmEuIFRoaXMgbWlnaHQgYmUgZHVlIHRvIGFuIGV4cGlyZWQgY29ubmVjdGlvbiBvciBjb25maWd1cmF0aW9uIGlzc3VlLlxyXG4gICAgICAgICAgICAgICAgPC9wPlxyXG4gICAgICAgICAgICAgICAge2Vycm9yICYmIChcclxuICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtZ3JheS01MDAgYmctZ3JheS01MCBwLTMgcm91bmRlZCBib3JkZXJcIj5cclxuICAgICAgICAgICAgICAgICAgICA8c3Ryb25nPkVycm9yIGRldGFpbHM6PC9zdHJvbmc+IHtlcnJvcn1cclxuICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICApfVxyXG4gICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGZsZXgtY29sIHNtOmZsZXgtcm93IGdhcC0zXCI+XHJcbiAgICAgICAgICAgIHtvblJlZnJlc2ggJiYgKGlzTmV0d29ya0Vycm9yIHx8ICFpc1Rva2VuRXhwaXJlZCkgJiYgKFxyXG4gICAgICAgICAgICAgIDxCdXR0b25cclxuICAgICAgICAgICAgICAgIG9uQ2xpY2s9e2hhbmRsZVJlZnJlc2h9XHJcbiAgICAgICAgICAgICAgICB2YXJpYW50PVwib3V0bGluZVwiXHJcbiAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMlwiXHJcbiAgICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgICAgPFJlZnJlc2hDdyBjbGFzc05hbWU9XCJoLTQgdy00XCIgLz5cclxuICAgICAgICAgICAgICAgIFJlZnJlc2ggQ29ubmVjdGlvblxyXG4gICAgICAgICAgICAgIDwvQnV0dG9uPlxyXG4gICAgICAgICAgICApfVxyXG4gICAgICAgICAgICBcclxuICAgICAgICAgICAgPEJ1dHRvblxyXG4gICAgICAgICAgICAgIG9uQ2xpY2s9e2hhbmRsZVJlY29ubmVjdH1cclxuICAgICAgICAgICAgICBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBiZy1vcmFuZ2UtNjAwIGhvdmVyOmJnLW9yYW5nZS03MDBcIlxyXG4gICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgPExpbmsyIGNsYXNzTmFtZT1cImgtNCB3LTRcIiAvPlxyXG4gICAgICAgICAgICAgIHtpc1Rva2VuRXhwaXJlZCA/ICdSZWNvbm5lY3QgdG8gU3RyYXZhJyA6ICdDb25uZWN0IHRvIFN0cmF2YSd9XHJcbiAgICAgICAgICAgIDwvQnV0dG9uPlxyXG4gICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtZ3JheS01MDBcIj5cclxuICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwiZm9udC1tZWRpdW0gbWItMVwiPkFmdGVyIHJlY29ubmVjdGluZywgeW91JmFwb3M7bGwgYmUgYWJsZSB0bzo8L3A+XHJcbiAgICAgICAgICAgIDx1bCBjbGFzc05hbWU9XCJzcGFjZS15LTEgdGV4dC14cyBtbC00XCI+XHJcbiAgICAgICAgICAgICAgPGxpPuKAoiBWaWV3IHlvdXIgcmVjZW50IGFjdGl2aXR5IGRhdGEgYW5kIGFuYWx5dGljczwvbGk+XHJcbiAgICAgICAgICAgICAgPGxpPuKAoiBTeW5jIG5ldyBhY3Rpdml0aWVzIGF1dG9tYXRpY2FsbHk8L2xpPlxyXG4gICAgICAgICAgICAgIDxsaT7igKIgQWNjZXNzIGRldGFpbGVkIHBlcmZvcm1hbmNlIG1ldHJpY3M8L2xpPlxyXG4gICAgICAgICAgICAgIDxsaT7igKIgVHJhY2sgeW91ciB0cmFpbmluZyBwcm9ncmVzcyBvdmVyIHRpbWU8L2xpPlxyXG4gICAgICAgICAgICA8L3VsPlxyXG4gICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgPC9kaXY+XHJcbiAgICAgIDwvZGl2PlxyXG4gICAgPC9kaXY+XHJcbiAgKVxyXG59ICJdLCJuYW1lcyI6WyJTdHJhdmFSZWNvbm5lY3Rpb25Qcm9tcHQiLCJlcnJvciIsIm9uUmVmcmVzaCIsInRpdGxlIiwiY2xhc3NOYW1lIiwiaGFuZGxlUmVjb25uZWN0IiwiYXV0aFVybCIsImdldFN0cmF2YUF1dGhVcmwiLCJ3aW5kb3ciLCJsb2NhdGlvbiIsIm9yaWdpbiIsImhyZWYiLCJoYW5kbGVSZWZyZXNoIiwiZXJyIiwiY29uc29sZSIsImlzVG9rZW5FeHBpcmVkIiwiaW5jbHVkZXMiLCJpc05ldHdvcmtFcnJvciIsImRpdiIsIkFsZXJ0Q2lyY2xlIiwiaDMiLCJwIiwiQWxlcnQiLCJJbmZvIiwiQWxlcnREZXNjcmlwdGlvbiIsInN0cm9uZyIsIkJ1dHRvbiIsIm9uQ2xpY2siLCJ2YXJpYW50IiwiUmVmcmVzaEN3IiwiTGluazIiLCJ1bCIsImxpIl0sIm1hcHBpbmdzIjoiQUFBQTs7Ozs7K0JBY2dCQTs7O2VBQUFBOzs7O3dCQVpPO3VCQUNpQjt3QkFDUDs2QkFDbUI7QUFTN0MsU0FBU0EseUJBQXlCLEVBQ3ZDQyxLQUFLLEVBQ0xDLFNBQVMsRUFDVEMsUUFBUSx5QkFBeUIsRUFDakNDLFlBQVksRUFBRSxFQUNnQjtJQUM5QixNQUFNQyxrQkFBa0I7UUFDdEIsTUFBTUMsVUFBVUMsSUFBQUEsd0JBQWdCLEVBQUNDLE9BQU9DLFFBQVEsQ0FBQ0MsTUFBTTtRQUN2REYsT0FBT0MsUUFBUSxDQUFDRSxJQUFJLEdBQUdMO0lBQ3pCO0lBRUEsTUFBTU0sZ0JBQWdCO1FBQ3BCLElBQUksQ0FBQ1YsV0FBVztZQUNkRztZQUNBO1FBQ0Y7UUFFQSxJQUFJO1lBQ0YsTUFBTUg7UUFDUixFQUFFLE9BQU9XLEtBQUs7WUFDWkMsUUFBUWIsS0FBSyxDQUFDLDRCQUE0Qlk7WUFDMUMsZ0RBQWdEO1lBQ2hEUjtRQUNGO0lBQ0Y7SUFFQSw2REFBNkQ7SUFDN0QsTUFBTVUsaUJBQWlCZCxPQUFPZSxTQUFTLGNBQWNmLE9BQU9lLFNBQVMsVUFBVWYsT0FBT2UsU0FBUztJQUMvRixNQUFNQyxpQkFBaUJoQixPQUFPZSxTQUFTLGNBQWNmLE9BQU9lLFNBQVM7SUFFckUscUJBQ0UscUJBQUNFO1FBQUlkLFdBQVcsQ0FBQywrQ0FBK0MsRUFBRUEsV0FBVztrQkFDM0UsY0FBQSxzQkFBQ2M7WUFBSWQsV0FBVTs7OEJBQ2IscUJBQUNjO29CQUFJZCxXQUFVOzhCQUNiLGNBQUEscUJBQUNlLHdCQUFXO3dCQUFDZixXQUFVOzs7OEJBRXpCLHNCQUFDYztvQkFBSWQsV0FBVTs7c0NBQ2Isc0JBQUNjOzs4Q0FDQyxxQkFBQ0U7b0NBQUdoQixXQUFVOzhDQUNYVyxpQkFBaUIsOEJBQThCWjs7Z0NBR2pEWSwrQkFDQyxzQkFBQ0c7b0NBQUlkLFdBQVU7O3NEQUNiLHFCQUFDaUI7NENBQUVqQixXQUFVO3NEQUFnQjs7c0RBRzdCLHNCQUFDa0IsWUFBSzs0Q0FBQ2xCLFdBQVU7OzhEQUNmLHFCQUFDbUIsaUJBQUk7b0RBQUNuQixXQUFVOzs4REFDaEIsc0JBQUNvQix1QkFBZ0I7b0RBQUNwQixXQUFVOztzRUFDMUIscUJBQUNxQjtzRUFBTzs7d0RBQW1COzs7Ozs7cUNBSS9CUiwrQkFDRixzQkFBQ0M7b0NBQUlkLFdBQVU7O3NEQUNiLHFCQUFDaUI7NENBQUVqQixXQUFVO3NEQUFnQjs7c0RBRzdCLHNCQUFDa0IsWUFBSzs0Q0FBQ2xCLFdBQVU7OzhEQUNmLHFCQUFDbUIsaUJBQUk7b0RBQUNuQixXQUFVOzs4REFDaEIscUJBQUNvQix1QkFBZ0I7b0RBQUNwQixXQUFVOzhEQUFrQjs7Ozs7bURBTWxELHNCQUFDYztvQ0FBSWQsV0FBVTs7c0RBQ2IscUJBQUNpQjs0Q0FBRWpCLFdBQVU7c0RBQWdCOzt3Q0FHNUJILHVCQUNDLHNCQUFDaUI7NENBQUlkLFdBQVU7OzhEQUNiLHFCQUFDcUI7OERBQU87O2dEQUF1QjtnREFBRXhCOzs7Ozs7O3NDQU8zQyxzQkFBQ2lCOzRCQUFJZCxXQUFVOztnQ0FDWkYsYUFBY2UsQ0FBQUEsa0JBQWtCLENBQUNGLGNBQWEsbUJBQzdDLHNCQUFDVyxjQUFNO29DQUNMQyxTQUFTZjtvQ0FDVGdCLFNBQVE7b0NBQ1J4QixXQUFVOztzREFFVixxQkFBQ3lCLHNCQUFTOzRDQUFDekIsV0FBVTs7d0NBQVk7Ozs4Q0FLckMsc0JBQUNzQixjQUFNO29DQUNMQyxTQUFTdEI7b0NBQ1RELFdBQVU7O3NEQUVWLHFCQUFDMEIsa0JBQUs7NENBQUMxQixXQUFVOzt3Q0FDaEJXLGlCQUFpQix3QkFBd0I7Ozs7O3NDQUk5QyxzQkFBQ0c7NEJBQUlkLFdBQVU7OzhDQUNiLHFCQUFDaUI7b0NBQUVqQixXQUFVOzhDQUFtQjs7OENBQ2hDLHNCQUFDMkI7b0NBQUczQixXQUFVOztzREFDWixxQkFBQzRCO3NEQUFHOztzREFDSixxQkFBQ0E7c0RBQUc7O3NEQUNKLHFCQUFDQTtzREFBRzs7c0RBQ0oscUJBQUNBO3NEQUFHOzs7Ozs7Ozs7OztBQU9sQiJ9

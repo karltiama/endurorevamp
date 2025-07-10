@@ -1,0 +1,419 @@
+48e12daf9db6867def0a5c7d7dbecab8
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "DashboardGoalSelector", {
+    enumerable: true,
+    get: function() {
+        return DashboardGoalSelector;
+    }
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _react = /*#__PURE__*/ _interop_require_wildcard(require("react"));
+const _dialog = require("../ui/dialog");
+const _useGoals = require("../../hooks/useGoals");
+const _button = require("../ui/button");
+const _card = require("../ui/card");
+const _badge = require("../ui/badge");
+const _alert = require("../ui/alert");
+const _lucidereact = require("lucide-react");
+const _AddGoalModal = require("../goals/AddGoalModal");
+const _utils = require("../../lib/utils");
+function _getRequireWildcardCache(nodeInterop) {
+    if (typeof WeakMap !== "function") return null;
+    var cacheBabelInterop = new WeakMap();
+    var cacheNodeInterop = new WeakMap();
+    return (_getRequireWildcardCache = function(nodeInterop) {
+        return nodeInterop ? cacheNodeInterop : cacheBabelInterop;
+    })(nodeInterop);
+}
+function _interop_require_wildcard(obj, nodeInterop) {
+    if (!nodeInterop && obj && obj.__esModule) {
+        return obj;
+    }
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+        return {
+            default: obj
+        };
+    }
+    var cache = _getRequireWildcardCache(nodeInterop);
+    if (cache && cache.has(obj)) {
+        return cache.get(obj);
+    }
+    var newObj = {
+        __proto__: null
+    };
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+    for(var key in obj){
+        if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) {
+            var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+            if (desc && (desc.get || desc.set)) {
+                Object.defineProperty(newObj, key, desc);
+            } else {
+                newObj[key] = obj[key];
+            }
+        }
+    }
+    newObj.default = obj;
+    if (cache) {
+        cache.set(obj, newObj);
+    }
+    return newObj;
+}
+function DashboardGoalSelector({ open, onOpenChange }) {
+    const { data: goalsData, isLoading } = (0, _useGoals.useUserGoals)();
+    const updateGoalMutation = (0, _useGoals.useUpdateGoal)();
+    const [showAddModal, setShowAddModal] = (0, _react.useState)(false);
+    const [selectedGoals, setSelectedGoals] = (0, _react.useState)([]);
+    const [error, setError] = (0, _react.useState)('');
+    const activeGoals = goalsData?.goals?.filter((goal)=>goal.is_active) || [];
+    const currentDashboardGoals = activeGoals.filter((goal)=>goal.goal_data?.show_on_dashboard).sort((a, b)=>{
+        const aPriority = a.goal_data?.dashboard_priority || 999;
+        const bPriority = b.goal_data?.dashboard_priority || 999;
+        return aPriority - bPriority;
+    });
+    // Initialize selected goals with current dashboard goals
+    _react.default.useEffect(()=>{
+        if (currentDashboardGoals.length > 0 && selectedGoals.length === 0) {
+            setSelectedGoals(currentDashboardGoals.map((goal)=>goal.id));
+        }
+    }, [
+        currentDashboardGoals,
+        selectedGoals.length
+    ]);
+    const handleGoalToggle = (goalId)=>{
+        if (selectedGoals.includes(goalId)) {
+            setSelectedGoals((prev)=>prev.filter((id)=>id !== goalId));
+        } else if (selectedGoals.length < 3) {
+            setSelectedGoals((prev)=>[
+                    ...prev,
+                    goalId
+                ]);
+        }
+    };
+    const handleSave = async ()=>{
+        setError('');
+        try {
+            // Update all goals to remove from dashboard first
+            for (const goal of activeGoals){
+                if (goal.goal_data?.show_on_dashboard) {
+                    await updateGoalMutation.mutateAsync({
+                        goalId: goal.id,
+                        updates: {
+                            goal_data: {
+                                ...goal.goal_data,
+                                show_on_dashboard: false,
+                                dashboard_priority: undefined
+                            }
+                        }
+                    });
+                }
+            }
+            // Then add selected goals to dashboard with priority
+            for(let i = 0; i < selectedGoals.length; i++){
+                const goalId = selectedGoals[i];
+                const goal = activeGoals.find((g)=>g.id === goalId);
+                if (goal) {
+                    await updateGoalMutation.mutateAsync({
+                        goalId: goal.id,
+                        updates: {
+                            goal_data: {
+                                ...goal.goal_data,
+                                show_on_dashboard: true,
+                                dashboard_priority: i + 1
+                            }
+                        }
+                    });
+                }
+            }
+            onOpenChange(false);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to update dashboard goals');
+        }
+    };
+    if (isLoading) {
+        return /*#__PURE__*/ (0, _jsxruntime.jsx)(_dialog.Dialog, {
+            open: open,
+            onOpenChange: onOpenChange,
+            children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_dialog.DialogContent, {
+                className: "max-w-2xl",
+                children: /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                    className: "flex items-center justify-center py-12",
+                    children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                        className: "text-center",
+                        children: [
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                className: "animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                className: "text-muted-foreground",
+                                children: "Loading your goals..."
+                            })
+                        ]
+                    })
+                })
+            })
+        });
+    }
+    return /*#__PURE__*/ (0, _jsxruntime.jsxs)(_jsxruntime.Fragment, {
+        children: [
+            /*#__PURE__*/ (0, _jsxruntime.jsx)(_dialog.Dialog, {
+                open: open && !showAddModal,
+                onOpenChange: onOpenChange,
+                children: /*#__PURE__*/ (0, _jsxruntime.jsxs)(_dialog.DialogContent, {
+                    className: "max-w-2xl max-h-[90vh] overflow-y-auto",
+                    children: [
+                        /*#__PURE__*/ (0, _jsxruntime.jsxs)(_dialog.DialogHeader, {
+                            children: [
+                                /*#__PURE__*/ (0, _jsxruntime.jsxs)(_dialog.DialogTitle, {
+                                    className: "flex items-center gap-2",
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Target, {
+                                            className: "h-5 w-5"
+                                        }),
+                                        "Choose Dashboard Goals"
+                                    ]
+                                }),
+                                /*#__PURE__*/ (0, _jsxruntime.jsx)(_dialog.DialogDescription, {
+                                    children: "Select up to 3 goals to track as key metrics on your dashboard. These will help you stay focused on your most important objectives."
+                                })
+                            ]
+                        }),
+                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                            className: "space-y-6",
+                            children: [
+                                error && /*#__PURE__*/ (0, _jsxruntime.jsx)(_alert.Alert, {
+                                    children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_alert.AlertDescription, {
+                                        children: error
+                                    })
+                                }),
+                                /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                    className: "bg-blue-50 border border-blue-200 rounded-lg p-4",
+                                    children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                        className: "flex items-center justify-between",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("h4", {
+                                                        className: "font-medium text-blue-900",
+                                                        children: "Dashboard Goals"
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("p", {
+                                                        className: "text-sm text-blue-700",
+                                                        children: [
+                                                            selectedGoals.length,
+                                                            "/3 goals selected for your dashboard"
+                                                        ]
+                                                    })
+                                                ]
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                                className: "flex -space-x-1",
+                                                children: [
+                                                    1,
+                                                    2,
+                                                    3
+                                                ].map((slot)=>/*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                                        className: (0, _utils.cn)("w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-xs font-medium", selectedGoals.length >= slot ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"),
+                                                        children: selectedGoals.length >= slot ? /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Check, {
+                                                            className: "h-4 w-4"
+                                                        }) : slot
+                                                    }, slot))
+                                            })
+                                        ]
+                                    })
+                                }),
+                                activeGoals.length > 0 ? /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                    className: "space-y-4",
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("h3", {
+                                            className: "text-lg font-semibold",
+                                            children: "Your Active Goals"
+                                        }),
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                            className: "grid gap-4",
+                                            children: activeGoals.map((goal)=>{
+                                                const isSelected = selectedGoals.includes(goal.id);
+                                                const priority = selectedGoals.indexOf(goal.id) + 1;
+                                                const canSelect = isSelected || selectedGoals.length < 3;
+                                                return /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.Card, {
+                                                    className: (0, _utils.cn)("cursor-pointer transition-all", isSelected ? "ring-2 ring-primary bg-primary/5" : canSelect ? "hover:shadow-md hover:ring-1 hover:ring-primary/30" : "opacity-60 cursor-not-allowed"),
+                                                    onClick: ()=>canSelect && handleGoalToggle(goal.id),
+                                                    children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardHeader, {
+                                                        className: "pb-3",
+                                                        children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                            className: "flex items-start justify-between",
+                                                            children: [
+                                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                    className: "flex-1",
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.CardTitle, {
+                                                                            className: "text-base flex items-center gap-2",
+                                                                            children: [
+                                                                                goal.goal_type?.display_name,
+                                                                                isSelected && /*#__PURE__*/ (0, _jsxruntime.jsxs)(_badge.Badge, {
+                                                                                    variant: "default",
+                                                                                    className: "text-xs",
+                                                                                    children: [
+                                                                                        "#",
+                                                                                        priority,
+                                                                                        " on Dashboard"
+                                                                                    ]
+                                                                                })
+                                                                            ]
+                                                                        }),
+                                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardDescription, {
+                                                                            className: "mt-1",
+                                                                            children: goal.goal_type?.description
+                                                                        }),
+                                                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                            className: "mt-2 space-y-1",
+                                                                            children: [
+                                                                                goal.target_value && /*#__PURE__*/ (0, _jsxruntime.jsxs)("p", {
+                                                                                    className: "text-sm text-muted-foreground",
+                                                                                    children: [
+                                                                                        "Target: ",
+                                                                                        goal.target_value,
+                                                                                        " ",
+                                                                                        goal.target_unit,
+                                                                                        goal.target_date && /*#__PURE__*/ (0, _jsxruntime.jsxs)("span", {
+                                                                                            children: [
+                                                                                                " by ",
+                                                                                                new Date(goal.target_date).toLocaleDateString()
+                                                                                            ]
+                                                                                        })
+                                                                                    ]
+                                                                                }),
+                                                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                                    className: "flex items-center gap-4",
+                                                                                    children: [
+                                                                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("span", {
+                                                                                            className: "text-sm text-muted-foreground",
+                                                                                            children: [
+                                                                                                "Progress: ",
+                                                                                                Math.round(goal.current_progress / (goal.target_value || 1) * 100),
+                                                                                                "%"
+                                                                                            ]
+                                                                                        }),
+                                                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_badge.Badge, {
+                                                                                            variant: "outline",
+                                                                                            className: "text-xs",
+                                                                                            children: goal.goal_type?.category
+                                                                                        })
+                                                                                    ]
+                                                                                })
+                                                                            ]
+                                                                        })
+                                                                    ]
+                                                                }),
+                                                                isSelected && /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                                                    className: "ml-4",
+                                                                    children: /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                                                        className: "w-6 h-6 bg-primary rounded-full flex items-center justify-center",
+                                                                        children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Check, {
+                                                                            className: "h-4 w-4 text-white"
+                                                                        })
+                                                                    })
+                                                                })
+                                                            ]
+                                                        })
+                                                    })
+                                                }, goal.id);
+                                            })
+                                        })
+                                    ]
+                                }) : /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.Card, {
+                                    children: /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.CardContent, {
+                                        className: "p-8 text-center",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Target, {
+                                                className: "h-12 w-12 text-muted-foreground mx-auto mb-4"
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h3", {
+                                                className: "text-lg font-semibold mb-2",
+                                                children: "No Active Goals"
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                                className: "text-muted-foreground mb-6",
+                                                children: "Create your first goal to start tracking your progress on the dashboard."
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)(_button.Button, {
+                                                onClick: ()=>setShowAddModal(true),
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Plus, {
+                                                        className: "h-4 w-4 mr-2"
+                                                    }),
+                                                    "Create Your First Goal"
+                                                ]
+                                            })
+                                        ]
+                                    })
+                                }),
+                                activeGoals.length > 0 && /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                    className: "border-t pt-6",
+                                    children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                        className: "flex items-center justify-between",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("h4", {
+                                                        className: "font-medium",
+                                                        children: "Need more goals?"
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                                        className: "text-sm text-muted-foreground",
+                                                        children: "Create additional goals to choose from"
+                                                    })
+                                                ]
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)(_button.Button, {
+                                                variant: "outline",
+                                                onClick: ()=>setShowAddModal(true),
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Plus, {
+                                                        className: "h-4 w-4 mr-2"
+                                                    }),
+                                                    "Add New Goal"
+                                                ]
+                                            })
+                                        ]
+                                    })
+                                }),
+                                activeGoals.length > 0 && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                    className: "flex items-center justify-between pt-6 border-t",
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_button.Button, {
+                                            variant: "outline",
+                                            onClick: ()=>onOpenChange(false),
+                                            children: "Cancel"
+                                        }),
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_button.Button, {
+                                            onClick: handleSave,
+                                            disabled: updateGoalMutation.isPending || selectedGoals.length === 0,
+                                            children: updateGoalMutation.isPending ? /*#__PURE__*/ (0, _jsxruntime.jsxs)(_jsxruntime.Fragment, {
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                                        className: "animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
+                                                    }),
+                                                    "Saving..."
+                                                ]
+                                            }) : `Save Dashboard Goals (${selectedGoals.length})`
+                                        })
+                                    ]
+                                })
+                            ]
+                        })
+                    ]
+                })
+            }),
+            /*#__PURE__*/ (0, _jsxruntime.jsx)(_AddGoalModal.AddGoalModal, {
+                open: showAddModal,
+                onOpenChange: setShowAddModal
+            })
+        ]
+    });
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIkM6XFxVc2Vyc1xcdGlhbWFcXERlc2t0b3BcXENvZGluZ1xcZW5kdXJvcmV2YW1wXFxjb21wb25lbnRzXFxkYXNoYm9hcmRcXERhc2hib2FyZEdvYWxTZWxlY3Rvci50c3giXSwic291cmNlc0NvbnRlbnQiOlsiJ3VzZSBjbGllbnQnO1xyXG5cclxuaW1wb3J0IFJlYWN0LCB7IHVzZVN0YXRlIH0gZnJvbSAncmVhY3QnO1xyXG5pbXBvcnQge1xyXG4gIERpYWxvZyxcclxuICBEaWFsb2dDb250ZW50LFxyXG4gIERpYWxvZ0hlYWRlcixcclxuICBEaWFsb2dUaXRsZSxcclxuICBEaWFsb2dEZXNjcmlwdGlvbixcclxufSBmcm9tICdAL2NvbXBvbmVudHMvdWkvZGlhbG9nJztcclxuaW1wb3J0IHsgdXNlVXNlckdvYWxzLCB1c2VVcGRhdGVHb2FsIH0gZnJvbSAnQC9ob29rcy91c2VHb2Fscyc7XHJcbmltcG9ydCB7IEJ1dHRvbiB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9idXR0b24nO1xyXG5pbXBvcnQgeyBDYXJkLCBDYXJkSGVhZGVyLCBDYXJkVGl0bGUsIENhcmREZXNjcmlwdGlvbiwgQ2FyZENvbnRlbnQgfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvY2FyZCc7XHJcbmltcG9ydCB7IEJhZGdlIH0gZnJvbSAnQC9jb21wb25lbnRzL3VpL2JhZGdlJztcclxuaW1wb3J0IHsgQWxlcnQsIEFsZXJ0RGVzY3JpcHRpb24gfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvYWxlcnQnO1xyXG5pbXBvcnQgeyBUYXJnZXQsIFBsdXMsIENoZWNrIH0gZnJvbSAnbHVjaWRlLXJlYWN0JztcclxuaW1wb3J0IHsgQWRkR29hbE1vZGFsIH0gZnJvbSAnQC9jb21wb25lbnRzL2dvYWxzL0FkZEdvYWxNb2RhbCc7XHJcbmltcG9ydCB7IGNuIH0gZnJvbSAnQC9saWIvdXRpbHMnO1xyXG5cclxuaW50ZXJmYWNlIERhc2hib2FyZEdvYWxTZWxlY3RvclByb3BzIHtcclxuICBvcGVuOiBib29sZWFuO1xyXG4gIG9uT3BlbkNoYW5nZTogKG9wZW46IGJvb2xlYW4pID0+IHZvaWQ7XHJcbn1cclxuXHJcbmV4cG9ydCBmdW5jdGlvbiBEYXNoYm9hcmRHb2FsU2VsZWN0b3IoeyBvcGVuLCBvbk9wZW5DaGFuZ2UgfTogRGFzaGJvYXJkR29hbFNlbGVjdG9yUHJvcHMpIHtcclxuICBjb25zdCB7IGRhdGE6IGdvYWxzRGF0YSwgaXNMb2FkaW5nIH0gPSB1c2VVc2VyR29hbHMoKTtcclxuICBjb25zdCB1cGRhdGVHb2FsTXV0YXRpb24gPSB1c2VVcGRhdGVHb2FsKCk7XHJcbiAgY29uc3QgW3Nob3dBZGRNb2RhbCwgc2V0U2hvd0FkZE1vZGFsXSA9IHVzZVN0YXRlKGZhbHNlKTtcclxuICBjb25zdCBbc2VsZWN0ZWRHb2Fscywgc2V0U2VsZWN0ZWRHb2Fsc10gPSB1c2VTdGF0ZTxzdHJpbmdbXT4oW10pO1xyXG4gIGNvbnN0IFtlcnJvciwgc2V0RXJyb3JdID0gdXNlU3RhdGU8c3RyaW5nPignJyk7XHJcblxyXG4gIGNvbnN0IGFjdGl2ZUdvYWxzID0gZ29hbHNEYXRhPy5nb2Fscz8uZmlsdGVyKGdvYWwgPT4gZ29hbC5pc19hY3RpdmUpIHx8IFtdO1xyXG4gIGNvbnN0IGN1cnJlbnREYXNoYm9hcmRHb2FscyA9IGFjdGl2ZUdvYWxzLmZpbHRlcihnb2FsID0+IFxyXG4gICAgZ29hbC5nb2FsX2RhdGE/LnNob3dfb25fZGFzaGJvYXJkXHJcbiAgKS5zb3J0KChhLCBiKSA9PiB7XHJcbiAgICBjb25zdCBhUHJpb3JpdHkgPSBhLmdvYWxfZGF0YT8uZGFzaGJvYXJkX3ByaW9yaXR5IHx8IDk5OTtcclxuICAgIGNvbnN0IGJQcmlvcml0eSA9IGIuZ29hbF9kYXRhPy5kYXNoYm9hcmRfcHJpb3JpdHkgfHwgOTk5O1xyXG4gICAgcmV0dXJuIGFQcmlvcml0eSAtIGJQcmlvcml0eTtcclxuICB9KTtcclxuXHJcbiAgLy8gSW5pdGlhbGl6ZSBzZWxlY3RlZCBnb2FscyB3aXRoIGN1cnJlbnQgZGFzaGJvYXJkIGdvYWxzXHJcbiAgUmVhY3QudXNlRWZmZWN0KCgpID0+IHtcclxuICAgIGlmIChjdXJyZW50RGFzaGJvYXJkR29hbHMubGVuZ3RoID4gMCAmJiBzZWxlY3RlZEdvYWxzLmxlbmd0aCA9PT0gMCkge1xyXG4gICAgICBzZXRTZWxlY3RlZEdvYWxzKGN1cnJlbnREYXNoYm9hcmRHb2Fscy5tYXAoZ29hbCA9PiBnb2FsLmlkKSk7XHJcbiAgICB9XHJcbiAgfSwgW2N1cnJlbnREYXNoYm9hcmRHb2Fscywgc2VsZWN0ZWRHb2Fscy5sZW5ndGhdKTtcclxuXHJcbiAgY29uc3QgaGFuZGxlR29hbFRvZ2dsZSA9IChnb2FsSWQ6IHN0cmluZykgPT4ge1xyXG4gICAgaWYgKHNlbGVjdGVkR29hbHMuaW5jbHVkZXMoZ29hbElkKSkge1xyXG4gICAgICBzZXRTZWxlY3RlZEdvYWxzKHByZXYgPT4gcHJldi5maWx0ZXIoaWQgPT4gaWQgIT09IGdvYWxJZCkpO1xyXG4gICAgfSBlbHNlIGlmIChzZWxlY3RlZEdvYWxzLmxlbmd0aCA8IDMpIHtcclxuICAgICAgc2V0U2VsZWN0ZWRHb2FscyhwcmV2ID0+IFsuLi5wcmV2LCBnb2FsSWRdKTtcclxuICAgIH1cclxuICB9O1xyXG5cclxuICBjb25zdCBoYW5kbGVTYXZlID0gYXN5bmMgKCkgPT4ge1xyXG4gICAgc2V0RXJyb3IoJycpO1xyXG4gICAgXHJcbiAgICB0cnkge1xyXG4gICAgICAvLyBVcGRhdGUgYWxsIGdvYWxzIHRvIHJlbW92ZSBmcm9tIGRhc2hib2FyZCBmaXJzdFxyXG4gICAgICBmb3IgKGNvbnN0IGdvYWwgb2YgYWN0aXZlR29hbHMpIHtcclxuICAgICAgICBpZiAoZ29hbC5nb2FsX2RhdGE/LnNob3dfb25fZGFzaGJvYXJkKSB7XHJcbiAgICAgICAgICBhd2FpdCB1cGRhdGVHb2FsTXV0YXRpb24ubXV0YXRlQXN5bmMoe1xyXG4gICAgICAgICAgICBnb2FsSWQ6IGdvYWwuaWQsXHJcbiAgICAgICAgICAgIHVwZGF0ZXM6IHtcclxuICAgICAgICAgICAgICBnb2FsX2RhdGE6IHtcclxuICAgICAgICAgICAgICAgIC4uLmdvYWwuZ29hbF9kYXRhLFxyXG4gICAgICAgICAgICAgICAgc2hvd19vbl9kYXNoYm9hcmQ6IGZhbHNlLFxyXG4gICAgICAgICAgICAgICAgZGFzaGJvYXJkX3ByaW9yaXR5OiB1bmRlZmluZWRcclxuICAgICAgICAgICAgICB9XHJcbiAgICAgICAgICAgIH1cclxuICAgICAgICAgIH0pO1xyXG4gICAgICAgIH1cclxuICAgICAgfVxyXG5cclxuICAgICAgLy8gVGhlbiBhZGQgc2VsZWN0ZWQgZ29hbHMgdG8gZGFzaGJvYXJkIHdpdGggcHJpb3JpdHlcclxuICAgICAgZm9yIChsZXQgaSA9IDA7IGkgPCBzZWxlY3RlZEdvYWxzLmxlbmd0aDsgaSsrKSB7XHJcbiAgICAgICAgY29uc3QgZ29hbElkID0gc2VsZWN0ZWRHb2Fsc1tpXTtcclxuICAgICAgICBjb25zdCBnb2FsID0gYWN0aXZlR29hbHMuZmluZChnID0+IGcuaWQgPT09IGdvYWxJZCk7XHJcbiAgICAgICAgaWYgKGdvYWwpIHtcclxuICAgICAgICAgIGF3YWl0IHVwZGF0ZUdvYWxNdXRhdGlvbi5tdXRhdGVBc3luYyh7XHJcbiAgICAgICAgICAgIGdvYWxJZDogZ29hbC5pZCxcclxuICAgICAgICAgICAgdXBkYXRlczoge1xyXG4gICAgICAgICAgICAgIGdvYWxfZGF0YToge1xyXG4gICAgICAgICAgICAgICAgLi4uZ29hbC5nb2FsX2RhdGEsXHJcbiAgICAgICAgICAgICAgICBzaG93X29uX2Rhc2hib2FyZDogdHJ1ZSxcclxuICAgICAgICAgICAgICAgIGRhc2hib2FyZF9wcmlvcml0eTogaSArIDFcclxuICAgICAgICAgICAgICB9XHJcbiAgICAgICAgICAgIH1cclxuICAgICAgICAgIH0pO1xyXG4gICAgICAgIH1cclxuICAgICAgfVxyXG5cclxuICAgICAgb25PcGVuQ2hhbmdlKGZhbHNlKTtcclxuICAgIH0gY2F0Y2ggKGVycikge1xyXG4gICAgICBzZXRFcnJvcihlcnIgaW5zdGFuY2VvZiBFcnJvciA/IGVyci5tZXNzYWdlIDogJ0ZhaWxlZCB0byB1cGRhdGUgZGFzaGJvYXJkIGdvYWxzJyk7XHJcbiAgICB9XHJcbiAgfTtcclxuXHJcbiAgaWYgKGlzTG9hZGluZykge1xyXG4gICAgcmV0dXJuIChcclxuICAgICAgPERpYWxvZyBvcGVuPXtvcGVufSBvbk9wZW5DaGFuZ2U9e29uT3BlbkNoYW5nZX0+XHJcbiAgICAgICAgPERpYWxvZ0NvbnRlbnQgY2xhc3NOYW1lPVwibWF4LXctMnhsXCI+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHB5LTEyXCI+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC1jZW50ZXJcIj5cclxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImFuaW1hdGUtc3BpbiByb3VuZGVkLWZ1bGwgaC04IHctOCBib3JkZXItYi0yIGJvcmRlci1wcmltYXJ5IG14LWF1dG8gbWItNFwiPjwvZGl2PlxyXG4gICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtbXV0ZWQtZm9yZWdyb3VuZFwiPkxvYWRpbmcgeW91ciBnb2Fscy4uLjwvcD5cclxuICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICA8L0RpYWxvZ0NvbnRlbnQ+XHJcbiAgICAgIDwvRGlhbG9nPlxyXG4gICAgKTtcclxuICB9XHJcblxyXG4gIHJldHVybiAoXHJcbiAgICA8PlxyXG4gICAgICA8RGlhbG9nIG9wZW49e29wZW4gJiYgIXNob3dBZGRNb2RhbH0gb25PcGVuQ2hhbmdlPXtvbk9wZW5DaGFuZ2V9PlxyXG4gICAgICAgIDxEaWFsb2dDb250ZW50IGNsYXNzTmFtZT1cIm1heC13LTJ4bCBtYXgtaC1bOTB2aF0gb3ZlcmZsb3cteS1hdXRvXCI+XHJcbiAgICAgICAgICA8RGlhbG9nSGVhZGVyPlxyXG4gICAgICAgICAgICA8RGlhbG9nVGl0bGUgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTJcIj5cclxuICAgICAgICAgICAgICA8VGFyZ2V0IGNsYXNzTmFtZT1cImgtNSB3LTVcIiAvPlxyXG4gICAgICAgICAgICAgIENob29zZSBEYXNoYm9hcmQgR29hbHNcclxuICAgICAgICAgICAgPC9EaWFsb2dUaXRsZT5cclxuICAgICAgICAgICAgPERpYWxvZ0Rlc2NyaXB0aW9uPlxyXG4gICAgICAgICAgICAgIFNlbGVjdCB1cCB0byAzIGdvYWxzIHRvIHRyYWNrIGFzIGtleSBtZXRyaWNzIG9uIHlvdXIgZGFzaGJvYXJkLiBUaGVzZSB3aWxsIGhlbHAgeW91IHN0YXkgZm9jdXNlZCBvbiB5b3VyIG1vc3QgaW1wb3J0YW50IG9iamVjdGl2ZXMuXHJcbiAgICAgICAgICAgIDwvRGlhbG9nRGVzY3JpcHRpb24+XHJcbiAgICAgICAgICA8L0RpYWxvZ0hlYWRlcj5cclxuXHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktNlwiPlxyXG4gICAgICAgICAgICB7ZXJyb3IgJiYgKFxyXG4gICAgICAgICAgICAgIDxBbGVydD5cclxuICAgICAgICAgICAgICAgIDxBbGVydERlc2NyaXB0aW9uPntlcnJvcn08L0FsZXJ0RGVzY3JpcHRpb24+XHJcbiAgICAgICAgICAgICAgPC9BbGVydD5cclxuICAgICAgICAgICAgKX1cclxuXHJcbiAgICAgICAgICAgIHsvKiBTZWxlY3Rpb24gQ291bnRlciAqL31cclxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJiZy1ibHVlLTUwIGJvcmRlciBib3JkZXItYmx1ZS0yMDAgcm91bmRlZC1sZyBwLTRcIj5cclxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlblwiPlxyXG4gICAgICAgICAgICAgICAgPGRpdj5cclxuICAgICAgICAgICAgICAgICAgPGg0IGNsYXNzTmFtZT1cImZvbnQtbWVkaXVtIHRleHQtYmx1ZS05MDBcIj5EYXNoYm9hcmQgR29hbHM8L2g0PlxyXG4gICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtYmx1ZS03MDBcIj5cclxuICAgICAgICAgICAgICAgICAgICB7c2VsZWN0ZWRHb2Fscy5sZW5ndGh9LzMgZ29hbHMgc2VsZWN0ZWQgZm9yIHlvdXIgZGFzaGJvYXJkXHJcbiAgICAgICAgICAgICAgICAgIDwvcD5cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IC1zcGFjZS14LTFcIj5cclxuICAgICAgICAgICAgICAgICAge1sxLCAyLCAzXS5tYXAoKHNsb3QpID0+IChcclxuICAgICAgICAgICAgICAgICAgICA8ZGl2XHJcbiAgICAgICAgICAgICAgICAgICAgICBrZXk9e3Nsb3R9XHJcbiAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2NuKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICBcInctOCBoLTggcm91bmRlZC1mdWxsIGJvcmRlci0yIGJvcmRlci13aGl0ZSBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciB0ZXh0LXhzIGZvbnQtbWVkaXVtXCIsXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIHNlbGVjdGVkR29hbHMubGVuZ3RoID49IHNsb3RcclxuICAgICAgICAgICAgICAgICAgICAgICAgICA/IFwiYmctYmx1ZS02MDAgdGV4dC13aGl0ZVwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgOiBcImJnLWdyYXktMjAwIHRleHQtZ3JheS01MDBcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgKX1cclxuICAgICAgICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICAgICAgICB7c2VsZWN0ZWRHb2Fscy5sZW5ndGggPj0gc2xvdCA/IChcclxuICAgICAgICAgICAgICAgICAgICAgICAgPENoZWNrIGNsYXNzTmFtZT1cImgtNCB3LTRcIiAvPlxyXG4gICAgICAgICAgICAgICAgICAgICAgKSA6IChcclxuICAgICAgICAgICAgICAgICAgICAgICAgc2xvdFxyXG4gICAgICAgICAgICAgICAgICAgICAgKX1cclxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgKSl9XHJcbiAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgICB7LyogR29hbHMgU2VsZWN0aW9uICovfVxyXG4gICAgICAgICAgICB7YWN0aXZlR29hbHMubGVuZ3RoID4gMCA/IChcclxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktNFwiPlxyXG4gICAgICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT1cInRleHQtbGcgZm9udC1zZW1pYm9sZFwiPllvdXIgQWN0aXZlIEdvYWxzPC9oMz5cclxuICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ3JpZCBnYXAtNFwiPlxyXG4gICAgICAgICAgICAgICAgICB7YWN0aXZlR29hbHMubWFwKChnb2FsKSA9PiB7XHJcbiAgICAgICAgICAgICAgICAgICAgY29uc3QgaXNTZWxlY3RlZCA9IHNlbGVjdGVkR29hbHMuaW5jbHVkZXMoZ29hbC5pZCk7XHJcbiAgICAgICAgICAgICAgICAgICAgY29uc3QgcHJpb3JpdHkgPSBzZWxlY3RlZEdvYWxzLmluZGV4T2YoZ29hbC5pZCkgKyAxO1xyXG4gICAgICAgICAgICAgICAgICAgIGNvbnN0IGNhblNlbGVjdCA9IGlzU2VsZWN0ZWQgfHwgc2VsZWN0ZWRHb2Fscy5sZW5ndGggPCAzO1xyXG5cclxuICAgICAgICAgICAgICAgICAgICByZXR1cm4gKFxyXG4gICAgICAgICAgICAgICAgICAgICAgPENhcmRcclxuICAgICAgICAgICAgICAgICAgICAgICAga2V5PXtnb2FsLmlkfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2NuKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIFwiY3Vyc29yLXBvaW50ZXIgdHJhbnNpdGlvbi1hbGxcIixcclxuICAgICAgICAgICAgICAgICAgICAgICAgICBpc1NlbGVjdGVkIFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgPyBcInJpbmctMiByaW5nLXByaW1hcnkgYmctcHJpbWFyeS81XCIgXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICA6IGNhblNlbGVjdCBcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPyBcImhvdmVyOnNoYWRvdy1tZCBob3ZlcjpyaW5nLTEgaG92ZXI6cmluZy1wcmltYXJ5LzMwXCIgXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDogXCJvcGFjaXR5LTYwIGN1cnNvci1ub3QtYWxsb3dlZFwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IGNhblNlbGVjdCAmJiBoYW5kbGVHb2FsVG9nZ2xlKGdvYWwuaWQpfVxyXG4gICAgICAgICAgICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICA8Q2FyZEhlYWRlciBjbGFzc05hbWU9XCJwYi0zXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLXN0YXJ0IGp1c3RpZnktYmV0d2VlblwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4LTFcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPENhcmRUaXRsZSBjbGFzc05hbWU9XCJ0ZXh0LWJhc2UgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTJcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7Z29hbC5nb2FsX3R5cGU/LmRpc3BsYXlfbmFtZX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7aXNTZWxlY3RlZCAmJiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8QmFkZ2UgdmFyaWFudD1cImRlZmF1bHRcIiBjbGFzc05hbWU9XCJ0ZXh0LXhzXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICN7cHJpb3JpdHl9IG9uIERhc2hib2FyZFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9CYWRnZT5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L0NhcmRUaXRsZT5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPENhcmREZXNjcmlwdGlvbiBjbGFzc05hbWU9XCJtdC0xXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge2dvYWwuZ29hbF90eXBlPy5kZXNjcmlwdGlvbn1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9DYXJkRGVzY3JpcHRpb24+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7LyogR29hbCBEZXRhaWxzICovfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm10LTIgc3BhY2UteS0xXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge2dvYWwudGFyZ2V0X3ZhbHVlICYmIChcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRhcmdldDoge2dvYWwudGFyZ2V0X3ZhbHVlfSB7Z29hbC50YXJnZXRfdW5pdH1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge2dvYWwudGFyZ2V0X2RhdGUgJiYgKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuPiBieSB7bmV3IERhdGUoZ29hbC50YXJnZXRfZGF0ZSkudG9Mb2NhbGVEYXRlU3RyaW5nKCl9PC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9wPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtNFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1zbSB0ZXh0LW11dGVkLWZvcmVncm91bmRcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgUHJvZ3Jlc3M6IHtNYXRoLnJvdW5kKChnb2FsLmN1cnJlbnRfcHJvZ3Jlc3MgLyAoZ29hbC50YXJnZXRfdmFsdWUgfHwgMSkpICogMTAwKX0lXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8QmFkZ2UgdmFyaWFudD1cIm91dGxpbmVcIiBjbGFzc05hbWU9XCJ0ZXh0LXhzXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHtnb2FsLmdvYWxfdHlwZT8uY2F0ZWdvcnl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L0JhZGdlPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICB7aXNTZWxlY3RlZCAmJiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibWwtNFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidy02IGgtNiBiZy1wcmltYXJ5IHJvdW5kZWQtZnVsbCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlclwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPENoZWNrIGNsYXNzTmFtZT1cImgtNCB3LTQgdGV4dC13aGl0ZVwiIC8+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgKX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgPC9DYXJkSGVhZGVyPlxyXG4gICAgICAgICAgICAgICAgICAgICAgPC9DYXJkPlxyXG4gICAgICAgICAgICAgICAgICAgICk7XHJcbiAgICAgICAgICAgICAgICAgIH0pfVxyXG4gICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICkgOiAoXHJcbiAgICAgICAgICAgICAgPENhcmQ+XHJcbiAgICAgICAgICAgICAgICA8Q2FyZENvbnRlbnQgY2xhc3NOYW1lPVwicC04IHRleHQtY2VudGVyXCI+XHJcbiAgICAgICAgICAgICAgICAgIDxUYXJnZXQgY2xhc3NOYW1lPVwiaC0xMiB3LTEyIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCBteC1hdXRvIG1iLTRcIiAvPlxyXG4gICAgICAgICAgICAgICAgICA8aDMgY2xhc3NOYW1lPVwidGV4dC1sZyBmb250LXNlbWlib2xkIG1iLTJcIj5ObyBBY3RpdmUgR29hbHM8L2gzPlxyXG4gICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LW11dGVkLWZvcmVncm91bmQgbWItNlwiPlxyXG4gICAgICAgICAgICAgICAgICAgIENyZWF0ZSB5b3VyIGZpcnN0IGdvYWwgdG8gc3RhcnQgdHJhY2tpbmcgeW91ciBwcm9ncmVzcyBvbiB0aGUgZGFzaGJvYXJkLlxyXG4gICAgICAgICAgICAgICAgICA8L3A+XHJcbiAgICAgICAgICAgICAgICAgIDxCdXR0b24gb25DbGljaz17KCkgPT4gc2V0U2hvd0FkZE1vZGFsKHRydWUpfT5cclxuICAgICAgICAgICAgICAgICAgICA8UGx1cyBjbGFzc05hbWU9XCJoLTQgdy00IG1yLTJcIiAvPlxyXG4gICAgICAgICAgICAgICAgICAgIENyZWF0ZSBZb3VyIEZpcnN0IEdvYWxcclxuICAgICAgICAgICAgICAgICAgPC9CdXR0b24+XHJcbiAgICAgICAgICAgICAgICA8L0NhcmRDb250ZW50PlxyXG4gICAgICAgICAgICAgIDwvQ2FyZD5cclxuICAgICAgICAgICAgKX1cclxuXHJcbiAgICAgICAgICAgIHsvKiBRdWljayBBZGQgU2VjdGlvbiAqL31cclxuICAgICAgICAgICAge2FjdGl2ZUdvYWxzLmxlbmd0aCA+IDAgJiYgKFxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYm9yZGVyLXQgcHQtNlwiPlxyXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW5cIj5cclxuICAgICAgICAgICAgICAgICAgPGRpdj5cclxuICAgICAgICAgICAgICAgICAgICA8aDQgY2xhc3NOYW1lPVwiZm9udC1tZWRpdW1cIj5OZWVkIG1vcmUgZ29hbHM/PC9oND5cclxuICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtbXV0ZWQtZm9yZWdyb3VuZFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgQ3JlYXRlIGFkZGl0aW9uYWwgZ29hbHMgdG8gY2hvb3NlIGZyb21cclxuICAgICAgICAgICAgICAgICAgICA8L3A+XHJcbiAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICA8QnV0dG9uIHZhcmlhbnQ9XCJvdXRsaW5lXCIgb25DbGljaz17KCkgPT4gc2V0U2hvd0FkZE1vZGFsKHRydWUpfT5cclxuICAgICAgICAgICAgICAgICAgICA8UGx1cyBjbGFzc05hbWU9XCJoLTQgdy00IG1yLTJcIiAvPlxyXG4gICAgICAgICAgICAgICAgICAgIEFkZCBOZXcgR29hbFxyXG4gICAgICAgICAgICAgICAgICA8L0J1dHRvbj5cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICApfVxyXG5cclxuICAgICAgICAgICAgey8qIEFjdGlvbiBCdXR0b25zICovfVxyXG4gICAgICAgICAgICB7YWN0aXZlR29hbHMubGVuZ3RoID4gMCAmJiAoXHJcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gcHQtNiBib3JkZXItdFwiPlxyXG4gICAgICAgICAgICAgICAgPEJ1dHRvbiB2YXJpYW50PVwib3V0bGluZVwiIG9uQ2xpY2s9eygpID0+IG9uT3BlbkNoYW5nZShmYWxzZSl9PlxyXG4gICAgICAgICAgICAgICAgICBDYW5jZWxcclxuICAgICAgICAgICAgICAgIDwvQnV0dG9uPlxyXG4gICAgICAgICAgICAgICAgPEJ1dHRvblxyXG4gICAgICAgICAgICAgICAgICBvbkNsaWNrPXtoYW5kbGVTYXZlfVxyXG4gICAgICAgICAgICAgICAgICBkaXNhYmxlZD17dXBkYXRlR29hbE11dGF0aW9uLmlzUGVuZGluZyB8fCBzZWxlY3RlZEdvYWxzLmxlbmd0aCA9PT0gMH1cclxuICAgICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgICAge3VwZGF0ZUdvYWxNdXRhdGlvbi5pc1BlbmRpbmcgPyAoXHJcbiAgICAgICAgICAgICAgICAgICAgPD5cclxuICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYW5pbWF0ZS1zcGluIHJvdW5kZWQtZnVsbCBoLTQgdy00IGJvcmRlci1iLTIgYm9yZGVyLXdoaXRlIG1yLTJcIj48L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgIFNhdmluZy4uLlxyXG4gICAgICAgICAgICAgICAgICAgIDwvPlxyXG4gICAgICAgICAgICAgICAgICApIDogKFxyXG4gICAgICAgICAgICAgICAgICAgIGBTYXZlIERhc2hib2FyZCBHb2FscyAoJHtzZWxlY3RlZEdvYWxzLmxlbmd0aH0pYFxyXG4gICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgPC9CdXR0b24+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICl9XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICA8L0RpYWxvZ0NvbnRlbnQ+XHJcbiAgICAgIDwvRGlhbG9nPlxyXG5cclxuICAgICAgey8qIEFkZCBHb2FsIE1vZGFsICovfVxyXG4gICAgICA8QWRkR29hbE1vZGFsXHJcbiAgICAgICAgb3Blbj17c2hvd0FkZE1vZGFsfVxyXG4gICAgICAgIG9uT3BlbkNoYW5nZT17c2V0U2hvd0FkZE1vZGFsfVxyXG4gICAgICAvPlxyXG4gICAgPC8+XHJcbiAgKTtcclxufSAiXSwibmFtZXMiOlsiRGFzaGJvYXJkR29hbFNlbGVjdG9yIiwib3BlbiIsIm9uT3BlbkNoYW5nZSIsImRhdGEiLCJnb2Fsc0RhdGEiLCJpc0xvYWRpbmciLCJ1c2VVc2VyR29hbHMiLCJ1cGRhdGVHb2FsTXV0YXRpb24iLCJ1c2VVcGRhdGVHb2FsIiwic2hvd0FkZE1vZGFsIiwic2V0U2hvd0FkZE1vZGFsIiwidXNlU3RhdGUiLCJzZWxlY3RlZEdvYWxzIiwic2V0U2VsZWN0ZWRHb2FscyIsImVycm9yIiwic2V0RXJyb3IiLCJhY3RpdmVHb2FscyIsImdvYWxzIiwiZmlsdGVyIiwiZ29hbCIsImlzX2FjdGl2ZSIsImN1cnJlbnREYXNoYm9hcmRHb2FscyIsImdvYWxfZGF0YSIsInNob3dfb25fZGFzaGJvYXJkIiwic29ydCIsImEiLCJiIiwiYVByaW9yaXR5IiwiZGFzaGJvYXJkX3ByaW9yaXR5IiwiYlByaW9yaXR5IiwiUmVhY3QiLCJ1c2VFZmZlY3QiLCJsZW5ndGgiLCJtYXAiLCJpZCIsImhhbmRsZUdvYWxUb2dnbGUiLCJnb2FsSWQiLCJpbmNsdWRlcyIsInByZXYiLCJoYW5kbGVTYXZlIiwibXV0YXRlQXN5bmMiLCJ1cGRhdGVzIiwidW5kZWZpbmVkIiwiaSIsImZpbmQiLCJnIiwiZXJyIiwiRXJyb3IiLCJtZXNzYWdlIiwiRGlhbG9nIiwiRGlhbG9nQ29udGVudCIsImNsYXNzTmFtZSIsImRpdiIsInAiLCJEaWFsb2dIZWFkZXIiLCJEaWFsb2dUaXRsZSIsIlRhcmdldCIsIkRpYWxvZ0Rlc2NyaXB0aW9uIiwiQWxlcnQiLCJBbGVydERlc2NyaXB0aW9uIiwiaDQiLCJzbG90IiwiY24iLCJDaGVjayIsImgzIiwiaXNTZWxlY3RlZCIsInByaW9yaXR5IiwiaW5kZXhPZiIsImNhblNlbGVjdCIsIkNhcmQiLCJvbkNsaWNrIiwiQ2FyZEhlYWRlciIsIkNhcmRUaXRsZSIsImdvYWxfdHlwZSIsImRpc3BsYXlfbmFtZSIsIkJhZGdlIiwidmFyaWFudCIsIkNhcmREZXNjcmlwdGlvbiIsImRlc2NyaXB0aW9uIiwidGFyZ2V0X3ZhbHVlIiwidGFyZ2V0X3VuaXQiLCJ0YXJnZXRfZGF0ZSIsInNwYW4iLCJEYXRlIiwidG9Mb2NhbGVEYXRlU3RyaW5nIiwiTWF0aCIsInJvdW5kIiwiY3VycmVudF9wcm9ncmVzcyIsImNhdGVnb3J5IiwiQ2FyZENvbnRlbnQiLCJCdXR0b24iLCJQbHVzIiwiZGlz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

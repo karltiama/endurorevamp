@@ -1,0 +1,32 @@
+d7be4e24d3f0ba32fc78d8df17c1388e
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "LoginButton", {
+    enumerable: true,
+    get: function() {
+        return LoginButton;
+    }
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _button = require("./ui/button");
+const _link = /*#__PURE__*/ _interop_require_default(require("next/link"));
+const _strava = require("../lib/strava");
+function _interop_require_default(obj) {
+    return obj && obj.__esModule ? obj : {
+        default: obj
+    };
+}
+function LoginButton() {
+    return /*#__PURE__*/ (0, _jsxruntime.jsx)(_button.Button, {
+        asChild: true,
+        children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_link.default, {
+            href: (0, _strava.getStravaAuthUrl)(),
+            children: "Login with Strava"
+        })
+    });
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIkM6XFxVc2Vyc1xcdGlhbWFcXERlc2t0b3BcXENvZGluZ1xcZW5kdXJvcmV2YW1wXFxjb21wb25lbnRzXFxMb2dpbkJ1dHRvbi50c3giXSwic291cmNlc0NvbnRlbnQiOlsiJ3VzZSBjbGllbnQnXHJcblxyXG5pbXBvcnQgeyBCdXR0b24gfSBmcm9tIFwiQC9jb21wb25lbnRzL3VpL2J1dHRvblwiXHJcbmltcG9ydCBMaW5rIGZyb20gXCJuZXh0L2xpbmtcIlxyXG5pbXBvcnQgeyBnZXRTdHJhdmFBdXRoVXJsIH0gZnJvbSBcIkAvbGliL3N0cmF2YVwiXHJcblxyXG5leHBvcnQgZnVuY3Rpb24gTG9naW5CdXR0b24oKSB7XHJcblxyXG5cclxuICByZXR1cm4gKFxyXG4gICAgPEJ1dHRvbiBhc0NoaWxkPlxyXG4gICAgICA8TGluayBcclxuICAgICAgICBocmVmPXtnZXRTdHJhdmFBdXRoVXJsKCl9XHJcbiAgICAgID5cclxuICAgICAgICBMb2dpbiB3aXRoIFN0cmF2YVxyXG4gICAgICA8L0xpbms+XHJcbiAgICA8L0J1dHRvbj5cclxuICApXHJcbn1cclxuIl0sIm5hbWVzIjpbIkxvZ2luQnV0dG9uIiwiQnV0dG9uIiwiYXNDaGlsZCIsIkxpbmsiLCJocmVmIiwiZ2V0U3RyYXZhQXV0aFVybCJdLCJtYXBwaW5ncyI6IkFBQUE7Ozs7OytCQU1nQkE7OztlQUFBQTs7Ozt3QkFKTzs2REFDTjt3QkFDZ0I7Ozs7OztBQUUxQixTQUFTQTtJQUdkLHFCQUNFLHFCQUFDQyxjQUFNO1FBQUNDLE9BQU87a0JBQ2IsY0FBQSxxQkFBQ0MsYUFBSTtZQUNIQyxNQUFNQyxJQUFBQSx3QkFBZ0I7c0JBQ3ZCOzs7QUFLUCJ9

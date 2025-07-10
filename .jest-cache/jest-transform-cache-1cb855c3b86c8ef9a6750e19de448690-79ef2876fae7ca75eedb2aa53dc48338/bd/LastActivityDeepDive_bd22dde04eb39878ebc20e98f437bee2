@@ -1,0 +1,709 @@
+6858dab0f61cc1b5bbdf11c04ccd5b74
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "LastActivityDeepDive", {
+    enumerable: true,
+    get: function() {
+        return LastActivityDeepDive;
+    }
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _card = require("../ui/card");
+const _badge = require("../ui/badge");
+const _progress = require("../ui/progress");
+const _tabs = require("../ui/tabs");
+const _button = require("../ui/button");
+const _useuseractivities = require("../../hooks/use-user-activities");
+const _useUnitPreferences = require("../../hooks/useUnitPreferences");
+const _utils = require("../../lib/utils");
+const _react = require("react");
+const _link = /*#__PURE__*/ _interop_require_default(require("next/link"));
+const _lucidereact = require("lucide-react");
+function _interop_require_default(obj) {
+    return obj && obj.__esModule ? obj : {
+        default: obj
+    };
+}
+function LastActivityDeepDive({ userId }) {
+    const { data: activities, isLoading, error } = (0, _useuseractivities.useUserActivities)(userId);
+    const { preferences } = (0, _useUnitPreferences.useUnitPreferences)();
+    const lastActivity = (0, _react.useMemo)(()=>{
+        if (!activities || activities.length === 0) return null;
+        return activities.sort((a, b)=>new Date(b.start_date).getTime() - new Date(a.start_date).getTime())[0];
+    }, [
+        activities
+    ]);
+    const activityAnalysis = (0, _react.useMemo)(()=>{
+        if (!lastActivity || !activities) return null;
+        // Compare with previous activities of same type
+        const sameTypeActivities = activities.filter((a)=>a.sport_type === lastActivity.sport_type).sort((a, b)=>new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+        const previousActivity = sameTypeActivities[1] // Second most recent of same type
+        ;
+        const avgDistance = sameTypeActivities.reduce((sum, a)=>sum + a.distance, 0) / sameTypeActivities.length;
+        // Performance analysis
+        const currentPace = lastActivity.moving_time / (lastActivity.distance / 1000 // seconds per km
+        );
+        const paceImprovement = previousActivity ? previousActivity.moving_time / (previousActivity.distance / 1000) - currentPace : 0;
+        const distanceImprovement = previousActivity ? lastActivity.distance - previousActivity.distance : 0;
+        // Effort zones (simplified)
+        const avgSpeed = lastActivity.distance / lastActivity.moving_time // m/s
+        ;
+        const maxSpeed = lastActivity.max_speed || avgSpeed * 1.5;
+        const effortLevel = Math.min(100, avgSpeed / (maxSpeed * 0.8) * 100);
+        return {
+            previousActivity,
+            avgDistance,
+            currentPace,
+            paceImprovement,
+            distanceImprovement,
+            effortLevel,
+            isPersonalBest: lastActivity.distance > avgDistance * 1.1,
+            totalActivitiesOfType: sameTypeActivities.length
+        };
+    }, [
+        lastActivity,
+        activities
+    ]);
+    // Helper functions
+    const formatDistanceWithUnits = (meters)=>{
+        return (0, _utils.formatDistance)(meters, preferences.distance);
+    };
+    const formatDuration = (seconds)=>{
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor(seconds % 3600 / 60);
+        if (hours > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+        return `${minutes}m`;
+    };
+    const formatPaceWithUnits = (secondsPerKm)=>{
+        return (0, _utils.formatPace)(secondsPerKm, preferences.pace);
+    };
+    const formatDate = (dateString)=>{
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - date.getTime());
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+        });
+    };
+    const getActivityIcon = (sportType)=>{
+        switch(sportType.toLowerCase()){
+            case 'run':
+                return '🏃‍♂️';
+            case 'ride':
+                return '🚴‍♂️';
+            case 'swim':
+                return '🏊‍♂️';
+            case 'hike':
+                return '🥾';
+            case 'walk':
+                return '🚶‍♂️';
+            default:
+                return '💪';
+        }
+    };
+    const getActivityColor = (sportType)=>{
+        switch(sportType.toLowerCase()){
+            case 'run':
+                return 'bg-green-100 text-green-800 border-green-200';
+            case 'ride':
+                return 'bg-blue-100 text-blue-800 border-blue-200';
+            case 'swim':
+                return 'bg-cyan-100 text-cyan-800 border-cyan-200';
+            case 'hike':
+                return 'bg-orange-100 text-orange-800 border-orange-200';
+            case 'walk':
+                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+            default:
+                return 'bg-gray-100 text-gray-800 border-gray-200';
+        }
+    };
+    if (isLoading) {
+        return /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.Card, {
+            children: [
+                /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.CardHeader, {
+                    children: [
+                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardTitle, {
+                            children: "Last Activity Deep Dive"
+                        }),
+                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardDescription, {
+                            children: "Loading your latest activity analysis..."
+                        })
+                    ]
+                }),
+                /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardContent, {
+                    children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                        className: "animate-pulse space-y-4",
+                        children: [
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                className: "h-20 bg-gray-100 rounded-lg"
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                className: "h-40 bg-gray-100 rounded-lg"
+                            })
+                        ]
+                    })
+                })
+            ]
+        });
+    }
+    if (error || !lastActivity) {
+        return /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.Card, {
+            children: [
+                /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.CardHeader, {
+                    children: [
+                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardTitle, {
+                            children: "Last Activity Deep Dive"
+                        }),
+                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardDescription, {
+                            children: error ? 'Error loading activity data' : 'No activities found'
+                        })
+                    ]
+                }),
+                /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardContent, {
+                    children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                        className: "text-center py-8 text-gray-500",
+                        children: [
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Activity, {
+                                className: "h-12 w-12 mx-auto mb-4 opacity-50"
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                children: "Connect your Strava account to see detailed activity insights"
+                            })
+                        ]
+                    })
+                })
+            ]
+        });
+    }
+    return /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.Card, {
+        children: [
+            /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardHeader, {
+                children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                    className: "flex items-start justify-between",
+                    children: [
+                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                            children: [
+                                /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.CardTitle, {
+                                    className: "flex items-center gap-2",
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                            className: "text-2xl",
+                                            children: getActivityIcon(lastActivity.sport_type)
+                                        }),
+                                        "Last Activity Deep Dive"
+                                    ]
+                                }),
+                                /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardDescription, {
+                                    children: "Detailed analysis of your most recent workout"
+                                })
+                            ]
+                        }),
+                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_link.default, {
+                            href: "/dashboard/analytics#activity-feed",
+                            scroll: true,
+                            children: /*#__PURE__*/ (0, _jsxruntime.jsxs)(_button.Button, {
+                                variant: "outline",
+                                size: "sm",
+                                className: "flex items-center gap-2",
+                                children: [
+                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Activity, {
+                                        className: "h-4 w-4"
+                                    }),
+                                    "View All Activities",
+                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.ArrowRight, {
+                                        className: "h-4 w-4"
+                                    })
+                                ]
+                            })
+                        })
+                    ]
+                })
+            }),
+            /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardContent, {
+                children: /*#__PURE__*/ (0, _jsxruntime.jsxs)(_tabs.Tabs, {
+                    defaultValue: "overview",
+                    className: "w-full",
+                    children: [
+                        /*#__PURE__*/ (0, _jsxruntime.jsxs)(_tabs.TabsList, {
+                            className: "grid w-full grid-cols-3",
+                            children: [
+                                /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsTrigger, {
+                                    value: "overview",
+                                    children: "Overview"
+                                }),
+                                /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsTrigger, {
+                                    value: "performance",
+                                    children: "Performance"
+                                }),
+                                /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsTrigger, {
+                                    value: "insights",
+                                    children: "Insights"
+                                })
+                            ]
+                        }),
+                        /*#__PURE__*/ (0, _jsxruntime.jsxs)(_tabs.TabsContent, {
+                            value: "overview",
+                            className: "space-y-6",
+                            children: [
+                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                    className: "flex items-start justify-between",
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                            className: "space-y-2",
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("h3", {
+                                                    className: "text-xl font-semibold",
+                                                    children: lastActivity.name
+                                                }),
+                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                    className: "flex items-center gap-2",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_badge.Badge, {
+                                                            className: getActivityColor(lastActivity.sport_type),
+                                                            children: lastActivity.sport_type
+                                                        }),
+                                                        activityAnalysis?.isPersonalBest && /*#__PURE__*/ (0, _jsxruntime.jsxs)(_badge.Badge, {
+                                                            variant: "secondary",
+                                                            className: "bg-yellow-100 text-yellow-800",
+                                                            children: [
+                                                                /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Trophy, {
+                                                                    className: "h-3 w-3 mr-1"
+                                                                }),
+                                                                "Personal Best!"
+                                                            ]
+                                                        })
+                                                    ]
+                                                })
+                                            ]
+                                        }),
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                            className: "text-right text-sm text-gray-500",
+                                            children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                className: "flex items-center gap-1",
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Calendar, {
+                                                        className: "h-4 w-4"
+                                                    }),
+                                                    formatDate(lastActivity.start_date)
+                                                ]
+                                            })
+                                        })
+                                    ]
+                                }),
+                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                    className: "grid grid-cols-2 md:grid-cols-4 gap-4",
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                            className: "bg-gray-50 p-4 rounded-lg",
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                    className: "flex items-center gap-2 mb-1",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.MapPin, {
+                                                            className: "h-4 w-4 text-gray-500"
+                                                        }),
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                            className: "text-sm text-gray-600",
+                                                            children: "Distance"
+                                                        })
+                                                    ]
+                                                }),
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                                    className: "text-2xl font-bold",
+                                                    children: formatDistanceWithUnits(lastActivity.distance)
+                                                })
+                                            ]
+                                        }),
+                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                            className: "bg-gray-50 p-4 rounded-lg",
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                    className: "flex items-center gap-2 mb-1",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Timer, {
+                                                            className: "h-4 w-4 text-gray-500"
+                                                        }),
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                            className: "text-sm text-gray-600",
+                                                            children: "Duration"
+                                                        })
+                                                    ]
+                                                }),
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                                    className: "text-2xl font-bold",
+                                                    children: formatDuration(lastActivity.moving_time)
+                                                })
+                                            ]
+                                        }),
+                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                            className: "bg-gray-50 p-4 rounded-lg",
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                    className: "flex items-center gap-2 mb-1",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Clock, {
+                                                            className: "h-4 w-4 text-gray-500"
+                                                        }),
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                            className: "text-sm text-gray-600",
+                                                            children: "Avg Pace"
+                                                        })
+                                                    ]
+                                                }),
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                                    className: "text-2xl font-bold",
+                                                    children: activityAnalysis ? formatPaceWithUnits(activityAnalysis.currentPace) : 'N/A'
+                                                })
+                                            ]
+                                        }),
+                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                            className: "bg-gray-50 p-4 rounded-lg",
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                    className: "flex items-center gap-2 mb-1",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Mountain, {
+                                                            className: "h-4 w-4 text-gray-500"
+                                                        }),
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                            className: "text-sm text-gray-600",
+                                                            children: "Elevation"
+                                                        })
+                                                    ]
+                                                }),
+                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                    className: "text-2xl font-bold",
+                                                    children: [
+                                                        Math.round(lastActivity.total_elevation_gain || 0),
+                                                        "m"
+                                                    ]
+                                                })
+                                            ]
+                                        })
+                                    ]
+                                }),
+                                (lastActivity.average_heartrate || lastActivity.average_watts) && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                    className: "grid grid-cols-2 gap-4",
+                                    children: [
+                                        lastActivity.average_heartrate && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                            className: "bg-red-50 p-4 rounded-lg border border-red-100",
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                    className: "flex items-center gap-2 mb-2",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Heart, {
+                                                            className: "h-4 w-4 text-red-500"
+                                                        }),
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                            className: "text-sm text-red-700",
+                                                            children: "Heart Rate"
+                                                        })
+                                                    ]
+                                                }),
+                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                    className: "text-xl font-bold text-red-800",
+                                                    children: [
+                                                        Math.round(lastActivity.average_heartrate),
+                                                        " bpm"
+                                                    ]
+                                                }),
+                                                lastActivity.max_heartrate && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                    className: "text-sm text-red-600",
+                                                    children: [
+                                                        "Max: ",
+                                                        Math.round(lastActivity.max_heartrate),
+                                                        " bpm"
+                                                    ]
+                                                })
+                                            ]
+                                        }),
+                                        lastActivity.average_watts && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                            className: "bg-yellow-50 p-4 rounded-lg border border-yellow-100",
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                    className: "flex items-center gap-2 mb-2",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Zap, {
+                                                            className: "h-4 w-4 text-yellow-500"
+                                                        }),
+                                                        /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                            className: "text-sm text-yellow-700",
+                                                            children: "Power"
+                                                        })
+                                                    ]
+                                                }),
+                                                /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                    className: "text-xl font-bold text-yellow-800",
+                                                    children: [
+                                                        Math.round(lastActivity.average_watts),
+                                                        "W"
+                                                    ]
+                                                }),
+                                                lastActivity.max_watts && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                    className: "text-sm text-yellow-600",
+                                                    children: [
+                                                        "Max: ",
+                                                        Math.round(lastActivity.max_watts),
+                                                        "W"
+                                                    ]
+                                                })
+                                            ]
+                                        })
+                                    ]
+                                })
+                            ]
+                        }),
+                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsContent, {
+                            value: "performance",
+                            className: "space-y-6",
+                            children: activityAnalysis && /*#__PURE__*/ (0, _jsxruntime.jsxs)(_jsxruntime.Fragment, {
+                                children: [
+                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                        className: "space-y-4",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("h4", {
+                                                className: "font-semibold",
+                                                children: [
+                                                    "Performance vs Previous ",
+                                                    lastActivity.sport_type
+                                                ]
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                className: "grid grid-cols-1 md:grid-cols-2 gap-4",
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        className: "bg-gray-50 p-4 rounded-lg",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                className: "flex items-center justify-between mb-2",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                                        className: "text-sm text-gray-600",
+                                                                        children: "Distance Change"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.TrendingUp, {
+                                                                        className: `h-4 w-4 ${activityAnalysis.distanceImprovement >= 0 ? 'text-green-500' : 'text-red-500'}`
+                                                                    })
+                                                                ]
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                className: `text-lg font-bold ${activityAnalysis.distanceImprovement >= 0 ? 'text-green-600' : 'text-red-600'}`,
+                                                                children: [
+                                                                    activityAnalysis.distanceImprovement >= 0 ? '+' : '',
+                                                                    formatDistanceWithUnits(activityAnalysis.distanceImprovement)
+                                                                ]
+                                                            })
+                                                        ]
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        className: "bg-gray-50 p-4 rounded-lg",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                className: "flex items-center justify-between mb-2",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                                        className: "text-sm text-gray-600",
+                                                                        children: "Pace Change"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.TrendingUp, {
+                                                                        className: `h-4 w-4 ${activityAnalysis.paceImprovement >= 0 ? 'text-green-500' : 'text-red-500'}`
+                                                                    })
+                                                                ]
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                className: `text-lg font-bold ${activityAnalysis.paceImprovement >= 0 ? 'text-green-600' : 'text-red-600'}`,
+                                                                children: [
+                                                                    activityAnalysis.paceImprovement >= 0 ? 'Faster' : 'Slower',
+                                                                    " by ",
+                                                                    Math.abs(activityAnalysis.paceImprovement).toFixed(0),
+                                                                    "s/km"
+                                                                ]
+                                                            })
+                                                        ]
+                                                    })
+                                                ]
+                                            })
+                                        ]
+                                    }),
+                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                        className: "space-y-3",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h4", {
+                                                className: "font-semibold",
+                                                children: "Effort Level"
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                className: "space-y-2",
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        className: "flex justify-between text-sm",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                                children: "Estimated Effort"
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("span", {
+                                                                children: [
+                                                                    Math.round(activityAnalysis.effortLevel),
+                                                                    "%"
+                                                                ]
+                                                            })
+                                                        ]
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_progress.Progress, {
+                                                        value: activityAnalysis.effortLevel,
+                                                        className: "h-2"
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                                        className: "text-xs text-gray-500",
+                                                        children: "Based on your average speed relative to estimated maximum"
+                                                    })
+                                                ]
+                                            })
+                                        ]
+                                    })
+                                ]
+                            })
+                        }),
+                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsContent, {
+                            value: "insights",
+                            className: "space-y-6",
+                            children: activityAnalysis && /*#__PURE__*/ (0, _jsxruntime.jsxs)(_jsxruntime.Fragment, {
+                                children: [
+                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                        className: "space-y-4",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxruntime.jsx)("h4", {
+                                                className: "font-semibold",
+                                                children: "Activity Insights"
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                className: "grid gap-4",
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        className: "bg-blue-50 p-4 rounded-lg border border-blue-100",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                className: "flex items-center gap-2 mb-2",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Target, {
+                                                                        className: "h-4 w-4 text-blue-500"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                                        className: "font-medium text-blue-800",
+                                                                        children: "Activity Summary"
+                                                                    })
+                                                                ]
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("p", {
+                                                                className: "text-sm text-blue-700",
+                                                                children: [
+                                                                    "This was your ",
+                                                                    activityAnalysis.totalActivitiesOfType === 1 ? 'first' : `${activityAnalysis.totalActivitiesOfType}${getOrdinalSuffix(activityAnalysis.totalActivitiesOfType)}`,
+                                                                    " ",
+                                                                    lastActivity.sport_type.toLowerCase(),
+                                                                    " activity.",
+                                                                    activityAnalysis.distanceImprovement > 1000 && ' Great distance improvement!',
+                                                                    activityAnalysis.paceImprovement > 10 && ' Nice pace improvement!',
+                                                                    activityAnalysis.isPersonalBest && ' This is a new personal best for distance!'
+                                                                ]
+                                                            })
+                                                        ]
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                        className: "bg-green-50 p-4 rounded-lg border border-green-100",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                                className: "flex items-center gap-2 mb-2",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Trophy, {
+                                                                        className: "h-4 w-4 text-green-500"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                                        className: "font-medium text-green-800",
+                                                                        children: "Recommendations"
+                                                                    })
+                                                                ]
+                                                            }),
+                                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("ul", {
+                                                                className: "text-sm text-green-700 space-y-1",
+                                                                children: [
+                                                                    activityAnalysis.effortLevel > 80 && /*#__PURE__*/ (0, _jsxruntime.jsx)("li", {
+                                                                        children: "• Consider a recovery day after this high-intensity session"
+                                                                    }),
+                                                                    activityAnalysis.effortLevel < 50 && /*#__PURE__*/ (0, _jsxruntime.jsx)("li", {
+                                                                        children: "• This was a good recovery/easy pace session"
+                                                                    }),
+                                                                    activityAnalysis.distanceImprovement > 2000 && /*#__PURE__*/ (0, _jsxruntime.jsx)("li", {
+                                                                        children: "• Great distance increase! Monitor how you feel for recovery"
+                                                                    }),
+                                                                    lastActivity.total_elevation_gain && lastActivity.total_elevation_gain > 500 && /*#__PURE__*/ (0, _jsxruntime.jsx)("li", {
+                                                                        children: "• Solid elevation gain - great for building strength"
+                                                                    }),
+                                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("li", {
+                                                                        children: "• Keep up the consistent training!"
+                                                                    })
+                                                                ]
+                                                            })
+                                                        ]
+                                                    })
+                                                ]
+                                            })
+                                        ]
+                                    }),
+                                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                        className: "bg-orange-50 p-4 rounded-lg border border-orange-100",
+                                        children: [
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                                className: "flex items-center gap-2 mb-2",
+                                                children: [
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Clock, {
+                                                        className: "h-4 w-4 text-orange-500"
+                                                    }),
+                                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                                        className: "font-medium text-orange-800",
+                                                        children: "Recovery Time"
+                                                    })
+                                                ]
+                                            }),
+                                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("p", {
+                                                className: "text-sm text-orange-700",
+                                                children: [
+                                                    "Based on this activity's intensity, consider waiting",
+                                                    ' ',
+                                                    activityAnalysis.effortLevel > 80 ? '24-48 hours' : activityAnalysis.effortLevel > 60 ? '12-24 hours' : '6-12 hours',
+                                                    ' ',
+                                                    "before your next high-intensity session."
+                                                ]
+                                            })
+                                        ]
+                                    })
+                                ]
+                            })
+                        })
+                    ]
+                })
+            })
+        ]
+    });
+}
+// Helper function for ordinal numbers
+function getOrdinalSuffix(num) {
+    const j = num % 10;
+    const k = num % 100;
+    if (j === 1 && k !== 11) return 'st';
+    if (j === 2 && k !== 12) return 'nd';
+    if (j === 3 && k !== 13) return 'rd';
+    return 'th';
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIkM6XFxVc2Vyc1xcdGlhbWFcXERlc2t0b3BcXENvZGluZ1xcZW5kdXJvcmV2YW1wXFxjb21wb25lbnRzXFxkYXNoYm9hcmRcXExhc3RBY3Rpdml0eURlZXBEaXZlLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyIndXNlIGNsaWVudCdcclxuXHJcbmltcG9ydCB7IENhcmQsIENhcmRDb250ZW50LCBDYXJkRGVzY3JpcHRpb24sIENhcmRIZWFkZXIsIENhcmRUaXRsZSB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9jYXJkJ1xyXG5pbXBvcnQgeyBCYWRnZSB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9iYWRnZSdcclxuaW1wb3J0IHsgUHJvZ3Jlc3MgfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvcHJvZ3Jlc3MnXHJcbmltcG9ydCB7IFRhYnMsIFRhYnNDb250ZW50LCBUYWJzTGlzdCwgVGFic1RyaWdnZXIgfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvdGFicydcclxuaW1wb3J0IHsgQnV0dG9uIH0gZnJvbSAnQC9jb21wb25lbnRzL3VpL2J1dHRvbidcclxuaW1wb3J0IHsgdXNlVXNlckFjdGl2aXRpZXMgfSBmcm9tICdAL2hvb2tzL3VzZS11c2VyLWFjdGl2aXRpZXMnXHJcbmltcG9ydCB7IHVzZVVuaXRQcmVmZXJlbmNlcyB9IGZyb20gJ0AvaG9va3MvdXNlVW5pdFByZWZlcmVuY2VzJ1xyXG5pbXBvcnQgeyBmb3JtYXREaXN0YW5jZSwgZm9ybWF0UGFjZSB9IGZyb20gJ0AvbGliL3V0aWxzJ1xyXG5pbXBvcnQgeyB1c2VNZW1vIH0gZnJvbSAncmVhY3QnXHJcbmltcG9ydCBMaW5rIGZyb20gJ25leHQvbGluaydcclxuaW1wb3J0IHtcclxuICBDYWxlbmRhcixcclxuICBUaW1lcixcclxuICBNYXBQaW4sXHJcbiAgSGVhcnQsXHJcbiAgWmFwLFxyXG4gIFRyZW5kaW5nVXAsXHJcbiAgVHJvcGh5LFxyXG4gIFRhcmdldCxcclxuICBBY3Rpdml0eSBhcyBBY3Rpdml0eUljb24sXHJcbiAgQ2xvY2ssXHJcbiAgTW91bnRhaW4sXHJcbiAgQXJyb3dSaWdodFxyXG59IGZyb20gJ2x1Y2lkZS1yZWFjdCdcclxuXHJcbmludGVyZmFjZSBMYXN0QWN0aXZpdHlEZWVwRGl2ZVByb3BzIHtcclxuICB1c2VySWQ6IHN0cmluZ1xyXG59XHJcblxyXG5leHBvcnQgZnVuY3Rpb24gTGFzdEFjdGl2aXR5RGVlcERpdmUoeyB1c2VySWQgfTogTGFzdEFjdGl2aXR5RGVlcERpdmVQcm9wcykge1xyXG4gIGNvbnN0IHsgZGF0YTogYWN0aXZpdGllcywgaXNMb2FkaW5nLCBlcnJvciB9ID0gdXNlVXNlckFjdGl2aXRpZXModXNlcklkKVxyXG4gIGNvbnN0IHsgcHJlZmVyZW5jZXMgfSA9IHVzZVVuaXRQcmVmZXJlbmNlcygpXHJcblxyXG4gIGNvbnN0IGxhc3RBY3Rpdml0eSA9IHVzZU1lbW8oKCkgPT4ge1xyXG4gICAgaWYgKCFhY3Rpdml0aWVzIHx8IGFjdGl2aXRpZXMubGVuZ3RoID09PSAwKSByZXR1cm4gbnVsbFxyXG4gICAgcmV0dXJuIGFjdGl2aXRpZXMuc29ydCgoYSwgYikgPT4gXHJcbiAgICAgIG5ldyBEYXRlKGIuc3RhcnRfZGF0ZSkuZ2V0VGltZSgpIC0gbmV3IERhdGUoYS5zdGFydF9kYXRlKS5nZXRUaW1lKClcclxuICAgIClbMF1cclxuICB9LCBbYWN0aXZpdGllc10pXHJcblxyXG4gIGNvbnN0IGFjdGl2aXR5QW5hbHlzaXMgPSB1c2VNZW1vKCgpID0+IHtcclxuICAgIGlmICghbGFzdEFjdGl2aXR5IHx8ICFhY3Rpdml0aWVzKSByZXR1cm4gbnVsbFxyXG5cclxuICAgIC8vIENvbXBhcmUgd2l0aCBwcmV2aW91cyBhY3Rpdml0aWVzIG9mIHNhbWUgdHlwZVxyXG4gICAgY29uc3Qgc2FtZVR5cGVBY3Rpdml0aWVzID0gYWN0aXZpdGllc1xyXG4gICAgICAuZmlsdGVyKGEgPT4gYS5zcG9ydF90eXBlID09PSBsYXN0QWN0aXZpdHkuc3BvcnRfdHlwZSlcclxuICAgICAgLnNvcnQoKGEsIGIpID0+IG5ldyBEYXRlKGIuc3RhcnRfZGF0ZSkuZ2V0VGltZSgpIC0gbmV3IERhdGUoYS5zdGFydF9kYXRlKS5nZXRUaW1lKCkpXHJcblxyXG4gICAgY29uc3QgcHJldmlvdXNBY3Rpdml0eSA9IHNhbWVUeXBlQWN0aXZpdGllc1sxXSAvLyBTZWNvbmQgbW9zdCByZWNlbnQgb2Ygc2FtZSB0eXBlXHJcbiAgICBjb25zdCBhdmdEaXN0YW5jZSA9IHNhbWVUeXBlQWN0aXZpdGllcy5yZWR1Y2UoKHN1bSwgYSkgPT4gc3VtICsgYS5kaXN0YW5jZSwgMCkgLyBzYW1lVHlwZUFjdGl2aXRpZXMubGVuZ3RoXHJcblxyXG4gICAgLy8gUGVyZm9ybWFuY2UgYW5hbHlzaXNcclxuICAgIGNvbnN0IGN1cnJlbnRQYWNlID0gbGFzdEFjdGl2aXR5Lm1vdmluZ190aW1lIC8gKGxhc3RBY3Rpdml0eS5kaXN0YW5jZSAvIDEwMDApIC8vIHNlY29uZHMgcGVyIGttXHJcbiAgICBjb25zdCBwYWNlSW1wcm92ZW1lbnQgPSBwcmV2aW91c0FjdGl2aXR5ID8gKChwcmV2aW91c0FjdGl2aXR5Lm1vdmluZ190aW1lIC8gKHByZXZpb3VzQWN0aXZpdHkuZGlzdGFuY2UgLyAxMDAwKSkgLSBjdXJyZW50UGFjZSkgOiAwXHJcbiAgICBjb25zdCBkaXN0YW5jZUltcHJvdmVtZW50ID0gcHJldmlvdXNBY3Rpdml0eSA/IChsYXN0QWN0aXZpdHkuZGlzdGFuY2UgLSBwcmV2aW91c0FjdGl2aXR5LmRpc3RhbmNlKSA6IDBcclxuXHJcbiAgICAvLyBFZmZvcnQgem9uZXMgKHNpbXBsaWZpZWQpXHJcbiAgICBjb25zdCBhdmdTcGVlZCA9IGxhc3RBY3Rpdml0eS5kaXN0YW5jZSAvIGxhc3RBY3Rpdml0eS5tb3ZpbmdfdGltZSAvLyBtL3NcclxuICAgIGNvbnN0IG1heFNwZWVkID0gbGFzdEFjdGl2aXR5Lm1heF9zcGVlZCB8fCBhdmdTcGVlZCAqIDEuNVxyXG4gICAgY29uc3QgZWZmb3J0TGV2ZWwgPSBNYXRoLm1pbigxMDAsIChhdmdTcGVlZCAvIChtYXhTcGVlZCAqIDAuOCkpICogMTAwKVxyXG5cclxuICAgIHJldHVybiB7XHJcbiAgICAgIHByZXZpb3VzQWN0aXZpdHksXHJcbiAgICAgIGF2Z0Rpc3RhbmNlLFxyXG4gICAgICBjdXJyZW50UGFjZSxcclxuICAgICAgcGFjZUltcHJvdmVtZW50LFxyXG4gICAgICBkaXN0YW5jZUltcHJvdmVtZW50LFxyXG4gICAgICBlZmZvcnRMZXZlbCxcclxuICAgICAgaXNQZXJzb25hbEJlc3Q6IGxhc3RBY3Rpdml0eS5kaXN0YW5jZSA+IGF2Z0Rpc3RhbmNlICogMS4xLFxyXG4gICAgICB0b3RhbEFjdGl2aXRpZXNPZlR5cGU6IHNhbWVUeXBlQWN0aXZpdGllcy5sZW5ndGhcclxuICAgIH1cclxuICB9LCBbbGFzdEFjdGl2aXR5LCBhY3Rpdml0aWVzXSlcclxuXHJcbiAgLy8gSGVscGVyIGZ1bmN0aW9uc1xyXG4gIGNvbnN0IGZvcm1hdERpc3RhbmNlV2l0aFVuaXRzID0gKG1ldGVyczogbnVtYmVyKTogc3RyaW5nID0+IHtcclxuICAgIHJldHVybiBmb3JtYXREaXN0YW5jZShtZXRlcnMsIHByZWZlcmVuY2VzLmRpc3RhbmNlKVxyXG4gIH1cclxuXHJcbiAgY29uc3QgZm9ybWF0RHVyYXRpb24gPSAoc2Vjb25kczogbnVtYmVyKTogc3RyaW5nID0+IHtcclxuICAgIGNvbnN0IGhvdXJzID0gTWF0aC5mbG9vcihzZWNvbmRzIC8gMzYwMClcclxuICAgIGNvbnN0IG1pbnV0ZXMgPSBNYXRoLmZsb29yKChzZWNvbmRzICUgMzYwMCkgLyA2MClcclxuICAgIFxyXG4gICAgaWYgKGhvdXJzID4gMCkge1xyXG4gICAgICByZXR1cm4gYCR7aG91cnN9aCAke21pbnV0ZXN9bWBcclxuICAgIH1cclxuICAgIHJldHVybiBgJHttaW51dGVzfW1gXHJcbiAgfVxyXG5cclxuICBjb25zdCBmb3JtYXRQYWNlV2l0aFVuaXRzID0gKHNlY29uZHNQZXJLbTogbnVtYmVyKTogc3RyaW5nID0+IHtcclxuICAgIHJldHVybiBmb3JtYXRQYWNlKHNlY29uZHNQZXJLbSwgcHJlZmVyZW5jZXMucGFjZSlcclxuICB9XHJcblxyXG4gIGNvbnN0IGZvcm1hdERhdGUgPSAoZGF0ZVN0cmluZzogc3RyaW5nKTogc3RyaW5nID0+IHtcclxuICAgIGNvbnN0IGRhdGUgPSBuZXcgRGF0ZShkYXRlU3RyaW5nKVxyXG4gICAgY29uc3Qgbm93ID0gbmV3IERhdGUoKVxyXG4gICAgY29uc3QgZGlmZlRpbWUgPSBNYXRoLmFicyhub3cuZ2V0VGltZSgpIC0gZGF0ZS5nZXRUaW1lKCkpXHJcbiAgICBjb25zdCBkaWZmRGF5cyA9IE1hdGguZmxvb3IoZGlmZlRpbWUgLyAoMTAwMCAqIDYwICogNjAgKiAyNCkpXHJcbiAgICBcclxuICAgIGlmIChkaWZmRGF5cyA9PT0gMCkgcmV0dXJuICdUb2RheSdcclxuICAgIGlmIChkaWZmRGF5cyA9PT0gMSkgcmV0dXJuICdZZXN0ZXJkYXknXHJcbiAgICBpZiAoZGlmZkRheXMgPCA3KSByZXR1cm4gYCR7ZGlmZkRheXN9IGRheXMgYWdvYFxyXG4gICAgXHJcbiAgICByZXR1cm4gZGF0ZS50b0xvY2FsZURhdGVTdHJpbmcoJ2VuLVVTJywge1xyXG4gICAgICBtb250aDogJ3Nob3J0JyxcclxuICAgICAgZGF5OiAnbnVtZXJpYydcclxuICAgIH0pXHJcbiAgfVxyXG5cclxuICBjb25zdCBnZXRBY3Rpdml0eUljb24gPSAoc3BvcnRUeXBlOiBzdHJpbmcpID0+IHtcclxuICAgIHN3aXRjaCAoc3BvcnRUeXBlLnRvTG93ZXJDYXNlKCkpIHtcclxuICAgICAgY2FzZSAncnVuJzogcmV0dXJuICfwn4+D4oCN4pmC77iPJ1xyXG4gICAgICBjYXNlICdyaWRlJzogcmV0dXJuICfwn5q04oCN4pmC77iPJ1xyXG4gICAgICBjYXNlICdzd2ltJzogcmV0dXJuICfwn4+K4oCN4pmC77iPJ1xyXG4gICAgICBjYXNlICdoaWtlJzogcmV0dXJuICfwn6W+J1xyXG4gICAgICBjYXNlICd3YWxrJzogcmV0dXJuICfwn5q24oCN4pmC77iPJ1xyXG4gICAgICBkZWZhdWx0OiByZXR1cm4gJ/CfkqonXHJcbiAgICB9XHJcbiAgfVxyXG5cclxuICBjb25zdCBnZXRBY3Rpdml0eUNvbG9yID0gKHNwb3J0VHlwZTogc3RyaW5nKTogc3RyaW5nID0+IHtcclxuICAgIHN3aXRjaCAoc3BvcnRUeXBlLnRvTG93ZXJDYXNlKCkpIHtcclxuICAgICAgY2FzZSAncnVuJzogcmV0dXJuICdiZy1ncmVlbi0xMDAgdGV4dC1ncmVlbi04MDAgYm9yZGVyLWdyZWVuLTIwMCdcclxuICAgICAgY2FzZSAncmlkZSc6IHJldHVybiAnYmctYmx1ZS0xMDAgdGV4dC1ibHVlLTgwMCBib3JkZXItYmx1ZS0yMDAnXHJcbiAgICAgIGNhc2UgJ3N3aW0nOiByZXR1cm4gJ2JnLWN5YW4tMTAwIHRleHQtY3lhbi04MDAgYm9yZGVyLWN5YW4tMjAwJ1xyXG4gICAgICBjYXNlICdoaWtlJzogcmV0dXJuICdiZy1vcmFuZ2UtMTAwIHRleHQtb3JhbmdlLTgwMCBib3JkZXItb3JhbmdlLTIwMCdcclxuICAgICAgY2FzZSAnd2Fsayc6IHJldHVybiAnYmcteWVsbG93LTEwMCB0ZXh0LXllbGxvdy04MDAgYm9yZGVyLXllbGxvdy0yMDAnXHJcbiAgICAgIGRlZmF1bHQ6IHJldHVybiAnYmctZ3JheS0xMDAgdGV4dC1ncmF5LTgwMCBib3JkZXItZ3JheS0yMDAnXHJcbiAgICB9XHJcbiAgfVxyXG5cclxuICBpZiAoaXNMb2FkaW5nKSB7XHJcbiAgICByZXR1cm4gKFxyXG4gICAgICA8Q2FyZD5cclxuICAgICAgICA8Q2FyZEhlYWRlcj5cclxuICAgICAgICAgIDxDYXJkVGl0bGU+TGFzdCBBY3Rpdml0eSBEZWVwIERpdmU8L0NhcmRUaXRsZT5cclxuICAgICAgICAgIDxDYXJkRGVzY3JpcHRpb24+TG9hZGluZyB5b3VyIGxhdGVzdCBhY3Rpdml0eSBhbmFseXNpcy4uLjwvQ2FyZERlc2NyaXB0aW9uPlxyXG4gICAgICAgIDwvQ2FyZEhlYWRlcj5cclxuICAgICAgICA8Q2FyZENvbnRlbnQ+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImFuaW1hdGUtcHVsc2Ugc3BhY2UteS00XCI+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiaC0yMCBiZy1ncmF5LTEwMCByb3VuZGVkLWxnXCI+PC9kaXY+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiaC00MCBiZy1ncmF5LTEwMCByb3VuZGVkLWxnXCI+PC9kaXY+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICA8L0NhcmRDb250ZW50PlxyXG4gICAgICA8L0NhcmQ+XHJcbiAgICApXHJcbiAgfVxyXG5cclxuICBpZiAoZXJyb3IgfHwgIWxhc3RBY3Rpdml0eSkge1xyXG4gICAgcmV0dXJuIChcclxuICAgICAgPENhcmQ+XHJcbiAgICAgICAgPENhcmRIZWFkZXI+XHJcbiAgICAgICAgICA8Q2FyZFRpdGxlPkxhc3QgQWN0aXZpdHkgRGVlcCBEaXZlPC9DYXJkVGl0bGU+XHJcbiAgICAgICAgICA8Q2FyZERlc2NyaXB0aW9uPlxyXG4gICAgICAgICAgICB7ZXJyb3IgPyAnRXJyb3IgbG9hZGluZyBhY3Rpdml0eSBkYXRhJyA6ICdObyBhY3Rpdml0aWVzIGZvdW5kJ31cclxuICAgICAgICAgIDwvQ2FyZERlc2NyaXB0aW9uPlxyXG4gICAgICAgIDwvQ2FyZEhlYWRlcj5cclxuICAgICAgICA8Q2FyZENvbnRlbnQ+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRleHQtY2VudGVyIHB5LTggdGV4dC1ncmF5LTUwMFwiPlxyXG4gICAgICAgICAgICA8QWN0aXZpdHlJY29uIGNsYXNzTmFtZT1cImgtMTIgdy0xMiBteC1hdXRvIG1iLTQgb3BhY2l0eS01MFwiIC8+XHJcbiAgICAgICAgICAgIDxwPkNvbm5lY3QgeW91ciBTdHJhdmEgYWNjb3VudCB0byBzZWUgZGV0YWlsZWQgYWN0aXZpdHkgaW5zaWdodHM8L3A+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICA8L0NhcmRDb250ZW50PlxyXG4gICAgICA8L0NhcmQ+XHJcbiAgICApXHJcbiAgfVxyXG5cclxuICByZXR1cm4gKFxyXG4gICAgPENhcmQ+XHJcbiAgICAgIDxDYXJkSGVhZGVyPlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1zdGFydCBqdXN0aWZ5LWJldHdlZW5cIj5cclxuICAgICAgICAgIDxkaXY+XHJcbiAgICAgICAgICAgIDxDYXJkVGl0bGUgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTJcIj5cclxuICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LTJ4bFwiPntnZXRBY3Rpdml0eUljb24obGFzdEFjdGl2aXR5LnNwb3J0X3R5cGUpfTwvc3Bhbj5cclxuICAgICAgICAgICAgICBMYXN0IEFjdGl2aXR5IERlZXAgRGl2ZVxyXG4gICAgICAgICAgICA8L0NhcmRUaXRsZT5cclxuICAgICAgICAgICAgPENhcmREZXNjcmlwdGlvbj5cclxuICAgICAgICAgICAgICBEZXRhaWxlZCBhbmFseXNpcyBvZiB5b3VyIG1vc3QgcmVjZW50IHdvcmtvdXRcclxuICAgICAgICAgICAgPC9DYXJkRGVzY3JpcHRpb24+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgIDxMaW5rIGhyZWY9XCIvZGFzaGJvYXJkL2FuYWx5dGljcyNhY3Rpdml0eS1mZWVkXCIgc2Nyb2xsPXt0cnVlfT5cclxuICAgICAgICAgICAgPEJ1dHRvbiB2YXJpYW50PVwib3V0bGluZVwiIHNpemU9XCJzbVwiIGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yXCI+XHJcbiAgICAgICAgICAgICAgPEFjdGl2aXR5SWNvbiBjbGFzc05hbWU9XCJoLTQgdy00XCIgLz5cclxuICAgICAgICAgICAgICBWaWV3IEFsbCBBY3Rpdml0aWVzXHJcbiAgICAgICAgICAgICAgPEFycm93UmlnaHQgY2xhc3NOYW1lPVwiaC00IHctNFwiIC8+XHJcbiAgICAgICAgICAgIDwvQnV0dG9uPlxyXG4gICAgICAgICAgPC9MaW5rPlxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICA8L0NhcmRIZWFkZXI+XHJcbiAgICAgIDxDYXJkQ29udGVudD5cclxuICAgICAgICA8VGFicyBkZWZhdWx0VmFsdWU9XCJvdmVydmlld1wiIGNsYXNzTmFtZT1cInctZnVsbFwiPlxyXG4gICAgICAgICAgPFRhYnNMaXN0IGNsYXNzTmFtZT1cImdyaWQgdy1mdWxsIGdyaWQtY29scy0zXCI+XHJcbiAgICAgICAgICAgIDxUYWJzVHJpZ2dlciB2YWx1ZT1cIm92ZXJ2aWV3XCI+T3ZlcnZpZXc8L1RhYnNUcmlnZ2VyPlxyXG4gICAgICAgICAgICA8VGFic1RyaWdnZXIgdmFsdWU9XCJwZXJmb3JtYW5jZVwiPlBlcmZvcm1hbmNlPC9UYWJzVHJpZ2dlcj5cclxuICAgICAgICAgICAgPFRhYnNUcmlnZ2VyIHZhbHVlPVwiaW5zaWdodHNcIj5JbnNpZ2h0czwvVGFic1RyaWdnZXI+XHJcbiAgICAgICAgICA8L1RhYnNMaXN0PlxyXG5cclxuICAgICAgICAgIDxUYWJzQ29udGVudCB2YWx1ZT1cIm92ZXJ2aWV3XCIgY2xhc3NOYW1lPVwic3BhY2UteS02XCI+XHJcbiAgICAgICAgICAgIHsvKiBBY3Rpdml0eSBIZWFkZXIgKi99XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1zdGFydCBqdXN0aWZ5LWJldHdlZW5cIj5cclxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktMlwiPlxyXG4gICAgICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT1cInRleHQteGwgZm9udC1zZW1pYm9sZFwiPntsYXN0QWN0aXZpdHkubmFtZX08L2gzPlxyXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMlwiPlxyXG4gICAgICAgICAgICAgICAgICA8QmFkZ2UgY2xhc3NOYW1lPXtnZXRBY3Rpdml0eUNvbG9yKGxhc3RBY3Rpdml0eS5zcG9ydF90eXBlKX0+XHJcbiAgICAgICAgICAgICAgICAgICAge2xhc3RBY3Rpdml0eS5zcG9ydF90eXBlfVxyXG4gICAgICAgICAgICAgICAgICA8L0JhZGdlPlxyXG4gICAgICAgICAgICAgICAgICB7YWN0aXZpdHlBbmFseXNpcz8uaXNQZXJzb25hbEJlc3QgJiYgKFxyXG4gICAgICAgICAgICAgICAgICAgIDxCYWRnZSB2YXJpYW50PVwic2Vjb25kYXJ5XCIgY2xhc3NOYW1lPVwiYmcteWVsbG93LTEwMCB0ZXh0LXllbGxvdy04MDBcIj5cclxuICAgICAgICAgICAgICAgICAgICAgIDxUcm9waHkgY2xhc3NOYW1lPVwiaC0zIHctMyBtci0xXCIgLz5cclxuICAgICAgICAgICAgICAgICAgICAgIFBlcnNvbmFsIEJlc3QhXHJcbiAgICAgICAgICAgICAgICAgICAgPC9CYWRnZT5cclxuICAgICAgICAgICAgICAgICAgKX1cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC1yaWdodCB0ZXh0LXNtIHRleHQtZ3JheS01MDBcIj5cclxuICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTFcIj5cclxuICAgICAgICAgICAgICAgICAgPENhbGVuZGFyIGNsYXNzTmFtZT1cImgtNCB3LTRcIiAvPlxyXG4gICAgICAgICAgICAgICAgICB7Zm9ybWF0RGF0ZShsYXN0QWN0aXZpdHkuc3RhcnRfZGF0ZSl9XHJcbiAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgICB7LyogS2V5IFN0YXRzIEdyaWQgKi99XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ3JpZCBncmlkLWNvbHMtMiBtZDpncmlkLWNvbHMtNCBnYXAtNFwiPlxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYmctZ3JheS01MCBwLTQgcm91bmRlZC1sZ1wiPlxyXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBtYi0xXCI+XHJcbiAgICAgICAgICAgICAgICAgIDxNYXBQaW4gY2xhc3NOYW1lPVwiaC00IHctNCB0ZXh0LWdyYXktNTAwXCIgLz5cclxuICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1zbSB0ZXh0LWdyYXktNjAwXCI+RGlzdGFuY2U8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC0yeGwgZm9udC1ib2xkXCI+e2Zvcm1hdERpc3RhbmNlV2l0aFVuaXRzKGxhc3RBY3Rpdml0eS5kaXN0YW5jZSl9PC9kaXY+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYmctZ3JheS01MCBwLTQgcm91bmRlZC1sZ1wiPlxyXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBtYi0xXCI+XHJcbiAgICAgICAgICAgICAgICAgIDxUaW1lciBjbGFzc05hbWU9XCJoLTQgdy00IHRleHQtZ3JheS01MDBcIiAvPlxyXG4gICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtZ3JheS02MDBcIj5EdXJhdGlvbjwvc3Bhbj5cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LTJ4bCBmb250LWJvbGRcIj57Zm9ybWF0RHVyYXRpb24obGFzdEFjdGl2aXR5Lm1vdmluZ190aW1lKX08L2Rpdj5cclxuICAgICAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJiZy1ncmF5LTUwIHAtNCByb3VuZGVkLWxnXCI+XHJcbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIG1iLTFcIj5cclxuICAgICAgICAgICAgICAgICAgPENsb2NrIGNsYXNzTmFtZT1cImgtNCB3LTQgdGV4dC1ncmF5LTUwMFwiIC8+XHJcbiAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1ncmF5LTYwMFwiPkF2ZyBQYWNlPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRleHQtMnhsIGZvbnQtYm9sZFwiPlxyXG4gICAgICAgICAgICAgICAgICB7YWN0aXZpdHlBbmFseXNpcyA/IGZvcm1hdFBhY2VXaXRoVW5pdHMoYWN0aXZpdHlBbmFseXNpcy5jdXJyZW50UGFjZSkgOiAnTi9BJ31cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImJnLWdyYXktNTAgcC00IHJvdW5kZWQtbGdcIj5cclxuICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgbWItMVwiPlxyXG4gICAgICAgICAgICAgICAgICA8TW91bnRhaW4gY2xhc3NOYW1lPVwiaC00IHctNCB0ZXh0LWdyYXktNTAwXCIgLz5cclxuICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1zbSB0ZXh0LWdyYXktNjAwXCI+RWxldmF0aW9uPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRleHQtMnhsIGZvbnQtYm9sZFwiPntNYXRoLnJvdW5kKGxhc3RBY3Rpdml0eS50b3RhbF9lbGV2YXRpb25fZ2FpbiB8fCAwKX1tPC9kaXY+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgey8qIEFkZGl0aW9uYWwgU3RhdHMgKi99XHJcbiAgICAgICAgICAgIHsobGFzdEFjdGl2aXR5LmF2ZXJhZ2VfaGVhcnRyYXRlIHx8IGxhc3RBY3Rpdml0eS5hdmVyYWdlX3dhdHRzKSAmJiAoXHJcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJncmlkIGdyaWQtY29scy0yIGdhcC00XCI+XHJcbiAgICAgICAgICAgICAgICB7bGFzdEFjdGl2aXR5LmF2ZXJhZ2VfaGVhcnRyYXRlICYmIChcclxuICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJiZy1yZWQtNTAgcC00IHJvdW5kZWQtbGcgYm9yZGVyIGJvcmRlci1yZWQtMTAwXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBtYi0yXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICA8SGVhcnQgY2xhc3NOYW1lPVwiaC00IHctNCB0ZXh0LXJlZC01MDBcIiAvPlxyXG4gICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1zbSB0ZXh0LXJlZC03MDBcIj5IZWFydCBSYXRlPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC14bCBmb250LWJvbGQgdGV4dC1yZWQtODAwXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICB7TWF0aC5yb3VuZChsYXN0QWN0aXZpdHkuYXZlcmFnZV9oZWFydHJhdGUpfSBicG1cclxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICB7bGFzdEFjdGl2aXR5Lm1heF9oZWFydHJhdGUgJiYgKFxyXG4gICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtcmVkLTYwMFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICBNYXg6IHtNYXRoLnJvdW5kKGxhc3RBY3Rpdml0eS5tYXhfaGVhcnRyYXRlKX0gYnBtXHJcbiAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICl9XHJcblxyXG4gICAgICAgICAgICAgICAge2xhc3RBY3Rpdml0eS5hdmVyYWdlX3dhdHRzICYmIChcclxuICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJiZy15ZWxsb3ctNTAgcC00IHJvdW5kZWQtbGcgYm9yZGVyIGJvcmRlci15ZWxsb3ctMTAwXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBtYi0yXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICA8WmFwIGNsYXNzTmFtZT1cImgtNCB3LTQgdGV4dC15ZWxsb3ctNTAwXCIgLz5cclxuICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC15ZWxsb3ctNzAwXCI+UG93ZXI8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LXhsIGZvbnQtYm9sZCB0ZXh0LXllbGxvdy04MDBcIj5cclxuICAgICAgICAgICAgICAgICAgICAgIHtNYXRoLnJvdW5kKGxhc3RBY3Rpdml0eS5hdmVyYWdlX3dhdHRzKX1XXHJcbiAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAge2xhc3RBY3Rpdml0eS5tYXhfd2F0dHMgJiYgKFxyXG4gICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQteWVsbG93LTYwMFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICBNYXg6IHtNYXRoLnJvdW5kKGxhc3RBY3Rpdml0eS5tYXhfd2F0dHMpfVdcclxuICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICl9XHJcbiAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgKX1cclxuICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgKX1cclxuICAgICAgICAgIDwvVGFic0NvbnRlbnQ+XHJcblxyXG4gICAgICAgICAgPFRhYnNDb250ZW50IHZhbHVlPVwicGVyZm9ybWFuY2VcIiBjbGFzc05hbWU9XCJzcGFjZS15LTZcIj5cclxuICAgICAgICAgICAge2FjdGl2aXR5QW5hbHlzaXMgJiYgKFxyXG4gICAgICAgICAgICAgIDw+XHJcbiAgICAgICAgICAgICAgICB7LyogUGVyZm9ybWFuY2UgQ29tcGFyaXNvbiAqL31cclxuICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwic3BhY2UteS00XCI+XHJcbiAgICAgICAgICAgICAgICAgIDxoNCBjbGFzc05hbWU9XCJmb250LXNlbWlib2xkXCI+UGVyZm9ybWFuY2UgdnMgUHJldmlvdXMge2xhc3RBY3Rpdml0eS5zcG9ydF90eXBlfTwvaDQ+XHJcbiAgICAgICAgICAgICAgICAgIFxyXG4gICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImdyaWQgZ3JpZC1jb2xzLTEgbWQ6Z3JpZC1jb2xzLTIgZ2FwLTRcIj5cclxuICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImJnLWdyYXktNTAgcC00IHJvdW5kZWQtbGdcIj5cclxuICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIG1iLTJcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1zbSB0ZXh0LWdyYXktNjAwXCI+RGlzdGFuY2UgQ2hhbmdlPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICA8VHJlbmRpbmdVcCBjbGFzc05hbWU9e2BoLTQgdy00ICR7YWN0aXZpdHlBbmFseXNpcy5kaXN0YW5jZUltcHJvdmVtZW50ID49IDAgPyAndGV4dC1ncmVlbi01MDAnIDogJ3RleHQtcmVkLTUwMCd9YH0gLz5cclxuICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9e2B0ZXh0LWxnIGZvbnQtYm9sZCAke2FjdGl2aXR5QW5hbHlzaXMuZGlzdGFuY2VJbXByb3ZlbWVudCA+PSAwID8gJ3RleHQtZ3JlZW4tNjAwJyA6ICd0ZXh0LXJlZC02MDAnfWB9PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICB7YWN0aXZpdHlBbmFseXNpcy5kaXN0YW5jZUltcHJvdmVtZW50ID49IDAgPyAnKycgOiAnJ317Zm9ybWF0RGlzdGFuY2VXaXRoVW5pdHMoYWN0aXZpdHlBbmFseXNpcy5kaXN0YW5jZUltcHJvdmVtZW50KX1cclxuICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImJnLWdyYXktNTAgcC00IHJvdW5kZWQtbGdcIj5cclxuICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIG1iLTJcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1zbSB0ZXh0LWdyYXktNjAwXCI+UGFjZSBDaGFuZ2U8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIDxUcmVuZGluZ1VwIGNsYXNzTmFtZT17YGgtNCB3LTQgJHthY3Rpdml0eUFuYWx5c2lzLnBhY2VJbXByb3ZlbWVudCA+PSAwID8gJ3RleHQtZ3JlZW4tNTAwJyA6ICd0ZXh0LXJlZC01MDAnfWB9IC8+XHJcbiAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPXtgdGV4dC1sZyBmb250LWJvbGQgJHthY3Rpdml0eUFuYWx5c2lzLnBhY2VJbXByb3ZlbWVudCA+PSAwID8gJ3RleHQtZ3JlZW4tNjAwJyA6ICd0ZXh0LXJlZC02MDAnfWB9PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICB7YWN0aXZpdHlBbmFseXNpcy5wYWNlSW1wcm92ZW1lbnQgPj0gMCA/ICdGYXN0ZXInIDogJ1Nsb3dlcid9IGJ5IHtNYXRoLmFicyhhY3Rpdml0eUFuYWx5c2lzLnBhY2VJbXByb3ZlbWVudCkudG9GaXhlZCgwKX1zL2ttXHJcbiAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICAgICAgICB7LyogRWZmb3J0IExldmVsICovfVxyXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzcGFjZS15LTNcIj5cclxuICAgICAgICAgICAgICAgICAgPGg0IGNsYXNzTmFtZT1cImZvbnQtc2VtaWJvbGRcIj5FZmZvcnQgTGV2ZWw8L2g0PlxyXG4gICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktMlwiPlxyXG4gICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBqdXN0aWZ5LWJldHdlZW4gdGV4dC1zbVwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgPHNwYW4+RXN0aW1hdGVkIEVmZm9ydDwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgICAgIDxzcGFuPntNYXRoLnJvdW5kKGFjdGl2aXR5QW5hbHlzaXMuZWZmb3J0TGV2ZWwpfSU8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgPFByb2dyZXNzIHZhbHVlPXthY3Rpdml0eUFuYWx5c2lzLmVmZm9ydExldmVsfSBjbGFzc05hbWU9XCJoLTJcIiAvPlxyXG4gICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC14cyB0ZXh0LWdyYXktNTAwXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICBCYXNlZCBvbiB5b3VyIGF2ZXJhZ2Ugc3BlZWQgcmVsYXRpdmUgdG8gZXN0aW1hdGVkIG1heGltdW1cclxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICA8Lz5cclxuICAgICAgICAgICAgKX1cclxuICAgICAgICAgIDwvVGFic0NvbnRlbnQ+XHJcblxyXG4gICAgICAgICAgPFRhYnNDb250ZW50IHZhbHVlPVwiaW5zaWdodHNcIiBjbGFzc05hbWU9XCJzcGFjZS15LTZcIj5cclxuICAgICAgICAgICAge2FjdGl2aXR5QW5hbHlzaXMgJiYgKFxyXG4gICAgICAgICAgICAgIDw+XHJcbiAgICAgICAgICAgICAgICB7LyogQWN0aXZpdHkgSW5zaWdodHMgKi99XHJcbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktNFwiPlxyXG4gICAgICAgICAgICAgICAgICA8aDQgY2xhc3NOYW1lPVwiZm9udC1zZW1pYm9sZFwiPkFjdGl2aXR5IEluc2lnaHRzPC9oND5cclxuICAgICAgICAgICAgICAgICAgXHJcbiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ3JpZCBnYXAtNFwiPlxyXG4gICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYmctYmx1ZS01MCBwLTQgcm91bmRlZC1sZyBib3JkZXIgYm9yZGVyLWJsdWUtMTAwXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIG1iLTJcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgPFRhcmdldCBjbGFzc05hbWU9XCJoLTQgdy00IHRleHQtYmx1ZS01MDBcIiAvPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJmb250LW1lZGl1bSB0ZXh0LWJsdWUtODAwXCI+QWN0aXZpdHkgU3VtbWFyeTwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1zbSB0ZXh0LWJsdWUtNzAwXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIFRoaXMgd2FzIHlvdXIge2FjdGl2aXR5QW5hbHlzaXMudG90YWxBY3Rpdml0aWVzT2ZUeXBlID09PSAxID8gJ2ZpcnN0JyA6IGAke2FjdGl2aXR5QW5hbHlzaXMudG90YWxBY3Rpdml0aWVzT2ZUeXBlfSR7Z2V0T3JkaW5hbFN1ZmZpeChhY3Rpdml0eUFuYWx5c2lzLnRvdGFsQWN0aXZpdGllc09mVHlwZSl9YH0ge2xhc3RBY3Rpdml0eS5zcG9ydF90eXBlLnRvTG93ZXJDYXNlKCl9IGFjdGl2aXR5LlxyXG4gICAgICAgICAgICAgICAgICAgICAgICB7YWN0aXZpdHlBbmFseXNpcy5kaXN0YW5jZUltcHJvdmVtZW50ID4gMTAwMCAmJiAnIEdyZWF0IGRpc3RhbmNlIGltcHJvdmVtZW50ISd9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIHthY3Rpdml0eUFuYWx5c2lzLnBhY2VJbXByb3ZlbWVudCA+IDEwICYmICcgTmljZSBwYWNlIGltcHJvdmVtZW50ISd9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIHthY3Rpdml0eUFuYWx5c2lzLmlzUGVyc29uYWxCZXN0ICYmICcgVGhpcyBpcyBhIG5ldyBwZXJzb25hbCBiZXN0IGZvciBkaXN0YW5jZSEnfVxyXG4gICAgICAgICAgICAgICAgICAgICAgPC9wPlxyXG4gICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImJnLWdyZWVuLTUwIHAtNCByb3VuZGVkLWxnIGJvcmRlciBib3JkZXItZ3JlZW4tMTAwXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIG1iLTJcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgPFRyb3BoeSBjbGFzc05hbWU9XCJoLTQgdy00IHRleHQtZ3JlZW4tNTAwXCIgLz5cclxuICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiZm9udC1tZWRpdW0gdGV4dC1ncmVlbi04MDBcIj5SZWNvbW1lbmRhdGlvbnM8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgIDx1bCBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtZ3JlZW4tNzAwIHNwYWNlLXktMVwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICB7YWN0aXZpdHlBbmFseXNpcy5lZmZvcnRMZXZlbCA+IDgwICYmIChcclxuICAgICAgICAgICAgICAgICAgICAgICAgICA8bGk+4oCiIENvbnNpZGVyIGEgcmVjb3ZlcnkgZGF5IGFmdGVyIHRoaXMgaGlnaC1pbnRlbnNpdHkgc2Vzc2lvbjwvbGk+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIHthY3Rpdml0eUFuYWx5c2lzLmVmZm9ydExldmVsIDwgNTAgJiYgKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIDxsaT7igKIgVGhpcyB3YXMgYSBnb29kIHJlY292ZXJ5L2Vhc3kgcGFjZSBzZXNzaW9uPC9saT5cclxuICAgICAgICAgICAgICAgICAgICAgICAgKX1cclxuICAgICAgICAgICAgICAgICAgICAgICAge2FjdGl2aXR5QW5hbHlzaXMuZGlzdGFuY2VJbXByb3ZlbWVudCA+IDIwMDAgJiYgKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgIDxsaT7igKIgR3JlYXQgZGlzdGFuY2UgaW5jcmVhc2UhIE1vbml0b3IgaG93IHlvdSBmZWVsIGZvciByZWNvdmVyeTwvbGk+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIHtsYXN0QWN0aXZpdHkudG90YWxfZWxldmF0aW9uX2dhaW4gJiYgbGFzdEFjdGl2aXR5LnRvdGFsX2VsZXZhdGlvbl9nYWluID4gNTAwICYmIChcclxuICAgICAgICAgICAgICAgICAgICAgICAgICA8bGk+4oCiIFNvbGlkIGVsZXZhdGlvbiBnYWluIC0gZ3JlYXQgZm9yIGJ1aWxkaW5nIHN0cmVuZ3RoPC9saT5cclxuICAgICAgICAgICAgICAgICAgICAgICAgKX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgPGxpPuKAoiBLZWVwIHVwIHRoZSBjb25zaXN0ZW50IHRyYWluaW5nITwvbGk+XHJcbiAgICAgICAgICAgICAgICAgICAgICA8L3VsPlxyXG4gICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICAgIHsvKiBSZWNvdmVyeSBTdWdnZXN0aW9uICovfVxyXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJiZy1vcmFuZ2UtNTAgcC00IHJvdW5kZWQtbGcgYm9yZGVyIGJvcmRlci1vcmFuZ2UtMTAwXCI+XHJcbiAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgbWItMlwiPlxyXG4gICAgICAgICAgICAgICAgICAgIDxDbG9jayBjbGFzc05hbWU9XCJoLTQgdy00IHRleHQtb3JhbmdlLTUwMFwiIC8+XHJcbiAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiZm9udC1tZWRpdW0gdGV4dC1vcmFuZ2UtODAwXCI+UmVjb3ZlcnkgVGltZTwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1vcmFuZ2UtNzAwXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgQmFzZWQgb24gdGhpcyBhY3Rpdml0eSZhcG9zO3MgaW50ZW5zaXR5LCBjb25zaWRlciB3YWl0aW5neycgJ31cclxuICAgICAgICAgICAgICAgICAgICB7YWN0aXZpdHlBbmFseXNpcy5lZmZvcnRMZXZlbCA+IDgwID8gJzI0LTQ4IGhvdXJzJyA6IFxyXG4gICAgICAgICAgICAgICAgICAgICBhY3Rpdml0eUFuYWx5c2lzLmVmZm9ydExldmVsID4gNjAgPyAnMTItMjQgaG91cnMnIDogJzYtMTIgaG91cnMnfXsnICd9XHJcbiAgICAgICAgICAgICAgICAgICAgYmVmb3JlIHlvdXIgbmV4dCBoaWdoLWludGVuc2l0eSBzZXNzaW9uLlxyXG4gICAgICAgICAgICAgICAgICA8L3A+XHJcbiAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICA8Lz5cclxuICAgICAgICAgICAgKX1cclxuICAgICAgICAgIDwvVGFic0NvbnRlbnQ+XHJcbiAgICAgICAgPC9UYWJzPlxyXG4gICAgICA8L0NhcmRDb250ZW50PlxyXG4gICAgPC9DYXJkPlxyXG4gIClcclxufVxyXG5cclxuLy8gSGVscGVyIGZ1bmN0aW9uIGZvciBvcmRpbmFsIG51bWJlcnNcclxuZnVuY3Rpb24gZ2V0T3JkaW5hbFN1ZmZpeChudW06IG51bWJlcik6IHN0cmluZyB7XHJcbiAgY29uc3QgaiA9IG51bSAlIDEwXHJcbiAgY29uc3QgayA9IG51bSAlIDEwMFxyXG4gIGlmIChqID09PSAxICYmIGsgIT09IDExKSByZXR1cm4gJ3N0J1xyXG4gIGlmIChqID09PSAyICYmIGsgIT09IDEyKSByZXR1cm4gJ25kJ1xyXG4gIGlmIChqID09PSAzICYmIGsgIT09IDEzKSByZXR1cm4gJ3JkJ1xyXG4gIHJldHVybiAndGgnXHJcbn0gIl0sIm5hbWVzIjpbIkxhc3RBY3Rpdml0eURlZXBEaXZlIiwidXNlcklkIiwiZGF0YSIsImFjdGl2aXRpZXMiLCJpc0xvYWRpbmciLCJlcnJvciIsInVzZVVzZXJBY3Rpdml0aWVzIiwicHJlZmVyZW5jZXMiLCJ1c2VVbml0UHJlZmVyZW5jZXMiLCJsYXN0QWN0aXZpdHkiLCJ1c2VNZW1vIiwibGVuZ3RoIiwic29ydCIsImEiLCJiIiwiRGF0ZSIsInN0YXJ0X2RhdGUiLCJnZXRUaW1lIiwiYWN0aXZpdHlBbmFseXNpcyIsInNhbWVUeXBlQWN0aXZpdGllcyIsImZpbHRlciIsInNwb3J0X3R5cGUiLCJwcmV2aW91c0FjdGl2aXR5IiwiYXZnRGlzdGFuY2UiLCJyZWR1Y2UiLCJzdW0iLCJkaXN0YW5jZSIsImN1cnJlbnRQYWNlIiwibW92aW5nX3RpbWUiLCJwYWNlSW1wcm92ZW1lbnQiLCJkaXN0YW5jZUltcHJvdmVtZW50IiwiYXZnU3BlZWQiLCJtYXhTcGVlZCIsIm1heF9zcGVlZCIsImVmZm9ydExldmVsIiwiTWF0aCIsIm1pbiIsImlzUGVyc29uYWxCZXN0IiwidG90YWxBY3Rpdml0aWVzT2ZUeXBlIiwiZm9ybWF0RGlzdGFuY2VXaXRoVW5pdHMiLCJtZXRlcnMiLCJmb3JtYXREaXN0YW5jZSIsImZvcm1hdER1cmF0aW9uIiwic2Vjb25kcyIsImhvdXJzIiwiZmxvb3IiLCJtaW51dGVzIiwiZm9ybWF0UGFjZVdpdGhVbml0cyIsInNlY29uZHNQZXJLbSIsImZvcm1hdFBhY2UiLCJwYWNlIiwiZm9ybWF0RGF0ZSIsImRhdGVTdHJpbmciLCJkYXRlIiwibm93IiwiZGlmZlRpbWUiLCJhYnMiLCJkaWZmRGF5cyIsInRvTG9jYWxlRGF0ZVN0cmluZyIsIm1vbnRoIiwiZGF5IiwiZ2V0QWN0aXZpdHlJY29uIiwic3BvcnRUeXBlIiwidG9Mb3dlckNhc2UiLCJnZXRBY3Rpdml0eUNvbG9yIiwiQ2FyZCIsIkNhcmRIZWFkZXIiLCJDYXJkVGl0bGUiLCJDYXJkRGVzY3JpcHRpb24iLCJDYXJkQ29udGVudCIsImRpdiIsImNsYXNzTmFtZSIsIkFjdGl2aXR5SWNvbiIsInAiLCJzcGFuIiwiTGluayIsImhyZWYiLCJzY3JvbGwiLCJCdXR0b24iLCJ2YXJpYW50Iiwic2l6ZSIsIkFycm93UmlnaHQiLCJUYWJzIiwiZGVmYXVsdFZhbHVlIiwiVGFic0xpc3QiLCJUYWJzVHJpZ2dlciIsInZhbHVlIiwiVGFic0NvbnRlbnQiLCJoMyIsIm5hbWUiLCJCYWRnZSIsIlRyb3BoeSIsIkNhbGVuZGFyIiwiTWFwUGluIiwiVGltZXIiLCJDbG9jayIsIk1vdW50YWluIiwicm91bmQiLCJ0b3RhbF9lbGV2YXRpb25fZ2FpbiIsImF2ZXJhZ2VfaGVhcnRyYXRlIiwiYXZlcmFnZV93YXR0cyIsIkhlYXJ0IiwibWF4X2hlYXJ0cmF0ZSIsIlphcCIsIm1heF93YXR0cyIsImg0IiwiVHJlbmRpbmdVcCIsInRvRml4ZWQiLCJQcm9ncmVzcyIsIlRhcmdldCIsImdldE9yZGluYWxTdWZmaXgiLCJ1bCIsImxpIiwibnVtIiwiaiIsImsiXSwibWFwcGluZ3MiOiJBQUFBOzs7OzsrQkErQmdCQTs7O2VBQUFBOzs7O3NCQTdCMEQ7dUJBQ3BEOzBCQUNHO3NCQUNnQzt3QkFDbEM7bUNBQ1c7b0NBQ0M7dUJBQ1E7dUJBQ25COzZEQUNQOzZCQWNWOzs7Ozs7QUFNQSxTQUFTQSxxQkFBcUIsRUFBRUMsTUFBTSxFQUE2QjtJQUN4RSxNQUFNLEVBQUVDLE1BQU1DLFVBQVUsRUFBRUMsU0FBUyxFQUFFQyxLQUFLLEVBQUUsR0FBR0MsSUFBQUEsb0NBQWlCLEVBQUNMO0lBQ2pFLE1BQU0sRUFBRU0sV0FBVyxFQUFFLEdBQUdDLElBQUFBLHNDQUFrQjtJQUUxQyxNQUFNQyxlQUFlQyxJQUFBQSxj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

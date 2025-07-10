@@ -1,0 +1,344 @@
+276530ac308c29f2640ed98414f7b4a2
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "StravaConnectionStatus", {
+    enumerable: true,
+    get: function() {
+        return StravaConnectionStatus;
+    }
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _button = require("../ui/button");
+const _badge = require("../ui/badge");
+const _card = require("../ui/card");
+const _alert = require("../ui/alert");
+const _lucidereact = require("lucide-react");
+const _useStravaConnection = require("../../hooks/strava/useStravaConnection");
+const _usestravaauth = require("../../hooks/use-strava-auth");
+const _reactquery = require("@tanstack/react-query");
+const _AuthProvider = require("../../providers/AuthProvider");
+const _strava = require("../../lib/strava");
+const _react = require("react");
+const _navigation = require("next/navigation");
+function StravaConnectionStatus() {
+    const searchParams = (0, _navigation.useSearchParams)();
+    const router = (0, _navigation.useRouter)();
+    const queryClient = (0, _reactquery.useQueryClient)();
+    const { user } = (0, _AuthProvider.useAuth)();
+    const { connectionStatus, isLoading: isCheckingConnection, error: connectionError, disconnect } = (0, _useStravaConnection.useStravaConnection)();
+    const { mutate: exchangeToken, isPending: isAuthing } = (0, _usestravaauth.useStravaAuth)();
+    const [isDisconnecting, setIsDisconnecting] = (0, _react.useState)(false);
+    const [authError, setAuthError] = (0, _react.useState)(null);
+    const [authSuccess, setAuthSuccess] = (0, _react.useState)(false);
+    // Handle OAuth callback
+    (0, _react.useEffect)(()=>{
+        const code = searchParams.get('code');
+        const error = searchParams.get('error');
+        const errorDescription = searchParams.get('error_description');
+        console.log('🔍 OAuth check:', {
+            code: !!code,
+            error,
+            errorDescription
+        });
+        // Handle OAuth errors from Strava
+        if (error) {
+            console.error('❌ OAuth error from Strava:', {
+                error,
+                errorDescription
+            });
+            setAuthError(errorDescription || (error === 'access_denied' ? 'Access denied by user' : 'Authorization failed'));
+            // Clean up URL parameters
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.delete('code');
+            newUrl.searchParams.delete('error');
+            newUrl.searchParams.delete('error_description');
+            newUrl.searchParams.delete('state');
+            newUrl.searchParams.delete('scope');
+            router.replace(newUrl.pathname + newUrl.search, {
+                scroll: false
+            });
+            return;
+        }
+        // Handle successful OAuth code
+        if (code && !connectionStatus?.connected && !isAuthing) {
+            console.log('🔄 Processing OAuth code...');
+            setAuthError(null);
+            // Clear URL parameters immediately to prevent re-processing
+            const newUrl = new URL(window.location.href);
+            const cleanedUrl = newUrl.pathname + newUrl.search.replace(/[?&]code=[^&]*/g, '').replace(/[?&]error=[^&]*/g, '').replace(/[?&]error_description=[^&]*/g, '').replace(/[?&]state=[^&]*/g, '').replace(/[?&]scope=[^&]*/g, '').replace(/^&/, '?').replace(/[?&]$/, '');
+            router.replace(cleanedUrl, {
+                scroll: false
+            });
+            exchangeToken(code, {
+                onSuccess: async (data)=>{
+                    console.log('✅ Successfully connected to Strava:', data);
+                    setAuthSuccess(true);
+                    // Invalidate queries to ensure fresh data
+                    await queryClient.invalidateQueries({
+                        queryKey: [
+                            'strava',
+                            'connection'
+                        ]
+                    });
+                    // Clear success message after delay
+                    setTimeout(()=>{
+                        setAuthSuccess(false);
+                    }, 3000);
+                },
+                onError: (error)=>{
+                    console.error('❌ Failed to connect to Strava:', error);
+                    let errorMessage = 'Failed to connect to Strava';
+                    if (error instanceof Error) {
+                        if (error.message.includes('401')) {
+                            errorMessage = 'Invalid authorization code. Please try connecting again.';
+                        } else if (error.message.includes('403')) {
+                            errorMessage = 'Access forbidden. Please check your Strava permissions.';
+                        } else if (error.message.includes('429')) {
+                            errorMessage = 'Too many requests. Please wait a moment and try again.';
+                        } else if (error.message.includes('500')) {
+                            errorMessage = 'Server error. Please try again later.';
+                        } else {
+                            errorMessage = error.message;
+                        }
+                    }
+                    setAuthError(errorMessage);
+                }
+            });
+        }
+    }, [
+        searchParams,
+        connectionStatus?.connected,
+        isAuthing,
+        exchangeToken,
+        router,
+        queryClient,
+        user?.id
+    ]);
+    const handleConnect = ()=>{
+        window.location.href = (0, _strava.getStravaAuthUrl)(window.location.origin);
+    };
+    const handleDisconnect = async ()=>{
+        setIsDisconnecting(true);
+        try {
+            await disconnect();
+        } catch (error) {
+            console.error('Disconnect failed:', error);
+        } finally{
+            setIsDisconnecting(false);
+        }
+    };
+    if (isCheckingConnection || isAuthing) {
+        return /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.Card, {
+            children: [
+                /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardHeader, {
+                    children: /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.CardTitle, {
+                        className: "flex items-center gap-2",
+                        children: [
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Loader2, {
+                                className: "h-5 w-5 animate-spin"
+                            }),
+                            "Strava Connection"
+                        ]
+                    })
+                }),
+                /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardContent, {
+                    children: /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                        className: "text-sm text-muted-foreground",
+                        children: isAuthing ? 'Connecting to Strava...' : 'Checking connection status...'
+                    })
+                })
+            ]
+        });
+    }
+    return /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.Card, {
+        children: [
+            /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.CardHeader, {
+                children: [
+                    /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.CardTitle, {
+                        className: "flex items-center gap-2",
+                        children: [
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                className: "h-6 w-6 bg-orange-500 rounded flex items-center justify-center",
+                                children: /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+                                    className: "text-white font-bold text-xs",
+                                    children: "S"
+                                })
+                            }),
+                            "Strava Connection"
+                        ]
+                    }),
+                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_card.CardDescription, {
+                        children: "Connect your Strava account to sync activities and track your training progress."
+                    })
+                ]
+            }),
+            /*#__PURE__*/ (0, _jsxruntime.jsxs)(_card.CardContent, {
+                className: "space-y-4",
+                children: [
+                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                        className: "flex items-center justify-between p-4 rounded-lg border",
+                        children: [
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                                className: "flex items-center gap-3",
+                                children: connectionStatus?.connected ? /*#__PURE__*/ (0, _jsxruntime.jsxs)(_jsxruntime.Fragment, {
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.CheckCircle2, {
+                                            className: "h-5 w-5 text-green-500"
+                                        }),
+                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                                    className: "font-medium",
+                                                    children: "Connected"
+                                                }),
+                                                connectionStatus.athlete && /*#__PURE__*/ (0, _jsxruntime.jsxs)("p", {
+                                                    className: "text-sm text-muted-foreground",
+                                                    children: [
+                                                        connectionStatus.athlete.firstname,
+                                                        " ",
+                                                        connectionStatus.athlete.lastname
+                                                    ]
+                                                })
+                                            ]
+                                        })
+                                    ]
+                                }) : /*#__PURE__*/ (0, _jsxruntime.jsxs)(_jsxruntime.Fragment, {
+                                    children: [
+                                        /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.AlertCircle, {
+                                            className: "h-5 w-5 text-orange-500"
+                                        }),
+                                        /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                                    className: "font-medium",
+                                                    children: "Not Connected"
+                                                }),
+                                                /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                                    className: "text-sm text-muted-foreground",
+                                                    children: "Connect to start syncing your activities"
+                                                })
+                                            ]
+                                        })
+                                    ]
+                                })
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_badge.Badge, {
+                                variant: connectionStatus?.connected ? "default" : "secondary",
+                                children: connectionStatus?.connected ? "Active" : "Disconnected"
+                            })
+                        ]
+                    }),
+                    authSuccess && /*#__PURE__*/ (0, _jsxruntime.jsxs)(_alert.Alert, {
+                        children: [
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.CheckCircle2, {
+                                className: "h-4 w-4"
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_alert.AlertDescription, {
+                                children: "Successfully connected to Strava! Your account is now linked."
+                            })
+                        ]
+                    }),
+                    (connectionError || authError) && /*#__PURE__*/ (0, _jsxruntime.jsxs)(_alert.Alert, {
+                        children: [
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.AlertCircle, {
+                                className: "h-4 w-4"
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_alert.AlertDescription, {
+                                children: authError || connectionError
+                            })
+                        ]
+                    }),
+                    /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                        className: "flex gap-2",
+                        children: connectionStatus?.connected ? /*#__PURE__*/ (0, _jsxruntime.jsx)(_button.Button, {
+                            variant: "outline",
+                            onClick: handleDisconnect,
+                            disabled: isDisconnecting,
+                            className: "w-full",
+                            children: isDisconnecting ? /*#__PURE__*/ (0, _jsxruntime.jsxs)(_jsxruntime.Fragment, {
+                                children: [
+                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Loader2, {
+                                        className: "h-4 w-4 mr-2 animate-spin"
+                                    }),
+                                    "Disconnecting..."
+                                ]
+                            }) : /*#__PURE__*/ (0, _jsxruntime.jsxs)(_jsxruntime.Fragment, {
+                                children: [
+                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Unlink, {
+                                        className: "h-4 w-4 mr-2"
+                                    }),
+                                    "Disconnect"
+                                ]
+                            })
+                        }) : /*#__PURE__*/ (0, _jsxruntime.jsxs)(_button.Button, {
+                            onClick: handleConnect,
+                            className: "w-full",
+                            children: [
+                                /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Link2, {
+                                    className: "h-4 w-4 mr-2"
+                                }),
+                                "Connect to Strava"
+                            ]
+                        })
+                    }),
+                    connectionStatus?.connected && connectionStatus.expiresAt && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                        className: "text-xs text-muted-foreground space-y-1",
+                        children: [
+                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                className: "flex items-center gap-2",
+                                children: [
+                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.Calendar, {
+                                        className: "h-3 w-3"
+                                    }),
+                                    "Token expires: ",
+                                    new Date(connectionStatus.expiresAt).toLocaleDateString()
+                                ]
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                                className: "flex items-center gap-2",
+                                children: [
+                                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.User, {
+                                        className: "h-3 w-3"
+                                    }),
+                                    "Athlete ID: ",
+                                    connectionStatus.athlete?.id
+                                ]
+                            })
+                        ]
+                    }),
+                    !connectionStatus?.connected && /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                        className: "text-sm text-muted-foreground",
+                        children: [
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                                className: "font-medium mb-2",
+                                children: "Benefits of connecting:"
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsxs)("ul", {
+                                className: "space-y-1 text-xs",
+                                children: [
+                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("li", {
+                                        children: "• Automatically sync your activities"
+                                    }),
+                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("li", {
+                                        children: "• Track performance metrics over time"
+                                    }),
+                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("li", {
+                                        children: "• Analyze training patterns and trends"
+                                    }),
+                                    /*#__PURE__*/ (0, _jsxruntime.jsx)("li", {
+                                        children: "• Get detailed insights on your progress"
+                                    })
+                                ]
+                            })
+                        ]
+                    })
+                ]
+            })
+        ]
+    });
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIkM6XFxVc2Vyc1xcdGlhbWFcXERlc2t0b3BcXENvZGluZ1xcZW5kdXJvcmV2YW1wXFxjb21wb25lbnRzXFxzdHJhdmFcXFN0cmF2YUNvbm5lY3Rpb25TdGF0dXMudHN4Il0sInNvdXJjZXNDb250ZW50IjpbIid1c2UgY2xpZW50JztcclxuXHJcbmltcG9ydCB7IEJ1dHRvbiB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9idXR0b24nO1xyXG5pbXBvcnQgeyBCYWRnZSB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9iYWRnZSc7XHJcbmltcG9ydCB7IENhcmQsIENhcmRDb250ZW50LCBDYXJkRGVzY3JpcHRpb24sIENhcmRIZWFkZXIsIENhcmRUaXRsZSB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9jYXJkJztcclxuaW1wb3J0IHsgQWxlcnQsIEFsZXJ0RGVzY3JpcHRpb24gfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvYWxlcnQnO1xyXG5pbXBvcnQgeyBMb2FkZXIyLCBMaW5rMiwgVW5saW5rLCBVc2VyLCBDYWxlbmRhciwgQ2hlY2tDaXJjbGUyLCBBbGVydENpcmNsZSB9IGZyb20gJ2x1Y2lkZS1yZWFjdCc7XHJcbmltcG9ydCB7IHVzZVN0cmF2YUNvbm5lY3Rpb24gfSBmcm9tICdAL2hvb2tzL3N0cmF2YS91c2VTdHJhdmFDb25uZWN0aW9uJztcclxuaW1wb3J0IHsgdXNlU3RyYXZhQXV0aCB9IGZyb20gJ0AvaG9va3MvdXNlLXN0cmF2YS1hdXRoJztcclxuaW1wb3J0IHsgdXNlUXVlcnlDbGllbnQgfSBmcm9tICdAdGFuc3RhY2svcmVhY3QtcXVlcnknO1xyXG5pbXBvcnQgeyB1c2VBdXRoIH0gZnJvbSAnQC9wcm92aWRlcnMvQXV0aFByb3ZpZGVyJztcclxuaW1wb3J0IHsgZ2V0U3RyYXZhQXV0aFVybCB9IGZyb20gJ0AvbGliL3N0cmF2YSc7XHJcbmltcG9ydCB7IHVzZVN0YXRlLCB1c2VFZmZlY3QgfSBmcm9tICdyZWFjdCc7XHJcbmltcG9ydCB7IHVzZVNlYXJjaFBhcmFtcywgdXNlUm91dGVyIH0gZnJvbSAnbmV4dC9uYXZpZ2F0aW9uJztcclxuXHJcbmV4cG9ydCBmdW5jdGlvbiBTdHJhdmFDb25uZWN0aW9uU3RhdHVzKCkge1xyXG4gIGNvbnN0IHNlYXJjaFBhcmFtcyA9IHVzZVNlYXJjaFBhcmFtcygpO1xyXG4gIGNvbnN0IHJvdXRlciA9IHVzZVJvdXRlcigpO1xyXG4gIGNvbnN0IHF1ZXJ5Q2xpZW50ID0gdXNlUXVlcnlDbGllbnQoKTtcclxuICBjb25zdCB7IHVzZXIgfSA9IHVzZUF1dGgoKTtcclxuICBjb25zdCB7IGNvbm5lY3Rpb25TdGF0dXMsIGlzTG9hZGluZzogaXNDaGVja2luZ0Nvbm5lY3Rpb24sIGVycm9yOiBjb25uZWN0aW9uRXJyb3IsIGRpc2Nvbm5lY3QgfSA9IHVzZVN0cmF2YUNvbm5lY3Rpb24oKTtcclxuICBjb25zdCB7IG11dGF0ZTogZXhjaGFuZ2VUb2tlbiwgaXNQZW5kaW5nOiBpc0F1dGhpbmcgfSA9IHVzZVN0cmF2YUF1dGgoKTtcclxuICBjb25zdCBbaXNEaXNjb25uZWN0aW5nLCBzZXRJc0Rpc2Nvbm5lY3RpbmddID0gdXNlU3RhdGUoZmFsc2UpO1xyXG4gIGNvbnN0IFthdXRoRXJyb3IsIHNldEF1dGhFcnJvcl0gPSB1c2VTdGF0ZTxzdHJpbmcgfCBudWxsPihudWxsKTtcclxuICBjb25zdCBbYXV0aFN1Y2Nlc3MsIHNldEF1dGhTdWNjZXNzXSA9IHVzZVN0YXRlKGZhbHNlKTtcclxuXHJcbiAgLy8gSGFuZGxlIE9BdXRoIGNhbGxiYWNrXHJcbiAgdXNlRWZmZWN0KCgpID0+IHtcclxuICAgIGNvbnN0IGNvZGUgPSBzZWFyY2hQYXJhbXMuZ2V0KCdjb2RlJyk7XHJcbiAgICBjb25zdCBlcnJvciA9IHNlYXJjaFBhcmFtcy5nZXQoJ2Vycm9yJyk7XHJcbiAgICBjb25zdCBlcnJvckRlc2NyaXB0aW9uID0gc2VhcmNoUGFyYW1zLmdldCgnZXJyb3JfZGVzY3JpcHRpb24nKTtcclxuXHJcbiAgICBjb25zb2xlLmxvZygn8J+UjSBPQXV0aCBjaGVjazonLCB7IGNvZGU6ICEhY29kZSwgZXJyb3IsIGVycm9yRGVzY3JpcHRpb24gfSk7XHJcblxyXG4gICAgLy8gSGFuZGxlIE9BdXRoIGVycm9ycyBmcm9tIFN0cmF2YVxyXG4gICAgaWYgKGVycm9yKSB7XHJcbiAgICAgIGNvbnNvbGUuZXJyb3IoJ+KdjCBPQXV0aCBlcnJvciBmcm9tIFN0cmF2YTonLCB7IGVycm9yLCBlcnJvckRlc2NyaXB0aW9uIH0pO1xyXG4gICAgICBzZXRBdXRoRXJyb3IoXHJcbiAgICAgICAgZXJyb3JEZXNjcmlwdGlvbiB8fCBcclxuICAgICAgICAoZXJyb3IgPT09ICdhY2Nlc3NfZGVuaWVkJyA/ICdBY2Nlc3MgZGVuaWVkIGJ5IHVzZXInIDogJ0F1dGhvcml6YXRpb24gZmFpbGVkJylcclxuICAgICAgKTtcclxuICAgICAgXHJcbiAgICAgIC8vIENsZWFuIHVwIFVSTCBwYXJhbWV0ZXJzXHJcbiAgICAgIGNvbnN0IG5ld1VybCA9IG5ldyBVUkwod2luZG93LmxvY2F0aW9uLmhyZWYpO1xyXG4gICAgICBuZXdVcmwuc2VhcmNoUGFyYW1zLmRlbGV0ZSgnY29kZScpO1xyXG4gICAgICBuZXdVcmwuc2VhcmNoUGFyYW1zLmRlbGV0ZSgnZXJyb3InKTtcclxuICAgICAgbmV3VXJsLnNlYXJjaFBhcmFtcy5kZWxldGUoJ2Vycm9yX2Rlc2NyaXB0aW9uJyk7XHJcbiAgICAgIG5ld1VybC5zZWFyY2hQYXJhbXMuZGVsZXRlKCdzdGF0ZScpO1xyXG4gICAgICBuZXdVcmwuc2VhcmNoUGFyYW1zLmRlbGV0ZSgnc2NvcGUnKTtcclxuICAgICAgcm91dGVyLnJlcGxhY2UobmV3VXJsLnBhdGhuYW1lICsgbmV3VXJsLnNlYXJjaCwgeyBzY3JvbGw6IGZhbHNlIH0pO1xyXG4gICAgICByZXR1cm47XHJcbiAgICB9XHJcblxyXG4gICAgLy8gSGFuZGxlIHN1Y2Nlc3NmdWwgT0F1dGggY29kZVxyXG4gICAgaWYgKGNvZGUgJiYgIWNvbm5lY3Rpb25TdGF0dXM/LmNvbm5lY3RlZCAmJiAhaXNBdXRoaW5nKSB7XHJcbiAgICAgIGNvbnNvbGUubG9nKCfwn5SEIFByb2Nlc3NpbmcgT0F1dGggY29kZS4uLicpO1xyXG4gICAgICBzZXRBdXRoRXJyb3IobnVsbCk7XHJcbiAgICAgIFxyXG4gICAgICAvLyBDbGVhciBVUkwgcGFyYW1ldGVycyBpbW1lZGlhdGVseSB0byBwcmV2ZW50IHJlLXByb2Nlc3NpbmdcclxuICAgICAgY29uc3QgbmV3VXJsID0gbmV3IFVSTCh3aW5kb3cubG9jYXRpb24uaHJlZik7XHJcbiAgICAgIGNvbnN0IGNsZWFuZWRVcmwgPSBuZXdVcmwucGF0aG5hbWUgKyBuZXdVcmwuc2VhcmNoLnJlcGxhY2UoL1s/Jl1jb2RlPVteJl0qL2csICcnKS5yZXBsYWNlKC9bPyZdZXJyb3I9W14mXSovZywgJycpLnJlcGxhY2UoL1s/Jl1lcnJvcl9kZXNjcmlwdGlvbj1bXiZdKi9nLCAnJykucmVwbGFjZSgvWz8mXXN0YXRlPVteJl0qL2csICcnKS5yZXBsYWNlKC9bPyZdc2NvcGU9W14mXSovZywgJycpLnJlcGxhY2UoL14mLywgJz8nKS5yZXBsYWNlKC9bPyZdJC8sICcnKTtcclxuICAgICAgcm91dGVyLnJlcGxhY2UoY2xlYW5lZFVybCwgeyBzY3JvbGw6IGZhbHNlIH0pO1xyXG4gICAgICBcclxuICAgICAgZXhjaGFuZ2VUb2tlbihjb2RlLCB7XHJcbiAgICAgICAgb25TdWNjZXNzOiBhc3luYyAoZGF0YSkgPT4ge1xyXG4gICAgICAgICAgY29uc29sZS5sb2coJ+KchSBTdWNjZXNzZnVsbHkgY29ubmVjdGVkIHRvIFN0cmF2YTonLCBkYXRhKTtcclxuICAgICAgICAgIHNldEF1dGhTdWNjZXNzKHRydWUpO1xyXG4gICAgICAgICAgXHJcbiAgICAgICAgICAvLyBJbnZhbGlkYXRlIHF1ZXJpZXMgdG8gZW5zdXJlIGZyZXNoIGRhdGFcclxuICAgICAgICAgIGF3YWl0IHF1ZXJ5Q2xpZW50LmludmFsaWRhdGVRdWVyaWVzKHsgXHJcbiAgICAgICAgICAgIHF1ZXJ5S2V5OiBbJ3N0cmF2YScsICdjb25uZWN0aW9uJ10gXHJcbiAgICAgICAgICB9KTtcclxuICAgICAgICAgIFxyXG4gICAgICAgICAgLy8gQ2xlYXIgc3VjY2VzcyBtZXNzYWdlIGFmdGVyIGRlbGF5XHJcbiAgICAgICAgICBzZXRUaW1lb3V0KCgpID0+IHtcclxuICAgICAgICAgICAgc2V0QXV0aFN1Y2Nlc3MoZmFsc2UpO1xyXG4gICAgICAgICAgfSwgMzAwMCk7XHJcbiAgICAgICAgfSxcclxuICAgICAgICBvbkVycm9yOiAoZXJyb3IpID0+IHtcclxuICAgICAgICAgIGNvbnNvbGUuZXJyb3IoJ+KdjCBGYWlsZWQgdG8gY29ubmVjdCB0byBTdHJhdmE6JywgZXJyb3IpO1xyXG4gICAgICAgICAgXHJcbiAgICAgICAgICBsZXQgZXJyb3JNZXNzYWdlID0gJ0ZhaWxlZCB0byBjb25uZWN0IHRvIFN0cmF2YSc7XHJcbiAgICAgICAgICBpZiAoZXJyb3IgaW5zdGFuY2VvZiBFcnJvcikge1xyXG4gICAgICAgICAgICBpZiAoZXJyb3IubWVzc2FnZS5pbmNsdWRlcygnNDAxJykpIHtcclxuICAgICAgICAgICAgICBlcnJvck1lc3NhZ2UgPSAnSW52YWxpZCBhdXRob3JpemF0aW9uIGNvZGUuIFBsZWFzZSB0cnkgY29ubmVjdGluZyBhZ2Fpbi4nO1xyXG4gICAgICAgICAgICB9IGVsc2UgaWYgKGVycm9yLm1lc3NhZ2UuaW5jbHVkZXMoJzQwMycpKSB7XHJcbiAgICAgICAgICAgICAgZXJyb3JNZXNzYWdlID0gJ0FjY2VzcyBmb3JiaWRkZW4uIFBsZWFzZSBjaGVjayB5b3VyIFN0cmF2YSBwZXJtaXNzaW9ucy4nO1xyXG4gICAgICAgICAgICB9IGVsc2UgaWYgKGVycm9yLm1lc3NhZ2UuaW5jbHVkZXMoJzQyOScpKSB7XHJcbiAgICAgICAgICAgICAgZXJyb3JNZXNzYWdlID0gJ1RvbyBtYW55IHJlcXVlc3RzLiBQbGVhc2Ugd2FpdCBhIG1vbWVudCBhbmQgdHJ5IGFnYWluLic7XHJcbiAgICAgICAgICAgIH0gZWxzZSBpZiAoZXJyb3IubWVzc2FnZS5pbmNsdWRlcygnNTAwJykpIHtcclxuICAgICAgICAgICAgICBlcnJvck1lc3NhZ2UgPSAnU2VydmVyIGVycm9yLiBQbGVhc2UgdHJ5IGFnYWluIGxhdGVyLic7XHJcbiAgICAgICAgICAgIH0gZWxzZSB7XHJcbiAgICAgICAgICAgICAgZXJyb3JNZXNzYWdlID0gZXJyb3IubWVzc2FnZTtcclxuICAgICAgICAgICAgfVxyXG4gICAgICAgICAgfVxyXG4gICAgICAgICAgXHJcbiAgICAgICAgICBzZXRBdXRoRXJyb3IoZXJyb3JNZXNzYWdlKTtcclxuICAgICAgICB9XHJcbiAgICAgIH0pO1xyXG4gICAgfVxyXG4gIH0sIFtzZWFyY2hQYXJhbXMsIGNvbm5lY3Rpb25TdGF0dXM/LmNvbm5lY3RlZCwgaXNBdXRoaW5nLCBleGNoYW5nZVRva2VuLCByb3V0ZXIsIHF1ZXJ5Q2xpZW50LCB1c2VyPy5pZF0pO1xyXG5cclxuICBjb25zdCBoYW5kbGVDb25uZWN0ID0gKCkgPT4ge1xyXG4gICAgd2luZG93LmxvY2F0aW9uLmhyZWYgPSBnZXRTdHJhdmFBdXRoVXJsKHdpbmRvdy5sb2NhdGlvbi5vcmlnaW4pO1xyXG4gIH07XHJcblxyXG4gIGNvbnN0IGhhbmRsZURpc2Nvbm5lY3QgPSBhc3luYyAoKSA9PiB7XHJcbiAgICBzZXRJc0Rpc2Nvbm5lY3RpbmcodHJ1ZSk7XHJcbiAgICB0cnkge1xyXG4gICAgICBhd2FpdCBkaXNjb25uZWN0KCk7XHJcbiAgICB9IGNhdGNoIChlcnJvcikge1xyXG4gICAgICBjb25zb2xlLmVycm9yKCdEaXNjb25uZWN0IGZhaWxlZDonLCBlcnJvcik7XHJcbiAgICB9IGZpbmFsbHkge1xyXG4gICAgICBzZXRJc0Rpc2Nvbm5lY3RpbmcoZmFsc2UpO1xyXG4gICAgfVxyXG4gIH07XHJcblxyXG4gIGlmIChpc0NoZWNraW5nQ29ubmVjdGlvbiB8fCBpc0F1dGhpbmcpIHtcclxuICAgIHJldHVybiAoXHJcbiAgICAgIDxDYXJkPlxyXG4gICAgICAgIDxDYXJkSGVhZGVyPlxyXG4gICAgICAgICAgPENhcmRUaXRsZSBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMlwiPlxyXG4gICAgICAgICAgICA8TG9hZGVyMiBjbGFzc05hbWU9XCJoLTUgdy01IGFuaW1hdGUtc3BpblwiIC8+XHJcbiAgICAgICAgICAgIFN0cmF2YSBDb25uZWN0aW9uXHJcbiAgICAgICAgICA8L0NhcmRUaXRsZT5cclxuICAgICAgICA8L0NhcmRIZWFkZXI+XHJcbiAgICAgICAgPENhcmRDb250ZW50PlxyXG4gICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1zbSB0ZXh0LW11dGVkLWZvcmVncm91bmRcIj5cclxuICAgICAgICAgICAge2lzQXV0aGluZyA/ICdDb25uZWN0aW5nIHRvIFN0cmF2YS4uLicgOiAnQ2hlY2tpbmcgY29ubmVjdGlvbiBzdGF0dXMuLi4nfVxyXG4gICAgICAgICAgPC9wPlxyXG4gICAgICAgIDwvQ2FyZENvbnRlbnQ+XHJcbiAgICAgIDwvQ2FyZD5cclxuICAgICk7XHJcbiAgfVxyXG5cclxuICByZXR1cm4gKFxyXG4gICAgPENhcmQ+XHJcbiAgICAgIDxDYXJkSGVhZGVyPlxyXG4gICAgICAgIDxDYXJkVGl0bGUgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTJcIj5cclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiaC02IHctNiBiZy1vcmFuZ2UtNTAwIHJvdW5kZWQgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXJcIj5cclxuICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC13aGl0ZSBmb250LWJvbGQgdGV4dC14c1wiPlM8L3NwYW4+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgIFN0cmF2YSBDb25uZWN0aW9uXHJcbiAgICAgICAgPC9DYXJkVGl0bGU+XHJcbiAgICAgICAgPENhcmREZXNjcmlwdGlvbj5cclxuICAgICAgICAgIENvbm5lY3QgeW91ciBTdHJhdmEgYWNjb3VudCB0byBzeW5jIGFjdGl2aXRpZXMgYW5kIHRyYWNrIHlvdXIgdHJhaW5pbmcgcHJvZ3Jlc3MuXHJcbiAgICAgICAgPC9DYXJkRGVzY3JpcHRpb24+XHJcbiAgICAgIDwvQ2FyZEhlYWRlcj5cclxuICAgICAgPENhcmRDb250ZW50IGNsYXNzTmFtZT1cInNwYWNlLXktNFwiPlxyXG4gICAgICAgIHsvKiBDb25uZWN0aW9uIFN0YXR1cyAqL31cclxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBwLTQgcm91bmRlZC1sZyBib3JkZXJcIj5cclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTNcIj5cclxuICAgICAgICAgICAge2Nvbm5lY3Rpb25TdGF0dXM/LmNvbm5lY3RlZCA/IChcclxuICAgICAgICAgICAgICA8PlxyXG4gICAgICAgICAgICAgICAgPENoZWNrQ2lyY2xlMiBjbGFzc05hbWU9XCJoLTUgdy01IHRleHQtZ3JlZW4tNTAwXCIgLz5cclxuICAgICAgICAgICAgICAgIDxkaXY+XHJcbiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cImZvbnQtbWVkaXVtXCI+Q29ubmVjdGVkPC9wPlxyXG4gICAgICAgICAgICAgICAgICB7Y29ubmVjdGlvblN0YXR1cy5hdGhsZXRlICYmIChcclxuICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtbXV0ZWQtZm9yZWdyb3VuZFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAge2Nvbm5lY3Rpb25TdGF0dXMuYXRobGV0ZS5maXJzdG5hbWV9IHtjb25uZWN0aW9uU3RhdHVzLmF0aGxldGUubGFzdG5hbWV9XHJcbiAgICAgICAgICAgICAgICAgICAgPC9wPlxyXG4gICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgPC8+XHJcbiAgICAgICAgICAgICkgOiAoXHJcbiAgICAgICAgICAgICAgPD5cclxuICAgICAgICAgICAgICAgIDxBbGVydENpcmNsZSBjbGFzc05hbWU9XCJoLTUgdy01IHRleHQtb3JhbmdlLTUwMFwiIC8+XHJcbiAgICAgICAgICAgICAgICA8ZGl2PlxyXG4gICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJmb250LW1lZGl1bVwiPk5vdCBDb25uZWN0ZWQ8L3A+XHJcbiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kXCI+Q29ubmVjdCB0byBzdGFydCBzeW5jaW5nIHlvdXIgYWN0aXZpdGllczwvcD5cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgIDwvPlxyXG4gICAgICAgICAgICApfVxyXG4gICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICA8QmFkZ2UgdmFyaWFudD17Y29ubmVjdGlvblN0YXR1cz8uY29ubmVjdGVkID8gXCJkZWZhdWx0XCIgOiBcInNlY29uZGFyeVwifT5cclxuICAgICAgICAgICAge2Nvbm5lY3Rpb25TdGF0dXM/LmNvbm5lY3RlZCA/IFwiQWN0aXZlXCIgOiBcIkRpc2Nvbm5lY3RlZFwifVxyXG4gICAgICAgICAgPC9CYWRnZT5cclxuICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgey8qIFN1Y2Nlc3MgTWVzc2FnZSAqL31cclxuICAgICAgICB7YXV0aFN1Y2Nlc3MgJiYgKFxyXG4gICAgICAgICAgPEFsZXJ0PlxyXG4gICAgICAgICAgICA8Q2hlY2tDaXJjbGUyIGNsYXNzTmFtZT1cImgtNCB3LTRcIiAvPlxyXG4gICAgICAgICAgICA8QWxlcnREZXNjcmlwdGlvbj5cclxuICAgICAgICAgICAgICBTdWNjZXNzZnVsbHkgY29ubmVjdGVkIHRvIFN0cmF2YSEgWW91ciBhY2NvdW50IGlzIG5vdyBsaW5rZWQuXHJcbiAgICAgICAgICAgIDwvQWxlcnREZXNjcmlwdGlvbj5cclxuICAgICAgICAgIDwvQWxlcnQ+XHJcbiAgICAgICAgKX1cclxuXHJcbiAgICAgICAgey8qIEVycm9yIE1lc3NhZ2VzICovfVxyXG4gICAgICAgIHsoY29ubmVjdGlvbkVycm9yIHx8IGF1dGhFcnJvcikgJiYgKFxyXG4gICAgICAgICAgPEFsZXJ0PlxyXG4gICAgICAgICAgICA8QWxlcnRDaXJjbGUgY2xhc3NOYW1lPVwiaC00IHctNFwiIC8+XHJcbiAgICAgICAgICAgIDxBbGVydERlc2NyaXB0aW9uPlxyXG4gICAgICAgICAgICAgIHthdXRoRXJyb3IgfHwgY29ubmVjdGlvbkVycm9yfVxyXG4gICAgICAgICAgICA8L0FsZXJ0RGVzY3JpcHRpb24+XHJcbiAgICAgICAgICA8L0FsZXJ0PlxyXG4gICAgICAgICl9XHJcblxyXG4gICAgICAgIHsvKiBBY3Rpb24gQnV0dG9ucyAqL31cclxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggZ2FwLTJcIj5cclxuICAgICAgICAgIHtjb25uZWN0aW9uU3RhdHVzPy5jb25uZWN0ZWQgPyAoXHJcbiAgICAgICAgICAgIDxCdXR0b24gXHJcbiAgICAgICAgICAgICAgdmFyaWFudD1cIm91dGxpbmVcIiBcclxuICAgICAgICAgICAgICBvbkNsaWNrPXtoYW5kbGVEaXNjb25uZWN0fSBcclxuICAgICAgICAgICAgICBkaXNhYmxlZD17aXNEaXNjb25uZWN0aW5nfVxyXG4gICAgICAgICAgICAgIGNsYXNzTmFtZT1cInctZnVsbFwiXHJcbiAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICB7aXNEaXNjb25uZWN0aW5nID8gKFxyXG4gICAgICAgICAgICAgICAgPD5cclxuICAgICAgICAgICAgICAgICAgPExvYWRlcjIgY2xhc3NOYW1lPVwiaC00IHctNCBtci0yIGFuaW1hdGUtc3BpblwiIC8+XHJcbiAgICAgICAgICAgICAgICAgIERpc2Nvbm5lY3RpbmcuLi5cclxuICAgICAgICAgICAgICAgIDwvPlxyXG4gICAgICAgICAgICAgICkgOiAoXHJcbiAgICAgICAgICAgICAgICA8PlxyXG4gICAgICAgICAgICAgICAgICA8VW5saW5rIGNsYXNzTmFtZT1cImgtNCB3LTQgbXItMlwiIC8+XHJcbiAgICAgICAgICAgICAgICAgIERpc2Nvbm5lY3RcclxuICAgICAgICAgICAgICAgIDwvPlxyXG4gICAgICAgICAgICAgICl9XHJcbiAgICAgICAgICAgIDwvQnV0dG9uPlxyXG4gICAgICAgICAgKSA6IChcclxuICAgICAgICAgICAgPEJ1dHRvbiBvbkNsaWNrPXtoYW5kbGVDb25uZWN0fSBjbGFzc05hbWU9XCJ3LWZ1bGxcIj5cclxuICAgICAgICAgICAgICA8TGluazIgY2xhc3NOYW1lPVwiaC00IHctNCBtci0yXCIgLz5cclxuICAgICAgICAgICAgICBDb25uZWN0IHRvIFN0cmF2YVxyXG4gICAgICAgICAgICA8L0J1dHRvbj5cclxuICAgICAgICAgICl9XHJcbiAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgIHsvKiBDb25uZWN0aW9uIEluZm8gKi99XHJcbiAgICAgICAge2Nvbm5lY3Rpb25TdGF0dXM/LmNvbm5lY3RlZCAmJiBjb25uZWN0aW9uU3RhdHVzLmV4cGlyZXNBdCAmJiAoXHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRleHQteHMgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIHNwYWNlLXktMVwiPlxyXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yXCI+XHJcbiAgICAgICAgICAgICAgPENhbGVuZGFyIGNsYXNzTmFtZT1cImgtMyB3LTNcIiAvPlxyXG4gICAgICAgICAgICAgIFRva2VuIGV4cGlyZXM6IHtuZXcgRGF0ZShjb25uZWN0aW9uU3RhdHVzLmV4cGlyZXNBdCkudG9Mb2NhbGVEYXRlU3RyaW5nKCl9XHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yXCI+XHJcbiAgICAgICAgICAgICAgPFVzZXIgY2xhc3NOYW1lPVwiaC0zIHctM1wiIC8+XHJcbiAgICAgICAgICAgICAgQXRobGV0ZSBJRDoge2Nvbm5lY3Rpb25TdGF0dXMuYXRobGV0ZT8uaWR9XHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgKX1cclxuXHJcbiAgICAgICAgey8qIEJlbmVmaXRzICovfVxyXG4gICAgICAgIHshY29ubmVjdGlvblN0YXR1cz8uY29ubmVjdGVkICYmIChcclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC1zbSB0ZXh0LW11dGVkLWZvcmVncm91bmRcIj5cclxuICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwiZm9udC1tZWRpdW0gbWItMlwiPkJlbmVmaXRzIG9mIGNvbm5lY3Rpbmc6PC9wPlxyXG4gICAgICAgICAgICA8dWwgY2xhc3NOYW1lPVwic3BhY2UteS0xIHRleHQteHNcIj5cclxuICAgICAgICAgICAgICA8bGk+4oCiIEF1dG9tYXRpY2FsbHkgc3luYyB5b3VyIGFjdGl2aXRpZXM8L2xpPlxyXG4gICAgICAgICAgICAgIDxsaT7igKIgVHJhY2sgcGVyZm9ybWFuY2UgbWV0cmljcyBvdmVyIHRpbWU8L2xpPlxyXG4gICAgICAgICAgICAgIDxsaT7igKIgQW5hbHl6ZSB0cmFpbmluZyBwYXR0ZXJucyBhbmQgdHJlbmRzPC9saT5cclxuICAgICAgICAgICAgICA8bGk+4oCiIEdldCBkZXRhaWxlZCBpbnNpZ2h0cyBvbiB5b3VyIHByb2dyZXNzPC9saT5cclxuICAgICAgICAgICAgPC91bD5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICl9XHJcbiAgICAgIDwvQ2FyZENvbnRlbnQ+XHJcbiAgICA8L0NhcmQ+XHJcbiAgKTtcclxufSAiXSwibmFtZXMiOlsiU3RyYXZhQ29ubmVjdGlvblN0YXR1cyIsInNlYXJjaFBhcmFtcyIsInVzZVNlYXJjaFBhcmFtcyIsInJvdXRlciIsInVzZVJvdXRlciIsInF1ZXJ5Q2xpZW50IiwidXNlUXVlcnlDbGllbnQiLCJ1c2VyIiwidXNlQXV0aCIsImNvbm5lY3Rpb25TdGF0dXMiLCJpc0xvYWRpbmciLCJpc0NoZWNraW5nQ29ubmVjdGlvbiIsImVycm9yIiwiY29ubmVjdGlvbkVycm9yIiwiZGlzY29ubmVjdCIsInVzZVN0cmF2YUNvbm5lY3Rpb24iLCJtdXRhdGUiLCJleGNoYW5nZVRva2VuIiwiaXNQZW5kaW5nIiwiaXNBdXRoaW5nIiwidXNlU3RyYXZhQXV0aCIsImlzRGlzY29ubmVjdGluZyIsInNldElzRGlzY29ubmVjdGluZyIsInVzZVN0YXRlIiwiYXV0aEVycm9yIiwic2V0QXV0aEVycm9yIiwiYXV0aFN1Y2Nlc3MiLCJzZXRBdXRoU3VjY2VzcyIsInVzZUVmZmVjdCIsImNvZGUiLCJnZXQiLCJlcnJvckRlc2NyaXB0aW9uIiwiY29uc29sZSIsImxvZyIsIm5ld1VybCIsIlVSTCIsIndpbmRvdyIsImxvY2F0aW9uIiwiaHJlZiIsImRlbGV0ZSIsInJlcGxhY2UiLCJwYXRobmFtZSIsInNlYXJjaCIsInNjcm9sbCIsImNvbm5lY3RlZCIsImNsZWFuZWRVcmwiLCJvblN1Y2Nlc3MiLCJkYXRhIiwiaW52YWxpZGF0ZVF1ZXJpZXMiLCJxdWVyeUtleSIsInNldFRpbWVvdXQiLCJvbkVycm9yIiwiZXJyb3JNZXNzYWdlIiwiRXJyb3IiLCJtZXNzYWdlIiwiaW5jbHVkZXMiLCJpZCIsImhhbmRsZUNvbm5lY3QiLCJnZXRTdHJhdmFBdXRoVXJsIiwib3JpZ2luIiwiaGFuZGxlRGlzY29ubmVjdCIsIkNhcmQiLCJDYXJkSGVhZGVyIiwiQ2FyZFRpdGxlIiwiY2xhc3NOYW1lIiwiTG9hZGVyMiIsIkNhcmRDb250ZW50IiwicCIsImRpdiIsInNwYW4iLCJDYXJkRGVzY3JpcHRpb24iLCJDaGVja0NpcmNsZTIiLCJhdGhsZXRlIiwiZmlyc3RuYW1lIiwibGFzdG5hbWUiLCJBbGVydENpcmNsZSIsIkJhZGdlIiwidmFyaWFudCIsIkFsZXJ0IiwiQWxlcnREZXNjcmlwdGlvbiIsIkJ1dHRvbiIsIm9uQ2xpY2siLCJkaXNhYmxlZCIsIlVubGluayIsIkxpbmsyIiwiZXhwaXJlc0F0IiwiQ2FsZW5kYXIiLCJEYXRlIiwidG9Mb2NhbGVEYXRlU3RyaW5nIiwiVXNlciIsInVsIiwibGkiXSwibWFwcGluZ3MiOiJBQUFBOzs7OzsrQkFlZ0JBOzs7ZUFBQUE7Ozs7d0JBYk87dUJBQ0Q7c0JBQ29EO3VCQUNsQzs2QkFDMEM7cUNBQzlDOytCQUNOOzRCQUNDOzhCQUNQO3dCQUNTO3VCQUNHOzRCQUNPO0FBRXBDLFNBQVNBO0lBQ2QsTUFBTUMsZUFBZUMsSUFBQUEsMkJBQWU7SUFDcEMsTUFBTUMsU0FBU0MsSUFBQUEscUJBQVM7SUFDeEIsTUFBTUMsY0FBY0MsSUFBQUEsMEJBQWM7SUFDbEMsTUFBTSxFQUFFQyxJQUFJLEVBQUUsR0FBR0MsSUFBQUEscUJBQU87SUFDeEIsTUFBTSxFQUFFQyxnQkFBZ0IsRUFBRUMsV0FBV0Msb0JBQW9CLEVBQUVDLE9BQU9DLGVBQWUsRUFBRUMsVUFBVSxFQUFFLEdBQUdDLElBQUFBLHdDQUFtQjtJQUNySCxNQUFNLEVBQUVDLFFBQVFDLGFBQWEsRUFBRUMsV0FBV0MsU0FBUyxFQUFFLEdBQUdDLElBQUFBLDRCQUFhO0lBQ3JFLE1BQU0sQ0FBQ0MsaUJBQWlCQyxtQkFBbUIsR0FBR0MsSUFBQUEsZUFBUSxFQUFDO0lBQ3ZELE1BQU0sQ0FBQ0MsV0FBV0MsYUFBYSxHQUFHRixJQUFBQSxlQUFRLEVBQWdCO0lBQzFELE1BQU0sQ0FBQ0csYUFBYUMsZUFBZSxHQUFHSixJQUFBQSxlQUFRLEVBQUM7SUFFL0Msd0JBQXdCO0lBQ3hCSyxJQUFBQSxnQkFBUyxFQUFDO1FBQ1IsTUFBTUMsT0FBTzVCLGFBQWE2QixHQUFHLENBQUM7UUFDOUIsTUFBTWxCLFFBQVFYLGFBQWE2QixHQUFHLENBQUM7UUFDL0IsTUFBTUMsbUJBQW1COUIsYUFBYTZCLEdBQUcsQ0FBQztRQUUxQ0UsUUFBUUMsR0FBRyxDQUFDLG1CQUFtQjtZQUFFSixNQUFNLENBQUMsQ0FBQ0E7WUFBTWpCO1lBQU9tQjtR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

@@ -5,12 +5,20 @@ import { KeyMetrics } from '@/components/dashboard/KeyMetrics'
 import { calculateWeeklyDistance, calculateActivityStreak, getLastActivity } from '@/lib/dashboard/metrics'
 import type { Activity } from '@/lib/strava/types'
 
-// Mock the hook
+// Mock the hooks
 jest.mock('@/hooks/use-user-activities', () => ({
   useUserActivities: jest.fn(),
 }))
 
+jest.mock('@/hooks/useGoals', () => ({
+  useUserGoals: jest.fn(),
+  useUpdateGoal: jest.fn(),
+  useGoalTypes: jest.fn(),
+  useCreateGoal: jest.fn(),
+}))
+
 const { useUserActivities } = require('@/hooks/use-user-activities')
+const { useUserGoals, useUpdateGoal, useGoalTypes, useCreateGoal } = require('@/hooks/useGoals')
 
 // Helper to create a test QueryClient
 const createTestQueryClient = () => new QueryClient({
@@ -45,6 +53,25 @@ describe('KeyMetrics Component', () => {
   beforeEach(() => {
     queryClient = createTestQueryClient()
     jest.clearAllMocks()
+    
+    // Setup default mocks for goal-related hooks
+    useUpdateGoal.mockReturnValue({
+      mutate: jest.fn(),
+      mutateAsync: jest.fn(),
+      isLoading: false,
+    })
+    
+    useGoalTypes.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+    })
+    
+    useCreateGoal.mockReturnValue({
+      mutate: jest.fn(),
+      mutateAsync: jest.fn(),
+      isLoading: false,
+    })
   })
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -60,6 +87,12 @@ describe('KeyMetrics Component', () => {
       error: null,
     })
 
+    useUserGoals.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      error: null,
+    })
+
     render(<KeyMetrics userId="user-1" />, { wrapper })
 
     // Should show skeleton with multiple cards
@@ -69,19 +102,26 @@ describe('KeyMetrics Component', () => {
     expect(skeletonCards.length).toBeGreaterThan(0)
   })
 
-  it('shows error state when data fails to load', () => {
+  it('shows setup message when no dashboard goals exist', () => {
     useUserActivities.mockReturnValue({
-      data: null,
+      data: [],
       isLoading: false,
-      error: new Error('Failed to fetch'),
+      error: null,
+    })
+
+    useUserGoals.mockReturnValue({
+      data: { goals: [] },
+      isLoading: false,
+      error: null,
     })
 
     render(<KeyMetrics userId="user-1" />, { wrapper })
 
-    expect(screen.getByText('Unable to load metrics')).toBeInTheDocument()
+    expect(screen.getByText('Set Up Your Dashboard Goals')).toBeInTheDocument()
+    expect(screen.getByText('Choose up to 3 goals to track as key metrics on your dashboard.')).toBeInTheDocument()
   })
 
-  it('displays key metrics when data is loaded', () => {
+  it('displays goal metric cards when dashboard goals exist', () => {
     const mockActivities = [
       createMockActivity({
         name: 'Recent Run',
@@ -90,18 +130,43 @@ describe('KeyMetrics Component', () => {
       }),
     ]
 
+    const mockGoals = [
+      {
+        id: 'goal-1',
+        goal_type: { display_name: 'Weekly Distance Goal', category: 'distance' },
+        target_value: 50,
+        current_progress: 25,
+        goal_data: { show_on_dashboard: true, dashboard_priority: 1 },
+        is_active: true,
+      },
+      {
+        id: 'goal-2',
+        goal_type: { display_name: 'Monthly Frequency Goal', category: 'frequency' },
+        target_value: 20,
+        current_progress: 12,
+        goal_data: { show_on_dashboard: true, dashboard_priority: 2 },
+        is_active: true,
+      },
+    ]
+
     useUserActivities.mockReturnValue({
       data: mockActivities,
       isLoading: false,
       error: null,
     })
 
+    useUserGoals.mockReturnValue({
+      data: { goals: mockGoals },
+      isLoading: false,
+      error: null,
+    })
+
     render(<KeyMetrics userId="user-1" />, { wrapper })
 
-    // Should show the three main metric cards
-    expect(screen.getByText('This Week')).toBeInTheDocument()
-    expect(screen.getByText('Current Streak')).toBeInTheDocument()
-    expect(screen.getByText('Monthly Goal')).toBeInTheDocument()
+    // Should show the goal metric cards
+    expect(screen.getByText('Weekly Distance Goal')).toBeInTheDocument()
+    expect(screen.getByText('Monthly Frequency Goal')).toBeInTheDocument()
+    expect(screen.getByText('Key Metrics')).toBeInTheDocument()
   })
 })
 
