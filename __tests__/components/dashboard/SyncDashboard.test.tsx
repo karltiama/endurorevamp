@@ -46,7 +46,17 @@ describe('SyncDashboard', () => {
        syncStatus: undefined,
        statusError: null,
        refetchStatus: jest.fn(),
-       refreshStatus: jest.fn()
+       refreshStatus: jest.fn(),
+       syncStatusInfo: {
+         lastSyncText: '2 hours ago',
+         canSync: true,
+         syncDisabledReason: null,
+         activityCount: 125,
+         todaySyncs: 2,
+         maxSyncs: 5,
+         consecutiveErrors: 0,
+         lastError: null
+       }
      })
 
     mockUseSyncStatusInfo.mockReturnValue({
@@ -77,8 +87,29 @@ describe('SyncDashboard', () => {
 
      it('shows loading state when fetching status', () => {
      mockUseStravaSync.mockReturnValue({
-       ...mockUseStravaSync(),
-       isLoadingStatus: true
+       syncLatest: jest.fn(),
+       syncLastWeek: jest.fn(),
+       syncLastMonth: jest.fn(),
+       forceFullSync: jest.fn(),
+       customSync: jest.fn(),
+       isSyncing: false,
+       syncError: null,
+       syncResult: undefined,
+       isLoadingStatus: true,
+       syncStatus: undefined,
+       statusError: null,
+       refetchStatus: jest.fn(),
+       refreshStatus: jest.fn(),
+       syncStatusInfo: {
+         lastSyncText: '2 hours ago',
+         canSync: true,
+         syncDisabledReason: null,
+         activityCount: 125,
+         todaySyncs: 2,
+         maxSyncs: 5,
+         consecutiveErrors: 0,
+         lastError: null
+       }
      })
 
      render(<SyncDashboard />, { wrapper: createWrapper() })
@@ -93,9 +124,29 @@ describe('SyncDashboard', () => {
     const mockSyncLastWeek = jest.fn()
     
     mockUseStravaSync.mockReturnValue({
-      ...mockUseStravaSync(),
       syncLatest: mockSyncLatest,
-      syncLastWeek: mockSyncLastWeek
+      syncLastWeek: mockSyncLastWeek,
+      syncLastMonth: jest.fn(),
+      forceFullSync: jest.fn(),
+      customSync: jest.fn(),
+      isSyncing: false,
+      syncError: null,
+      syncResult: undefined,
+      isLoadingStatus: false,
+      syncStatus: undefined,
+      statusError: null,
+      refetchStatus: jest.fn(),
+      refreshStatus: jest.fn(),
+      syncStatusInfo: {
+        lastSyncText: '2 hours ago',
+        canSync: true,
+        syncDisabledReason: null,
+        activityCount: 125,
+        todaySyncs: 2,
+        maxSyncs: 5,
+        consecutiveErrors: 0,
+        lastError: null
+      }
     })
 
     render(<SyncDashboard />, { wrapper: createWrapper() })
@@ -112,8 +163,29 @@ describe('SyncDashboard', () => {
 
   it('disables sync buttons when syncing', () => {
     mockUseStravaSync.mockReturnValue({
-      ...mockUseStravaSync(),
-      isSyncing: true
+      syncLatest: jest.fn(),
+      syncLastWeek: jest.fn(),
+      syncLastMonth: jest.fn(),
+      forceFullSync: jest.fn(),
+      customSync: jest.fn(),
+      isSyncing: true,
+      syncError: null,
+      syncResult: undefined,
+      isLoadingStatus: false,
+      syncStatus: undefined,
+      statusError: null,
+      refetchStatus: jest.fn(),
+      refreshStatus: jest.fn(),
+      syncStatusInfo: {
+        lastSyncText: '2 hours ago',
+        canSync: true,
+        syncDisabledReason: null,
+        activityCount: 125,
+        todaySyncs: 2,
+        maxSyncs: 5,
+        consecutiveErrors: 0,
+        lastError: null
+      }
     })
 
     render(<SyncDashboard />, { wrapper: createWrapper() })
@@ -149,7 +221,13 @@ describe('SyncDashboard', () => {
 
   it('displays sync success result', () => {
     mockUseStravaSync.mockReturnValue({
-      ...mockUseStravaSync(),
+      syncLatest: jest.fn(),
+      syncLastWeek: jest.fn(),
+      syncLastMonth: jest.fn(),
+      forceFullSync: jest.fn(),
+      customSync: jest.fn(),
+      isSyncing: false,
+      syncError: null,
       syncResult: {
         success: true,
         message: 'Sync completed successfully',
@@ -159,6 +237,21 @@ describe('SyncDashboard', () => {
           updatedActivities: 10,
           syncDuration: 3500
         }
+      },
+      isLoadingStatus: false,
+      syncStatus: undefined,
+      statusError: null,
+      refetchStatus: jest.fn(),
+      refreshStatus: jest.fn(),
+      syncStatusInfo: {
+        lastSyncText: '2 hours ago',
+        canSync: true,
+        syncDisabledReason: null,
+        activityCount: 125,
+        todaySyncs: 2,
+        maxSyncs: 5,
+        consecutiveErrors: 0,
+        lastError: null
       }
     })
 
@@ -171,7 +264,13 @@ describe('SyncDashboard', () => {
 
   it('displays sync error result', () => {
     mockUseStravaSync.mockReturnValue({
-      ...mockUseStravaSync(),
+      syncLatest: jest.fn(),
+      syncLastWeek: jest.fn(),
+      syncLastMonth: jest.fn(),
+      forceFullSync: jest.fn(),
+      customSync: jest.fn(),
+      isSyncing: false,
+      syncError: null,
       syncResult: {
         success: false,
         message: 'Sync failed',
@@ -182,6 +281,21 @@ describe('SyncDashboard', () => {
           updatedActivities: 5,
           syncDuration: 1200
         }
+      },
+      isLoadingStatus: false,
+      syncStatus: undefined,
+      statusError: null,
+      refetchStatus: jest.fn(),
+      refreshStatus: jest.fn(),
+      syncStatusInfo: {
+        lastSyncText: '2 hours ago',
+        canSync: true,
+        syncDisabledReason: null,
+        activityCount: 125,
+        todaySyncs: 2,
+        maxSyncs: 5,
+        consecutiveErrors: 0,
+        lastError: null
       }
     })
 
@@ -210,8 +324,29 @@ describe('SyncDashboard', () => {
     const mockCustomSync = jest.fn()
     
     mockUseStravaSync.mockReturnValue({
-      ...mockUseStravaSync(),
-      customSync: mockCustomSync
+      syncLatest: jest.fn(),
+      syncLastWeek: jest.fn(),
+      syncLastMonth: jest.fn(),
+      forceFullSync: jest.fn(),
+      customSync: mockCustomSync,
+      isSyncing: false,
+      syncError: null,
+      syncResult: undefined,
+      isLoadingStatus: false,
+      syncStatus: undefined,
+      statusError: null,
+      refetchStatus: jest.fn(),
+      refreshStatus: jest.fn(),
+      syncStatusInfo: {
+        lastSyncText: '2 hours ago',
+        canSync: true,
+        syncDisabledReason: null,
+        activityCount: 125,
+        todaySyncs: 2,
+        maxSyncs: 5,
+        consecutiveErrors: 0,
+        lastError: null
+      }
     })
 
     render(<SyncDashboard />, { wrapper: createWrapper() })
