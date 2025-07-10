@@ -12,7 +12,35 @@ interface DetailedDebugResult {
   step: string
   status: 'pending' | 'success' | 'error' | 'warning'
   message: string
-  data?: any
+  data?: unknown
+}
+
+interface StravaActivity {
+  id: number
+  name: string
+  distance?: number
+  moving_time?: number
+  sport_type?: string
+  start_date?: string
+  start_date_local?: string
+  timezone?: string
+  total_elevation_gain?: number
+  average_speed?: number
+  max_speed?: number
+  average_heartrate?: number
+  max_heartrate?: number
+  has_heartrate?: boolean
+  average_watts?: number
+  max_watts?: number
+  weighted_average_watts?: number
+  kilojoules?: number
+  trainer?: boolean
+  commute?: boolean
+  manual?: boolean
+  achievement_count?: number
+  kudos_count?: number
+  comment_count?: number
+  [key: string]: unknown
 }
 
 export function DetailedSyncDebugger() {
@@ -71,14 +99,14 @@ export function DetailedSyncDebugger() {
         return
       }
 
-      const stravaActivities = await stravaResponse.json()
-      const targetActivity = stravaActivities.find((a: any) => a.id === 14821394327)
+      const stravaActivities: StravaActivity[] = await stravaResponse.json()
+      const targetActivity = stravaActivities.find((a) => a.id === 14821394327)
 
       if (!targetActivity) {
         updateLastResult({
           status: 'error',
           message: 'Target activity not found in recent activities',
-          data: { availableIds: stravaActivities.map((a: any) => a.id) }
+          data: { availableIds: stravaActivities.map((a) => a.id) }
         })
         return
       }
@@ -120,7 +148,7 @@ export function DetailedSyncDebugger() {
       })
 
       // Helper function to suggest SQL types
-      const getSQLType = (value: any, fieldName: string): string => {
+      const getSQLType = (value: unknown, fieldName: string): string => {
         if (value === null || value === undefined) return 'TEXT -- null value'
         
         const type = typeof value
@@ -132,7 +160,7 @@ export function DetailedSyncDebugger() {
           case 'string':
             if (fieldName.includes('date') || fieldName.includes('time')) return 'TIMESTAMPTZ'
             if (fieldName.includes('id')) return 'BIGINT'
-            if (value.length > 255) return 'TEXT'
+            if ((value as string).length > 255) return 'TEXT'
             return 'VARCHAR(255)'
           case 'object':
             if (Array.isArray(value)) return 'JSONB -- array'
@@ -147,7 +175,7 @@ export function DetailedSyncDebugger() {
       console.log('🔍 Strava API fields analysis:')
       
       // Check specifically for pace strings that might be causing issues
-      const problematicFields = Object.entries(targetActivity).filter(([key, value]) => {
+      const problematicFields = Object.entries(targetActivity).filter(([, value]) => {
         return typeof value === 'string' && (
           value.includes('/km') || 
           value.includes('/mi') || 
@@ -264,16 +292,10 @@ export function DetailedSyncDebugger() {
         message: 'Attempting to store activity directly...'
       })
 
-      // Helper function to convert pace strings to seconds
-      const paceToSeconds = (pace: string): number => {
-        // pace = "07:04 /km" → take "07:04"
-        const timePart = pace.split(" ")[0].split("/")[0].trim()
-        const [minutes, seconds] = timePart.split(":").map(Number)
-        return minutes * 60 + seconds // 7*60 + 4 = 424
-      }
+
 
       // Helper function to safely convert to number
-      const safeNumber = (value: any, fieldName?: string): number | null => {
+      const safeNumber = (value: unknown, fieldName?: string): number | null => {
         if (value === null || value === undefined || value === '') return null
         
         // First, check if it's already a number
@@ -315,7 +337,7 @@ export function DetailedSyncDebugger() {
       }
 
       // Helper for integer fields specifically  
-      const safeInteger = (value: any, fieldName?: string): number | null => {
+      const safeInteger = (value: unknown, fieldName?: string): number | null => {
         const num = safeNumber(value, fieldName)
         return num !== null ? Math.round(num) : null
       }
@@ -352,14 +374,15 @@ export function DetailedSyncDebugger() {
         
         // Computed fields - calculate from basic data
         week_number: (() => {
+          if (!targetActivity.start_date) return null
           const activityDate = new Date(targetActivity.start_date)
           const yearStart = new Date(activityDate.getFullYear(), 0, 1)
           const weekNumber = Math.ceil((activityDate.getTime() - yearStart.getTime()) / (7 * 24 * 60 * 60 * 1000))
           return safeInteger(weekNumber)
         })(),
-        month_number: safeInteger(new Date(targetActivity.start_date).getMonth() + 1),
-        year_number: safeInteger(new Date(targetActivity.start_date).getFullYear()),
-        day_of_week: safeInteger(new Date(targetActivity.start_date).getDay()),
+        month_number: targetActivity.start_date ? safeInteger(new Date(targetActivity.start_date).getMonth() + 1) : null,
+        year_number: targetActivity.start_date ? safeInteger(new Date(targetActivity.start_date).getFullYear()) : null,
+        day_of_week: targetActivity.start_date ? safeInteger(new Date(targetActivity.start_date).getDay()) : null,
         
         // Calculate average pace in seconds per km (for numeric storage)
         average_pace: targetActivity.distance && targetActivity.moving_time ? 
@@ -578,11 +601,11 @@ export function DetailedSyncDebugger() {
               </div>
               <p className="text-sm text-gray-700">{result.message}</p>
               
-              {result.data && (
+{result.data != null && (
                 <details className="mt-2">
                   <summary className="text-xs text-gray-500 cursor-pointer">View Data</summary>
                   <pre className="text-xs bg-gray-50 p-2 rounded mt-1 overflow-auto max-h-40">
-                    {JSON.stringify(result.data, null, 2)}
+{String(JSON.stringify(result.data, null, 2))}
                   </pre>
                 </details>
               )}

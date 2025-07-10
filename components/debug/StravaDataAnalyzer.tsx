@@ -10,7 +10,7 @@ import { useAuth } from '@/providers/AuthProvider'
 interface FieldAnalysis {
   fieldName: string
   dataType: string
-  sampleValue: any
+  sampleValue: string | number | boolean | null
   sqlType: string
   frequency: number
   isUsedInApp: boolean
@@ -21,7 +21,7 @@ interface FieldAnalysis {
 export function StravaDataAnalyzer() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState<FieldAnalysis[]>([])
-  const [rawData, setRawData] = useState<any[]>([])
+  const [rawData, setRawData] = useState<Record<string, unknown>[]>([])
   const { accessToken } = useStravaToken()
   const { user } = useAuth()
 
@@ -49,7 +49,7 @@ export function StravaDataAnalyzer() {
     return { priority: 'low', phase: 3 }
   }
 
-  const getSQLType = (value: any, fieldName: string): string => {
+  const getSQLType = (value: unknown, fieldName: string): string => {
     if (value === null || value === undefined) return 'NULL'
     
     const type = typeof value
@@ -64,7 +64,7 @@ export function StravaDataAnalyzer() {
       case 'string':
         if (fieldName.includes('date') || fieldName.includes('time')) return 'TIMESTAMPTZ'
         if (fieldName.includes('id')) return 'VARCHAR(50)'
-        if (value.length > 255) return 'TEXT'
+        if ((value as string).length > 255) return 'TEXT'
         return 'VARCHAR(255)'
       case 'object':
         if (Array.isArray(value)) {
@@ -106,12 +106,12 @@ export function StravaDataAnalyzer() {
 
       // Analyze field usage across all activities
       const fieldStats = new Map<string, {
-        values: any[]
+        values: unknown[]
         types: Set<string>
         frequency: number
       }>()
 
-      activities.forEach((activity: any) => {
+      activities.forEach((activity: Record<string, unknown>) => {
         Object.entries(activity).forEach(([key, value]) => {
           if (!fieldStats.has(key)) {
             fieldStats.set(key, { values: [], types: new Set(), frequency: 0 })
@@ -128,7 +128,7 @@ export function StravaDataAnalyzer() {
 
       // Convert to analysis format
       const analysisResults: FieldAnalysis[] = Array.from(fieldStats.entries()).map(([fieldName, stats]) => {
-        const sampleValue = stats.values[0]
+        const sampleValue = stats.values[0] as string | number | boolean | null
         const { priority, phase } = getFieldPriority(fieldName)
         
         return {

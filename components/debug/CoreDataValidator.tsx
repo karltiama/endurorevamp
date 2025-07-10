@@ -21,11 +21,18 @@ interface ActivityData {
   kudos_count: number
 }
 
+interface ValidationResult {
+  totalActivities: number
+  coreFieldsComplete: number
+  performanceFieldsPresent: number
+  dataQualityIssues: string[]
+}
+
 export function CoreDataValidator() {
   const { user } = useAuth()
   const [activities, setActivities] = useState<ActivityData[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [validation, setValidation] = useState<any>(null)
+  const [validation, setValidation] = useState<ValidationResult | null>(null)
 
   const validateCoreData = async () => {
     if (!user) return
@@ -147,7 +154,7 @@ export function CoreDataValidator() {
               <div className="bg-red-50 border border-red-200 rounded p-3">
                 <div className="font-medium text-red-800 mb-2">Data Quality Issues:</div>
                 <ul className="text-sm text-red-700 space-y-1">
-                  {validation.dataQualityIssues.map((issue: string, index: number) => (
+                  {validation.dataQualityIssues.map((issue, index) => (
                     <li key={index}>• {issue}</li>
                   ))}
                 </ul>

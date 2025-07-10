@@ -14,14 +14,14 @@ interface SyncDebugResult {
   step: string
   status: 'pending' | 'success' | 'error'
   message: string
-  data?: any
+  data?: unknown
 }
 
 export function SyncDebugger() {
   const [isDebugging, setIsDebugging] = useState(false)
   const [debugResults, setDebugResults] = useState<SyncDebugResult[]>([])
   const queryClient = useQueryClient()
-  const { accessToken, isLoading: isLoadingToken } = useStravaToken()
+  const { accessToken } = useStravaToken()
   const { connectionStatus } = useStravaConnection()
   const { user } = useAuth()
 
@@ -189,7 +189,7 @@ export function SyncDebugger() {
         })
 
         const latestStrava = stravaActivities[0]
-        const latestDb = dbActivities.find((db: any) => db.strava_activity_id === latestStrava.id)
+        const latestDb = dbActivities.find((db) => db.strava_activity_id === latestStrava.id)
 
         if (latestDb) {
           updateLastResult({
@@ -274,11 +274,11 @@ export function SyncDebugger() {
               </div>
               <p className="text-sm text-gray-700">{result.message}</p>
               
-              {result.data && (
+{result.data != null && (
                 <details className="mt-2">
                   <summary className="text-xs text-gray-500 cursor-pointer">View Data</summary>
                   <pre className="text-xs bg-gray-50 p-2 rounded mt-1 overflow-auto">
-                    {JSON.stringify(result.data, null, 2)}
+{JSON.stringify(result.data || {}, null, 2)}
                   </pre>
                 </details>
               )}
