@@ -214,12 +214,12 @@ export function StravaDataAnalyzer() {
       <CardContent>
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            This analyzes your actual Strava data to help design an optimal schema based on what fields are available and how they're used.
+            This analyzes your actual Strava data to help design an optimal schema based on what fields are available and how they&apos;re used.
           </p>
 
           {!analysis.length && !isAnalyzing && (
             <div className="text-center py-8 text-gray-500">
-              Click "Analyze Strava Data" to examine your activity data structure
+              Click &quot;Analyze Strava Data&quot; to examine your activity data structure
             </div>
           )}
 

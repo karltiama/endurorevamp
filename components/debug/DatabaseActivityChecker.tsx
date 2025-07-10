@@ -139,8 +139,8 @@ export function DatabaseActivityChecker({ userId }: DatabaseActivityCheckerProps
           <h5 className="font-medium text-blue-800 mb-2">🔧 Debug Actions:</h5>
           <div className="text-sm space-y-1">
             <div>1. **No activities?** → Use the Sync Dashboard above to sync from Strava</div>
-            <div>2. **Missing latest run?** → Click "Refresh" or sync recent activities</div>
-            <div>3. **Components showing different data?** → Click "Clear Cache" to reset everything</div>
+            <div>2. **Missing latest run?** → Click &quot;Refresh&quot; or sync recent activities</div>
+            <div>3. **Components showing different data?** → Click &quot;Clear Cache&quot; to reset everything</div>
           </div>
         </div>
 

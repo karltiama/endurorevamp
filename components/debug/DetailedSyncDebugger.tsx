@@ -540,7 +540,7 @@ export function DetailedSyncDebugger() {
               Clear
             </Button>
             <Button onClick={debugSpecificActivity} size="sm" disabled={isDebugging || !accessToken || !user}>
-              {isDebugging ? 'Debugging...' : 'Debug "Afternoon Run"'}
+              {isDebugging ? 'Debugging...' : 'Debug &quot;Afternoon Run&quot;'}
             </Button>
           </div>
         </CardTitle>
@@ -548,12 +548,12 @@ export function DetailedSyncDebugger() {
       <CardContent>
         <div className="space-y-3">
           <p className="text-sm text-gray-600">
-            This will trace exactly what happens when trying to store your "Afternoon Run" activity in the database.
+            This will trace exactly what happens when trying to store your &quot;Afternoon Run&quot; activity in the database.
           </p>
 
           {debugResults.length === 0 && !isDebugging && (
             <div className="text-center py-8 text-gray-500">
-              Click "Debug Afternoon Run" to trace the storage issue
+              Click &quot;Debug Afternoon Run&quot; to trace the storage issue
             </div>
           )}
 

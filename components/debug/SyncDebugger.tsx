@@ -251,7 +251,7 @@ export function SyncDebugger() {
 
           {debugResults.length === 0 && !isDebugging && (
             <div className="text-center py-8 text-gray-500">
-              Click "Debug Sync" to start diagnosing the sync issue
+              Click &quot;Debug Sync&quot; to start diagnosing the sync issue
             </div>
           )}
 

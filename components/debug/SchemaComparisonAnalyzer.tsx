@@ -118,7 +118,7 @@ export function SchemaComparisonAnalyzer() {
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <h4 className="font-medium text-yellow-800 mb-2">🔑 Key Insights</h4>
           <ul className="text-sm text-yellow-700 space-y-1 list-disc list-inside">
-            <li><strong>average_pace field:</strong> This is likely where "07:04 /km" strings are being stored, causing type errors</li>
+            <li><strong>average_pace field:</strong> This is likely where &quot;07:04 /km&quot; strings are being stored, causing type errors</li>
             <li><strong>has_power field:</strong> Exists in your DB but not expected by sync code</li>
             <li><strong>Computed fields:</strong> week_number, efficiency_score etc. suggest custom analytics were added</li>
             <li><strong>Missing social fields:</strong> athlete_count, photo_count, pr_count not in your schema</li>

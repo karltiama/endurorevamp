@@ -63,6 +63,10 @@ export function DatabaseSchemaChecker() {
         .eq('table_name', 'activities')
         .eq('table_schema', 'public')
 
+      if (constraintsError) {
+        console.warn('Error fetching constraints:', constraintsError)
+      }
+
       console.log('Raw columns data:', columnsData)
       console.log('Raw constraints data:', constraintsData)
 
@@ -173,7 +177,7 @@ export function DatabaseSchemaChecker() {
 
           {!schemaInfo && !isChecking && (
             <div className="text-center py-8 text-gray-500">
-              Click "Check Schema" to see your actual database structure
+              Click &quot;Check Schema&quot; to see your actual database structure
             </div>
           )}
 
@@ -229,7 +233,7 @@ export function DatabaseSchemaChecker() {
               <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <h4 className="font-medium text-yellow-800 mb-2">Next Steps</h4>
                 <p className="text-sm text-yellow-700">
-                  Compare this with your migration files. If they don't match, you may need to:
+                  Compare this with your migration files. If they don&apos;t match, you may need to:
                 </p>
                 <ul className="text-sm text-yellow-700 mt-2 list-disc list-inside">
                   <li>Run missing migrations</li>
