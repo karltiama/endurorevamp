@@ -23,7 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -105,23 +105,16 @@ function AppSidebar({ user }: { user: SupabaseUser }) {
   const pathname = usePathname()
 
   return (
-    <Sidebar variant="inset">
+    <Sidebar variant="inset" collapsible="hover">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
+            <SidebarMenuButton asChild>
               <Link href="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <TrendingUp className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">
-                    EnduroRevamp
-                  </span>
-                  <span className="truncate text-xs">
-                    Training Analytics
-                  </span>
-                </div>
+                <TrendingUp className="size-4" />
+                <span className="truncate font-semibold">
+                  EnduroRevamp
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -131,7 +124,6 @@ function AppSidebar({ user }: { user: SupabaseUser }) {
       <SidebarContent>
         {navigation.map((group) => (
           <SidebarGroup key={group.title}>
-            <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {group.items.map((item) => {
@@ -163,18 +155,10 @@ function AppSidebar({ user }: { user: SupabaseUser }) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
-                  size="lg"
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarFallback className="rounded-lg">
-                      {user.email?.charAt(0).toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">Account</span>
-                    <span className="truncate text-xs">{user.email || 'No email'}</span>
-                  </div>
+                  <User className="size-4" />
+                  <span className="truncate font-semibold">Account</span>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -209,13 +193,13 @@ function AppSidebar({ user }: { user: SupabaseUser }) {
 
 export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full">
         <AppSidebar user={user} />
         <main className="flex-1">
           {/* Header with sidebar trigger */}
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
+            <SidebarTrigger className="-ml-1 md:hidden" />
             <div className="flex-1" />
           </header>
           
