@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
+
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { useMemo } from 'react'
 import { 
@@ -13,6 +13,7 @@ import {
   BarChart3,
   Clock
 } from 'lucide-react'
+import { ActivityWithTrainingData } from '@/types'
 
 interface WeeklyTrainingLoadWidgetProps {
   userId: string
@@ -35,7 +36,7 @@ interface WeeklyTrainingLoad {
 }
 
 // Helper functions moved outside the component
-const estimateTSS = (activity: any): number => {
+const estimateTSS = (activity: ActivityWithTrainingData): number => {
   const durationHours = activity.moving_time / 3600
   const baseIntensity = activity.sport_type === 'Run' ? 70 : 60
   
@@ -47,7 +48,7 @@ const estimateTSS = (activity: any): number => {
   return durationHours * baseIntensity * intensityMultiplier
 }
 
-const calculateZoneDistribution = (activities: any[]) => {
+const calculateZoneDistribution = (activities: ActivityWithTrainingData[]) => {
   const distribution = { zone1: 0, zone2: 0, zone3: 0, zone4: 0, zone5: 0 }
   
   activities.forEach(activity => {
@@ -80,7 +81,7 @@ const calculateZoneDistribution = (activities: any[]) => {
   return distribution
 }
 
-const calculateDailyTSS = (activities: any[], weekStart: Date) => {
+const calculateDailyTSS = (activities: ActivityWithTrainingData[], weekStart: Date) => {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   const dailyTSS: { day: string; tss: number }[] = []
 
@@ -94,7 +95,7 @@ const calculateDailyTSS = (activities: any[], weekStart: Date) => {
     })
 
     const dayTSS = dayActivities.reduce((sum, activity) => {
-      const tss = (activity as any).training_stress_score || estimateTSS(activity)
+      const tss = (activity as ActivityWithTrainingData).training_stress_score || estimateTSS(activity as ActivityWithTrainingData)
       return sum + tss
     }, 0)
 
@@ -150,7 +151,7 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
 
     // Calculate current TSS
     const currentTSS = thisWeekActivities.reduce((sum, activity) => {
-      const tss = (activity as any).training_stress_score || estimateTSS(activity)
+      const tss = (activity as ActivityWithTrainingData).training_stress_score || estimateTSS(activity as ActivityWithTrainingData)
       return sum + tss
     }, 0)
 
@@ -175,7 +176,7 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
     })
 
     const previousTSS = previousWeekActivities.reduce((sum, activity) => {
-      const tss = (activity as any).training_stress_score || estimateTSS(activity)
+      const tss = (activity as ActivityWithTrainingData).training_stress_score || estimateTSS(activity as ActivityWithTrainingData)
       return sum + tss
     }, 0)
 
@@ -278,15 +279,18 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
           </h4>
           
           <div className="grid grid-cols-5 gap-2">
-            {Object.entries(weeklyTrainingLoad.zoneDistribution).map(([zone, percentage], index) => (
-              <div key={zone} className="text-center">
-                <div className={`h-8 rounded-t ${getZoneColor(index + 1)} opacity-80`}
-                     style={{ height: `${Math.max(8, percentage * 0.8)}px` }}>
+            {Object.entries(weeklyTrainingLoad.zoneDistribution).map(([zone, percentage]) => {
+              const zoneNumber = parseInt(zone.replace('zone', ''))
+              return (
+                <div key={zone} className="text-center">
+                  <div className={`h-8 rounded-t ${getZoneColor(zoneNumber)} opacity-80`}
+                       style={{ height: `${Math.max(8, percentage * 0.8)}px` }}>
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1">Z{zoneNumber}</div>
+                  <div className="text-xs font-medium">{percentage}%</div>
                 </div>
-                <div className="text-xs text-gray-600 mt-1">Z{index + 1}</div>
-                <div className="text-xs font-medium">{percentage}%</div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
@@ -319,7 +323,7 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-gray-600">Daily Distribution</h4>
           <div className="flex justify-between items-end h-16 px-2">
-            {weeklyTrainingLoad.dailyTSS.map((day, index) => (
+            {weeklyTrainingLoad.dailyTSS.map((day) => (
               <div key={day.day} className="flex flex-col items-center flex-1">
                 <div 
                   className="w-4 bg-blue-500 rounded-t opacity-70 min-h-1"

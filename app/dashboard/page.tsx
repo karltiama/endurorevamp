@@ -4,7 +4,7 @@ import { TrainingReadinessCard } from '@/components/dashboard/TrainingReadinessC
 import { WeeklyTrainingLoadWidget } from '@/components/dashboard/WeeklyTrainingLoadWidget'
 import { PerformanceInsightsCard } from '@/components/dashboard/PerformanceInsightsCard'
 import { QuickActionsSection } from '@/components/dashboard/QuickActionsSection'
-import { DashboardGoalSelector } from '@/components/dashboard/DashboardGoalSelector'
+
 import { StravaOAuthHandler } from '@/components/dashboard/StravaOAuthHandler'
 import { Suspense } from 'react'
 

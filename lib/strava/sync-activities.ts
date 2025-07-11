@@ -90,7 +90,7 @@ export class StravaActivitySync {
       sinceDays?: number, 
       forceRefresh?: boolean 
     } = {},
-    serverSupabase?: any // Optional server-side supabase client
+    serverSupabase?: any // eslint-disable-line @typescript-eslint/no-explicit-any -- External library type
   ) {
     const startTime = Date.now()
     
@@ -226,7 +226,7 @@ export class StravaActivitySync {
     }
   }
 
-  async storeActivity(userId: string, activity: StravaActivity, serverSupabase?: any) {
+  async storeActivity(userId: string, activity: StravaActivity, serverSupabase?: any) { // eslint-disable-line @typescript-eslint/no-explicit-any -- External library type
     // Debug: Log the raw activity data to see what fields contain pace strings
     console.log('🔍 Raw activity data from Strava:', activity)
     
@@ -238,8 +238,8 @@ export class StravaActivitySync {
     })
     
     // Create a clean activity object without any pace-related fields that might interfere
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cleanActivity = { ...activity } as any // Need dynamic property access for field removal
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic property access
+    const cleanActivity = { ...activity } as any
     
     // Remove any pace-related fields from Strava that might contain strings
     const paceFieldsToRemove = ['average_pace', 'best_efforts', 'pace', 'splits_metric', 'splits_standard']
@@ -377,7 +377,7 @@ export class StravaActivitySync {
       last_error_message?: string | null;
       sync_enabled?: boolean;
     },
-    supabaseClient?: any
+    supabaseClient?: any // eslint-disable-line @typescript-eslint/no-explicit-any -- External library type
   ) {
     const client = supabaseClient || this.supabase
     

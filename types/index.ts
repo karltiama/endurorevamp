@@ -6,8 +6,9 @@ export * from './auth'
 // Goals
 export * from './goals'
 
-// Strava (re-export from lib)
-export * from '../lib/strava/types' 
+  // Strava (re-export from lib)
+  export * from '../lib/strava/types'
+  import { Activity } from '../lib/strava/types' 
 
 // Strava Activity Types
 export interface StravaActivity {
@@ -61,4 +62,12 @@ export interface ReadinessFactors {
   daysSinceLastWorkout: number
   tssBalance: number
   lastRPE?: number
+}
+
+// Extended Activity interface with computed training fields
+export interface ActivityWithTrainingData extends Activity {
+  training_stress_score?: number
+  perceived_exertion?: number
+  recovery_time?: number
+  training_load_score?: number
 } 

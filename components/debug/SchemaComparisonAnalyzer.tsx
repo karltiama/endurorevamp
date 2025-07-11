@@ -375,7 +375,7 @@ export function SchemaComparisonAnalyzer() {
               <p><strong>Phase 4:</strong> Enhance with weather data and social features</p>
               <p><strong>Phase 5:</strong> Add equipment tracking and advanced location features</p>
               <div className="mt-3 p-2 bg-purple-100 rounded text-xs">
-                <strong>💡 Key Insight:</strong> You're further along than expected! Focus on utilizing existing data rather than adding new fields.
+                <strong>💡 Key Insight:</strong> You&apos;re further along than expected! Focus on utilizing existing data rather than adding new fields.
               </div>
             </div>
           </div>

@@ -17,6 +17,7 @@ import {
   TrendingDown,
   Activity
 } from 'lucide-react'
+import { ActivityWithTrainingData } from '@/types'
 
 interface TrainingReadinessCardProps {
   userId: string
@@ -34,7 +35,7 @@ interface TrainingReadiness {
 }
 
 // Helper functions moved outside the component
-const estimateTSS = (activity: any): number => {
+const estimateTSS = (activity: ActivityWithTrainingData): number => {
   // Simple TSS estimation based on duration and sport type
   const durationHours = activity.moving_time / 3600
   const baseIntensity = activity.sport_type === 'Run' ? 70 : 60 // TSS per hour
@@ -53,7 +54,7 @@ const calculateRecoveryScore = (factors: {
   daysSinceLastWorkout: number
   lastRPE?: number
   tssBalance: number
-  lastActivity: any
+  lastActivity: ActivityWithTrainingData
 }): number => {
   let score = 50 // Base score
 
@@ -162,7 +163,7 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
          // Calculate weekly TSS (use training_stress_score if available, otherwise estimate)
      const weeklyTSSCurrent = recentActivities.reduce((sum, activity) => {
        // Use actual TSS if available, otherwise estimate based on duration and intensity
-       const tss = (activity as any).training_stress_score || estimateTSS(activity)
+       const tss = (activity as ActivityWithTrainingData).training_stress_score || estimateTSS(activity)
        return sum + tss
      }, 0)
 
@@ -173,7 +174,7 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
     const tssBalance = weeklyTSSTarget - weeklyTSSCurrent
 
          // Get last RPE (perceived exertion)
-     const lastRPE = (lastActivity as any)?.perceived_exertion
+     const lastRPE = (lastActivity as ActivityWithTrainingData)?.perceived_exertion
 
     // Calculate recovery score based on multiple factors
     const recoveryScore = calculateRecoveryScore({

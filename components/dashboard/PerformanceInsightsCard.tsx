@@ -13,6 +13,7 @@ import {
   Minus
 } from 'lucide-react'
 import { Activity as StravaActivity } from '@/lib/strava/types'
+import { ActivityWithTrainingData } from '@/types'
 
 interface PerformanceInsightsCardProps {
   userId: string
@@ -127,7 +128,7 @@ const calculateTrainingLoadTrend = (recent: StravaActivity[], previous: StravaAc
   const getAverageLoad = (activities: StravaActivity[]) => {
     if (activities.length === 0) return 0
     const totalLoad = activities.reduce((sum: number, activity: StravaActivity) => {
-      const load = (activity as any).training_load_score || estimateTrainingLoad(activity)
+      const load = (activity as ActivityWithTrainingData).training_load_score || estimateTrainingLoad(activity)
       return sum + load
     }, 0)
     return totalLoad / activities.length

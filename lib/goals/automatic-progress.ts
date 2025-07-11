@@ -24,10 +24,7 @@ export class AutomaticGoalProgress {
     activity: Activity
   ): Promise<void> {
     try {
-      // Calculate average pace in seconds per km from the activity data
-      const averagePace = activity.distance && activity.moving_time 
-        ? (activity.moving_time / (activity.distance / 1000))
-        : null;
+
 
       // Call the database function to update all relevant goals
       // Function signature: update_goal_progress_from_activity(p_activity_date, p_activity_distance, p_activity_id, p_user_id)

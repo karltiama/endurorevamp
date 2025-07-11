@@ -16,7 +16,7 @@ import {
   Users
 } from 'lucide-react'
 import { Activity as StravaActivity } from '@/lib/strava/types'
-import { TrainingState } from '@/types'
+import { TrainingState, ActivityWithTrainingData } from '@/types'
 
 interface QuickActionsSectionProps {
   userId: string
@@ -81,12 +81,12 @@ const estimateTSS = (activity: StravaActivity): number => {
 
 const calculateTrainingState = (recentActivities: StravaActivity[], activities: StravaActivity[]): TrainingState => {
   const totalTSS = recentActivities.reduce((sum, activity) => {
-    const tss = (activity as any).training_stress_score || estimateTSS(activity)
+    const tss = (activity as ActivityWithTrainingData).training_stress_score || estimateTSS(activity)
     return sum + tss
   }, 0)
 
   const averageRPE = recentActivities.reduce((sum, activity) => {
-    const rpe = (activity as any).perceived_exertion || 5
+    const rpe = (activity as ActivityWithTrainingData).perceived_exertion || 5
     return sum + rpe
   }, 0) / recentActivities.length
 
@@ -127,7 +127,7 @@ const generateContextualActions = (
   }
 
   // RPE logging if recent workout
-  if (recentActivity && !(recentActivity as any).perceived_exertion) {
+  if (recentActivity && !(recentActivity as ActivityWithTrainingData).perceived_exertion) {
     actions.push({
       id: 'log-rpe',
       title: 'Log RPE',
@@ -332,7 +332,7 @@ export function QuickActionsSection({ userId }: QuickActionsSectionProps) {
             </div>
             <div>
                              <div className="text-lg font-bold">
-                 {activities?.length ? Math.round(activities.slice(0, 5).reduce((sum, a) => sum + ((a as any).perceived_exertion || 5), 0) / Math.min(5, activities.length)) : 5}
+                 {activities?.length ? Math.round(activities.slice(0, 5).reduce((sum, a) => sum + ((a as ActivityWithTrainingData).perceived_exertion || 5), 0) / Math.min(5, activities.length)) : 5}
                </div>
               <div className="text-xs text-gray-600">Avg RPE</div>
             </div>
