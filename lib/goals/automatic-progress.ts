@@ -30,15 +30,12 @@ export class AutomaticGoalProgress {
         : null;
 
       // Call the database function to update all relevant goals
+      // Function signature: update_goal_progress_from_activity(p_activity_date, p_activity_distance, p_activity_id, p_user_id)
       const { error } = await supabase.rpc('update_goal_progress_from_activity', {
-        p_user_id: userId,
-        p_activity_id: activity.strava_activity_id.toString(),
         p_activity_date: new Date(activity.start_date).toISOString().split('T')[0],
-        p_distance: (activity.distance || 0) / 1000, // Convert meters to km
-        p_duration: activity.moving_time || 0,
-        p_elevation_gain: activity.total_elevation_gain || 0,
-        p_average_pace: averagePace,
-        p_heart_rate_zones: null // TODO: Add HR zone data when available
+        p_activity_distance: (activity.distance || 0) / 1000, // Convert meters to km
+        p_activity_id: activity.strava_activity_id.toString(),
+        p_user_id: userId
       });
 
       if (error) {

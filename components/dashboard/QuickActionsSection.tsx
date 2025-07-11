@@ -1,7 +1,6 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { useMemo } from 'react'
@@ -14,9 +13,10 @@ import {
   TrendingUp,
   Activity,
   Clock,
-  Users,
-  FileText
+  Users
 } from 'lucide-react'
+import { Activity as StravaActivity } from '@/lib/strava/types'
+import { TrainingState } from '@/types'
 
 interface QuickActionsSectionProps {
   userId: string
@@ -67,7 +67,7 @@ const getDefaultActions = (): QuickAction[] => [
   }
 ]
 
-const estimateTSS = (activity: any): number => {
+const estimateTSS = (activity: StravaActivity): number => {
   const durationHours = activity.moving_time / 3600
   const baseIntensity = activity.sport_type === 'Run' ? 70 : 60
   
@@ -79,7 +79,7 @@ const estimateTSS = (activity: any): number => {
   return durationHours * baseIntensity * intensityMultiplier
 }
 
-const calculateTrainingState = (recentActivities: any[], activities: any[]) => {
+const calculateTrainingState = (recentActivities: StravaActivity[], activities: StravaActivity[]): TrainingState => {
   const totalTSS = recentActivities.reduce((sum, activity) => {
     const tss = (activity as any).training_stress_score || estimateTSS(activity)
     return sum + tss
@@ -106,9 +106,9 @@ const calculateTrainingState = (recentActivities: any[], activities: any[]) => {
 }
 
 const generateContextualActions = (
-  trainingState: any, 
-  recentActivity: any, 
-  recentActivities: any[]
+  trainingState: TrainingState, 
+  recentActivity: StravaActivity | undefined, 
+  recentActivities: StravaActivity[]
 ): QuickAction[] => {
   const actions: QuickAction[] = []
 

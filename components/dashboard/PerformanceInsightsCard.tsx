@@ -1,7 +1,6 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { useMemo } from 'react'
 import { 
@@ -10,10 +9,10 @@ import {
   Flame,
   Trophy,
   Target,
-  Calendar,
   Activity,
   Minus
 } from 'lucide-react'
+import { Activity as StravaActivity } from '@/lib/strava/types'
 
 interface PerformanceInsightsCardProps {
   userId: string
@@ -48,7 +47,7 @@ interface Achievement {
 }
 
 // Helper functions moved outside the component
-const estimateTrainingLoad = (activity: any): number => {
+const estimateTrainingLoad = (activity: StravaActivity): number => {
   const durationHours = activity.moving_time / 3600
   const baseLoad = activity.sport_type === 'Run' ? 50 : 40
   
@@ -60,14 +59,14 @@ const estimateTrainingLoad = (activity: any): number => {
   return durationHours * baseLoad * intensityMultiplier
 }
 
-const calculateConsistencyStreak = (activities: any[]): number => {
+const calculateConsistencyStreak = (activities: StravaActivity[]): number => {
   if (activities.length === 0) return 0
 
   const sortedActivities = activities
     .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime())
 
   let streak = 0
-  let currentDate = new Date()
+  const currentDate = new Date()
   currentDate.setHours(0, 0, 0, 0)
 
   for (let i = 0; i < 30; i++) { // Check last 30 days
@@ -94,12 +93,12 @@ const calculateConsistencyStreak = (activities: any[]): number => {
   return streak
 }
 
-const calculatePaceImprovement = (recent: any[], previous: any[]) => {
-  const getAveragePace = (activities: any[]) => {
-    const runningActivities = activities.filter((a: any) => a.sport_type === 'Run')
+const calculatePaceImprovement = (recent: StravaActivity[], previous: StravaActivity[]) => {
+  const getAveragePace = (activities: StravaActivity[]) => {
+    const runningActivities = activities.filter(a => a.sport_type === 'Run')
     if (runningActivities.length === 0) return 0
     
-    const totalPace = runningActivities.reduce((sum: number, activity: any) => {
+    const totalPace = runningActivities.reduce((sum: number, activity: StravaActivity) => {
       const pace = activity.moving_time / (activity.distance / 1000) // seconds per km
       return sum + pace
     }, 0)
@@ -124,10 +123,10 @@ const calculatePaceImprovement = (recent: any[], previous: any[]) => {
   }
 }
 
-const calculateTrainingLoadTrend = (recent: any[], previous: any[]) => {
-  const getAverageLoad = (activities: any[]) => {
+const calculateTrainingLoadTrend = (recent: StravaActivity[], previous: StravaActivity[]) => {
+  const getAverageLoad = (activities: StravaActivity[]) => {
     if (activities.length === 0) return 0
-    const totalLoad = activities.reduce((sum: number, activity: any) => {
+    const totalLoad = activities.reduce((sum: number, activity: StravaActivity) => {
       const load = (activity as any).training_load_score || estimateTrainingLoad(activity)
       return sum + load
     }, 0)
@@ -146,19 +145,19 @@ const calculateTrainingLoadTrend = (recent: any[], previous: any[]) => {
   return 'stable'
 }
 
-const findRecentAchievements = (activities: any[]): Achievement[] => {
+const findRecentAchievements = (activities: StravaActivity[]): Achievement[] => {
   const achievements: Achievement[] = []
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
   // Check for longest distance in last 7 days
-  const recentActivities = activities.filter((a: any) => new Date(a.start_date) >= sevenDaysAgo)
-  const longestRecent = recentActivities.reduce((max: any, activity: any) => 
-    activity.distance > max.distance ? activity : max, { distance: 0 })
+  const recentActivities = activities.filter(a => new Date(a.start_date) >= sevenDaysAgo)
+  const longestRecent = recentActivities.reduce((max: StravaActivity, activity: StravaActivity) => 
+    activity.distance > max.distance ? activity : max, { distance: 0 } as StravaActivity)
 
   if (longestRecent.distance > 0) {
-    const olderActivities = activities.filter((a: any) => new Date(a.start_date) < sevenDaysAgo)
-    const previousLongest = olderActivities.reduce((max: any, activity: any) => 
-      activity.distance > max.distance ? activity : max, { distance: 0 })
+    const olderActivities = activities.filter(a => new Date(a.start_date) < sevenDaysAgo)
+    const previousLongest = olderActivities.reduce((max: StravaActivity, activity: StravaActivity) => 
+      activity.distance > max.distance ? activity : max, { distance: 0 } as StravaActivity)
 
     if (longestRecent.distance > previousLongest.distance) {
       achievements.push({
@@ -186,9 +185,9 @@ const findRecentAchievements = (activities: any[]): Achievement[] => {
   return achievements.slice(0, 2) // Limit to 2 achievements
 }
 
-const calculateWeeklyDistance = (recent: any[], previous: any[]) => {
-  const getWeeklyDistance = (activities: any[]) => 
-    activities.reduce((sum: number, activity: any) => sum + activity.distance, 0) / 1000 // Convert to km
+const calculateWeeklyDistance = (recent: StravaActivity[], previous: StravaActivity[]) => {
+  const getWeeklyDistance = (activities: StravaActivity[]) => 
+    activities.reduce((sum: number, activity: StravaActivity) => sum + activity.distance, 0) / 1000 // Convert to km
 
   const current = getWeeklyDistance(recent)
   const prev = getWeeklyDistance(previous)
@@ -201,10 +200,10 @@ const calculateWeeklyDistance = (recent: any[], previous: any[]) => {
   }
 }
 
-const calculateAverageIntensity = (recent: any[], previous: any[]) => {
-  const getAverageIntensity = (activities: any[]) => {
+const calculateAverageIntensity = (recent: StravaActivity[], previous: StravaActivity[]) => {
+  const getAverageIntensity = (activities: StravaActivity[]) => {
     if (activities.length === 0) return 0
-    const totalIntensity = activities.reduce((sum: number, activity: any) => {
+    const totalIntensity = activities.reduce((sum: number, activity: StravaActivity) => {
       return sum + (activity.average_heartrate || 120)
     }, 0)
     return totalIntensity / activities.length

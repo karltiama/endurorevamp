@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     // Initialize sync service and perform sync
     const syncService = new StravaActivitySync()
-    const result = await syncService.syncUserActivities()
+    const result = await syncService.syncUserActivities(userId, syncOptions, supabase)
 
     // Return result
     if (result.success) {

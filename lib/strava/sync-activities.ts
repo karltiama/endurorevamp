@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
-import type { StravaActivity } from './types'
 import { AutomaticGoalProgress } from '@/lib/goals/automatic-progress'
+import type { StravaActivity } from './types'
 
 // Helper function to safely convert values to numbers
 function safeNumber(value: unknown, fieldName?: string): number | null {
@@ -83,21 +83,138 @@ function calculateComputedFields(activity: StravaActivity) {
 export class StravaActivitySync {
   private supabase = createClient()
 
-  async syncUserActivities() {
+  async syncUserActivities(
+    userId: string,
+    options: { 
+      maxActivities?: number, 
+      sinceDays?: number, 
+      forceRefresh?: boolean 
+    } = {},
+    serverSupabase?: any // Optional server-side supabase client
+  ) {
     const startTime = Date.now()
     
     try {
-      // For now, return a basic success response
-      // This method should be expanded to handle the full sync logic
+      console.log('🔄 Starting StravaActivitySync.syncUserActivities with options:', options)
+      console.log(`🔑 Using userId: ${userId}`)
+      
+      // Use server-side supabase client if provided, otherwise use client-side
+      const supabaseClient = serverSupabase || this.supabase
+      
+      // Get user's Strava access token
+      const { data: tokenData, error: tokenError } = await supabaseClient
+        .from('strava_tokens')
+        .select('access_token, expires_at')
+        .eq('user_id', userId)
+        .single()
+      
+      if (tokenError || !tokenData?.access_token) {
+        throw new Error('No valid Strava token found. Please reconnect your Strava account.')
+      }
+      
+      console.log('🔑 Retrieved Strava access token')
+      
+      // Check if token is expired
+      if (tokenData.expires_at && new Date(tokenData.expires_at) <= new Date()) {
+        throw new Error('Strava token has expired. Please reconnect your Strava account.')
+      }
+      
+      // Determine sync parameters
+      const maxActivities = Math.min(options.maxActivities || 50, 200) // API max is 200
+      const sinceDays = options.sinceDays || 30
+      
+      // Calculate 'after' timestamp (Strava uses Unix timestamps)
+      const sinceDate = new Date()
+      sinceDate.setDate(sinceDate.getDate() - sinceDays)
+      const afterTimestamp = Math.floor(sinceDate.getTime() / 1000)
+      
+      console.log(`📅 Fetching activities since: ${sinceDate.toISOString()} (${afterTimestamp})`)
+      
+      // Fetch activities from Strava API
+      const stravaUrl = `https://www.strava.com/api/v3/athlete/activities?after=${afterTimestamp}&per_page=${maxActivities}`
+      console.log('🌐 Calling Strava API:', stravaUrl)
+      
+      const response = await fetch(stravaUrl, {
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`,
+        },
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Strava API error: ${response.status} - ${errorText}`)
+      }
+      
+      const stravaActivities = await response.json()
+      console.log(`✅ Fetched ${stravaActivities.length} activities from Strava API`)
+      
+      if (!stravaActivities.length) {
+        console.log('ℹ️ No new activities found')
+        return {
+          success: true,
+          activitiesProcessed: 0,
+          newActivities: 0,
+          updatedActivities: 0,
+          syncDuration: Date.now() - startTime,
+          errors: []
+        }
+      }
+      
+      // Process activities one by one
+      let activitiesProcessed = 0
+      let newActivities = 0
+      let updatedActivities = 0
+      const errors: string[] = []
+      
+      for (const stravaActivity of stravaActivities) {
+        try {
+          console.log(`🔄 Processing activity: ${stravaActivity.name} (ID: ${stravaActivity.id})`)
+          const result = await this.storeActivity(userId, stravaActivity, supabaseClient)
+          
+          if (result.isNew) {
+            newActivities++
+            console.log(`✅ New activity stored: ${stravaActivity.name}`)
+          } else {
+            updatedActivities++
+            console.log(`🔄 Activity updated: ${stravaActivity.name}`)
+          }
+          activitiesProcessed++
+        } catch (error) {
+          const errorMsg = `Failed to process activity ${stravaActivity.id}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          console.error(`❌ ${errorMsg}`)
+          errors.push(errorMsg)
+        }
+      }
+      
+      console.log(`🎉 Sync completed: ${activitiesProcessed} processed (${newActivities} new, ${updatedActivities} updated)`)
+      
+      // Update sync state to track when last sync happened
+      try {
+                 await this.updateSyncState(userId, {
+           last_activity_sync: new Date().toISOString(),
+           last_sync_date: new Date().toDateString(),
+           sync_requests_today: 1, // Could be improved to increment existing count
+           total_activities_synced: activitiesProcessed,
+           consecutive_errors: 0,
+           last_error_message: null,
+           sync_enabled: true
+         }, supabaseClient)
+        console.log('✅ Sync state updated successfully')
+      } catch (syncStateError) {
+        console.warn('⚠️ Failed to update sync state (non-critical):', syncStateError)
+        // Don't fail the sync if state update fails
+      }
+      
       return {
         success: true,
-        activitiesProcessed: 0,
-        newActivities: 0,
-        updatedActivities: 0,
+        activitiesProcessed,
+        newActivities,
+        updatedActivities,
         syncDuration: Date.now() - startTime,
-        errors: []
+        errors
       }
     } catch (error) {
+      console.error('❌ Sync failed:', error)
       return {
         success: false,
         activitiesProcessed: 0,
@@ -109,7 +226,7 @@ export class StravaActivitySync {
     }
   }
 
-  async storeActivity(userId: string, activity: StravaActivity) {
+  async storeActivity(userId: string, activity: StravaActivity, serverSupabase?: any) {
     // Debug: Log the raw activity data to see what fields contain pace strings
     console.log('🔍 Raw activity data from Strava:', activity)
     
@@ -206,8 +323,11 @@ export class StravaActivitySync {
 
     console.log('🔒 Final safe activity data for database:', safeActivityData)
     
+    // Use server-side supabase client if provided, otherwise use client-side
+    const supabaseClient = serverSupabase || this.supabase
+    
     // Use the correct unique constraint that exists in your database
-    const { data, error } = await this.supabase
+    const { data, error } = await supabaseClient
       .from('activities')
       .upsert(safeActivityData, { 
         onConflict: 'user_id,strava_activity_id', // Use composite constraint columns (order matters)
@@ -242,6 +362,36 @@ export class StravaActivitySync {
     return {
       data,
       isNew
+    }
+  }
+
+  // Helper method to update sync state tracking
+  private async updateSyncState(
+    userId: string, 
+    updates: {
+      last_activity_sync?: string;
+      last_sync_date?: string;
+      sync_requests_today?: number;
+      total_activities_synced?: number;
+      consecutive_errors?: number;
+      last_error_message?: string | null;
+      sync_enabled?: boolean;
+    },
+    supabaseClient?: any
+  ) {
+    const client = supabaseClient || this.supabase
+    
+    const { error } = await client
+      .from('sync_state')
+      .upsert({
+        user_id: userId,
+        ...updates,
+      }, {
+        onConflict: 'user_id'
+      })
+    
+    if (error) {
+      throw new Error(`Failed to update sync state: ${error.message}`)
     }
   }
 }
