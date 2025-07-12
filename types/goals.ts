@@ -76,6 +76,21 @@ export interface GoalData {
   show_on_dashboard?: boolean; // Whether this goal appears on the dashboard
   dashboard_priority?: number; // Order priority on dashboard (1-3)
   
+  // Context and creation metadata
+  creation_context?: 'manual' | 'suggestion' | 'onboarding' | 'dashboard';
+  is_onboarding_goal?: boolean;
+  
+  // Suggestion-specific data
+  from_suggestion?: boolean;
+  suggestion_id?: string;
+  suggestion_title?: string;
+  suggestion_reasoning?: string;
+  suggestion_strategies?: string[];
+  suggestion_benefits?: string[];
+  success_probability?: number;
+  required_commitment?: 'low' | 'medium' | 'high';
+  warnings?: string[];
+  
   // Pace-specific data
   target_pace_seconds?: number; // Target pace in seconds per km
   distance_range?: [number, number]; // Distance range for pace goals (e.g., [4.5, 5.5] for 5K)
@@ -128,10 +143,16 @@ export interface GetGoalTypesResponse {
   error?: string;
 }
 
+export interface UserStats {
+  activityCount: number;
+  hasStravaConnection: boolean;
+}
+
 export interface GetUserGoalsResponse {
   success: boolean;
   goals: UserGoal[];
   onboarding?: UserOnboarding;
+  userStats?: UserStats;
   error?: string;
 }
 

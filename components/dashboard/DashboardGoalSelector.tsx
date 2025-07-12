@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { useUserGoals, useUpdateGoal } from '@/hooks/useGoals';
+import { useUserGoals, useUpdateGoal, useGoalManagement } from '@/hooks/useGoals';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,18 +25,13 @@ interface DashboardGoalSelectorProps {
 export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelectorProps) {
   const { data: goalsData, isLoading } = useUserGoals();
   const updateGoalMutation = useUpdateGoal();
+  const { toggleDashboardGoal, getDashboardGoals } = useGoalManagement();
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [error, setError] = useState<string>('');
 
   const activeGoals = goalsData?.goals?.filter(goal => goal.is_active) || [];
-  const currentDashboardGoals = activeGoals.filter(goal => 
-    goal.goal_data?.show_on_dashboard
-  ).sort((a, b) => {
-    const aPriority = a.goal_data?.dashboard_priority || 999;
-    const bPriority = b.goal_data?.dashboard_priority || 999;
-    return aPriority - bPriority;
-  });
+  const currentDashboardGoals = getDashboardGoals();
 
   // Initialize selected goals with current dashboard goals
   React.useEffect(() => {
@@ -60,35 +55,14 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
       // Update all goals to remove from dashboard first
       for (const goal of activeGoals) {
         if (goal.goal_data?.show_on_dashboard) {
-          await updateGoalMutation.mutateAsync({
-            goalId: goal.id,
-            updates: {
-              goal_data: {
-                ...goal.goal_data,
-                show_on_dashboard: false,
-                dashboard_priority: undefined
-              }
-            }
-          });
+          await toggleDashboardGoal(goal.id, false);
         }
       }
 
       // Then add selected goals to dashboard with priority
       for (let i = 0; i < selectedGoals.length; i++) {
         const goalId = selectedGoals[i];
-        const goal = activeGoals.find(g => g.id === goalId);
-        if (goal) {
-          await updateGoalMutation.mutateAsync({
-            goalId: goal.id,
-            updates: {
-              goal_data: {
-                ...goal.goal_data,
-                show_on_dashboard: true,
-                dashboard_priority: i + 1
-              }
-            }
-          });
-        }
+        await toggleDashboardGoal(goalId, true, i + 1);
       }
 
       onOpenChange(false);

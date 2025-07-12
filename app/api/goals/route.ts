@@ -43,15 +43,58 @@ export async function GET() {
       .eq('user_id', user.id)
       .single();
 
-    // Don't treat missing onboarding record as an error
-    if (onboardingError && onboardingError.code !== 'PGRST116') {
+    // If no onboarding record exists, create one (for new users)
+    let finalOnboarding = onboarding;
+    if (onboardingError && onboardingError.code === 'PGRST116') {
+      console.log('🆕 Creating onboarding record for new user:', user.id);
+      const { data: newOnboarding, error: createError } = await supabase
+        .from('user_onboarding')
+        .insert({
+          user_id: user.id,
+          current_step: 'goals'
+        })
+        .select('*')
+        .single();
+
+      if (createError) {
+        console.error('Error creating onboarding record:', createError);
+        // Don't fail the request, just log the error
+      } else {
+        finalOnboarding = newOnboarding;
+      }
+    } else if (onboardingError && onboardingError.code !== 'PGRST116') {
       console.error('Error fetching onboarding status:', onboardingError);
+    }
+
+    // Get user's activity count to help determine if they're new or existing
+    const { count: activityCount, error: activityCountError } = await supabase
+      .from('activities')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+
+    if (activityCountError) {
+      console.error('Error fetching activity count:', activityCountError);
+    }
+
+    // Check if user has Strava connection
+    const { data: stravaToken, error: stravaTokenError } = await supabase
+      .from('strava_tokens')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (stravaTokenError && stravaTokenError.code !== 'PGRST116') {
+      console.error('Error checking Strava connection:', stravaTokenError);
     }
 
     return NextResponse.json({
       success: true,
       goals: goals || [],
-      onboarding: onboarding || null
+      onboarding: finalOnboarding || null,
+      userStats: {
+        activityCount: activityCount || 0,
+        hasStravaConnection: !!stravaToken
+      }
     });
 
   } catch (error) {

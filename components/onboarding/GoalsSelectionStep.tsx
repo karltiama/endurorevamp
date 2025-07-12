@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useGoalTypes, useCreateMultipleGoals } from '@/hooks/useGoals';
+import { useGoalTypes, useCreateMultipleGoals, useUnifiedGoalCreation } from '@/hooks/useGoals';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -100,7 +100,9 @@ export function GoalsSelectionStep({ onComplete }: GoalsSelectionStepProps) {
         goal_data: {
           notes: goal.notes,
           show_on_dashboard: dashboardGoals.includes(goal.goalTypeId),
-          dashboard_priority: dashboardGoals.indexOf(goal.goalTypeId) + 1
+          dashboard_priority: dashboardGoals.indexOf(goal.goalTypeId) + 1,
+          creation_context: 'onboarding' as const,
+          is_onboarding_goal: true
         },
         priority: goal.priority
       }));

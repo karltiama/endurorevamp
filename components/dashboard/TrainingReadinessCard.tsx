@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { useUserActivities } from '@/hooks/use-user-activities'
+import { usePersonalizedTSSTarget } from '@/hooks/useTrainingProfile'
 import { useMemo } from 'react'
 import { 
   Battery, 
@@ -143,6 +144,7 @@ const getReadinessColor = (level: string) => {
 
 export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
   const { data: activities, isLoading, error } = useUserActivities(userId)
+  const { data: personalizedTSSTarget } = usePersonalizedTSSTarget(userId)
 
   const trainingReadiness = useMemo((): TrainingReadiness | null => {
     if (!activities || activities.length === 0) return null
@@ -167,8 +169,8 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
        return sum + tss
      }, 0)
 
-    // Weekly TSS target (could be configurable per user)
-    const weeklyTSSTarget = 400 // Moderate training load
+    // Weekly TSS target (personalized based on user profile)
+    const weeklyTSSTarget = personalizedTSSTarget || 400
 
     // TSS balance (negative = accumulated fatigue)
     const tssBalance = weeklyTSSTarget - weeklyTSSCurrent

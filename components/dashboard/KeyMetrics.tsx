@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useUserGoals } from '@/hooks/useGoals'
+import { useUserGoals, useGoalManagement } from '@/hooks/useGoals'
 import { useUserActivities } from '../../hooks/use-user-activities'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { formatDistance } from '@/lib/utils'
@@ -18,6 +18,7 @@ export function KeyMetrics({ userId }: KeyMetricsProps) {
   const { data: goalsData, isLoading: goalsLoading } = useUserGoals()
   const { isLoading: activitiesLoading } = useUserActivities(userId)
   const { preferences } = useUnitPreferences()
+  const { getDashboardGoals } = useGoalManagement()
   const [showGoalSelector, setShowGoalSelector] = useState(false)
 
   if (goalsLoading || activitiesLoading) {
@@ -25,13 +26,7 @@ export function KeyMetrics({ userId }: KeyMetricsProps) {
   }
 
   // Get goals marked for dashboard display
-  const dashboardGoals = goalsData?.goals?.filter((goal: UserGoal) => 
-    goal.goal_data?.show_on_dashboard && goal.is_active
-  ).sort((a: UserGoal, b: UserGoal) => {
-    const aPriority = a.goal_data?.dashboard_priority || 999
-    const bPriority = b.goal_data?.dashboard_priority || 999
-    return aPriority - bPriority
-  }) || []
+  const dashboardGoals = getDashboardGoals()
 
   // If no dashboard goals are set, show message to set them up
   if (dashboardGoals.length === 0) {

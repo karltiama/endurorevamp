@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { AddGoalModal } from '@/components/goals/AddGoalModal'
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { useUserGoals } from '@/hooks/useGoals'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
@@ -35,6 +36,8 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
   const [suggestions, setSuggestions] = useState<DynamicGoalSuggestion[]>([])
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [selectedSuggestion, setSelectedSuggestion] = useState<DynamicGoalSuggestion | null>(null)
+  const [suggestionToCreate, setSuggestionToCreate] = useState<DynamicGoalSuggestion | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
 
   const analyzePerformance = useCallback(async () => {
     setIsAnalyzing(true)
@@ -65,13 +68,23 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
     }
   }, [activities, activeGoals, analyzePerformance])
 
+  const handleCreateGoalFromSuggestion = (suggestion: DynamicGoalSuggestion) => {
+    setSuggestionToCreate(suggestion)
+    setShowAddModal(true)
+  }
+
+  const handleCloseAddModal = () => {
+    setShowAddModal(false)
+    setSuggestionToCreate(null)
+  }
+
   if (isAnalyzing) {
     return (
       <Card>
-        <CardContent className="flex items-center justify-center p-8">
-          <div className="text-center space-y-2">
-            <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-            <p className="text-gray-600">Analyzing your performance patterns...</p>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
+            <span className="text-sm text-gray-600">Analyzing your performance...</span>
           </div>
         </CardContent>
       </Card>
@@ -81,22 +94,12 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
   if (!profile || suggestions.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-blue-500" />
-            Smart Goal Suggestions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">
-              Keep logging activities to get personalized goal suggestions!
-            </p>
-            <Button onClick={analyzePerformance} variant="outline">
-              Analyze My Performance
-            </Button>
-          </div>
+        <CardContent className="p-6 text-center">
+          <Lightbulb className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No Suggestions Yet</h3>
+          <p className="text-gray-600">
+            Complete more activities to unlock personalized goal recommendations.
+          </p>
         </CardContent>
       </Card>
     )
@@ -104,66 +107,6 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
 
   return (
     <div className="space-y-6">
-      {/* Performance Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-blue-500" />
-            Your Performance Profile
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <div className="text-lg font-bold text-blue-600">
-                {formatDistance(profile.weeklyDistance * 1000, preferences.distance)}
-              </div>
-              <div className="text-sm text-gray-600">Weekly Distance</div>
-              <Badge variant="outline" className="mt-1">
-                {profile.distanceTrend === 'improving' ? '📈' : 
-                 profile.distanceTrend === 'declining' ? '📉' : '➡️'} 
-                {profile.distanceTrend}
-              </Badge>
-            </div>
-            
-            <div className="text-center p-3 bg-green-50 rounded-lg">
-              <div className="text-lg font-bold text-green-600">
-                {formatPace(profile.averagePace, preferences.pace)}
-              </div>
-              <div className="text-sm text-gray-600">Avg Pace</div>
-              <Badge variant="outline" className="mt-1">
-                {profile.paceTrend === 'improving' ? '📈' : 
-                 profile.paceTrend === 'declining' ? '📉' : '➡️'} 
-                {profile.paceTrend}
-              </Badge>
-            </div>
-            
-            <div className="text-center p-3 bg-purple-50 rounded-lg">
-              <div className="text-lg font-bold text-purple-600">
-                {profile.runFrequency.toFixed(1)}
-              </div>
-              <div className="text-sm text-gray-600">Runs/Week</div>
-              <Badge variant="outline" className="mt-1">
-                {profile.frequencyTrend === 'improving' ? '📈' : 
-                 profile.frequencyTrend === 'declining' ? '📉' : '➡️'} 
-                {profile.frequencyTrend}
-              </Badge>
-            </div>
-            
-            <div className="text-center p-3 bg-orange-50 rounded-lg">
-              <div className="text-lg font-bold text-orange-600">
-                {profile.consistencyScore}%
-              </div>
-              <div className="text-sm text-gray-600">Consistency</div>
-              <Badge variant={profile.consistencyScore > 70 ? 'default' : 'secondary'} className="mt-1">
-                {profile.runningExperience}
-              </Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Goal Suggestions */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -188,7 +131,7 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
                   key={suggestion.id}
                   suggestion={suggestion}
                   onSelect={setSelectedSuggestion}
-                  onCreateGoal={onCreateGoal}
+                  onCreateGoal={handleCreateGoalFromSuggestion}
                 />
               ))}
             </TabsContent>
@@ -201,7 +144,7 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
                     key={suggestion.id}
                     suggestion={suggestion}
                     onSelect={setSelectedSuggestion}
-                    onCreateGoal={onCreateGoal}
+                    onCreateGoal={handleCreateGoalFromSuggestion}
                   />
                 ))}
             </TabsContent>
@@ -214,7 +157,7 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
                     key={suggestion.id}
                     suggestion={suggestion}
                     onSelect={setSelectedSuggestion}
-                    onCreateGoal={onCreateGoal}
+                    onCreateGoal={handleCreateGoalFromSuggestion}
                   />
                 ))}
             </TabsContent>
@@ -227,9 +170,18 @@ export function DynamicGoalSuggestions({ userId, onCreateGoal }: DynamicGoalSugg
         <SuggestionDetailModal 
           suggestion={selectedSuggestion}
           onClose={() => setSelectedSuggestion(null)}
-          onCreateGoal={onCreateGoal}
+          onCreateGoal={handleCreateGoalFromSuggestion}
         />
       )}
+
+      {/* Enhanced Add Goal Modal */}
+      <AddGoalModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        suggestion={suggestionToCreate || undefined}
+        title={suggestionToCreate ? `Create Goal: ${suggestionToCreate.title}` : "Add New Goal"}
+        description={suggestionToCreate ? "Review and customize your AI-suggested goal" : "Choose a goal type and set your target"}
+      />
     </div>
   )
 }
@@ -289,7 +241,12 @@ function SuggestionCard({
             View Details
           </Button>
           {onCreateGoal && (
-            <Button size="sm" onClick={() => onCreateGoal(suggestion)}>
+            <Button 
+              size="sm" 
+              onClick={() => onCreateGoal(suggestion)}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              <Sparkles className="h-4 w-4 mr-1" />
               Create Goal
             </Button>
           )}
@@ -323,21 +280,20 @@ function SuggestionDetailModal({
             <Button variant="ghost" size="sm" onClick={onClose}>✕</Button>
           </div>
         </CardHeader>
-        
         <CardContent className="space-y-6">
-          {/* Key Metrics */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-blue-50 p-3 rounded">
-              <div className="text-sm text-blue-600">Target</div>
-              <div className="text-lg font-bold text-blue-900">
-                {suggestion.suggestedTarget} {suggestion.targetUnit}
-              </div>
+          {/* Goal Details */}
+          <div className="flex items-center gap-6 text-sm">
+            <div className="flex items-center gap-1">
+              <Target className="h-4 w-4 text-blue-500" />
+              <span>{suggestion.suggestedTarget} {suggestion.targetUnit}</span>
             </div>
-            <div className="bg-green-50 p-3 rounded">
-              <div className="text-sm text-green-600">Success Rate</div>
-              <div className="text-lg font-bold text-green-900">
-                {suggestion.successProbability}%
-              </div>
+            <div className="flex items-center gap-1">
+              <Award className="h-4 w-4 text-purple-500" />
+              <span>{suggestion.successProbability}% success rate</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <TrendingUp className="h-4 w-4 text-orange-500" />
+              <span>{suggestion.difficulty} difficulty</span>
             </div>
           </div>
 
@@ -347,7 +303,9 @@ function SuggestionDetailModal({
               <Lightbulb className="h-4 w-4 text-yellow-500" />
               Why This Goal?
             </h4>
-            <p className="text-gray-700">{suggestion.reasoning}</p>
+            <p className="text-sm text-gray-700 p-3 bg-gray-50 rounded-lg">
+              {suggestion.reasoning}
+            </p>
           </div>
 
           {/* Benefits */}
@@ -406,7 +364,11 @@ function SuggestionDetailModal({
               Maybe Later
             </Button>
             {onCreateGoal && (
-              <Button onClick={() => onCreateGoal(suggestion)} className="flex-1">
+              <Button 
+                onClick={() => onCreateGoal(suggestion)} 
+                className="flex-1 bg-purple-600 hover:bg-purple-700"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
                 Create This Goal
               </Button>
             )}

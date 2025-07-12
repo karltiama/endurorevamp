@@ -4,6 +4,7 @@ import { TrainingReadinessCard } from '@/components/dashboard/TrainingReadinessC
 import { WeeklyTrainingLoadWidget } from '@/components/dashboard/WeeklyTrainingLoadWidget'
 import { PerformanceInsightsCard } from '@/components/dashboard/PerformanceInsightsCard'
 import { QuickActionsSection } from '@/components/dashboard/QuickActionsSection'
+import { DashboardOnboardingHandler } from '@/components/dashboard/DashboardOnboardingHandler'
 
 import { StravaOAuthHandler } from '@/components/dashboard/StravaOAuthHandler'
 import { Suspense } from 'react'
@@ -15,6 +16,9 @@ export default async function DashboardPage() {
     <DashboardLayout user={user}>
       {/* Handle Strava OAuth callbacks */}
       <StravaOAuthHandler />
+      
+      {/* Onboarding Modal for new users */}
+      <DashboardOnboardingHandler />
       
       <div className="space-y-6">
         <div>

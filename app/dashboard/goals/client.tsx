@@ -25,7 +25,9 @@ export function GoalsPageClient() {
   const activeGoals = goalsData?.goals?.filter(goal => goal.is_active) || [];
   const completedGoals = goalsData?.goals?.filter(goal => goal.is_completed) || [];
 
-  const handleCreateGoalFromSuggestion = () => {
+  const handleCreateGoalFromSuggestion = (suggestion?: any) => {
+    // This function is called when suggestions want to create a goal
+    // The DynamicGoalSuggestions component now handles this internally
     setShowAddModal(true);
   };
 

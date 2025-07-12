@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 
 import { useUserActivities } from '@/hooks/use-user-activities'
+import { usePersonalizedTSSTarget } from '@/hooks/useTrainingProfile'
 import { useMemo } from 'react'
 import { 
   TrendingUp, 
@@ -129,6 +130,7 @@ const getTrendIcon = (trend: string) => {
 
 export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetProps) {
   const { data: activities, isLoading, error } = useUserActivities(userId)
+  const { data: personalizedTSSTarget } = usePersonalizedTSSTarget(userId)
 
   const weeklyTrainingLoad = useMemo((): WeeklyTrainingLoad | null => {
     if (!activities || activities.length === 0) return null
@@ -155,8 +157,8 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
       return sum + tss
     }, 0)
 
-    // Target TSS (could be user configurable)
-    const targetTSS = 400
+    // Target TSS (personalized based on user profile)
+    const targetTSS = personalizedTSSTarget || 400
 
     // Calculate zone distribution
     const zoneDistribution = calculateZoneDistribution(thisWeekActivities)
