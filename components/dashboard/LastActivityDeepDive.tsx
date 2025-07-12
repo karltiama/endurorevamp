@@ -322,7 +322,7 @@ export function LastActivityDeepDive({ userId }: LastActivityDeepDiveProps) {
                         <TrendingUp className={`h-4 w-4 ${activityAnalysis.paceImprovement >= 0 ? 'text-green-500' : 'text-red-500'}`} />
                       </div>
                       <div className={`text-lg font-bold ${activityAnalysis.paceImprovement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {activityAnalysis.paceImprovement >= 0 ? 'Faster' : 'Slower'} by {Math.abs(activityAnalysis.paceImprovement).toFixed(0)}s/km
+                        {activityAnalysis.paceImprovement >= 0 ? 'Faster' : 'Slower'} by {Math.abs(activityAnalysis.paceImprovement).toFixed(0)}s/{preferences.distance === 'miles' ? 'mi' : 'km'}
                       </div>
                     </div>
                   </div>

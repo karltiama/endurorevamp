@@ -9,7 +9,7 @@ import { AddGoalModal } from '@/components/goals/AddGoalModal'
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { useUserGoals } from '@/hooks/useGoals'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { formatDistance, formatPace } from '@/lib/utils'
+import { formatDistance, formatPace, convertDistance, convertPace } from '@/lib/utils'
 import { DynamicGoalEngine, DynamicGoalSuggestion, UserPerformanceProfile } from '@/lib/goals/dynamic-suggestions'
 import { 
   TrendingUp, 
@@ -195,6 +195,46 @@ function SuggestionCard({
   onSelect: (suggestion: DynamicGoalSuggestion) => void
   onCreateGoal?: (suggestion: DynamicGoalSuggestion) => void
 }) {
+  const { preferences } = useUnitPreferences();
+  
+  // Format description with proper units
+  const formatDescriptionWithUnits = (description: string): string => {
+    if (preferences.distance === 'miles') {
+      // Replace km with mi in descriptions
+      return description
+        .replace(/(\d+(?:\.\d+)?)\s*km/g, (match, value) => {
+          const km = parseFloat(value);
+          const miles = convertDistance(km * 1000, 'miles');
+          return `${miles.toFixed(1)} mi`;
+        })
+        .replace(/\/km/g, '/mi');
+    }
+    return description;
+  };
+
+  // Format target with proper units
+  const formatTargetWithUnits = (target: number, unit: string): string => {
+    if (unit === 'km' && preferences.distance === 'miles') {
+      // Convert km to miles
+      const miles = convertDistance(target * 1000, 'miles');
+      return `${miles.toFixed(1)} mi`;
+    } else if (unit === 'min/km' && preferences.pace === 'min/mile') {
+      // Convert pace from min/km to min/mile
+      const pacePerMile = convertPace(target, 'min/mile');
+      const minutes = Math.floor(pacePerMile / 60);
+      const seconds = Math.floor(pacePerMile % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}/mi`;
+    } else if (unit === 'min/km') {
+      // Keep as min/km but format properly
+      const minutes = Math.floor(target / 60);
+      const seconds = Math.floor(target % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
+    } else {
+      // For other units, just append the unit
+      return `${target}${unit}`;
+    }
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high': return 'border-red-200 bg-red-50'
@@ -212,13 +252,13 @@ function SuggestionCard({
             <h3 className="font-semibold text-lg">{suggestion.title}</h3>
             <span className="text-lg">{getDifficultyIcon(suggestion.difficulty)}</span>
           </div>
-          <p className="text-gray-600 text-sm mb-2">{suggestion.description}</p>
+          <p className="text-gray-600 text-sm mb-2">{formatDescriptionWithUnits(suggestion.description)}</p>
           <p className="text-xs text-gray-500 italic">{suggestion.reasoning}</p>
         </div>
         
         <div className="text-right space-y-1">
-          <Badge className={`${getPriorityColor(suggestion.priority)} border`}>
-            {suggestion.priority} priority
+          <Badge className={`${getPriorityColor(suggestion.priority)} border text-xs px-2 py-1`}>
+            {suggestion.priority}
           </Badge>
           <div className="text-xs text-gray-500">{suggestion.timeframe}</div>
         </div>
@@ -228,7 +268,7 @@ function SuggestionCard({
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1">
             <Target className="h-4 w-4 text-blue-500" />
-            <span>{suggestion.suggestedTarget} {suggestion.targetUnit}</span>
+            <span>{formatTargetWithUnits(suggestion.suggestedTarget, suggestion.targetUnit)}</span>
           </div>
           <div className="flex items-center gap-1">
             <Award className="h-4 w-4 text-purple-500" />
@@ -265,6 +305,45 @@ function SuggestionDetailModal({
   onClose: () => void
   onCreateGoal?: (suggestion: DynamicGoalSuggestion) => void
 }) {
+  const { preferences } = useUnitPreferences();
+  
+  // Format description with proper units
+  const formatDescriptionWithUnits = (description: string): string => {
+    if (preferences.distance === 'miles') {
+      // Replace km with mi in descriptions
+      return description
+        .replace(/(\d+(?:\.\d+)?)\s*km/g, (match, value) => {
+          const km = parseFloat(value);
+          const miles = convertDistance(km * 1000, 'miles');
+          return `${miles.toFixed(1)} mi`;
+        })
+        .replace(/\/km/g, '/mi');
+    }
+    return description;
+  };
+
+  // Format target with proper units
+  const formatTargetWithUnits = (target: number, unit: string): string => {
+    if (unit === 'km' && preferences.distance === 'miles') {
+      // Convert km to miles
+      const miles = convertDistance(target * 1000, 'miles');
+      return `${miles.toFixed(1)} mi`;
+    } else if (unit === 'min/km' && preferences.pace === 'min/mile') {
+      // Convert pace from min/km to min/mile
+      const pacePerMile = convertPace(target, 'min/mile');
+      const minutes = Math.floor(pacePerMile / 60);
+      const seconds = Math.floor(pacePerMile % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}/mi`;
+    } else if (unit === 'min/km') {
+      // Keep as min/km but format properly
+      const minutes = Math.floor(target / 60);
+      const seconds = Math.floor(target % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
+    } else {
+      // For other units, just append the unit
+      return `${target}${unit}`;
+    }
+  };
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -275,7 +354,7 @@ function SuggestionDetailModal({
                 <span className="text-2xl">{getDifficultyIcon(suggestion.difficulty)}</span>
                 {suggestion.title}
               </CardTitle>
-              <p className="text-gray-600 mt-1">{suggestion.description}</p>
+              <p className="text-gray-600 mt-1">{formatDescriptionWithUnits(suggestion.description)}</p>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>✕</Button>
           </div>
@@ -285,7 +364,7 @@ function SuggestionDetailModal({
           <div className="flex items-center gap-6 text-sm">
             <div className="flex items-center gap-1">
               <Target className="h-4 w-4 text-blue-500" />
-              <span>{suggestion.suggestedTarget} {suggestion.targetUnit}</span>
+              <span>{formatTargetWithUnits(suggestion.suggestedTarget, suggestion.targetUnit)}</span>
             </div>
             <div className="flex items-center gap-1">
               <Award className="h-4 w-4 text-purple-500" />

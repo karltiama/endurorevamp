@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useUnifiedGoalCreation } from '@/hooks/useGoals';
+import { useDynamicGoals } from '@/hooks/useDynamicGoals';
 import {
   Dialog,
   DialogContent,
@@ -8,16 +10,18 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { useGoalTypes, useUnifiedGoalCreation } from '@/hooks/useGoals';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+// import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { GoalFormData } from '@/types/goals';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Sparkles, ArrowLeft, Loader2 } from 'lucide-react';
 import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
-import { Plus, Sparkles, Target, Award, TrendingUp } from 'lucide-react';
+import { SmartGoalCard, SmartGoalCardSkeleton } from './SmartGoalCard';
+import { GoalFormData } from '@/types/goals';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/providers/AuthProvider';
 
 interface AddGoalModalProps {
   open: boolean;
@@ -32,39 +36,31 @@ export function AddGoalModal({
   open, 
   onOpenChange, 
   suggestion, 
-  title = "Add New Goal",
-  description = "Choose a goal type and set your target to start tracking your progress"
+  title = "Smart Goal Suggestions",
+  description = "AI-powered goal recommendations based on your running data"
 }: AddGoalModalProps) {
-  const { data: goalTypes = [], isLoading: isLoadingTypes } = useGoalTypes();
+  const { user } = useAuth();
+  const { suggestions, isLoading: isLoadingSuggestions } = useDynamicGoals(user?.id || '');
   const createGoalMutation = useUnifiedGoalCreation();
   
-  const [selectedGoalType, setSelectedGoalType] = useState<string>('');
+  const [selectedSuggestion, setSelectedSuggestion] = useState<DynamicGoalSuggestion | null>(null);
   const [formData, setFormData] = useState<Partial<GoalFormData>>({});
   const [error, setError] = useState<string>('');
 
-  // Pre-populate data from suggestion
+  // Pre-populate data from suggestion prop
   useEffect(() => {
     if (suggestion && open) {
-      // Find the goal type that matches the suggestion
-      const matchingGoalType = goalTypes.find(gt => 
-        gt.category === suggestion.category || 
-        gt.name === suggestion.goalType.name ||
-        gt.display_name === suggestion.goalType.display_name
-      );
-      
-      if (matchingGoalType) {
-        setSelectedGoalType(matchingGoalType.id);
-        setFormData({
-          targetValue: suggestion.suggestedTarget,
-          targetUnit: suggestion.targetUnit,
-          notes: `${suggestion.reasoning}\n\nStrategies: ${suggestion.strategies.join(', ')}`
-        });
-      }
+      setSelectedSuggestion(suggestion);
+      setFormData({
+        targetValue: suggestion.suggestedTarget,
+        targetUnit: suggestion.targetUnit,
+        notes: `${suggestion.reasoning}\n\nStrategies: ${suggestion.strategies.join(', ')}`
+      });
     }
-  }, [suggestion, goalTypes, open]);
+  }, [suggestion, open]);
 
   const handleReset = () => {
-    setSelectedGoalType('');
+    setSelectedSuggestion(null);
     setFormData({});
     setError('');
   };
@@ -76,65 +72,44 @@ export function AddGoalModal({
     onOpenChange(isOpen);
   };
 
+  const handleSuggestionSelect = (suggestion: DynamicGoalSuggestion) => {
+    setSelectedSuggestion(suggestion);
+    setFormData({
+      targetValue: suggestion.suggestedTarget,
+      targetUnit: suggestion.targetUnit,
+      notes: suggestion.reasoning
+    });
+  };
+
   const handleSubmit = async () => {
-    if (!selectedGoalType) {
-      setError('Please select a goal type.');
+    if (!selectedSuggestion) {
+      setError('Please select a goal suggestion first.');
       return;
     }
 
-    const goalType = goalTypes.find(gt => gt.id === selectedGoalType);
-    if (!goalType) {
-      setError('Invalid goal type selected.');
+    // Validate required fields based on goal category
+    if (selectedSuggestion.goalType.category === 'distance' && !formData.targetValue) {
+      setError('Target distance is required.');
       return;
     }
 
-    // Validate required fields
-    if (goalType.category === 'distance' && !formData.targetValue) {
-      setError('Please enter a target value for distance goals.');
-      return;
-    }
-
-    if (goalType.category === 'frequency' && !formData.targetValue) {
-      setError('Please enter a target value for frequency goals.');
-      return;
-    }
-
-    if (goalType.category === 'pace' && !formData.targetValue) {
-      setError('Please enter a target pace for pace goals.');
-      return;
-    }
-
-    if (goalType.category === 'duration' && !formData.targetValue) {
-      setError('Please enter a target duration for duration goals.');
-      return;
-    }
-
-    if (goalType.category === 'elevation' && !formData.targetValue) {
-      setError('Please enter a target elevation for elevation goals.');
-      return;
-    }
-
-    if (goalType.category === 'event' && !formData.targetDate) {
-      setError('Please select a target date for event goals.');
+    if (selectedSuggestion.goalType.category === 'event' && !formData.targetDate) {
+      setError('Target date is required for event goals.');
       return;
     }
 
     setError('');
 
     try {
-      // Create goal using unified creation system
-      const goalData = {
-        goalTypeId: selectedGoalType,
-        targetValue: formData.targetValue,
-        targetUnit: formData.targetUnit || goalType.unit,
+      await createGoalMutation.mutateAsync({
+        goalTypeId: selectedSuggestion.goalType.id,
+        targetValue: formData.targetValue || selectedSuggestion.suggestedTarget,
+        targetUnit: formData.targetUnit || selectedSuggestion.targetUnit,
         targetDate: formData.targetDate,
-        notes: formData.notes || '',
-        priority: 1,
-        context: suggestion ? 'suggestion' as const : 'manual' as const,
-        ...(suggestion && { suggestion })
-      };
-
-      await createGoalMutation.mutateAsync(goalData);
+        notes: formData.notes,
+        context: 'suggestion',
+        suggestion: selectedSuggestion
+      });
 
       handleClose(false);
     } catch (err) {
@@ -142,168 +117,125 @@ export function AddGoalModal({
     }
   };
 
-  const selectedGoal = goalTypes.find(gt => gt.id === selectedGoalType);
-
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {suggestion ? (
-              <Sparkles className="h-5 w-5 text-purple-500" />
-            ) : (
-              <Plus className="h-5 w-5" />
-            )}
+            <Sparkles className="h-5 w-5 text-purple-500" />
             {title}
           </DialogTitle>
-          <DialogDescription>
-            {description}
-          </DialogDescription>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          {error && (
-            <Alert>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Suggestion Preview */}
-          {suggestion && selectedGoalType && (
-            <Card className="border-purple-200 bg-purple-50/50">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-purple-500" />
-                  AI Suggestion Preview
-                </CardTitle>
-                <CardDescription>
-                  {suggestion.description}
-                </CardDescription>
-              </CardHeader>
-              <div className="px-6 pb-4 space-y-3">
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1">
-                    <Target className="h-4 w-4 text-blue-500" />
-                    <span>{suggestion.suggestedTarget} {suggestion.targetUnit}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Award className="h-4 w-4 text-green-500" />
-                    <span>{suggestion.successProbability}% success rate</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <TrendingUp className="h-4 w-4 text-orange-500" />
-                    <span>{suggestion.difficulty} difficulty</span>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-600">
-                  <strong>Why this goal:</strong> {suggestion.reasoning}
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Goal Type Selection */}
-          {!selectedGoalType && !suggestion ? (
+          {!selectedSuggestion ? (
+            /* Goal Selection */
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Choose Your Goal Type</h3>
+              <h3 className="text-lg font-semibold">Choose Your Next Goal</h3>
+              <p className="text-sm text-muted-foreground">
+                These goals are personalized based on your running data, current fitness level, and activity patterns.
+              </p>
               
-              {isLoadingTypes ? (
+              {isLoadingSuggestions ? (
                 <div className="grid gap-4 md:grid-cols-2">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-24 bg-muted animate-pulse rounded-lg"></div>
+                    <SmartGoalCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : suggestions.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {suggestions.map((suggestion) => (
+                    <SmartGoalCard
+                      key={suggestion.id}
+                      suggestion={suggestion}
+                      onSelect={handleSuggestionSelect}
+                      isSelected={false}
+                      showFullDetails={false}
+                    />
                   ))}
                 </div>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {goalTypes.map((goalType) => (
-                    <Card 
-                      key={goalType.id}
-                      className="cursor-pointer transition-all hover:shadow-md hover:ring-2 hover:ring-primary/50"
-                      onClick={() => {
-                        setSelectedGoalType(goalType.id);
-                        setFormData({
-                          targetUnit: goalType.unit
-                        });
-                      }}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-center">No Suggestions Available</CardTitle>
+                    <CardDescription className="text-center">
+                      We need more activity data to generate personalized suggestions. 
+                      Try syncing your Strava activities first.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => handleClose(false)}
                     >
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="text-base">{goalType.display_name}</CardTitle>
-                            <CardDescription className="mt-1 text-sm">
-                              {goalType.description}
-                            </CardDescription>
-                          </div>
-                          <Badge variant={goalType.category === 'distance' ? 'default' : 'secondary'}>
-                            {goalType.category}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                    </Card>
-                  ))}
-                </div>
+                      Close
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
             </div>
-          ) : selectedGoalType ? (
+          ) : (
             /* Goal Configuration */
             <div className="space-y-6">
-              {!suggestion && (
-                <div className="flex items-center gap-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedGoalType('')}
-                  >
-                    ← Back
-                  </Button>
-                  <div>
-                    <h3 className="text-lg font-semibold">{selectedGoal?.display_name}</h3>
-                    <p className="text-sm text-muted-foreground">{selectedGoal?.description}</p>
-                  </div>
-                </div>
-              )}
-
-              {suggestion && (
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedSuggestion(null)}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Suggestions
+                </Button>
+                <div>
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-purple-500" />
-                    <div>
-                      <h3 className="text-lg font-semibold">{suggestion.title}</h3>
-                      <p className="text-sm text-muted-foreground">Based on your performance analysis</p>
-                    </div>
+                    {selectedSuggestion.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Customize your goal details
+                  </p>
+                </div>
+              </div>
+
+              {/* Selected Goal Summary */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold text-blue-900">AI Recommendation</h4>
+                  <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                    {selectedSuggestion.successProbability}% success rate
+                  </Badge>
+                </div>
+                <p className="text-sm text-blue-800 mb-3">
+                  {selectedSuggestion.reasoning}
+                </p>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Target:</span> {selectedSuggestion.suggestedTarget}{selectedSuggestion.targetUnit}
+                  </div>
+                  <div>
+                    <span className="font-medium">Duration:</span> {selectedSuggestion.timeframe}
+                  </div>
+                  <div>
+                    <span className="font-medium">Difficulty:</span> {selectedSuggestion.difficulty}
+                  </div>
+                  <div>
+                    <span className="font-medium">Commitment:</span> {selectedSuggestion.requiredCommitment}
                   </div>
                 </div>
-              )}
+              </div>
 
+              {/* Form Fields */}
               <div className="space-y-4">
-                {selectedGoal?.category === 'distance' && (
+                {selectedSuggestion.goalType.category === 'distance' && (
                   <div>
                     <Label htmlFor="targetValue" className="text-sm font-medium">
-                      Target {selectedGoal.unit === 'km' ? 'Kilometers' : 'Miles'} *
+                      Target {selectedSuggestion.targetUnit === 'km' ? 'Kilometers' : 'Miles'} *
                     </Label>
                     <Input
                       id="targetValue"
                       type="number"
-                      placeholder={selectedGoal.name.includes('weekly') ? '20' : '100'}
-                      value={formData.targetValue || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        targetValue: parseFloat(e.target.value) || undefined
-                      }))}
-                      className="mt-1"
-                    />
-                  </div>
-                )}
-
-                {selectedGoal?.category === 'frequency' && (
-                  <div>
-                    <Label htmlFor="targetValue" className="text-sm font-medium">
-                      Target {selectedGoal.unit === 'runs' ? 'Runs' : selectedGoal.unit || 'Activities'} *
-                    </Label>
-                    <Input
-                      id="targetValue"
-                      type="number"
-                      placeholder={selectedGoal.name.includes('weekly') ? '3' : '12'}
                       value={formData.targetValue || ''}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
@@ -312,15 +244,33 @@ export function AddGoalModal({
                       className="mt-1"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      {selectedGoal.name.includes('weekly') 
-                        ? 'Number of runs per week you want to maintain'
-                        : 'Number of runs per month you want to maintain'
-                      }
+                      AI suggests: {selectedSuggestion.suggestedTarget}{selectedSuggestion.targetUnit}
                     </p>
                   </div>
                 )}
 
-                {selectedGoal?.category === 'pace' && (
+                {selectedSuggestion.goalType.category === 'frequency' && (
+                  <div>
+                    <Label htmlFor="targetValue" className="text-sm font-medium">
+                      Target {selectedSuggestion.targetUnit} *
+                    </Label>
+                    <Input
+                      id="targetValue"
+                      type="number"
+                      value={formData.targetValue || ''}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        targetValue: parseFloat(e.target.value) || undefined
+                      }))}
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      AI suggests: {selectedSuggestion.suggestedTarget} {selectedSuggestion.targetUnit}
+                    </p>
+                  </div>
+                )}
+
+                {selectedSuggestion.goalType.category === 'pace' && (
                   <div>
                     <Label htmlFor="targetValue" className="text-sm font-medium">
                       Target Pace (minutes per km) *
@@ -329,7 +279,6 @@ export function AddGoalModal({
                       id="targetValue"
                       type="number"
                       step="0.1"
-                      placeholder="e.g., 5.5"
                       value={formData.targetValue || ''}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
@@ -338,12 +287,12 @@ export function AddGoalModal({
                       className="mt-1"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Enter pace in minutes per kilometer (e.g., 5.5 for 5:30/km)
+                      AI suggests: {Math.floor((selectedSuggestion.suggestedTarget || 0) / 60)}:{String(Math.floor((selectedSuggestion.suggestedTarget || 0) % 60)).padStart(2, '0')}/km
                     </p>
                   </div>
                 )}
 
-                {selectedGoal?.category === 'duration' && (
+                {selectedSuggestion.goalType.category === 'duration' && (
                   <div>
                     <Label htmlFor="targetValue" className="text-sm font-medium">
                       Target Minutes *
@@ -351,7 +300,6 @@ export function AddGoalModal({
                     <Input
                       id="targetValue"
                       type="number"
-                      placeholder="e.g., 60"
                       value={formData.targetValue || ''}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
@@ -360,12 +308,12 @@ export function AddGoalModal({
                       className="mt-1"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Enter duration in minutes
+                      AI suggests: {selectedSuggestion.suggestedTarget} minutes
                     </p>
                   </div>
                 )}
 
-                {selectedGoal?.category === 'elevation' && (
+                {selectedSuggestion.goalType.category === 'elevation' && (
                   <div>
                     <Label htmlFor="targetValue" className="text-sm font-medium">
                       Target Elevation *
@@ -373,7 +321,6 @@ export function AddGoalModal({
                     <Input
                       id="targetValue"
                       type="number"
-                      placeholder="e.g., 1000 meters"
                       value={formData.targetValue || ''}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
@@ -381,13 +328,16 @@ export function AddGoalModal({
                       }))}
                       className="mt-1"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      AI suggests: {selectedSuggestion.suggestedTarget} meters
+                    </p>
                   </div>
                 )}
 
-                {selectedGoal?.category === 'event' && (
+                {selectedSuggestion.goalType.category === 'event' && (
                   <div>
                     <Label htmlFor="targetDate" className="text-sm font-medium">
-                      Race Date *
+                      Event Date *
                     </Label>
                     <Input
                       id="targetDate"
@@ -404,55 +354,83 @@ export function AddGoalModal({
 
                 <div>
                   <Label htmlFor="notes" className="text-sm font-medium">
-                    Notes {suggestion ? '(Pre-filled from AI suggestion)' : '(optional)'}
+                    Notes (Optional)
                   </Label>
                   <textarea
                     id="notes"
-                    placeholder="Any additional details about your goal..."
+                    placeholder="Add any additional notes about your goal..."
                     value={formData.notes || ''}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData(prev => ({
                       ...prev,
                       notes: e.target.value
                     }))}
                     className="mt-1 w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     rows={3}
                   />
-                  {suggestion && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      The notes field has been pre-populated with AI insights. Feel free to modify or add your own notes.
-                    </p>
-                  )}
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t">
+              {/* Strategies Section */}
+              {selectedSuggestion.strategies && selectedSuggestion.strategies.length > 0 && (
+                <div className="bg-green-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-green-900 mb-2">Recommended Strategies</h4>
+                  <ul className="space-y-1 text-sm text-green-800">
+                    {selectedSuggestion.strategies.map((strategy, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-green-600">•</span>
+                        {strategy}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Warnings Section */}
+              {selectedSuggestion.warnings && selectedSuggestion.warnings.length > 0 && (
+                <div className="bg-yellow-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-yellow-900 mb-2">Keep in Mind</h4>
+                  <ul className="space-y-1 text-sm text-yellow-800">
+                    {selectedSuggestion.warnings.map((warning, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-yellow-600">•</span>
+                        {warning}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-sm text-red-800">{error}</p>
+                </div>
+              )}
+
+              <div className="flex gap-3">
                 <Button
                   variant="outline"
-                  onClick={() => handleClose(false)}
-                  disabled={createGoalMutation.isPending}
+                  onClick={() => setSelectedSuggestion(null)}
+                  className="flex-1"
                 >
-                  Cancel
+                  Back to Suggestions
                 </Button>
                 <Button
                   onClick={handleSubmit}
                   disabled={createGoalMutation.isPending}
-                  className={suggestion ? "bg-purple-600 hover:bg-purple-700" : ""}
+                  className="flex-1"
                 >
                   {createGoalMutation.isPending ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Creating...
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Creating Goal...
                     </>
                   ) : (
-                    <>
-                      {suggestion && <Sparkles className="h-4 w-4 mr-2" />}
-                      Create Goal
-                    </>
+                    'Create Smart Goal'
                   )}
                 </Button>
               </div>
             </div>
-          ) : null}
+          )}
         </div>
       </DialogContent>
     </Dialog>

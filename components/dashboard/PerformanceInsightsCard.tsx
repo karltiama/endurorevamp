@@ -2,6 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useUserActivities } from '@/hooks/use-user-activities'
+import { useUnitPreferences } from '@/hooks/useUnitPreferences'
+import { formatDistance } from '@/lib/utils'
 import { useMemo } from 'react'
 import { 
   TrendingUp, 
@@ -146,7 +148,7 @@ const calculateTrainingLoadTrend = (recent: StravaActivity[], previous: StravaAc
   return 'stable'
 }
 
-const findRecentAchievements = (activities: StravaActivity[]): Achievement[] => {
+const findRecentAchievements = (activities: StravaActivity[], preferences: any): Achievement[] => {
   const achievements: Achievement[] = []
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
@@ -164,7 +166,7 @@ const findRecentAchievements = (activities: StravaActivity[]): Achievement[] => 
       achievements.push({
         type: 'distance',
         title: 'New Distance PR!',
-        description: `${(longestRecent.distance / 1000).toFixed(1)}km - your longest ${longestRecent.sport_type.toLowerCase()} yet`,
+        description: `${formatDistance(longestRecent.distance, preferences.distance)} - your longest ${longestRecent.sport_type.toLowerCase()} yet`,
         date: longestRecent.start_date,
         icon: '🏆'
       })
@@ -250,6 +252,7 @@ const getTrendColor = (trend: string): string => {
 
 export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps) {
   const { data: activities, isLoading, error } = useUserActivities(userId)
+  const { preferences } = useUnitPreferences()
 
   const performanceInsights = useMemo((): PerformanceInsights | null => {
     if (!activities || activities.length === 0) return null
@@ -279,7 +282,7 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
     const trainingLoadTrend = calculateTrainingLoadTrend(recentActivities, previousActivities)
 
     // Find recent achievements
-    const achievements = findRecentAchievements(activities)
+    const achievements = findRecentAchievements(activities, preferences)
 
     // Weekly distance comparison
     const weeklyDistance = calculateWeeklyDistance(recentActivities, previousActivities)
@@ -295,7 +298,7 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
       weeklyDistance,
       averageIntensity
     }
-  }, [activities])
+  }, [activities, preferences])
 
   if (isLoading) {
     return (
@@ -403,7 +406,7 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
           <div className="flex items-center justify-between">
             <div>
               <div className="text-lg font-bold">
-                {performanceInsights.weeklyDistance.current}km
+                {formatDistance(performanceInsights.weeklyDistance.current * 1000, preferences.distance)}
               </div>
               <div className="text-xs text-gray-500">This week</div>
             </div>
