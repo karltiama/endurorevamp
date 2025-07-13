@@ -6,7 +6,7 @@ import { Loader2, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 
 export function SyncButton() {
   const { 
-    customSync, 
+    forceFullSync, 
     isSyncing, 
     syncError, 
     syncResult,
@@ -17,11 +17,8 @@ export function SyncButton() {
   const handleSync = async () => {
     console.log('🔄 SyncButton: Starting sync process');
     try {
-      // Use the working API route approach
-      customSync({
-        maxActivities: 50,
-        sinceDays: 30,
-      });
+      // Use forceFullSync to test rate limiting
+      forceFullSync();
     } catch (err) {
       console.error('❌ SyncButton: Sync failed:', err);
     }

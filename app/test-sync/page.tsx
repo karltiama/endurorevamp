@@ -9,6 +9,8 @@ import { DetailedSyncDebugger } from '@/components/debug/DetailedSyncDebugger';
 import { StravaDataAnalyzer } from '@/components/debug/StravaDataAnalyzer';
 import { SchemaComparisonAnalyzer } from '@/components/debug/SchemaComparisonAnalyzer';
 import { CoreDataValidator } from '@/components/debug/CoreDataValidator';
+import { SyncProcessDebugger } from '@/components/debug/SyncProcessDebugger';
+import SyncDashboard from '@/components/dashboard/SyncDashboard';
 import { redirect } from 'next/navigation';
 
 export default function TestSyncPage() {
@@ -89,6 +91,23 @@ export default function TestSyncPage() {
                 <SyncButton />
               </div>
             </div>
+          </div>
+
+          {/* New Step-by-Step Debugger */}
+          <div className="mt-6">
+            <h3 className="text-base font-medium mb-4">🔍 Step-by-Step Process Debugger</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Comprehensive debugging tool that traces through each stage of the sync process
+            </p>
+            <SyncProcessDebugger />
+          </div>
+
+          <div className="mt-6">
+            <h3 className="text-base font-medium mb-4">🎯 Simplified Sync Dashboard</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Test the simplified sync interface for settings page
+            </p>
+            <SyncDashboard />
           </div>
         </div>
       </div>

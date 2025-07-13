@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const userId = user.id
 
     // Parse request body for sync options
-    let syncOptions = {}
+    let syncOptions: { maxActivities?: number; sinceDays?: number; forceRefresh?: boolean } = {}
     try {
       const body = await request.json()
       syncOptions = {
@@ -30,7 +30,25 @@ export async function POST(request: NextRequest) {
       // Use default options if body is empty or invalid
     }
 
-    console.log(`🔄 Sync requested by user ${userId}:`, syncOptions)
+    console.log(`🔄 Sync requested by user ${userId}`)
+
+    // 🚨 CRITICAL FIX: Check rate limits BEFORE starting sync
+    const { data: syncState } = await supabase
+      .from('sync_state')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
+
+    const canSync = await checkCanSync(userId, syncState)
+    
+    if (!canSync && !syncOptions.forceRefresh) {
+      console.log('🚫 Rate limit exceeded - blocking sync')
+      return NextResponse.json({
+        success: false,
+        message: 'Sync rate limit exceeded. Please wait before trying again.',
+        error: 'RATE_LIMIT_EXCEEDED'
+      }, { status: 429 })
+    }
 
     // Initialize sync service and perform sync
     const syncService = new StravaActivitySync()
@@ -103,6 +121,25 @@ export async function GET() {
       throw error
     }
 
+    // Reset daily counter if it's a new day
+    if (syncState) {
+      const today = new Date().toDateString()
+      if (syncState.last_sync_date !== today) {
+        console.log('📅 Resetting daily sync counter for new day')
+        await supabase
+          .from('sync_state')
+          .update({ 
+            sync_requests_today: 0,
+            last_sync_date: today
+          })
+          .eq('user_id', userId)
+        
+        // Update syncState for the response
+        syncState.sync_requests_today = 0
+        syncState.last_sync_date = today
+      }
+    }
+
     // Get activity count
     const { count: activityCount } = await supabase
       .from('activities')
@@ -134,26 +171,34 @@ async function checkCanSync(userId: string, syncState: {
   sync_requests_today?: number;
   last_activity_sync?: string;
 } | null): Promise<boolean> {
-  if (!syncState) return true // First time sync
+  if (!syncState) {
+    return true // First time sync
+  }
 
-  if (!syncState.sync_enabled) return false
+  if (!syncState.sync_enabled) {
+    return false
+  }
+
+  // Check daily rate limit first (regardless of date)
+  if ((syncState.sync_requests_today || 0) >= 5) {
+    console.log('❌ Daily rate limit exceeded:', syncState.sync_requests_today)
+    return false
+  }
 
   // Reset daily counter if it's a new day
   const today = new Date().toDateString()
   if (syncState.last_sync_date !== today) {
-    return true
-  }
-
-  // Check daily rate limit
-  if ((syncState.sync_requests_today || 0) >= 5) {
-    return false
+    // It's a new day, but we still need to check other conditions
+    console.log('📅 New day detected, resetting daily counter')
   }
 
   // Check minimum time between syncs (1 hour)
   if (syncState.last_activity_sync) {
     const lastSync = new Date(syncState.last_activity_sync)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+    
     if (lastSync > oneHourAgo) {
+      console.log('❌ Too soon since last sync (1 hour cooldown)')
       return false
     }
   }

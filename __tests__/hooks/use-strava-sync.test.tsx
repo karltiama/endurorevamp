@@ -2,6 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useStravaSync, useSyncStatusInfo } from '@/hooks/use-strava-sync'
 import { ReactNode } from 'react'
+import { act } from '@testing-library/react'
 
 // Mock fetch globally
 global.fetch = jest.fn()
@@ -428,6 +429,90 @@ describe('useSyncStatusInfo', () => {
 
     await waitFor(() => {
       expect(result.current.syncDisabledReason).toBe('Daily sync limit reached (5/day)')
+    })
+  })
+}) 
+
+describe('Rate Limiting', () => {
+  it('should prevent sync when rate limit exceeded', async () => {
+    // Mock sync status with rate limit exceeded
+    const rateLimitExceededStatus = {
+      syncState: {
+        sync_enabled: true,
+        sync_requests_today: 5, // Max allowed
+        last_activity_sync: new Date(Date.now() - 30 * 60 * 1000).toISOString() // 30 minutes ago
+      },
+      activityCount: 100,
+      canSync: false
+    }
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => rateLimitExceededStatus,
+      status: 200,
+      statusText: 'OK'
+    } as Response)
+
+    const { result } = renderHook(() => useStravaSync(), {
+      wrapper: createWrapper()
+    })
+
+    await waitFor(() => {
+      expect(result.current.isLoadingStatus).toBe(false)
+    })
+
+    // Try to trigger sync
+    act(() => {
+      result.current.forceFullSync()
+    })
+
+    // Should not make sync request when rate limited
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/strava/sync', expect.any(Object))
+    })
+
+    // Verify the sync was rejected
+    const lastCall = mockFetch.mock.calls[mockFetch.mock.calls.length - 1]
+    expect(lastCall?.[1]?.method).toBe('POST')
+  })
+
+  it('should allow sync after rate limit reset', async () => {
+    // Mock sync status with rate limit reset (new day)
+    const rateLimitResetStatus = {
+      syncState: {
+        sync_enabled: true,
+        sync_requests_today: 0, // Reset for new day
+        last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
+      },
+      activityCount: 100,
+      canSync: true
+    }
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => rateLimitResetStatus,
+      status: 200,
+      statusText: 'OK'
+    } as Response)
+
+    const { result } = renderHook(() => useStravaSync(), {
+      wrapper: createWrapper()
+    })
+
+    await waitFor(() => {
+      expect(result.current.isLoadingStatus).toBe(false)
+    })
+
+    // Should allow sync after rate limit reset
+    act(() => {
+      result.current.forceFullSync()
+    })
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/strava/sync', expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ forceRefresh: true })
+      }))
     })
   })
 }) 

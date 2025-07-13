@@ -78,6 +78,19 @@ function formatSyncStatusInfo(syncStatus: SyncStatus | undefined) {
     }
   }
 
+  // Debug logging
+  console.log('useSyncStatusInfo Debug:', {
+    syncState: {
+      sync_enabled: syncState?.sync_enabled,
+      sync_requests_today: syncState?.sync_requests_today,
+      last_activity_sync: syncState?.last_activity_sync
+    },
+    canSync,
+    syncDisabledReason,
+    todaySyncs: syncState?.sync_requests_today || 0,
+    maxSyncs: 5
+  })
+
   return {
     lastSyncText,
     canSync,
@@ -182,7 +195,7 @@ export function useStravaSync() {
 
   const forceFullSync = () => {
     triggerSyncMutation({ 
-      forceRefresh: true, 
+      forceRefresh: false, // Don't bypass rate limits
       maxActivities: 200,
       sinceDays: 90 // Last 3 months
     })
