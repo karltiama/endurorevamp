@@ -45,7 +45,7 @@ export function SmartTargetRecommendations({
   const [customTarget, setCustomTarget] = useState<number | null>(null);
   const { preferences } = useUnitPreferences();
 
-  const recommendations = generateSmartRecommendations(goalType, userPerformance);
+  const recommendations = generateSmartRecommendations(goalType, userPerformance, preferences);
 
   return (
     <div className="space-y-6">
@@ -218,7 +218,7 @@ export function SmartTargetRecommendations({
   );
 }
 
-function generateSmartRecommendations(goalType: GoalType, userPerformance?: UserPerformanceData) {
+function generateSmartRecommendations(goalType: GoalType, userPerformance?: UserPerformanceData, unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }) {
   const metricType = goalType.metric_type;
 
   // Default recommendations if no performance data
@@ -237,7 +237,7 @@ function generateSmartRecommendations(goalType: GoalType, userPerformance?: User
       recommendations.push(...generateFrequencyRecommendations(goalType, userPerformance));
       break;
     case 'average_pace':
-      recommendations.push(...generatePaceRecommendations(goalType, userPerformance));
+      recommendations.push(...generatePaceRecommendations(goalType, userPerformance, unitPreferences));
       break;
     case 'total_time':
       recommendations.push(...generateDurationRecommendations(goalType, userPerformance));
@@ -346,8 +346,23 @@ function generateFrequencyRecommendations(goalType: GoalType, userPerformance: U
   ];
 }
 
-function generatePaceRecommendations(goalType: GoalType, userPerformance: UserPerformanceData) {
+function generatePaceRecommendations(goalType: GoalType, userPerformance: UserPerformanceData, unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }) {
   const currentPace = userPerformance.averagePace; // seconds per km
+  
+  // Format pace description based on user preferences
+  const formatPaceDescription = (secondsImprovement: number) => {
+    if (unitPreferences?.pace === 'min/mile') {
+      // Convert to min/mile
+      const mileSecondsImprovement = secondsImprovement * 1.60934;
+      const mileMinutes = Math.floor(mileSecondsImprovement / 60);
+      const mileSeconds = Math.floor(mileSecondsImprovement % 60);
+      return `${mileMinutes}:${mileSeconds.toString().padStart(2, '0')} per mile improvement - sustainable pace gains`;
+    } else {
+      const minutes = Math.floor(secondsImprovement / 60);
+      const seconds = Math.floor(secondsImprovement % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')} per km improvement - sustainable pace gains`;
+    }
+  };
   
   return [
     {
@@ -357,7 +372,7 @@ function generatePaceRecommendations(goalType: GoalType, userPerformance: UserPe
       icon: Shield,
       color: 'text-green-500',
       badgeVariant: 'secondary' as const,
-      description: '10 seconds per km improvement - sustainable pace gains',
+      description: formatPaceDescription(10),
       benefits: 'Noticeable improvement, manageable effort',
       strategy: 'Tempo runs once per week, easy runs for base',
       successRate: 85,
@@ -370,7 +385,7 @@ function generatePaceRecommendations(goalType: GoalType, userPerformance: UserPe
       icon: Target,
       color: 'text-blue-500',
       badgeVariant: 'default' as const,
-      description: '20 seconds per km improvement - noticeable speed increase',
+      description: formatPaceDescription(20),
       benefits: 'Major speed improvement, enhanced efficiency',
       strategy: 'Interval training, tempo runs, speed work',
       successRate: 70,
@@ -383,7 +398,7 @@ function generatePaceRecommendations(goalType: GoalType, userPerformance: UserPe
       icon: Zap,
       color: 'text-purple-500',
       badgeVariant: 'destructive' as const,
-      description: '30 seconds per km improvement - competitive level gains',
+      description: formatPaceDescription(30),
       benefits: 'Elite-level speed, race performance boost',
       strategy: 'Structured training plan, track work, coaching',
       successRate: 50,

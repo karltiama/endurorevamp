@@ -182,7 +182,8 @@ export class DynamicGoalEngine {
   
   static generateDynamicSuggestions(
     profile: UserPerformanceProfile,
-    existingGoals: UserGoal[]
+    existingGoals: UserGoal[],
+    unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }
   ): DynamicGoalSuggestion[] {
     const suggestions: DynamicGoalSuggestion[] = []
     
@@ -197,7 +198,7 @@ export class DynamicGoalEngine {
     }
     
     if (profile.paceTrend === 'improving' && !activeGoalCategories.includes('pace')) {
-      suggestions.push(this.suggestPaceGoal(profile))
+      suggestions.push(this.suggestPaceGoal(profile, unitPreferences))
     }
     
     // 2. Consistency Improvement Suggestions
@@ -316,16 +317,35 @@ export class DynamicGoalEngine {
     }
   }
   
-  private static suggestPaceGoal(profile: UserPerformanceProfile): DynamicGoalSuggestion {
+  private static suggestPaceGoal(profile: UserPerformanceProfile, unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }): DynamicGoalSuggestion {
     const currentPace = profile.averagePace
     const targetImprovement = profile.runningExperience === 'beginner' ? 30 : 
                              profile.runningExperience === 'intermediate' ? 20 : 15
     const suggestedTarget = currentPace - targetImprovement
     
+    // Format pace based on user preferences
+    const formatPaceWithUnits = (secondsPerKm: number) => {
+      const minutes = Math.floor(secondsPerKm / 60);
+      const seconds = Math.floor(secondsPerKm % 60);
+      const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      if (unitPreferences?.pace === 'min/mile') {
+        // Convert to min/mile
+        const pacePerMile = secondsPerKm * 1.60934;
+        const mileMinutes = Math.floor(pacePerMile / 60);
+        const mileSeconds = Math.floor(pacePerMile % 60);
+        return `${mileMinutes}:${mileSeconds.toString().padStart(2, '0')}/mi`;
+      } else {
+        return `${timeStr}/km`;
+      }
+    };
+    
+    const targetPaceFormatted = formatPaceWithUnits(suggestedTarget);
+    
     return {
       id: 'dynamic-pace-improvement',
       title: 'Get Faster and Stronger',
-      description: `Improve your average pace to ${Math.floor(suggestedTarget / 60)}:${String(Math.floor(suggestedTarget % 60)).padStart(2, '0')}/km`,
+      description: `Improve your average pace to ${targetPaceFormatted}`,
       reasoning: `Your pace has been improving, indicating you're ready for focused speed work.`,
       priority: 'medium',
       category: 'pace',

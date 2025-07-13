@@ -64,7 +64,8 @@ export class SmartGoalGenerator {
     userProfile: UserPerformanceProfile,
     goalTypes: GoalType[],
     existingGoals: UserGoal[],
-    options: SmartGoalGeneratorOptions = {}
+    options: SmartGoalGeneratorOptions = {},
+    unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }
   ): Promise<DynamicGoalSuggestion[]> {
     const suggestions: DynamicGoalSuggestion[] = [];
     
@@ -89,7 +90,8 @@ export class SmartGoalGenerator {
           goalType,
           userProfile,
           existingGoals,
-          options
+          options,
+          unitPreferences
         );
         
         if (suggestion) {
@@ -117,7 +119,8 @@ export class SmartGoalGenerator {
     goalType: GoalType,
     userProfile: UserPerformanceProfile,
     existingGoals: UserGoal[],
-    options: SmartGoalGeneratorOptions
+    options: SmartGoalGeneratorOptions,
+    unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }
   ): Promise<DynamicGoalSuggestion | null> {
     
     // Check if user already has an active goal of this type
@@ -139,7 +142,7 @@ export class SmartGoalGenerator {
         return this.generateFrequencySuggestion(goalType, userProfile, experienceLevel);
       
       case 'pace':
-        return this.generatePaceSuggestion(goalType, userProfile, experienceLevel);
+        return this.generatePaceSuggestion(goalType, userProfile, experienceLevel, unitPreferences);
       
       case 'duration':
         return this.generateDurationSuggestion(goalType, userProfile, experienceLevel);
@@ -269,7 +272,8 @@ export class SmartGoalGenerator {
   private static generatePaceSuggestion(
     goalType: GoalType,
     profile: UserPerformanceProfile,
-    experience: string
+    experience: string,
+    unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }
   ): DynamicGoalSuggestion {
     const currentPace = profile.averagePace || 360; // 6:00/km default
     let improvement: number;
@@ -284,14 +288,31 @@ export class SmartGoalGenerator {
     
     const suggestedTarget = Math.max(240, currentPace - improvement); // Don't go below 4:00/km
     
-    const currentPaceFormatted = `${Math.floor(currentPace / 60)}:${String(Math.floor(currentPace % 60)).padStart(2, '0')}`;
-    const targetPaceFormatted = `${Math.floor(suggestedTarget / 60)}:${String(Math.floor(suggestedTarget % 60)).padStart(2, '0')}`;
+    // Format pace based on user preferences
+    const formatPaceWithUnits = (secondsPerKm: number) => {
+      const minutes = Math.floor(secondsPerKm / 60);
+      const seconds = Math.floor(secondsPerKm % 60);
+      const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      if (unitPreferences?.pace === 'min/mile') {
+        // Convert to min/mile
+        const pacePerMile = secondsPerKm * 1.60934;
+        const mileMinutes = Math.floor(pacePerMile / 60);
+        const mileSeconds = Math.floor(pacePerMile % 60);
+        return `${mileMinutes}:${mileSeconds.toString().padStart(2, '0')}/mi`;
+      } else {
+        return `${timeStr}/km`;
+      }
+    };
+    
+    const currentPaceFormatted = formatPaceWithUnits(currentPace);
+    const targetPaceFormatted = formatPaceWithUnits(suggestedTarget);
     
     return {
       id: `smart-${goalType.name}`,
       title: `Get Faster and Stronger`,
-      description: `Target: ${targetPaceFormatted}/km (improve from ${currentPaceFormatted}/km)`,
-      reasoning: `Your current pace of ${currentPaceFormatted}/km shows potential for improvement. With focused training, a ${improvement}-second improvement is achievable and will significantly boost your confidence.`,
+      description: `Target: ${targetPaceFormatted} (improve from ${currentPaceFormatted})`,
+      reasoning: `Your current pace of ${currentPaceFormatted} shows potential for improvement. With focused training, a ${improvement}-second improvement is achievable and will significantly boost your confidence.`,
       priority: profile.paceTrend === 'declining' ? 'high' : 'medium',
       category: this.mapCategory(goalType.category),
       goalType,

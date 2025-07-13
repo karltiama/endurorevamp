@@ -6,6 +6,7 @@ import { SmartGoalGenerator, SmartGoalGeneratorOptions } from '@/lib/goals/smart
 import { DynamicGoalSuggestion, DynamicGoalEngine, UserPerformanceProfile } from '@/lib/goals/dynamic-suggestions';
 import { Activity } from '@/lib/strava/types';
 import { createClient } from '@/lib/supabase/client';
+import { useUnitPreferences } from './useUnitPreferences';
 
 export interface UseDynamicGoalsReturn {
   suggestions: DynamicGoalSuggestion[];
@@ -26,6 +27,7 @@ export interface UseDynamicGoalsOptions extends SmartGoalGeneratorOptions {
 export const useDynamicGoals = (userId: string, options: UseDynamicGoalsOptions = {}): UseDynamicGoalsReturn => {
   const { data: goalTypes = [], isLoading: isLoadingTypes } = useGoalTypes();
   const { data: goalsData, isLoading: isLoadingGoals } = useUserGoals();
+  const { preferences } = useUnitPreferences();
   
   const { 
     enabled = true, 
@@ -82,7 +84,8 @@ export const useDynamicGoals = (userId: string, options: UseDynamicGoalsOptions 
         userProfile,
         goalTypes,
         existingGoals,
-        generatorOptions
+        generatorOptions,
+        preferences
       );
       
       console.log('useDynamicGoals: Generated suggestions:', suggestions.length)
