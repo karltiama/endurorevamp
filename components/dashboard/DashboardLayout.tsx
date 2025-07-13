@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react"
 import { User as SupabaseUser } from "@supabase/supabase-js"
+import { GoalsProvider } from "@/components/goals/GoalsProvider"
 import {
   Sidebar,
   SidebarContent,
@@ -194,21 +195,23 @@ function AppSidebar({ user }: { user: SupabaseUser }) {
 export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   return (
     <SidebarProvider defaultOpen={false}>
-      <div className="flex min-h-screen w-full">
-        <AppSidebar user={user} />
-        <main className="flex-1">
-          {/* Header with sidebar trigger */}
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1 md:hidden" />
-            <div className="flex-1" />
-          </header>
-          
-          {/* Main content */}
-          <div className="flex-1 space-y-4 p-4 md:p-6 lg:p-8">
-            {children}
-          </div>
-        </main>
-      </div>
+      <GoalsProvider>
+        <div className="flex min-h-screen w-full">
+          <AppSidebar user={user} />
+          <main className="flex-1">
+            {/* Header with sidebar trigger */}
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+              <SidebarTrigger className="-ml-1 md:hidden" />
+              <div className="flex-1" />
+            </header>
+            
+            {/* Main content */}
+            <div className="flex-1 space-y-4 p-4 md:p-6 lg:p-8">
+              {children}
+            </div>
+          </main>
+        </div>
+      </GoalsProvider>
     </SidebarProvider>
   )
 } 

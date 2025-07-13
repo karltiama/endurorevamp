@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useGoalTypes, useUserGoals } from '@/hooks/useGoals';
+import { useGoalTypes } from '@/hooks/useGoals';
 import { useDynamicGoals } from '@/hooks/useDynamicGoals';
 import { useAuth } from '@/providers/AuthProvider';
+import { useGoalsContext } from '@/components/goals/GoalsProvider';
+import { UserGoal } from '@/types/goals';
 import { 
   Card, 
   CardContent, 
@@ -35,17 +37,13 @@ import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
 
 export function GoalsPageClient() {
   const { user } = useAuth();
-  const { data: goalsData, isLoading: isLoadingGoals } = useUserGoals();
+  const { activeGoals, completedGoals, isLoading: isLoadingGoals } = useGoalsContext();
   const { data: goalTypes = [], isLoading: isLoadingTypes } = useGoalTypes();
   const { suggestions, isLoading: isLoadingSuggestions, refetch: refetchSuggestions } = useDynamicGoals(user?.id || '', { maxSuggestions: 6 });
   
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingGoal, setEditingGoal] = useState<any>(null);
+  const [editingGoal, setEditingGoal] = useState<UserGoal | null>(null);
   const [selectedSuggestion, setSelectedSuggestion] = useState<DynamicGoalSuggestion | null>(null);
-
-  const goals = goalsData?.goals || [];
-  const activeGoals = goals.filter(goal => goal.is_active);
-  const completedGoals = goals.filter(goal => goal.is_completed);
 
   const handleCreateGoalFromSuggestion = (suggestion: DynamicGoalSuggestion) => {
     setSelectedSuggestion(suggestion);
