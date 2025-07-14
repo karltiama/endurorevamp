@@ -2,6 +2,49 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 
+export async function GET() {
+  try {
+    const supabase = await createClient()
+    
+    // Check if user is authenticated
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    
+    if (userError || !user) {
+      return NextResponse.json({
+        success: false,
+        authenticated: false,
+        message: 'No authenticated user found'
+      })
+    }
+
+    // Check if user has Strava tokens
+    const { data: tokens, error: tokenError } = await supabase
+      .from('strava_tokens')
+      .select('strava_athlete_id, athlete_firstname, athlete_lastname')
+      .eq('user_id', user.id)
+      .single()
+
+    return NextResponse.json({
+      success: true,
+      authenticated: true,
+      user_id: user.id,
+      has_strava_tokens: !!tokens && !tokenError,
+      athlete: tokens ? {
+        id: tokens.strava_athlete_id,
+        name: `${tokens.athlete_firstname} ${tokens.athlete_lastname}`
+      } : null
+    })
+
+  } catch (error) {
+    console.error('Auth check error:', error)
+    return NextResponse.json({
+      success: false,
+      authenticated: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+}
+
 export async function POST(request: Request) {
   try {
     // Add more robust JSON parsing

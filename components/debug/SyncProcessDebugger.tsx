@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useStravaSync, useSyncStatusInfo } from '@/hooks/use-strava-sync'
+import { SyncStateManipulator } from './SyncStateManipulator'
 
 interface DebugStep {
   id: string
@@ -331,6 +332,19 @@ export function SyncProcessDebugger() {
               syncResult
             }, null, 2)}
           </pre>
+        </details>
+      </div>
+
+      {/* Sync State Manipulator */}
+      <div className="mt-6">
+        <h3 className="text-sm font-medium text-gray-700 mb-2">State Manipulation</h3>
+        <details className="text-xs">
+          <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
+            Click to open sync state manipulator
+          </summary>
+          <div className="mt-2">
+            <SyncStateManipulator />
+          </div>
         </details>
       </div>
     </div>
