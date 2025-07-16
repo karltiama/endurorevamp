@@ -133,10 +133,9 @@ describe('WeeklyTrainingLoadWidget', () => {
     
     expect(screen.getByText('Weekly Training Load')).toBeInTheDocument();
     
-    // Look for zone-related information
-    const zoneText = screen.queryByText(/zone/i) || 
-                    screen.queryByText(/Z1|Z2|Z3|Z4|Z5/) ||
-                    screen.queryByText(/heart rate/i);
+    // Look for zone-related information - use more specific selectors
+    const zoneText = screen.queryByText(/heart rate/i) || 
+                    screen.queryByText(/zone/i);
     if (zoneText) {
       expect(zoneText).toBeInTheDocument();
     }

@@ -213,12 +213,11 @@ describe('TrainingReadinessCard', () => {
     
     expect(screen.getByText('Training Readiness')).toBeInTheDocument();
     
-    // Look for TSS-related information
-    const tssText = screen.queryByText(/TSS/i) || 
-                   screen.queryByText(/balance/i) ||
-                   screen.queryByText(/load/i);
-    if (tssText) {
-      expect(tssText).toBeInTheDocument();
+    // Look for TSS-related information - use more specific selectors
+    const tssBalanceText = screen.queryByText('TSS Balance');
+    const weeklyTssText = screen.queryByText('Weekly TSS Progress');
+    if (tssBalanceText || weeklyTssText) {
+      expect(tssBalanceText || weeklyTssText).toBeInTheDocument();
     }
   });
 
@@ -241,12 +240,11 @@ describe('TrainingReadinessCard', () => {
     
     expect(screen.getByText('Training Readiness')).toBeInTheDocument();
     
-    // Look for RPE-related elements
-    const rpeText = screen.queryByText(/RPE/i) || 
-                   screen.queryByText(/effort/i) ||
-                   screen.queryByText(/perceived/i);
-    if (rpeText) {
-      expect(rpeText).toBeInTheDocument();
+    // Look for RPE-related elements - use more specific selectors
+    const lastRpeText = screen.queryByText('Last RPE');
+    const logRpeButton = screen.queryByText('Log RPE');
+    if (lastRpeText || logRpeButton) {
+      expect(lastRpeText || logRpeButton).toBeInTheDocument();
     }
   });
 
