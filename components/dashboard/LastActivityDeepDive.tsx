@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { formatDistance, formatPace } from '@/lib/utils'
+import { formatDistance, formatPace, getActivityIcon } from '@/lib/utils'
 import { useMemo } from 'react'
 import Link from 'next/link'
 import {
@@ -108,16 +108,7 @@ export function LastActivityDeepDive({ userId }: LastActivityDeepDiveProps) {
     })
   }
 
-  const getActivityIcon = (sportType: string) => {
-    switch (sportType.toLowerCase()) {
-      case 'run': return '🏃‍♂️'
-      case 'ride': return '🚴‍♂️'
-      case 'swim': return '🏊‍♂️'
-      case 'hike': return '🥾'
-      case 'walk': return '🚶‍♂️'
-      default: return '💪'
-    }
-  }
+
 
   const getActivityColor = (sportType: string): string => {
     switch (sportType.toLowerCase()) {
@@ -172,7 +163,7 @@ export function LastActivityDeepDive({ userId }: LastActivityDeepDiveProps) {
         <div className="flex items-start justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <span className="text-2xl">{getActivityIcon(lastActivity.sport_type)}</span>
+                                  <span className="text-2xl">{getActivityIcon(lastActivity.sport_type, lastActivity.trainer)}</span>
               Last Activity Deep Dive
             </CardTitle>
             <CardDescription>

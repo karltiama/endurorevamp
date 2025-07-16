@@ -7,6 +7,7 @@ import { StravaReconnectionPrompt } from '@/components/strava/StravaReconnection
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Info, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { getStravaAuthUrl } from '@/lib/strava'
 
 interface ActivityFeedClientProps {
   userId: string
@@ -37,7 +38,16 @@ export function ActivityFeedClient({ userId }: ActivityFeedClientProps) {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => refreshToken()}
+                  onClick={async () => {
+                    try {
+                      await refreshToken()
+                    } catch (error) {
+                      console.error('Failed to refresh token:', error)
+                      // If refresh fails, redirect to full OAuth flow
+                      const authUrl = getStravaAuthUrl(window.location.origin)
+                      window.location.href = authUrl
+                    }
+                  }}
                   className="ml-4 text-blue-600 border-blue-200 hover:bg-blue-100"
                 >
                   <RefreshCw className="h-3 w-3 mr-1" />

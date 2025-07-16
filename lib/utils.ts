@@ -180,3 +180,24 @@ export function formatOrdinal(num: number): string {
   if (j === 3 && k !== 13) return `${num}rd`;
   return `${num}th`;
 }
+
+/**
+ * Get activity icon based on sport type and trainer flag
+ * Distinguishes between indoor/outdoor runs and weight training
+ */
+export function getActivityIcon(type: string, trainer?: boolean): string {
+  const icons: Record<string, string> = {
+    'Ride': '🚴‍♂️',
+    'Run': trainer ? '🏃‍♂️🏠' : '🏃‍♂️', // Indoor run vs outdoor run
+    'Swim': '🏊‍♂️',
+    'Hike': '🥾',
+    'Walk': '🚶‍♂️',
+    'Workout': '🏋️‍♂️', // Weight training icon
+    'WeightTraining': '🏋️‍♂️', // Weight training icon
+    'VirtualRide': '🚴‍♂️',
+    'EBikeRide': '🚴‍♂️⚡',
+  }
+  return icons[type] || '🏃‍♂️'
+}
+
+

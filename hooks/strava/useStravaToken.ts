@@ -40,14 +40,39 @@ export function useStravaToken(): UseStravaTokenReturn {
   });
 
   const refreshToken = useCallback(async () => {
-    await queryClient.invalidateQueries({ 
-      queryKey: [STRAVA_TOKEN_QUERY_KEY, user?.id] 
-    });
-    // Also invalidate connection status since token changes affect connection
-    await queryClient.invalidateQueries({ 
-      queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id] 
-    });
-    await refetch();
+    try {
+      console.log('🔄 Refreshing Strava token...')
+      
+      // Call the refresh endpoint
+      const response = await fetch('/api/auth/strava/token', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to refresh token')
+      }
+
+      const result = await response.json()
+      console.log('✅ Token refresh successful:', result)
+
+      // Invalidate queries to refresh the UI
+      await queryClient.invalidateQueries({ 
+        queryKey: [STRAVA_TOKEN_QUERY_KEY, user?.id] 
+      });
+      await queryClient.invalidateQueries({ 
+        queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id] 
+      });
+      
+      // Refetch to get the new token
+      await refetch();
+    } catch (error) {
+      console.error('❌ Token refresh failed:', error)
+      throw error
+    }
   }, [queryClient, user?.id, refetch]);
 
   const error = queryError ? 

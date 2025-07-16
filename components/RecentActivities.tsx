@@ -2,7 +2,7 @@
 
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { formatDistance } from '@/lib/utils'
+import { formatDistance, getActivityIcon } from '@/lib/utils'
 import type { Activity } from '@/lib/strava/types'
 
 interface RecentActivitiesProps {
@@ -74,17 +74,7 @@ function ActivityCard({ activity }: { activity: Activity }) {
     return new Date(dateString).toLocaleDateString()
   }
 
-  const getActivityIcon = (type: string) => {
-    const icons: Record<string, string> = {
-      'Ride': '🚴‍♂️',
-      'Run': '🏃‍♂️',
-      'Swim': '🏊‍♂️',
-      'Hike': '🥾',
-      'Walk': '🚶‍♂️',
-      'Workout': '💪',
-    }
-    return icons[type] || '🏃‍♂️'
-  }
+
 
   // Handle both sport_type (database) and type (API) properties
   const activityType = activity.sport_type || activity.activity_type || 'Activity'
@@ -92,7 +82,7 @@ function ActivityCard({ activity }: { activity: Activity }) {
   return (
     <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
       <div className="flex items-center space-x-4">
-        <span className="text-2xl">{getActivityIcon(activityType)}</span>
+        <span className="text-2xl">{getActivityIcon(activityType, activity.trainer)}</span>
         <div>
           <h3 className="font-semibold text-lg">{activity.name}</h3>
           <p className="text-sm text-gray-600">

@@ -45,6 +45,109 @@ export async function GET() {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const supabase = await createClient()
+    
+    // Check if user is authenticated
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    
+    if (userError || !user) {
+      return NextResponse.json({
+        success: false,
+        error: 'No authenticated user found'
+      }, { status: 401 })
+    }
+
+    // Get current tokens
+    const { data: tokens, error: tokenError } = await supabase
+      .from('strava_tokens')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+
+    if (tokenError || !tokens) {
+      return NextResponse.json({
+        success: false,
+        error: 'No Strava tokens found. Please reconnect your account.'
+      }, { status: 404 })
+    }
+
+    // Refresh tokens with Strava
+    console.log('🔄 Refreshing Strava tokens for user:', user.id)
+    const refreshResponse = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        client_id: process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID,
+        client_secret: process.env.STRAVA_CLIENT_SECRET,
+        grant_type: 'refresh_token',
+        refresh_token: tokens.refresh_token,
+      }),
+    })
+
+    if (!refreshResponse.ok) {
+      const errorText = await refreshResponse.text()
+      console.error('❌ Token refresh failed:', refreshResponse.status, errorText)
+      
+      // If refresh fails, remove the invalid tokens
+      await supabase
+        .from('strava_tokens')
+        .delete()
+        .eq('user_id', user.id)
+
+      return NextResponse.json({
+        success: false,
+        error: 'Token refresh failed. Please reconnect your Strava account.'
+      }, { status: refreshResponse.status })
+    }
+
+    const authData = await refreshResponse.json()
+    console.log('✅ Token refresh successful for athlete:', authData.athlete?.id)
+
+    // Store the refreshed tokens
+    const { error: storeError } = await supabase
+      .from('strava_tokens')
+      .upsert({
+        user_id: user.id,
+        access_token: authData.access_token,
+        refresh_token: authData.refresh_token,
+        token_type: authData.token_type,
+        expires_at: new Date(authData.expires_at * 1000).toISOString(),
+        expires_in: authData.expires_in,
+        strava_athlete_id: authData.athlete.id,
+        athlete_firstname: authData.athlete.firstname,
+        athlete_lastname: authData.athlete.lastname,
+        athlete_profile: authData.athlete.profile,
+      }, {
+        onConflict: 'user_id',
+        ignoreDuplicates: false
+      })
+
+    if (storeError) {
+      console.error('❌ Error storing refreshed tokens:', storeError)
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to store refreshed tokens'
+      }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      athlete: authData.athlete
+    })
+
+  } catch (error) {
+    console.error('Token refresh error:', error)
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to refresh token'
+    }, { status: 500 })
+  }
+}
+
 export async function POST(request: Request) {
   try {
     // Add more robust JSON parsing

@@ -4,7 +4,7 @@ import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { formatDistance, formatPace } from '@/lib/utils'
+import { formatDistance, formatPace, getActivityIcon } from '@/lib/utils'
 import type { StravaActivity } from '@/lib/strava/types'
 
 interface ActivityDetailModalProps {
@@ -45,19 +45,7 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
     })
   }
 
-  const getActivityIcon = (type: string) => {
-    const icons: Record<string, string> = {
-      'Ride': '🚴‍♂️',
-      'Run': '🏃‍♂️',
-      'Swim': '🏊‍♂️',
-      'Hike': '🥾',
-      'Walk': '🚶‍♂️',
-      'Workout': '💪',
-      'VirtualRide': '🚴‍♂️',
-      'EBikeRide': '🚴‍♂️⚡',
-    }
-    return icons[type] || '🏃‍♂️'
-  }
+
 
   const calculateMetrics = (activity: StravaActivity) => {
     const metrics = []
@@ -216,7 +204,7 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
                 {/* Header */}
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-start space-x-4">
-                    <div className="text-4xl">{getActivityIcon(activity.type || activity.sport_type)}</div>
+                    <div className="text-4xl">{getActivityIcon(activity.type || activity.sport_type, activity.trainer)}</div>
                     <div>
                       <Dialog.Title as="h3" className="text-xl font-semibold text-gray-900">
                         {activity.name}

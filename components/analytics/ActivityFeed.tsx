@@ -89,7 +89,7 @@ export function ActivityFeed({ userId }: ActivityFeedProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -107,7 +107,7 @@ export function ActivityFeed({ userId }: ActivityFeedProps) {
       </div>
 
       {/* Activity List */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {currentActivities.map((activity) => (
           <ActivityCard
             key={activity.strava_activity_id}
@@ -118,7 +118,7 @@ export function ActivityFeed({ userId }: ActivityFeedProps) {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-between items-center pt-4">
+      <div className="flex justify-between items-center pt-2">
         <button
           onClick={handlePrevPage}
           disabled={currentPage === 1}

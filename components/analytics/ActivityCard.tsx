@@ -1,7 +1,7 @@
 'use client'
 
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { formatDistance, formatPace } from '@/lib/utils'
+import { formatDistance, formatPace, getActivityIcon } from '@/lib/utils'
 import type { StravaActivity } from '@/lib/strava/types'
 import type { Activity } from '@/lib/strava/types'
 
@@ -32,7 +32,8 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
         average_watts: act.average_watts,
         average_speed: act.average_speed,
         kudos_count: act.kudos_count || 0,
-        private: act.private || false
+        private: act.private || false,
+        trainer: act.trainer || false
       }
     } else {
       // API StravaActivity type
@@ -48,7 +49,8 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
         average_watts: act.average_watts,
         average_speed: act.average_speed,
         kudos_count: act.kudos_count || 0,
-        private: act.private || false
+        private: act.private || false,
+        trainer: act.trainer || false
       }
     }
   }
@@ -80,19 +82,7 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
     })
   }
 
-  const getActivityIcon = (type: string) => {
-    const icons: Record<string, string> = {
-      'Ride': '🚴‍♂️',
-      'Run': '🏃‍♂️',
-      'Swim': '🏊‍♂️',
-      'Hike': '🥾',
-      'Walk': '🚶‍♂️',
-      'Workout': '💪',
-      'VirtualRide': '🚴‍♂️',
-      'EBikeRide': '🚴‍♂️⚡',
-    }
-    return icons[type] || '🏃‍♂️'
-  }
+
 
   const formatPaceWithUnits = (normalized: ReturnType<typeof normalizeActivity>) => {
     if (normalized.type === 'Run' && normalized.distance > 0) {
@@ -129,58 +119,40 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
   const pace = formatPaceWithUnits(normalized)
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
-        {/* Left side - Activity info */}
-        <div className="flex items-start space-x-4 flex-1">
-          <div className="text-3xl">{getActivityIcon(normalized.type)}</div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-2 mb-1">
-              <h3 className="font-semibold text-lg text-gray-900 truncate">
-                {normalized.name}
-              </h3>
-              {normalized.private && (
-                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                  Private
-                </span>
-              )}
-            </div>
-            
-            <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
-              <span className="font-medium">{normalized.type}</span>
+    <div className="bg-white border border-gray-200 rounded-lg p-2.5 hover:shadow-md transition-shadow">
+      {/* Title - Centered */}
+      <div className="text-center mb-2">
+        <h3 className="font-semibold text-base text-gray-900 truncate">
+          {normalized.name}
+        </h3>
+        {normalized.private && (
+          <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+            Private
+          </span>
+        )}
+      </div>
+      
+      {/* Main content - Compact layout */}
+      <div className="flex items-center justify-between">
+        {/* Left - Activity details */}
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <span className="text-lg">{getActivityIcon(normalized.type, normalized.trainer)}</span>
+          <span className="font-medium">{normalized.type}</span>
+          <span>•</span>
+          <span>{formatDistanceWithUnits(normalized.distance)}</span>
+          <span>•</span>
+          <span>{formatDuration(normalized.moving_time)}</span>
+          {normalized.total_elevation_gain > 0 && (
+            <>
               <span>•</span>
-              <span>{formatDistanceWithUnits(normalized.distance)}</span>
-              <span>•</span>
-              <span>{formatDuration(normalized.moving_time)}</span>
-              {normalized.total_elevation_gain > 0 && (
-                <>
-                  <span>•</span>
-                  <span>↗ {normalized.total_elevation_gain}m</span>
-                </>
-              )}
-            </div>
-
-            {/* Performance metrics */}
-            <div className="flex items-center space-x-4 text-xs text-gray-500">
-              {pace && <span>⚡ {pace}</span>}
-              {normalized.average_heartrate && (
-                <span>❤️ {Math.round(normalized.average_heartrate)} bpm</span>
-              )}
-              {normalized.average_watts && (
-                <span>⚡ {Math.round(normalized.average_watts)}w</span>
-              )}
-              {tss && <span>📊 {tss} TSS</span>}
-              {normalized.kudos_count > 0 && (
-                <span>👍 {normalized.kudos_count}</span>
-              )}
-            </div>
-          </div>
+              <span>↗ {normalized.total_elevation_gain}m</span>
+            </>
+          )}
         </div>
 
-        {/* Right side - Date and actions */}
-        <div className="flex flex-col items-end space-y-2 ml-4">
-          <div className="text-right text-sm">
+        {/* Right - Date and action */}
+        <div className="flex items-center gap-3">
+          <div className="text-right text-xs">
             <div className="font-medium text-gray-900">
               {formatDate(normalized.start_date_local)}
             </div>
@@ -191,12 +163,29 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
           
           <button
             onClick={() => onViewDetails(activity)}
-            className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+            className="px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
           >
             View Details →
           </button>
         </div>
       </div>
+
+      {/* Performance metrics - Compact row */}
+      {(pace || normalized.average_heartrate || normalized.average_watts || tss || normalized.kudos_count > 0) && (
+        <div className="flex items-center gap-3 text-xs text-gray-500 mt-1.5 pt-1.5 border-t border-gray-100">
+          {pace && <span>⚡ {pace}</span>}
+          {normalized.average_heartrate && (
+            <span>❤️ {Math.round(normalized.average_heartrate)} bpm</span>
+          )}
+          {normalized.average_watts && (
+            <span>⚡ {Math.round(normalized.average_watts)}w</span>
+          )}
+          {tss && <span>📊 {tss} TSS</span>}
+          {normalized.kudos_count > 0 && (
+            <span>👍 {normalized.kudos_count}</span>
+          )}
+        </div>
+      )}
     </div>
   )
 } 
