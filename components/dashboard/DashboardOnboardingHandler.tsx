@@ -16,7 +16,7 @@ export function DashboardOnboardingHandler() {
 
   // Extract additional data from goals response
   const existingGoals = goalsData?.goals || [];
-  const userStats = goalsData?.userStats || {};
+  const userStats = goalsData?.userStats || { activityCount: 0, hasStravaConnection: false };
   const isLoading = onboardingLoading || goalsLoading;
 
   useEffect(() => {

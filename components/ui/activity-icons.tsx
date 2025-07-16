@@ -38,13 +38,13 @@ export function ActivityIcon({ type, trainer, className = "h-6 w-6" }: ActivityI
 
 // Alternative treadmill-specific icons
 export function TreadmillIcon({ className = "h-6 w-6" }: { className?: string }) {
-  return <Home className={className} title="Treadmill" /> // Gear icon represents treadmill
+  return <Home className={className} />
 }
 
 export function SmartTreadmillIcon({ className = "h-6 w-6" }: { className?: string }) {
-  return <Home className={className} title="Treadmill" /> // Monitor icon for smart treadmill
+  return <Home className={className} />
 }
 
 export function IndoorRunIcon({ className = "h-6 w-6" }: { className?: string }) {
-  return <Home className={className} title="Indoor Run" /> // Home icon for indoor activities
+  return <Home className={className} />
 } 
