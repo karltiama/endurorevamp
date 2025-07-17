@@ -15,6 +15,20 @@ jest.mock('@/hooks/useGoals', () => ({
   useUpdateGoal: jest.fn(),
   useGoalTypes: jest.fn(),
   useCreateGoal: jest.fn(),
+  useGoalManagement: jest.fn(() => ({
+    goals: [],
+    getDashboardGoals: jest.fn(() => []),
+    toggleDashboardGoal: jest.fn(),
+    getGoalsByContext: jest.fn(() => []),
+    getSuggestionGoals: jest.fn(() => []),
+    isLoading: false
+  })),
+  useUnifiedGoalCreation: jest.fn(() => ({
+    mutate: jest.fn(),
+    mutateAsync: jest.fn(),
+    isLoading: false,
+    error: null,
+  })),
 }))
 
 const { useUserActivities } = require('@/hooks/use-user-activities')
@@ -133,19 +147,35 @@ describe('KeyMetrics Component', () => {
     const mockGoals = [
       {
         id: 'goal-1',
-        goal_type: { display_name: 'Weekly Distance Goal', category: 'distance' },
+        user_id: 'user-1',
+        goal_type_id: 'weekly-distance',
         target_value: 50,
+        time_period: 'weekly' as const,
         current_progress: 25,
-        goal_data: { show_on_dashboard: true, dashboard_priority: 1 },
         is_active: true,
+        is_completed: false,
+        priority: 1,
+        streak_count: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        goal_data: { show_on_dashboard: true, dashboard_priority: 1 },
+        goal_type: { id: 'weekly-distance', display_name: 'Weekly Distance Goal', category: 'distance', name: 'weekly_distance_goal', description: '', metric_type: '', calculation_method: '', is_active: true, created_at: '', updated_at: '' },
       },
       {
         id: 'goal-2',
-        goal_type: { display_name: 'Monthly Frequency Goal', category: 'frequency' },
+        user_id: 'user-1',
+        goal_type_id: 'monthly-frequency',
         target_value: 20,
+        time_period: 'monthly' as const,
         current_progress: 12,
-        goal_data: { show_on_dashboard: true, dashboard_priority: 2 },
         is_active: true,
+        is_completed: false,
+        priority: 2,
+        streak_count: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        goal_data: { show_on_dashboard: true, dashboard_priority: 2 },
+        goal_type: { id: 'monthly-frequency', display_name: 'Monthly Frequency Goal', category: 'frequency', name: 'monthly_frequency_goal', description: '', metric_type: '', calculation_method: '', is_active: true, created_at: '', updated_at: '' },
       },
     ]
 
@@ -159,6 +189,17 @@ describe('KeyMetrics Component', () => {
       data: { goals: mockGoals },
       isLoading: false,
       error: null,
+    })
+
+    // Mock useGoalManagement to return the dashboard goals
+    const { useGoalManagement } = require('@/hooks/useGoals')
+    useGoalManagement.mockReturnValue({
+      goals: mockGoals as any,
+      getDashboardGoals: jest.fn(() => mockGoals as any),
+      toggleDashboardGoal: jest.fn(),
+      getGoalsByContext: jest.fn(() => []),
+      getSuggestionGoals: jest.fn(() => []),
+      isLoading: false
     })
 
     render(<KeyMetrics userId="user-1" />, { wrapper })

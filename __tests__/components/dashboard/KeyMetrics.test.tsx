@@ -11,6 +11,20 @@ jest.mock('@/hooks/useGoals', () => ({
   useCreateGoal: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
   useDeleteGoal: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
   useGoalTypes: jest.fn(() => ({ data: [], isLoading: false, error: null })),
+  useGoalManagement: jest.fn(() => ({
+    goals: [],
+    getDashboardGoals: jest.fn(() => []),
+    toggleDashboardGoal: jest.fn(),
+    getGoalsByContext: jest.fn(() => []),
+    getSuggestionGoals: jest.fn(() => []),
+    isLoading: false
+  })),
+  useUnifiedGoalCreation: jest.fn(() => ({
+    mutate: jest.fn(),
+    mutateAsync: jest.fn(),
+    isLoading: false,
+    error: null,
+  })),
 }));
 
 jest.mock('@/hooks/use-user-activities', () => ({
@@ -21,13 +35,14 @@ jest.mock('@/hooks/useUnitPreferences', () => ({
   useUnitPreferences: jest.fn()
 }));
 
-import { useUserGoals } from '@/hooks/useGoals';
+import { useUserGoals, useGoalManagement } from '@/hooks/useGoals';
 import { useUserActivities } from '@/hooks/use-user-activities';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
 
 const mockUseUserGoals = useUserGoals as jest.MockedFunction<typeof useUserGoals>;
 const mockUseUserActivities = useUserActivities as jest.MockedFunction<typeof useUserActivities>;
 const mockUseUnitPreferences = useUnitPreferences as jest.MockedFunction<typeof useUnitPreferences>;
+const mockUseGoalManagement = useGoalManagement as jest.MockedFunction<typeof useGoalManagement>;
 
 const createMockActivity = (overrides: Partial<Activity> = {}): Activity => ({
   id: '1',
@@ -122,11 +137,14 @@ describe('KeyMetrics', () => {
         goal_type_id: 'weekly-distance',
         target_value: 20,
         target_unit: 'km',
-        time_period: 'weekly',
+        time_period: 'weekly' as const,
         current_progress: 15,
         is_active: true,
         is_completed: false,
         priority: 1,
+        streak_count: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         goal_data: {
           show_on_dashboard: true,
           dashboard_priority: 1
@@ -144,11 +162,14 @@ describe('KeyMetrics', () => {
         goal_type_id: 'frequency',
         target_value: 3,
         target_unit: 'runs',
-        time_period: 'weekly',
+        time_period: 'weekly' as const,
         current_progress: 2,
         is_active: true,
         is_completed: false,
         priority: 2,
+        streak_count: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         goal_data: {
           show_on_dashboard: true,
           dashboard_priority: 2
@@ -176,6 +197,16 @@ describe('KeyMetrics', () => {
       refetch: jest.fn()
     } as any);
 
+    // Mock useGoalManagement to return the dashboard goals
+    mockUseGoalManagement.mockReturnValue({
+      goals: mockGoals as any,
+      getDashboardGoals: jest.fn(() => mockGoals as any),
+      toggleDashboardGoal: jest.fn(),
+      getGoalsByContext: jest.fn(() => []),
+      getSuggestionGoals: jest.fn(() => []),
+      isLoading: false
+    });
+
     render(<KeyMetrics userId="test-user" />, { wrapper: createWrapper() });
     
     // Should show goal metric cards
@@ -194,9 +225,14 @@ describe('KeyMetrics', () => {
         user_id: 'test-user',
         goal_type_id: 'goal-1',
         target_value: 20,
+        time_period: 'weekly',
         is_active: true,
         is_completed: false,
         current_progress: 10,
+        streak_count: 0,
+        priority: 1,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         goal_data: {
           show_on_dashboard: true,
           dashboard_priority: 3
@@ -212,9 +248,14 @@ describe('KeyMetrics', () => {
         user_id: 'test-user',
         goal_type_id: 'goal-2',
         target_value: 30,
+        time_period: 'weekly',
         is_active: true,
         is_completed: false,
         current_progress: 15,
+        streak_count: 0,
+        priority: 2,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         goal_data: {
           show_on_dashboard: true,
           dashboard_priority: 1
@@ -241,9 +282,22 @@ describe('KeyMetrics', () => {
       refetch: jest.fn()
     } as any);
 
+    // Mock useGoalManagement to return the goals sorted by dashboard_priority
+    mockUseGoalManagement.mockReturnValue({
+      goals: mockGoals as any,
+      getDashboardGoals: jest.fn(() => mockGoals.sort((a, b) => 
+        (a.goal_data?.dashboard_priority || 999) - (b.goal_data?.dashboard_priority || 999)
+      ) as any),
+      toggleDashboardGoal: jest.fn(),
+      getGoalsByContext: jest.fn(() => []),
+      getSuggestionGoals: jest.fn(() => []),
+      isLoading: false
+    });
+
     render(<KeyMetrics userId="test-user" />, { wrapper: createWrapper() });
     
-    const priorityBadges = screen.getAllByText(/#\d/);
+    // Look for priority badges by their text content
+    const priorityBadges = screen.getAllByText(/#[1-9]/);
     expect(priorityBadges[0]).toHaveTextContent('#1'); // First Priority should be first
     expect(priorityBadges[1]).toHaveTextContent('#2'); // Third Priority should be second
   });

@@ -1,0 +1,83 @@
+---
+title: Auth Token Route Testing & Helper Utilities Summary
+author: AI Assistant
+date: "2024-05-10"
+---
+
+# Auth Token Route: Testing & Helper Utilities Summary
+
+## Context
+
+We improved the `/api/auth/strava/token` route, which handles Strava OAuth token management (GET, PUT, POST) for authentication and token refresh/exchange. The goal was to ensure robust, maintainable, and well-tested authentication logic in our Next.js/TypeScript app.
+
+## What Was Improved
+
+- **Comprehensive Test Coverage**: Added thorough Jest + React Testing Library tests for all endpoints (GET, PUT, POST) and all major scenarios (success, error, edge cases).
+- **Supabase & Strava API Mocking**: Fixed and standardized mocking for Supabase client method chaining and Strava API responses.
+- **Test Helper Utilities**: Introduced reusable test helpers for common auth scenarios, request building, and assertions.
+- **Refactored Tests**: Demonstrated how to use helpers to make tests DRY, readable, and maintainable.
+
+## Best Practices Applied
+
+- **DRY Principle**: Helpers eliminate repeated setup and mocking code.
+- **Separation of Concerns**: Test logic is separated from test setup.
+- **Centralized Test Data**: Factories and scenarios for users, tokens, and errors.
+- **Reusable Assertions**: Common success/error checks are shared.
+- **Consistent Mocking**: All tests use the same patterns for Supabase and Strava API.
+
+## Example: Using the Test Helpers
+
+```ts
+import {
+  MockSupabaseClient,
+  MockStravaAPI,
+  RequestBuilder,
+  TestData,
+  TestScenarios,
+  Assertions,
+  TestHelpers
+} from '../utils/auth-test-helpers'
+
+// Arrange
+const mockClient = TestScenarios.authenticatedUserWithTokens()
+TestHelpers.mockSupabaseClient(mockClient)
+TestHelpers.mockStravaAPI(MockStravaAPI.successResponse(TestData.stravaAuth.success))
+
+// Act
+const request = RequestBuilder.authTokenPut()
+const response = await PUT(request)
+const data = await response.json()
+
+// Assert
+expect(response.status).toBe(200)
+expect(data).toEqual({
+  success: true,
+  athlete: TestData.stravaAuth.success.athlete
+})
+```
+
+## Helper Utilities Overview
+
+- **MockSupabaseClient**: Chainable builder for user/token/auth error states.
+- **MockStravaAPI**: Factories for Strava API success/error responses.
+- **RequestBuilder**: Quickly build requests for all auth token endpoints.
+- **TestData**: Centralized test users, tokens, and error objects.
+- **TestScenarios**: Prebuilt common Supabase client states.
+- **Assertions**: Reusable assertion helpers for success/error responses.
+- **TestHelpers**: Setup/teardown and mocking utilities.
+
+## Benefits
+
+- **Faster test writing**: Add new scenarios with minimal boilerplate.
+- **Easier maintenance**: Update mocks or data in one place.
+- **Consistent, reliable tests**: All tests follow the same structure and patterns.
+
+## Next Steps
+
+- Use these helpers for all new auth-related tests.
+- Refactor other API route tests to use similar patterns.
+- Expand helpers as new edge cases or flows are added.
+
+---
+
+_This summary documents the improvements and best practices for authentication route testing and test utility design in our codebase._ 

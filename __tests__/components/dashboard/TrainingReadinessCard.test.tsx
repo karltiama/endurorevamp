@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { screen } from '@testing-library/react';
+import { renderWithQueryClient } from '@/__tests__/utils/test-utils';
 import { TrainingReadinessCard } from '@/components/dashboard/TrainingReadinessCard';
 import { Activity } from '@/lib/strava/types';
 import { WeeklyTrainingLoadWidget } from '@/components/dashboard/WeeklyTrainingLoadWidget';
@@ -13,7 +13,8 @@ jest.mock('@/hooks/use-user-activities', () => ({
 }));
 
 jest.mock('@/hooks/useTrainingProfile', () => ({
-  usePersonalizedTSSTarget: jest.fn()
+  usePersonalizedTSSTarget: jest.fn(),
+  useTrainingProfile: jest.fn()
 }));
 import { usePersonalizedTSSTarget } from '@/hooks/useTrainingProfile';
 
@@ -44,17 +45,7 @@ const createMockActivity = (overrides: Partial<Activity> = {}): Activity => ({
   ...overrides,
 });
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  });
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-};
+
 
 describe('TrainingReadinessCard', () => {
   beforeEach(() => {
@@ -69,7 +60,7 @@ describe('TrainingReadinessCard', () => {
       refetch: jest.fn()
     } as any);
 
-    const { container } = render(<TrainingReadinessCard userId="test-user" />, { wrapper: createWrapper() });
+    const { container } = renderWithQueryClient(<TrainingReadinessCard userId="test-user" />);
     
     expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
   });

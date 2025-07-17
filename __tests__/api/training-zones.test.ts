@@ -187,7 +187,7 @@ describe('Training Zones API', () => {
         error: null
       })
 
-      // Mock successful zone analysis with custom parameters
+      // Create a mock that handles both analyzeUserZones and createZoneModels
       const mockZoneAnalysisService = {
         analyzeUserZones: jest.fn().mockResolvedValue(mockZoneAnalysis),
         createZoneModels: jest.fn().mockReturnValue([
@@ -203,6 +203,8 @@ describe('Training Zones API', () => {
           }
         ])
       }
+      
+      // Mock the constructor to return the same service instance
       ;(TrainingZoneAnalysis as jest.Mock).mockImplementation(() => mockZoneAnalysisService)
 
       const request = new NextRequest(new URL('http://localhost:3000/api/training/zones'), {
@@ -255,8 +257,11 @@ describe('Training Zones API', () => {
         error: null
       })
 
-      // Mock successful zone analysis
-      const mockZoneAnalysisService = { analyzeUserZones: jest.fn().mockResolvedValue(mockZoneAnalysis5e) }
+      // Mock successful zone analysis - both methods should be available
+      const mockZoneAnalysisService = { 
+        analyzeUserZones: jest.fn().mockResolvedValue(mockZoneAnalysis5e),
+        createZoneModels: jest.fn().mockReturnValue([])
+      }
       ;(TrainingZoneAnalysis as jest.Mock).mockImplementation(() => mockZoneAnalysisService)
 
       const request = new NextRequest(new URL('http://localhost:3000/api/training/zones'), {
@@ -286,8 +291,11 @@ describe('Training Zones API', () => {
         error: null
       })
 
-      // Mock successful zone analysis
-      const mockZoneAnalysisService = { analyzeUserZones: jest.fn().mockResolvedValue(mockZoneAnalysis) }
+      // Mock successful zone analysis - both methods should be available
+      const mockZoneAnalysisService = { 
+        analyzeUserZones: jest.fn().mockResolvedValue(mockZoneAnalysis),
+        createZoneModels: jest.fn().mockReturnValue([])
+      }
       ;(TrainingZoneAnalysis as jest.Mock).mockImplementation(() => mockZoneAnalysisService)
 
       const request = new NextRequest(new URL('http://localhost:3000/api/training/zones'), {
@@ -313,8 +321,11 @@ describe('Training Zones API', () => {
         error: null
       })
 
-      // Mock analysis error
-      const mockZoneAnalysisService = { analyzeUserZones: jest.fn().mockRejectedValue(new Error('Analysis failed')) }
+      // Mock analysis error - both analyzeUserZones and createZoneModels should be available
+      const mockZoneAnalysisService = { 
+        analyzeUserZones: jest.fn().mockRejectedValue(new Error('Analysis failed')),
+        createZoneModels: jest.fn().mockReturnValue([])
+      }
       ;(TrainingZoneAnalysis as jest.Mock).mockImplementation(() => mockZoneAnalysisService)
 
       const request = new NextRequest(new URL('http://localhost:3000/api/training/zones'), {
@@ -358,6 +369,7 @@ describe('Training Zones API', () => {
       expect(response.status).toBe(500)
       expect(data.success).toBe(false)
       expect(data.error).toBe('Failed to perform custom zone analysis')
+      expect(data.details).toContain('Unexpected token')
     })
   })
 }) 

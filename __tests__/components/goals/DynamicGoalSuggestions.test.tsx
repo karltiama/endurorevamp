@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
+import { renderWithQueryClient } from '@/__tests__/utils/test-utils';
 import { DynamicGoalSuggestions } from '@/components/goals/DynamicGoalSuggestions';
 import { useUserActivities } from '@/hooks/use-user-activities';
 import { useUserGoals } from '@/hooks/useGoals';
@@ -102,7 +103,7 @@ describe('DynamicGoalSuggestions Component', () => {
       }
     ]);
 
-    render(<DynamicGoalSuggestions userId="user-1" />);
+    renderWithQueryClient(<DynamicGoalSuggestions userId="user-1" />);
 
     await waitFor(() => {
       expect(screen.getByText('25.0 km')).toBeInTheDocument();
@@ -156,7 +157,7 @@ describe('DynamicGoalSuggestions Component', () => {
       }
     ]);
 
-    render(<DynamicGoalSuggestions userId="user-1" />);
+    renderWithQueryClient(<DynamicGoalSuggestions userId="user-1" />);
 
     await waitFor(() => {
       expect(screen.getByText('15.5 mi')).toBeInTheDocument();
@@ -179,7 +180,7 @@ describe('DynamicGoalSuggestions Component', () => {
       toggleUnits: jest.fn()
     });
 
-    render(<DynamicGoalSuggestions userId="user-1" />);
+    renderWithQueryClient(<DynamicGoalSuggestions userId="user-1" />);
 
     // When activities are loading and there are no activities, show empty state
     expect(screen.getByText('Keep logging activities to get personalized goal suggestions!')).toBeInTheDocument();
@@ -203,7 +204,7 @@ describe('DynamicGoalSuggestions Component', () => {
     mockAnalyzeUserPerformance.mockReturnValue(null);
     mockGenerateDynamicSuggestions.mockReturnValue([]);
 
-    render(<DynamicGoalSuggestions userId="user-1" />);
+    renderWithQueryClient(<DynamicGoalSuggestions userId="user-1" />);
 
     await waitFor(() => {
       expect(screen.getByText('Keep logging activities to get personalized goal suggestions!')).toBeInTheDocument();
@@ -262,7 +263,7 @@ describe('DynamicGoalSuggestions Component', () => {
     mockAnalyzeUserPerformance.mockReturnValue(mockProfile);
     mockGenerateDynamicSuggestions.mockReturnValue(mockSuggestions);
 
-    render(<DynamicGoalSuggestions userId="user-1" />);
+    renderWithQueryClient(<DynamicGoalSuggestions userId="user-1" />);
 
     await waitFor(() => {
       expect(screen.getByText('Increase Weekly Distance')).toBeInTheDocument();

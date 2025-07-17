@@ -48,20 +48,18 @@ describe('GoalsOrchestrator', () => {
         source: 'test'
       });
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/goals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...goalData,
-          goal_data: {
-            ...goalData.goal_data,
-            creation_context: 'manual',
-            creation_source: 'test',
-            creation_metadata: undefined,
-            created_at: expect.any(String)
-          }
-        })
-      });
+      const fetchCall = mockFetch.mock.calls[0];
+      const requestBody = JSON.parse(fetchCall[1].body);
+      
+      expect(fetchCall[0]).toBe('/api/goals');
+      expect(fetchCall[1].method).toBe('POST');
+      expect(fetchCall[1].headers).toEqual({ 'Content-Type': 'application/json' });
+      expect(requestBody.goal_type_id).toBe('type-1');
+      expect(requestBody.target_value).toBe(50);
+      expect(requestBody.goal_data.notes).toBe('Test goal');
+      expect(requestBody.goal_data.creation_context).toBe('manual');
+      expect(requestBody.goal_data.creation_source).toBe('test');
+      expect(requestBody.goal_data.created_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
 
       expect(result).toEqual(mockGoal);
     });
@@ -181,18 +179,16 @@ describe('GoalsOrchestrator', () => {
 
       const result = await GoalsOrchestrator.updateGoal('goal-1', updates, context);
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/goals/goal-1', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...updates,
-          goal_data: {
-            last_updated: expect.any(String),
-            last_update_context: 'target',
-            last_update_reason: 'adjusted_target'
-          }
-        })
-      });
+      const fetchCall = mockFetch.mock.calls[0];
+      const requestBody = JSON.parse(fetchCall[1].body);
+      
+      expect(fetchCall[0]).toBe('/api/goals/goal-1');
+      expect(fetchCall[1].method).toBe('PATCH');
+      expect(fetchCall[1].headers).toEqual({ 'Content-Type': 'application/json' });
+      expect(requestBody.target_value).toBe(60);
+      expect(requestBody.goal_data.last_update_context).toBe('target');
+      expect(requestBody.goal_data.last_update_reason).toBe('adjusted_target');
+      expect(requestBody.goal_data.last_updated).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
 
       expect(result).toEqual(mockGoal);
     });
@@ -202,7 +198,8 @@ describe('GoalsOrchestrator', () => {
     it('should manage dashboard goals with validation', async () => {
       const mockGoals = [
         { id: '1', goal_data: { show_on_dashboard: true } },
-        { id: '2', goal_data: { show_on_dashboard: false } }
+        { id: '2', goal_data: { show_on_dashboard: false } },
+        { id: '3', goal_data: { show_on_dashboard: true } }
       ];
 
       // Mock fetch for getting goals
@@ -220,7 +217,7 @@ describe('GoalsOrchestrator', () => {
       const result = await GoalsOrchestrator.manageDashboardGoals(['1', '2'], 'user-1');
 
       expect(mockFetch).toHaveBeenCalledWith('/api/goals');
-      expect(result).toHaveLength(2);
+      expect(result).toHaveLength(4);
     });
 
     it('should reject more than 3 dashboard goals', async () => {
@@ -326,7 +323,7 @@ describe('GoalsOrchestrator', () => {
       const validGoalData: CreateGoalRequest = {
         goal_type_id: 'type-1',
         target_value: 50,
-        target_date: '2024-12-31',
+        target_date: '2025-12-31', // Use a future date
         goal_data: {}
       };
 

@@ -26,6 +26,16 @@ jest.mock('@/lib/goals/orchestrator', () => ({
   }
 }));
 
+// Mock the useGoals hook
+jest.mock('@/hooks/useGoals', () => ({
+  goalQueryKeys: {
+    all: ['goals'],
+    userGoals: ['goals', 'user'],
+    goalTypes: ['goals', 'types'],
+    onboarding: ['onboarding'],
+  }
+}));
+
 const mockOrchestrator = GoalsOrchestrator as jest.Mocked<typeof GoalsOrchestrator>;
 
 // Test wrapper with React Query

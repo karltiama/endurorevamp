@@ -94,6 +94,14 @@ jest.mock('@/hooks/useGoals', () => ({
   useDeleteGoal: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
   useGoalTypes: jest.fn(() => ({ data: [], isLoading: false, error: null })),
   useCreateMultipleGoals: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
+  useGoalManagement: jest.fn(() => ({
+    goals: [],
+    getDashboardGoals: jest.fn(() => []),
+    toggleDashboardGoal: jest.fn(),
+    getGoalsByContext: jest.fn(() => []),
+    getSuggestionGoals: jest.fn(() => []),
+    isLoading: false
+  })),
 }))
 
 jest.mock('@/hooks/use-user-activities', () => ({
@@ -187,7 +195,11 @@ global.Request = class Request {
   }
   
   json() {
-    return Promise.resolve(JSON.parse(this.body || '{}'))
+    try {
+      return Promise.resolve(JSON.parse(this.body || '{}'))
+    } catch (error) {
+      return Promise.reject(error)
+    }
   }
   
   text() {
