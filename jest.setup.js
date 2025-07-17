@@ -175,4 +175,35 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   unobserve: jest.fn(),
   disconnect: jest.fn(),
-})) 
+}))
+
+// Mock Next.js Request and Response for API route testing
+global.Request = class Request {
+  constructor(url, init) {
+    this.url = url
+    this.method = (init && init.method) || 'GET'
+    this.headers = new Headers(init && init.headers)
+    this.body = init && init.body
+  }
+  
+  json() {
+    return Promise.resolve(JSON.parse(this.body || '{}'))
+  }
+  
+  text() {
+    return Promise.resolve(this.body || '')
+  }
+}
+
+global.Response = class Response {
+  constructor(body, init) {
+    this.body = body
+    this.status = (init && init.status) || 200
+    this.statusText = (init && init.statusText) || 'OK'
+    this.headers = new Headers(init && init.headers)
+  }
+  
+  json() {
+    return Promise.resolve(this.body)
+  }
+} 

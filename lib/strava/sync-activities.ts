@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
-import type { StravaActivity } from './types'
+import type { StravaActivity, Activity } from './types'
 
 // Helper function to safely convert values to numbers
 function safeNumber(value: unknown, fieldName?: string): number | null {
@@ -221,6 +221,29 @@ export class StravaActivitySync {
         console.warn('⚠️ Failed to update total activities count:', syncStateError)
       }
       
+      // 🎯 BULK GOAL PROGRESS UPDATE - After all activities are synced
+      // This is more efficient than updating goals per activity
+      try {
+        console.log('🔄 Updating goal progress for all goals...')
+        const { data: goalProgressResults, error: goalProgressError } = await supabaseClient
+          .rpc('calculate_goal_progress', { p_user_id: userId })
+        
+        if (goalProgressError) {
+          console.warn('⚠️ Goal progress update failed:', goalProgressError)
+        } else {
+          console.log(`✅ Goal progress updated for ${goalProgressResults?.length || 0} goals`)
+          if (goalProgressResults?.length) {
+            goalProgressResults.forEach((goal: any) => {
+              console.log(`📈 Goal "${goal.goal_type}": ${goal.current_progress}/${goal.target_value} (${goal.progress_percentage.toFixed(1)}%)`)
+            })
+          }
+        }
+      } catch (goalProgressError) {
+        console.warn('⚠️ Goal progress update failed:', goalProgressError)
+        // Don't fail the sync if goal progress update fails
+        // Goals can be updated manually or in a separate process
+      }
+      
       return {
         success: true,
         activitiesProcessed,
@@ -343,9 +366,9 @@ export class StravaActivitySync {
       throw new Error(`Failed to store activity: ${error.message}`)
     }
 
-    // 🎯 GOAL PROGRESS UPDATE DISABLED
-    // Removed automatic goal progress updates to focus on core sync functionality
-    // Goal progression will be handled separately by the AI-driven goal system
+    // 🎯 GOAL PROGRESS UPDATE - DISABLED PER ACTIVITY
+    // Goal progress is now updated in bulk after all activities are synced
+    // This prevents race conditions and is more efficient
 
     return {
       data,

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useUnifiedGoalCreation } from '@/hooks/useGoals';
 import { useDynamicGoals } from '@/hooks/useDynamicGoals';
+import { useUnitPreferences } from '@/hooks/useUnitPreferences';
 import {
   Dialog,
   DialogContent,
@@ -40,6 +41,7 @@ export function AddGoalModal({
   description = "AI-powered goal recommendations based on your running data"
 }: AddGoalModalProps) {
   const { user } = useAuth();
+  const { preferences } = useUnitPreferences();
   const { suggestions, isLoading: isLoadingSuggestions } = useDynamicGoals(user?.id || '');
   const createGoalMutation = useUnifiedGoalCreation();
   
@@ -53,11 +55,11 @@ export function AddGoalModal({
       setSelectedSuggestion(suggestion);
       setFormData({
         targetValue: suggestion.suggestedTarget,
-        targetUnit: suggestion.targetUnit,
+        targetUnit: suggestion.targetUnit || preferences.distance,
         notes: `${suggestion.reasoning}\n\nStrategies: ${suggestion.strategies.join(', ')}`
       });
     }
-  }, [suggestion, open]);
+  }, [suggestion, open, preferences.distance]);
 
   const handleReset = () => {
     setSelectedSuggestion(null);
@@ -72,11 +74,12 @@ export function AddGoalModal({
     onOpenChange(isOpen);
   };
 
+  // When user selects a suggestion, default to their preferred unit if not specified
   const handleSuggestionSelect = (suggestion: DynamicGoalSuggestion) => {
     setSelectedSuggestion(suggestion);
     setFormData({
       targetValue: suggestion.suggestedTarget,
-      targetUnit: suggestion.targetUnit,
+      targetUnit: suggestion.targetUnit || preferences.distance,
       notes: suggestion.reasoning
     });
   };
@@ -233,16 +236,24 @@ export function AddGoalModal({
                     <Label htmlFor="targetValue" className="text-sm font-medium">
                       Target {selectedSuggestion.targetUnit === 'km' ? 'Kilometers' : 'Miles'} *
                     </Label>
-                    <Input
-                      id="targetValue"
-                      type="number"
-                      value={formData.targetValue || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        targetValue: parseFloat(e.target.value) || undefined
-                      }))}
-                      className="mt-1"
-                    />
+                    <div className="flex items-center gap-4">
+                      <Input
+                        id="targetValue"
+                        type="number"
+                        min={0}
+                        value={formData.targetValue ?? ''}
+                        onChange={e => setFormData(f => ({ ...f, targetValue: e.target.valueAsNumber }))}
+                        className="w-32"
+                      />
+                      <select
+                        value={formData.targetUnit || preferences.distance}
+                        onChange={e => setFormData(f => ({ ...f, targetUnit: e.target.value }))}
+                        className="border rounded px-2 py-1 ml-2"
+                      >
+                        <option value="km">Kilometers</option>
+                        <option value="miles">Miles</option>
+                      </select>
+                    </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       AI suggests: {selectedSuggestion.suggestedTarget}{selectedSuggestion.targetUnit}
                     </p>

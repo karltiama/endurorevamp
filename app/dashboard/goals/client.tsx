@@ -34,6 +34,7 @@ import { DynamicGoalSuggestions } from '@/components/goals/DynamicGoalSuggestion
 import { AutomaticGoalTracker } from '@/components/goals/AutomaticGoalTracker';
 import { SmartGoalCard, SmartGoalCardCompact, SmartGoalCardSkeleton } from '@/components/goals/SmartGoalCard';
 import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
+import { toast } from 'sonner';
 
 export function GoalsPageClient() {
   const { user } = useAuth();
@@ -44,6 +45,7 @@ export function GoalsPageClient() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<UserGoal | null>(null);
   const [selectedSuggestion, setSelectedSuggestion] = useState<DynamicGoalSuggestion | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleCreateGoalFromSuggestion = (suggestion: DynamicGoalSuggestion) => {
     setSelectedSuggestion(suggestion);
@@ -57,6 +59,23 @@ export function GoalsPageClient() {
     setShowAddModal(isOpen);
   };
 
+  async function handleRefreshGoals() {
+    setRefreshing(true);
+    try {
+      const res = await fetch('/api/goals/update-progress', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`Goals refreshed! ${data.goalsUpdated} updated.`);
+      } else {
+        toast.error(data.error || 'Failed to refresh goals');
+      }
+    } catch (err) {
+      toast.error('Failed to refresh goals');
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -67,13 +86,25 @@ export function GoalsPageClient() {
             Track your progress and achieve your running ambitions
           </p>
         </div>
-        <Button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Add Goal
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleRefreshGoals}
+            disabled={refreshing}
+            variant="outline"
+            className="flex items-center gap-2"
+            title="Refresh goal progress"
+          >
+            <RefreshCw className={refreshing ? 'animate-spin h-4 w-4' : 'h-4 w-4'} />
+            {refreshing ? 'Refreshing...' : 'Refresh Goals'}
+          </Button>
+          <Button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Goal
+          </Button>
+        </div>
       </div>
 
       {/* Main Content with Tabs */}

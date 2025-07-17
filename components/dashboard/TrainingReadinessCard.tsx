@@ -149,25 +149,31 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
   const trainingReadiness = useMemo((): TrainingReadiness | null => {
     if (!activities || activities.length === 0) return null
 
-    // Get activities from last 7 days, sorted by date
+    // Get current week activities (Monday to Sunday)
     const now = new Date()
-    const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-    
-    const recentActivities = activities
-      .filter(a => new Date(a.start_date) >= lastWeek)
-      .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime())
+    const currentWeekStart = new Date(now)
+    currentWeekStart.setDate(now.getDate() - now.getDay() + 1) // Monday
+    currentWeekStart.setHours(0, 0, 0, 0)
+    const currentWeekEnd = new Date(currentWeekStart)
+    currentWeekEnd.setDate(currentWeekStart.getDate() + 6) // Sunday
+    currentWeekEnd.setHours(23, 59, 59, 999)
 
-    const lastActivity = recentActivities[0]
+    // Filter activities for current week
+    const thisWeekActivities = activities.filter(activity => {
+      const activityDate = new Date(activity.start_date)
+      return activityDate >= currentWeekStart && activityDate <= currentWeekEnd
+    })
+
+    const lastActivity = thisWeekActivities[0]
     const daysSinceLastWorkout = lastActivity 
       ? Math.floor((now.getTime() - new Date(lastActivity.start_date).getTime()) / (1000 * 60 * 60 * 24))
       : 7
 
-         // Calculate weekly TSS (use training_stress_score if available, otherwise estimate)
-     const weeklyTSSCurrent = recentActivities.reduce((sum, activity) => {
-       // Use actual TSS if available, otherwise estimate based on duration and intensity
-       const tss = (activity as ActivityWithTrainingData).training_stress_score || estimateTSS(activity)
-       return sum + tss
-     }, 0)
+    // Calculate weekly TSS (use training_stress_score if available, otherwise estimate)
+    const weeklyTSSCurrent = thisWeekActivities.reduce((sum, activity) => {
+      const tss = (activity as ActivityWithTrainingData).training_stress_score || estimateTSS(activity)
+      return sum + tss
+    }, 0)
 
     // Weekly TSS target (personalized based on user profile)
     const weeklyTSSTarget = personalizedTSSTarget || 400
@@ -175,8 +181,8 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
     // TSS balance (negative = accumulated fatigue)
     const tssBalance = weeklyTSSTarget - weeklyTSSCurrent
 
-         // Get last RPE (perceived exertion)
-     const lastRPE = (lastActivity as ActivityWithTrainingData)?.perceived_exertion
+    // Get last RPE (perceived exertion)
+    const lastRPE = (lastActivity as ActivityWithTrainingData)?.perceived_exertion
 
     // Calculate recovery score based on multiple factors
     const recoveryScore = calculateRecoveryScore({
