@@ -46,10 +46,11 @@ export async function GET() {
     let statusCode = 500
 
     if (error instanceof Error) {
-      if (error.message.includes('not found')) {
+      const msg = error.message.toLowerCase()
+      if (msg.includes('not found')) {
         errorMessage = 'No activity data found for zone analysis'
         statusCode = 404
-      } else if (error.message.includes('insufficient')) {
+      } else if (msg.includes('insufficient')) {
         errorMessage = 'Insufficient heart rate data for reliable zone analysis'
         statusCode = 400
       }

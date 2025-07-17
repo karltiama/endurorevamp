@@ -388,8 +388,8 @@ describe('Strava Sync API Routes', () => {
         error: null
       })
 
-      // Mock sync state
-      mockSupabase.from.mockReturnValue({
+      // Mock sync state (first call to supabase.from)
+      mockSupabase.from.mockReturnValueOnce({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
@@ -402,12 +402,16 @@ describe('Strava Sync API Routes', () => {
               },
               error: null
             })
-          }),
-          count: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
-              count: 25,
-              error: null
-            })
+          })
+        })
+      })
+
+      // Mock activities count (second call to supabase.from)
+      mockSupabase.from.mockReturnValueOnce({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({
+            count: 25,
+            error: null
           })
         })
       })

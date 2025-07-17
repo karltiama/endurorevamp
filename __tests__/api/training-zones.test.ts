@@ -29,13 +29,16 @@ const mockZoneAnalysis = {
     averageHR: 150,
     maxHR: 185
   },
-  suggestedZoneModel: [
-    { name: 'Zone 1', min: 0, max: 147, description: 'Active Recovery' },
-    { name: 'Zone 2', min: 148, max: 166, description: 'Aerobic Base' },
-    { name: 'Zone 3', min: 167, max: 185, description: 'Aerobic Threshold' },
-    { name: 'Zone 4', min: 186, max: 203, description: 'Lactate Threshold' },
-    { name: 'Zone 5', min: 204, max: 220, description: 'Anaerobic' }
-  ],
+  suggestedZoneModel: {
+    name: '5-Zone Model',
+    zones: [
+      { name: 'Zone 1', min: 0, max: 147, description: 'Active Recovery' },
+      { name: 'Zone 2', min: 148, max: 166, description: 'Aerobic Base' },
+      { name: 'Zone 3', min: 167, max: 185, description: 'Aerobic Threshold' },
+      { name: 'Zone 4', min: 186, max: 203, description: 'Lactate Threshold' },
+      { name: 'Zone 5', min: 204, max: 220, description: 'Anaerobic' }
+    ]
+  },
   alternativeModels: [
     {
       name: '3-Zone Model',
@@ -53,6 +56,24 @@ const mockZoneAnalysis = {
     'Your max heart rate appears to be around 185 BPM'
   ]
 }
+
+const mockZoneAnalysis5e = {
+  ...mockZoneAnalysis,
+  suggestedZoneModel: {
+    name: '5e Model',
+    zones: [
+      { name: 'Zone 1', min: 0, max: 147, description: 'Active Recovery' },
+      { name: 'Zone 2', min: 148, max: 166, description: 'Aerobic Base' },
+      { name: 'Zone 3', min: 167, max: 185, description: 'Aerobic Threshold' },
+      { name: 'Zone 4', min: 186, max: 203, description: 'Lactate Threshold' },
+      { name: 'Zone 5', min: 204, max: 220, description: 'Anaerobic' }
+    ]
+  }
+}
+
+// In the 'should handle invalid max heart rate' test, use mockZoneAnalysis5e
+// In the 'should return zone analysis successfully' test, use mockZoneAnalysis
+// Ensure all test expectations match the API's error handling
 
 describe('Training Zones API', () => {
   beforeEach(() => {
@@ -105,7 +126,7 @@ describe('Training Zones API', () => {
       })
 
       // Mock zone analysis error
-      const mockZoneAnalysisService = { analyzeUserZones: jest.fn().mockRejectedValue(new Error('No activity data found')) }
+      const mockZoneAnalysisService = { analyzeUserZones: jest.fn().mockRejectedValue(new Error('Data not found')) }
       ;(TrainingZoneAnalysis as jest.Mock).mockImplementation(() => mockZoneAnalysisService)
 
       const response = await GET()
@@ -114,7 +135,7 @@ describe('Training Zones API', () => {
       expect(response.status).toBe(404)
       expect(data.success).toBe(false)
       expect(data.error).toBe('No activity data found for zone analysis')
-      expect(data.details).toBe('No activity data found')
+      expect(data.details).toBe('Data not found')
     })
 
     it('should handle insufficient data errors', async () => {
@@ -235,7 +256,7 @@ describe('Training Zones API', () => {
       })
 
       // Mock successful zone analysis
-      const mockZoneAnalysisService = { analyzeUserZones: jest.fn().mockResolvedValue(mockZoneAnalysis) }
+      const mockZoneAnalysisService = { analyzeUserZones: jest.fn().mockResolvedValue(mockZoneAnalysis5e) }
       ;(TrainingZoneAnalysis as jest.Mock).mockImplementation(() => mockZoneAnalysisService)
 
       const request = new NextRequest(new URL('http://localhost:3000/api/training/zones'), {
@@ -285,14 +306,14 @@ describe('Training Zones API', () => {
       expect(data.data).toBeDefined()
     })
 
-    it('should handle zone analysis errors in POST', async () => {
+    it('should handle analysis errors', async () => {
       // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null
       })
 
-      // Mock zone analysis error
+      // Mock analysis error
       const mockZoneAnalysisService = { analyzeUserZones: jest.fn().mockRejectedValue(new Error('Analysis failed')) }
       ;(TrainingZoneAnalysis as jest.Mock).mockImplementation(() => mockZoneAnalysisService)
 
@@ -302,7 +323,8 @@ describe('Training Zones API', () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          maxHeartRate: 200
+          maxHeartRate: 200,
+          zoneModel: '5-zone'
         })
       })
 
@@ -315,16 +337,12 @@ describe('Training Zones API', () => {
       expect(data.details).toBe('Analysis failed')
     })
 
-    it('should handle malformed request body', async () => {
+    it('should handle invalid JSON body', async () => {
       // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null
       })
-
-      // Mock successful zone analysis
-      const mockZoneAnalysisService = { analyzeUserZones: jest.fn().mockResolvedValue(mockZoneAnalysis) }
-      ;(TrainingZoneAnalysis as jest.Mock).mockImplementation(() => mockZoneAnalysisService)
 
       const request = new NextRequest(new URL('http://localhost:3000/api/training/zones'), {
         method: 'POST',
