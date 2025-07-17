@@ -201,9 +201,38 @@ global.Response = class Response {
     this.status = (init && init.status) || 200
     this.statusText = (init && init.statusText) || 'OK'
     this.headers = new Headers(init && init.headers)
-  }
+    this.ok = this.status >= 200 && this.status <30  }
   
   json() {
     return Promise.resolve(this.body)
   }
-} 
+  
+  text() {
+    return Promise.resolve(typeof this.body === 'string' ? this.body : JSON.stringify(this.body))
+  }
+}
+
+// Mock NextResponse for API route testing
+jest.mock('next/server', () => ({
+  NextRequest: global.Request,
+  NextResponse: class NextResponse {
+    constructor(body, init) {
+      this.body = body
+      this.status = (init && init.status) || 200
+      this.statusText = (init && init.statusText) || 'OK'
+      this.headers = new Headers(init && init.headers)
+      this.ok = this.status >= 200 && this.status < 300   }
+    
+    json() {
+      return Promise.resolve(this.body)
+    }
+    
+    text() {
+      return Promise.resolve(typeof this.body === 'string' ? this.body : JSON.stringify(this.body))
+    }
+    
+    static json(data, init) {
+      return new NextResponse(data, init)
+    }
+  }
+})) 

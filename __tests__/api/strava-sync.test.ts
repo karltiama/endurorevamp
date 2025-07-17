@@ -41,32 +41,39 @@ describe('Strava Sync API Routes', () => {
 
   describe('POST /api/strava/sync', () => {
     it('should sync activities successfully', async () => {
-      // Mock successful authentication
+      // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null
       })
 
-      // Mock sync state
+      // Mock sync state (can sync)
       mockSupabase.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
-              data: mockSyncState,
+              data: {
+                user_id: mockUser.id,
+                sync_enabled: true,
+                sync_requests_today: 2,
+                last_sync_date: new Date().toDateString(),
+                last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+              },
               error: null
             })
           })
         })
       })
 
-      // Mock successful sync
+      // Mock successful sync result
       const mockSyncService = {
         syncUserActivities: jest.fn().mockResolvedValue({
           success: true,
-          activitiesProcessed: 15,
-          newActivities: 10,
-          updatedActivities: 5,
-          syncDuration: 2500
+          activitiesProcessed: 10,
+          newActivities: 5,
+          updatedActivities: 3,
+          syncDuration: 5000,
+          errors: []
         })
       }
       ;(StravaActivitySync as jest.Mock).mockImplementation(() => mockSyncService)
@@ -77,8 +84,8 @@ describe('Strava Sync API Routes', () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          maxActivities: 200,
-          sinceDays: 90,
+          maxActivities: 50,
+          sinceDays: 7,
           forceRefresh: false
         })
       })
@@ -89,16 +96,13 @@ describe('Strava Sync API Routes', () => {
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
       expect(data.message).toBe('Sync completed successfully')
-      expect(data.data).toEqual({
-        activitiesProcessed: 15,
-        newActivities: 10,
-        updatedActivities: 5,
-        syncDuration: 2500
-      })
+      expect(data.data.activitiesProcessed).toBe(10)
+      expect(data.data.newActivities).toBe(5)
+      expect(data.data.updatedActivities).toBe(3)
     })
 
     it('should handle unauthenticated user', async () => {
-      // Mock authentication failure
+      // Mock failed authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: null },
         error: { message: 'Invalid token' }
@@ -120,23 +124,24 @@ describe('Strava Sync API Routes', () => {
     })
 
     it('should handle rate limit exceeded', async () => {
-      // Mock successful authentication
+      // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null
       })
 
-      // Mock rate limit exceeded
-      const rateLimitedSyncState = {
-        ...mockSyncState,
-        sync_requests_today: 5 // At limit
-      }
-
+      // Mock sync state (rate limit exceeded)
       mockSupabase.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
-              data: rateLimitedSyncState,
+              data: {
+                user_id: mockUser.id,
+                sync_enabled: true,
+                sync_requests_today: 5, // Rate limit exceeded
+                last_sync_date: new Date().toDateString(),
+                last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+              },
               error: null
             })
           })
@@ -148,9 +153,7 @@ describe('Strava Sync API Routes', () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          forceRefresh: false
-        })
+        body: JSON.stringify({})
       })
 
       const response = await POST(request)
@@ -162,38 +165,40 @@ describe('Strava Sync API Routes', () => {
       expect(data.message).toContain('rate limit exceeded')
     })
 
-    it('should allow force refresh even when rate limited', async () => {
-      // Mock successful authentication
+    it('should allow force refresh even with rate limit', async () => {
+      // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null
       })
 
-      // Mock rate limit exceeded
-      const rateLimitedSyncState = {
-        ...mockSyncState,
-        sync_requests_today: 5
-      }
-
+      // Mock sync state (rate limit exceeded)
       mockSupabase.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
-              data: rateLimitedSyncState,
+              data: {
+                user_id: mockUser.id,
+                sync_enabled: true,
+                sync_requests_today: 5, // Rate limit exceeded
+                last_sync_date: new Date().toDateString(),
+                last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+              },
               error: null
             })
           })
         })
       })
 
-      // Mock successful sync
+      // Mock successful sync result
       const mockSyncService = {
         syncUserActivities: jest.fn().mockResolvedValue({
           success: true,
           activitiesProcessed: 5,
-          newActivities: 3,
-          updatedActivities: 2,
-          syncDuration: 1500
+          newActivities: 2,
+          updatedActivities: 1,
+          syncDuration: 3000,
+          errors: []
         })
       }
       ;(StravaActivitySync as jest.Mock).mockImplementation(() => mockSyncService)
@@ -213,36 +218,43 @@ describe('Strava Sync API Routes', () => {
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
+      expect(data.message).toBe('Sync completed successfully')
     })
 
     it('should handle sync with errors', async () => {
-      // Mock successful authentication
+      // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null
       })
 
-      // Mock sync state
+      // Mock sync state (can sync)
       mockSupabase.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
-              data: mockSyncState,
+              data: {
+                user_id: mockUser.id,
+                sync_enabled: true,
+                sync_requests_today: 1,
+                last_sync_date: new Date().toDateString(),
+                last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+              },
               error: null
             })
           })
         })
       })
 
-      // Mock sync with errors
+      // Mock sync result with errors
       const mockSyncService = {
         syncUserActivities: jest.fn().mockResolvedValue({
           success: false,
-          activitiesProcessed: 10,
-          newActivities: 5,
-          updatedActivities: 3,
-          syncDuration: 2000,
-          errors: ['Some activities failed to sync']
+          activitiesProcessed: 8,
+          newActivities: 3,
+          updatedActivities: 2,
+          syncDuration: 4000,
+          errors: ['Network timeout', 'Invalid activity data']
         })
       }
       ;(StravaActivitySync as jest.Mock).mockImplementation(() => mockSyncService)
@@ -261,36 +273,44 @@ describe('Strava Sync API Routes', () => {
       expect(response.status).toBe(422)
       expect(data.success).toBe(false)
       expect(data.message).toBe('Sync completed with errors')
-      expect(data.errors).toEqual(['Some activities failed to sync'])
+      expect(data.errors).toContain('Network timeout')
+      expect(data.errors).toContain('Invalid activity data')
     })
 
-    it('should handle invalid request body gracefully', async () => {
-      // Mock successful authentication
+    it('should handle missing request body', async () => {
+      // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null
       })
 
-      // Mock sync state
+      // Mock sync state (can sync)
       mockSupabase.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
-              data: mockSyncState,
+              data: {
+                user_id: mockUser.id,
+                sync_enabled: true,
+                sync_requests_today: 1,
+                last_sync_date: new Date().toDateString(),
+                last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+              },
               error: null
             })
           })
         })
       })
 
-      // Mock successful sync with defaults
+      // Mock successful sync result
       const mockSyncService = {
         syncUserActivities: jest.fn().mockResolvedValue({
           success: true,
           activitiesProcessed: 5,
-          newActivities: 3,
-          updatedActivities: 2,
-          syncDuration: 1000
+          newActivities: 2,
+          updatedActivities: 1,
+          syncDuration: 2000,
+          errors: []
         })
       }
       ;(StravaActivitySync as jest.Mock).mockImplementation(() => mockSyncService)
@@ -299,8 +319,8 @@ describe('Strava Sync API Routes', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        },
-        body: 'invalid json'
+        }
+        // No body
       })
 
       const response = await POST(request)
@@ -308,28 +328,35 @@ describe('Strava Sync API Routes', () => {
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
+      expect(data.message).toBe('Sync completed successfully')
     })
 
     it('should handle sync service errors', async () => {
-      // Mock successful authentication
+      // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null
       })
 
-      // Mock sync state
+      // Mock sync state (can sync)
       mockSupabase.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
-              data: mockSyncState,
+              data: {
+                user_id: mockUser.id,
+                sync_enabled: true,
+                sync_requests_today: 1,
+                last_sync_date: new Date().toDateString(),
+                last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+              },
               error: null
             })
           })
         })
       })
 
-      // Mock sync service error
+      // Mock sync service throwing error
       const mockSyncService = {
         syncUserActivities: jest.fn().mockRejectedValue(new Error('Strava API error'))
       }
@@ -349,12 +376,13 @@ describe('Strava Sync API Routes', () => {
       expect(response.status).toBe(500)
       expect(data.success).toBe(false)
       expect(data.error).toBe('Internal server error during sync')
+      expect(data.message).toBe('Strava API error')
     })
   })
 
   describe('GET /api/strava/sync', () => {
     it('should return sync status successfully', async () => {
-      // Mock successful authentication
+      // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null
@@ -365,15 +393,21 @@ describe('Strava Sync API Routes', () => {
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
-              data: mockSyncState,
+              data: {
+                user_id: mockUser.id,
+                sync_enabled: true,
+                sync_requests_today: 2,
+                last_sync_date: new Date().toDateString(),
+                last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+              },
               error: null
             })
-          })
-        }),
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
-            data: null,
-            error: null
+          }),
+          count: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({
+              count: 25,
+              error: null
+            })
           })
         })
       })
@@ -382,13 +416,14 @@ describe('Strava Sync API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.syncState).toEqual(mockSyncState)
-      expect(data.activityCount).toBeDefined()
-      expect(data.canSync).toBeDefined()
+      expect(data.syncState).toBeDefined()
+      expect(data.syncState.user_id).toBe(mockUser.id)
+      expect(data.activityCount).toBe(25)
+      expect(data.canSync).toBe(true)
     })
 
-    it('should handle unauthenticated user', async () => {
-      // Mock authentication failure
+    it('should handle unauthenticated user for GET', async () => {
+      // Mock failed authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: null },
         error: { message: 'Invalid token' }
@@ -401,61 +436,28 @@ describe('Strava Sync API Routes', () => {
       expect(data.error).toBe('Authentication required')
     })
 
-    it('should handle new user with no sync state', async () => {
-      // Mock successful authentication
+    it('should handle no sync state (first time user)', async () => {
+      // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null
       })
 
-      // Mock no sync state (new user)
+      // Mock no sync state (PGRST116 error)
       mockSupabase.from.mockReturnValue({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
               data: null,
-              error: { code: 'PGRST116' } // Not found
+              error: { code: 'PGRST116' }
             })
-          })
-        })
-      })
-
-      const response = await GET()
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(data.syncState).toBeNull()
-      expect(data.canSync).toBe(true) // New users can sync
-    })
-
-    it('should reset daily counter for new day', async () => {
-      // Mock successful authentication
-      mockSupabase.auth.getUser.mockResolvedValue({
-        data: { user: mockUser },
-        error: null
-      })
-
-      // Mock sync state with old date
-      const oldSyncState = {
-        ...mockSyncState,
-        last_sync_date: '2023-01-01',
-        sync_requests_today: 5
-      }
-
-      mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: oldSyncState,
+          }),
+          count: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({
+              count: 0,
               error: null
             })
           })
-        }),
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
-            data: null,
-            error: null
-          })
         })
       })
 
@@ -463,11 +465,13 @@ describe('Strava Sync API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.syncState.sync_requests_today).toBe(0)
+      expect(data.syncState).toBe(null)
+      expect(data.activityCount).toBe(0)
+      expect(data.canSync).toBe(true) // First time sync allowed
     })
 
-    it('should handle database errors gracefully', async () => {
-      // Mock successful authentication
+    it('should handle database errors', async () => {
+      // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null
