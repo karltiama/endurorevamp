@@ -26,6 +26,7 @@ import { SmartGoalCard } from '@/components/goals/SmartGoalCard';
 interface GoalsSelectionStepProps {
   onGoalsSelected: (goals: UserGoal[]) => void;
   selectedGoals: UserGoal[];
+  onComplete?: () => void;
 }
 
 interface GoalSuggestion {
@@ -144,7 +145,7 @@ const defaultSuggestions: GoalSuggestion[] = [
   }
 ];
 
-export function GoalsSelectionStep({ onGoalsSelected, selectedGoals }: GoalsSelectionStepProps) {
+export function GoalsSelectionStep({ onGoalsSelected, selectedGoals, onComplete }: GoalsSelectionStepProps) {
   const { preferences } = useUnitPreferences();
   const [suggestions, setSuggestions] = useState<GoalSuggestion[]>(defaultSuggestions);
   const [selectedSuggestions, setSelectedSuggestions] = useState<GoalSuggestion[]>([]);
@@ -219,6 +220,7 @@ export function GoalsSelectionStep({ onGoalsSelected, selectedGoals }: GoalsSele
     }));
     
     onGoalsSelected(goals);
+    onComplete?.();
   };
 
   const getPriorityColor = (priority: string) => {

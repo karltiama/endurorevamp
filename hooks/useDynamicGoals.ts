@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useGoalTypes, useUserGoals } from './useGoals';
-import { SmartGoalGenerator, SmartGoalGeneratorOptions } from '@/lib/goals/smart-goal-generator';
+import { SmartGoalGenerator } from '@/lib/goals/smart-goal-generator';
 import { DynamicGoalSuggestion, DynamicGoalEngine, UserPerformanceProfile } from '@/lib/goals/dynamic-suggestions';
 import { Activity } from '@/lib/strava/types';
 import { createClient } from '@/lib/supabase/client';
@@ -16,9 +16,10 @@ export interface UseDynamicGoalsReturn {
   userProfile: UserPerformanceProfile | null;
 }
 
-export interface UseDynamicGoalsOptions extends SmartGoalGeneratorOptions {
+export interface UseDynamicGoalsOptions {
   enabled?: boolean;
   staleTime?: number;
+  maxSuggestions?: number;
 }
 
 /**
@@ -79,12 +80,10 @@ export const useDynamicGoals = (userId: string, options: UseDynamicGoalsOptions 
         runFrequency: userProfile.runFrequency
       })
       
-      // Generate dynamic suggestions
-      const suggestions = await SmartGoalGenerator.generateAllCategorySuggestions(
+      // Generate dynamic suggestions using DynamicGoalEngine
+      const suggestions = DynamicGoalEngine.generateDynamicSuggestions(
         userProfile,
-        goalTypes,
         existingGoals,
-        generatorOptions,
         preferences
       );
       
@@ -111,10 +110,7 @@ export const useDynamicGoals = (userId: string, options: UseDynamicGoalsOptions 
  * Hook for getting dynamic suggestions for a specific category
  */
 export const useDynamicGoalsByCategory = (userId: string, category: string, options: UseDynamicGoalsOptions = {}) => {
-  const allSuggestions = useDynamicGoals(userId, {
-    ...options,
-    includeCategories: [category]
-  });
+  const allSuggestions = useDynamicGoals(userId, options);
 
   return {
     ...allSuggestions,
@@ -143,7 +139,6 @@ export const usePrioritizedDynamicGoals = (userId: string, options: UseDynamicGo
 export const useBeginnerDynamicGoals = (userId: string, options: UseDynamicGoalsOptions = {}) => {
   return useDynamicGoals(userId, {
     ...options,
-    experienceOverride: 'beginner',
     maxSuggestions: 6
   });
 };
@@ -160,8 +155,10 @@ export const useNewCategoryDynamicGoals = (userId: string, options: UseDynamicGo
     ?.map(g => g.goal_type?.category)
     ?.filter(Boolean) || [];
 
-  return useDynamicGoals(userId, {
-    ...options,
-    excludeCategories: activeCategories as string[]
-  });
+  const allSuggestions = useDynamicGoals(userId, options);
+
+  return {
+    ...allSuggestions,
+    suggestions: allSuggestions.suggestions.filter(s => !activeCategories.includes(s.category as any))
+  };
 }; 

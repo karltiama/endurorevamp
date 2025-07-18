@@ -137,7 +137,7 @@ describe('DynamicGoalSuggestions Component', () => {
       }
     ]);
 
-    renderWithQueryClient(<DynamicGoalSuggestions userId="user-1" />);
+    renderWithQueryClient(<DynamicGoalSuggestions />);
 
     await waitFor(() => {
       expect(screen.getByText('Test Suggestion')).toBeInTheDocument();
@@ -196,7 +196,7 @@ describe('DynamicGoalSuggestions Component', () => {
       }
     ]);
 
-    renderWithQueryClient(<DynamicGoalSuggestions userId="user-1" />);
+    renderWithQueryClient(<DynamicGoalSuggestions />);
 
     await waitFor(() => {
       expect(screen.getByText('Test Suggestion')).toBeInTheDocument();
@@ -218,7 +218,7 @@ describe('DynamicGoalSuggestions Component', () => {
       toggleUnits: jest.fn()
     });
 
-    renderWithQueryClient(<DynamicGoalSuggestions userId="user-1" />);
+    renderWithQueryClient(<DynamicGoalSuggestions />);
 
     // When activities are loading and there are no activities, show empty state
     expect(screen.getByText('Complete more activities to unlock personalized goal recommendations.')).toBeInTheDocument();
@@ -242,7 +242,7 @@ describe('DynamicGoalSuggestions Component', () => {
     mockAnalyzeUserPerformance.mockReturnValue(null);
     mockGenerateDynamicSuggestions.mockReturnValue([]);
 
-    renderWithQueryClient(<DynamicGoalSuggestions userId="user-1" />);
+    renderWithQueryClient(<DynamicGoalSuggestions />);
 
     await waitFor(() => {
       expect(screen.getByText('Complete more activities to unlock personalized goal recommendations.')).toBeInTheDocument();
@@ -301,7 +301,7 @@ describe('DynamicGoalSuggestions Component', () => {
     mockAnalyzeUserPerformance.mockReturnValue(mockProfile);
     mockGenerateDynamicSuggestions.mockReturnValue(mockSuggestions);
 
-    renderWithQueryClient(<DynamicGoalSuggestions userId="user-1" />);
+    renderWithQueryClient(<DynamicGoalSuggestions />);
 
     await waitFor(() => {
       expect(screen.getByText('Increase Weekly Distance')).toBeInTheDocument();

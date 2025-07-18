@@ -67,7 +67,7 @@ describe('StravaActivitySync - Upsert Functionality', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    stravaSync = new StravaActivitySync()
+    stravaSync = new StravaActivitySync('test-user-id')
   })
 
   describe('Activity Storage', () => {
@@ -93,7 +93,7 @@ describe('StravaActivitySync - Upsert Functionality', () => {
         kudos_count: 0,
         comment_count: 0,
         has_heartrate: false
-      })
+      } as any)
 
       // Verify that from was called with 'activities' table
       expect(mockSupabase.from).toHaveBeenCalledWith('activities')
@@ -166,7 +166,7 @@ describe('StravaActivitySync - Upsert Functionality', () => {
         kudos_count: 0,
         comment_count: 0,
         has_heartrate: false
-      })
+      } as any)
 
       // Should detect this as an update, not a new activity
       expect(result.isNew).toBe(false)
@@ -196,7 +196,7 @@ describe('StravaActivitySync - Upsert Functionality', () => {
         kudos_count: 0,
         comment_count: 0,
         has_heartrate: false
-      })
+      } as any)
 
       // Access the upsert call arguments directly from the mock
       const mockFrom = mockSupabase.from as jest.Mock

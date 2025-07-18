@@ -48,7 +48,7 @@ describe('Strava Sync + Goal Progress Integration', () => {
     const { createClient } = require('@/lib/supabase/client');
     createClient.mockReturnValue(mockSupabase);
     
-    stravaSync = new StravaActivitySync();
+    stravaSync = new StravaActivitySync('test-user-id');
   });
 
   describe('Activity Storage', () => {
@@ -77,7 +77,7 @@ describe('Strava Sync + Goal Progress Integration', () => {
         upsert: mockUpsert
       });
 
-      const result = await stravaSync.storeActivity(mockUserId, mockStravaActivity);
+      const result = await stravaSync.storeActivity(mockUserId, mockStravaActivity as any);
 
       // Verify activity was stored
       expect(mockSupabase.from).toHaveBeenCalledWith('activities');
@@ -108,7 +108,7 @@ describe('Strava Sync + Goal Progress Integration', () => {
       });
 
       // Should throw on activity storage failure
-      await expect(stravaSync.storeActivity(mockUserId, mockStravaActivity))
+      await expect(stravaSync.storeActivity(mockUserId, mockStravaActivity as any))
         .rejects.toThrow('Database error');
     });
 
@@ -133,7 +133,7 @@ describe('Strava Sync + Goal Progress Integration', () => {
         })
       });
 
-      const result = await stravaSync.storeActivity(mockUserId, mockStravaActivity);
+      const result = await stravaSync.storeActivity(mockUserId, mockStravaActivity as any);
 
       // Verify the conversion includes all required fields
       expect(result.data).toBeDefined();
@@ -175,7 +175,7 @@ describe('Strava Sync + Goal Progress Integration', () => {
         error: null
       });
 
-      const result = await stravaSync.storeActivity(mockUserId, mockStravaActivity);
+      const result = await stravaSync.storeActivity(mockUserId, mockStravaActivity as any);
 
       // Verify activity was stored
       expect(result.data).toBeDefined();
@@ -205,7 +205,7 @@ describe('Strava Sync + Goal Progress Integration', () => {
         })
       });
 
-      await expect(stravaSync.storeActivity(mockUserId, mockStravaActivity))
+      await expect(stravaSync.storeActivity(mockUserId, mockStravaActivity as any))
         .rejects.toThrow('Database connection failed');
     });
   });

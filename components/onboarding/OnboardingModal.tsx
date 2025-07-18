@@ -107,7 +107,14 @@ export function OnboardingModal({
           {/* Step content */}
           <div className="min-h-[400px]">
             {internalStep === 'goals' && (
-              <GoalsSelectionStep onComplete={() => handleStepComplete('goals')} />
+              <GoalsSelectionStep 
+                onComplete={() => handleStepComplete('goals')}
+                onGoalsSelected={(goals) => {
+                  console.log('Goals selected:', goals);
+                  handleStepComplete('goals');
+                }}
+                selectedGoals={[]}
+              />
             )}
             
             {internalStep === 'strava' && (
