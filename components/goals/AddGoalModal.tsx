@@ -21,7 +21,6 @@ import { Sparkles, ArrowLeft, Loader2 } from 'lucide-react';
 import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
 import { SmartGoalCard, SmartGoalCardSkeleton } from './SmartGoalCard';
 import { GoalFormData } from '@/types/goals';
-import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/AuthProvider';
 
 interface AddGoalModalProps {

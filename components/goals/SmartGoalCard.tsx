@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Sparkles, Target, TrendingUp, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
-import { formatDistance, formatPace, convertDistance, convertPace } from '@/lib/utils';
+import { convertDistance, convertPace } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
 interface SmartGoalCardProps {

@@ -1,301 +1,329 @@
 'use client';
 
-import { useState } from 'react';
-import { useCreateMultipleGoals } from '@/hooks/useGoals';
-import { useDynamicGoals } from '@/hooks/useDynamicGoals';
-import { useAuth } from '@/providers/AuthProvider';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Target, CheckCircle, AlertCircle } from 'lucide-react';
-import { SmartGoalCard, SmartGoalCardCompact, SmartGoalCardSkeleton } from '@/components/goals/SmartGoalCard';
-import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
-import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
+import { 
+  Target, 
+  TrendingUp, 
+  Calendar,
+  Activity,
+  Clock,
+  MapPin,
+  Trophy,
+  Award,
+  CheckCircle,
+  AlertTriangle,
+  Sparkles
+} from 'lucide-react';
+import { UserGoal } from '@/types/goals';
+import { useUnitPreferences } from '@/hooks/useUnitPreferences';
+import { convertDistance, convertPace } from '@/lib/utils';
+import { SmartGoalCard } from '@/components/goals/SmartGoalCard';
 
 interface GoalsSelectionStepProps {
-  onComplete: () => void;
+  onGoalsSelected: (goals: UserGoal[]) => void;
+  selectedGoals: UserGoal[];
 }
 
-export function GoalsSelectionStep({ onComplete }: GoalsSelectionStepProps) {
-  const { user } = useAuth();
-  const { suggestions, isLoading: isLoadingSuggestions } = useDynamicGoals(user?.id || '', { 
-    maxSuggestions: 8,
-    experienceOverride: 'beginner' // Start with beginner-friendly suggestions for onboarding
-  });
-  const createGoalsMutation = useCreateMultipleGoals();
-  
-  const [selectedSuggestions, setSelectedSuggestions] = useState<DynamicGoalSuggestion[]>([]);
-  const [dashboardGoals, setDashboardGoals] = useState<string[]>([]);
-  const [error, setError] = useState<string>('');
+interface GoalSuggestion {
+  id: string;
+  title: string;
+  description: string;
+  type: 'distance' | 'frequency' | 'duration' | 'intensity';
+  target: number;
+  unit: string;
+  icon: React.ReactNode;
+  priority: 'high' | 'medium' | 'low';
+  reasoning: string;
+  difficulty: 'conservative' | 'moderate' | 'ambitious';
+  successProbability: number;
+  benefits: string[];
+  strategies: string[];
+  warnings?: string[];
+}
 
-  const handleSuggestionToggle = (suggestion: DynamicGoalSuggestion) => {
-    const isSelected = selectedSuggestions.some(s => s.id === suggestion.id);
-    
-    if (isSelected) {
-      setSelectedSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
-      setDashboardGoals(prev => prev.filter(id => id !== suggestion.id));
-    } else {
-      setSelectedSuggestions(prev => [...prev, suggestion]);
-      
-      // Auto-select high priority suggestions for dashboard
-      if (suggestion.priority === 'high' && dashboardGoals.length < 3) {
-        setDashboardGoals(prev => [...prev, suggestion.id]);
+const defaultSuggestions: GoalSuggestion[] = [
+  {
+    id: 'weekly-distance',
+    title: 'Build Weekly Distance',
+    description: 'Gradually increase your weekly running distance',
+    type: 'distance',
+    target: 25,
+    unit: 'km',
+    icon: <MapPin className="h-5 w-5" />,
+    priority: 'high',
+    reasoning: 'Start with a conservative weekly distance goal',
+    difficulty: 'conservative',
+    successProbability: 85,
+    benefits: [
+      'Builds endurance gradually',
+      'Reduces injury risk',
+      'Establishes consistent training habits'
+    ],
+    strategies: [
+      'Increase distance by 10% each week',
+      'Include rest days between runs',
+      'Listen to your body and adjust as needed'
+    ]
+  },
+  {
+    id: 'weekly-frequency',
+    title: 'Establish Training Frequency',
+    description: 'Run consistently throughout the week',
+    type: 'frequency',
+    target: 3,
+    unit: 'runs/week',
+    icon: <Calendar className="h-5 w-5" />,
+    priority: 'high',
+    reasoning: 'Consistency is key to long-term progress',
+    difficulty: 'moderate',
+    successProbability: 80,
+    benefits: [
+      'Builds training consistency',
+      'Improves fitness gradually',
+      'Creates sustainable habits'
+    ],
+    strategies: [
+      'Schedule runs on specific days',
+      'Start with shorter, easier runs',
+      'Gradually increase frequency'
+    ]
+  },
+  {
+    id: 'pace-improvement',
+    title: 'Improve Running Pace',
+    description: 'Work on speed and efficiency',
+    type: 'intensity',
+    target: 300,
+    unit: 'seconds/km',
+    icon: <TrendingUp className="h-5 w-5" />,
+    priority: 'medium',
+    reasoning: 'Focus on form and efficiency before speed',
+    difficulty: 'ambitious',
+    successProbability: 70,
+    benefits: [
+      'Improves running economy',
+      'Builds speed endurance',
+      'Enhances overall fitness'
+    ],
+    strategies: [
+      'Include interval training once per week',
+      'Focus on good running form',
+      'Gradually increase intensity'
+    ],
+    warnings: [
+      'Don&apos;t increase intensity too quickly',
+      'Listen to your body and rest when needed'
+    ]
+  },
+  {
+    id: 'long-run',
+    title: 'Complete a Long Run',
+    description: 'Build endurance with weekly long runs',
+    type: 'duration',
+    target: 60,
+    unit: 'minutes',
+    icon: <Clock className="h-5 w-5" />,
+    priority: 'medium',
+    reasoning: 'Long runs build aerobic endurance',
+    difficulty: 'moderate',
+    successProbability: 75,
+    benefits: [
+      'Builds aerobic endurance',
+      'Improves fat burning',
+      'Prepares for longer races'
+    ],
+    strategies: [
+      'Start with 30-minute runs',
+      'Increase duration by 10% weekly',
+      'Keep long runs at easy pace'
+    ]
+  }
+];
+
+export function GoalsSelectionStep({ onGoalsSelected, selectedGoals }: GoalsSelectionStepProps) {
+  const { preferences } = useUnitPreferences();
+  const [suggestions, setSuggestions] = useState<GoalSuggestion[]>(defaultSuggestions);
+  const [selectedSuggestions, setSelectedSuggestions] = useState<GoalSuggestion[]>([]);
+
+  // Convert suggestions to user's preferred units
+  useEffect(() => {
+    const convertedSuggestions = defaultSuggestions.map(suggestion => {
+      if (suggestion.unit === 'km' && preferences.distance === 'miles') {
+        const miles = convertDistance(suggestion.target * 1000, 'miles');
+        return {
+          ...suggestion,
+          target: Math.round(miles * 10) / 10,
+          unit: 'mi',
+          reasoning: suggestion.reasoning.replace('km', 'mi')
+        };
       }
+      if (suggestion.unit === 'seconds/km' && preferences.pace === 'min/mile') {
+        const pacePerMile = convertPace(suggestion.target, 'min/mile');
+        return {
+          ...suggestion,
+          target: Math.round(pacePerMile),
+          unit: 'seconds/mi',
+          reasoning: suggestion.reasoning.replace('/km', '/mi')
+        };
+      }
+      return suggestion;
+    });
+    setSuggestions(convertedSuggestions);
+  }, [preferences]);
+
+  const handleSuggestionSelect = (suggestion: GoalSuggestion) => {
+    const isSelected = selectedSuggestions.some(s => s.id === suggestion.id);
+    if (isSelected) {
+      setSelectedSuggestions(selectedSuggestions.filter(s => s.id !== suggestion.id));
+    } else {
+      setSelectedSuggestions([...selectedSuggestions, suggestion]);
     }
   };
 
-  const handleDashboardToggle = (suggestionId: string) => {
-    const isOnDashboard = dashboardGoals.includes(suggestionId);
+  const handleContinue = () => {
+    // Convert suggestions to UserGoal format
+    const goals: UserGoal[] = selectedSuggestions.map(suggestion => ({
+      id: suggestion.id,
+      user_id: '', // Will be set when creating
+      goal_type_id: suggestion.id, // Use suggestion id as goal type id
+      target_value: suggestion.target,
+      target_unit: suggestion.unit,
+      time_period: 'weekly' as const,
+      current_progress: 0,
+      streak_count: 0,
+      is_active: true,
+      is_completed: false,
+      priority: suggestion.priority === 'high' ? 1 : suggestion.priority === 'medium' ? 2 : 3,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      goal_data: {
+        notes: suggestion.reasoning,
+        show_on_dashboard: true,
+        dashboard_priority: 1,
+        creation_context: 'onboarding' as const,
+        is_onboarding_goal: true,
+        from_suggestion: true,
+        suggestion_id: suggestion.id,
+        suggestion_title: suggestion.title,
+        suggestion_reasoning: suggestion.reasoning,
+        difficulty_level: suggestion.difficulty === 'conservative' ? 'beginner' as const : 
+                         suggestion.difficulty === 'moderate' ? 'intermediate' as const : 
+                         'advanced' as const,
+        success_probability: suggestion.successProbability,
+        warnings: suggestion.warnings
+      }
+    }));
     
-    if (isOnDashboard) {
-      setDashboardGoals(prev => prev.filter(id => id !== suggestionId));
-    } else if (dashboardGoals.length < 3) {
-      setDashboardGoals(prev => [...prev, suggestionId]);
+    onGoalsSelected(goals);
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'border-red-200 bg-red-50';
+      case 'medium': return 'border-yellow-200 bg-yellow-50';
+      case 'low': return 'border-green-200 bg-green-50';
+      default: return 'border-gray-200 bg-gray-50';
     }
   };
 
-  const handleSubmit = async () => {
-    if (selectedSuggestions.length === 0) {
-      setError('Please select at least one goal to continue.');
-      return;
-    }
-
-    if (dashboardGoals.length === 0) {
-      setError('Please select at least one goal to track on your dashboard.');
-      return;
-    }
-
-    setError('');
-
-    try {
-      const goalsToCreate = selectedSuggestions.map((suggestion, index) => ({
-        goal_type_id: suggestion.goalType.id,
-        target_value: suggestion.suggestedTarget,
-        target_unit: suggestion.targetUnit,
-        goal_data: {
-          notes: suggestion.reasoning,
-          show_on_dashboard: dashboardGoals.includes(suggestion.id),
-          dashboard_priority: dashboardGoals.indexOf(suggestion.id) + 1,
-          creation_context: 'onboarding' as const,
-          is_onboarding_goal: true,
-          
-          // AI suggestion metadata
-          from_suggestion: true,
-          suggestion_id: suggestion.id,
-          suggestion_title: suggestion.title,
-          suggestion_reasoning: suggestion.reasoning,
-          suggestion_strategies: suggestion.strategies,
-          suggestion_benefits: suggestion.benefits,
-          difficulty_level: suggestion.difficulty === 'conservative' ? 'beginner' as const : 
-                           suggestion.difficulty === 'moderate' ? 'intermediate' as const : 
-                           'advanced' as const,
-          success_probability: suggestion.successProbability,
-          required_commitment: suggestion.requiredCommitment,
-          warnings: suggestion.warnings
-        },
-        priority: suggestion.priority === 'high' ? 1 : suggestion.priority === 'medium' ? 2 : 3
-      }));
-
-      await createGoalsMutation.mutateAsync(goalsToCreate);
-      
-      // Mark goals as completed in onboarding
-      await fetch('/api/onboarding', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          goals_completed: true,
-          current_step: 'strava'
-        })
-      });
-
-      onComplete();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save goals. Please try again.');
+  const getDifficultyIcon = (difficulty: string) => {
+    switch (difficulty) {
+      case 'conservative': return '🛡️';
+      case 'moderate': return '🎯';
+      case 'ambitious': return '⚡';
+      default: return '📈';
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
-          <Sparkles className="h-6 w-6 text-purple-500" />
-          AI-Powered Goal Suggestions
-        </h2>
+      <div className="text-center">
+        <h2 className="text-2xl font-bold mb-2">Choose Your Training Goals</h2>
         <p className="text-muted-foreground">
-          Based on typical beginner runners, here are personalized goals to help you get started.
-          Select the ones that resonate with you!
+          Select 2-3 goals to focus on. We&apos;ll help you track progress and stay motivated.
         </p>
       </div>
 
-      {/* Progress Summary */}
-      <div className="bg-blue-50 rounded-lg p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-blue-600" />
-            <span className="font-medium text-blue-900">
-              {selectedSuggestions.length} goal{selectedSuggestions.length !== 1 ? 's' : ''} selected
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-blue-700">
-              {dashboardGoals.length}/3 dashboard goals
-            </span>
-            <Badge variant="secondary">
-              {dashboardGoals.length} dashboard
-            </Badge>
-          </div>
-        </div>
-        {selectedSuggestions.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {selectedSuggestions.map((suggestion) => (
-              <Badge 
-                key={suggestion.id}
-                variant={dashboardGoals.includes(suggestion.id) ? "default" : "outline"}
-                className="text-xs"
-              >
-                {suggestion.title}
-                {dashboardGoals.includes(suggestion.id) && (
-                  <span className="ml-1">📊</span>
-                )}
-              </Badge>
-            ))}
-          </div>
-        )}
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {suggestions.map((suggestion) => {
+          const isSelected = selectedSuggestions.some(s => s.id === suggestion.id);
+          return (
+            <Card 
+              key={suggestion.id} 
+              className={`cursor-pointer transition-all hover:shadow-md ${
+                isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+              }`}
+              onClick={() => handleSuggestionSelect(suggestion)}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{getDifficultyIcon(suggestion.difficulty)}</span>
+                    <Badge className={`${getPriorityColor(suggestion.priority)} border text-xs`}>
+                      {suggestion.priority}
+                    </Badge>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-muted-foreground">Success Rate</div>
+                    <div className="text-lg font-semibold text-green-600">
+                      {suggestion.successProbability}%
+                    </div>
+                  </div>
+                </div>
 
-      {/* Goal Suggestions */}
-      {isLoadingSuggestions ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <SmartGoalCardSkeleton key={i} />
-          ))}
-        </div>
-      ) : suggestions.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {suggestions.map((suggestion) => {
-            const isSelected = selectedSuggestions.some(s => s.id === suggestion.id);
-            const isOnDashboard = dashboardGoals.includes(suggestion.id);
+                <div className="flex items-start space-x-3 mb-3">
+                  <div className="mt-1">
+                    {suggestion.icon}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg mb-1">{suggestion.title}</h3>
+                    <p className="text-muted-foreground text-sm mb-2">{suggestion.description}</p>
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-1">
+                        <Target className="h-4 w-4 text-blue-500" />
+                        <span>{suggestion.target} {suggestion.unit}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Award className="h-4 w-4 text-purple-500" />
+                        <span>{suggestion.difficulty}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-            return (
-              <div key={suggestion.id} className="relative">
-                <SmartGoalCard
-                  suggestion={suggestion}
-                  onSelect={() => handleSuggestionToggle(suggestion)}
-                  isSelected={isSelected}
-                  showFullDetails={false}
-                />
-                
-                {/* Dashboard Toggle */}
+                <p className="text-xs text-muted-foreground mb-3 italic">
+                  {suggestion.reasoning}
+                </p>
+
                 {isSelected && (
-                  <div className="absolute top-2 right-2 z-10">
-                    <Button
-                      variant={isOnDashboard ? "default" : "outline"}
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDashboardToggle(suggestion.id);
-                      }}
-                      className="h-8 px-2 text-xs"
-                      disabled={!isOnDashboard && dashboardGoals.length >= 3}
-                    >
-                      {isOnDashboard ? (
-                        <>
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Dashboard
-                        </>
-                      ) : (
-                        <>
-                          📊 Add to Dashboard
-                        </>
-                      )}
-                    </Button>
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-green-700">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="text-sm font-medium">Selected</span>
+                    </div>
                   </div>
                 )}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center">Welcome to Your Running Journey!</CardTitle>
-            <CardDescription className="text-center">
-              We're preparing personalized goal suggestions for you. This usually takes just a moment.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center space-y-2">
-              <div className="animate-pulse">
-                <Sparkles className="h-8 w-8 text-purple-500 mx-auto" />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Analyzing your profile to create the perfect goals...
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-      {/* Instructions */}
-      <Card className="bg-green-50 border-green-200">
-        <CardContent className="pt-6">
-          <div className="space-y-3">
-            <h3 className="font-semibold text-green-900 flex items-center gap-2">
-              <CheckCircle className="h-5 w-5" />
-              How to Choose Your Goals
-            </h3>
-            <ul className="text-sm text-green-800 space-y-1">
-              <li>• Select 2-4 goals that excite and challenge you</li>
-              <li>• Choose up to 3 goals to track on your dashboard</li>
-              <li>• Look for high success probability (green) goals to build confidence</li>
-              <li>• Mix different types: distance, consistency, and pace goals work well together</li>
-              <li>• Don't worry - you can always adjust or add more goals later!</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Error Display */}
-      {error && (
-        <Card className="bg-red-50 border-red-200">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-red-800">
-              <AlertCircle className="h-5 w-5" />
-              <span className="font-medium">{error}</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Action Buttons */}
-      <div className="flex justify-between items-center pt-4 border-t">
+      <div className="flex justify-between items-center">
         <div className="text-sm text-muted-foreground">
-          {selectedSuggestions.length > 0 ? (
-            <>
-              Selected {selectedSuggestions.length} goal{selectedSuggestions.length !== 1 ? 's' : ''} • 
-              {dashboardGoals.length} on dashboard
-            </>
-          ) : (
-            'Select at least one goal to continue'
-          )}
+          {selectedSuggestions.length} of 3 goals selected
         </div>
-        
-        <Button
-          onClick={handleSubmit}
-          disabled={selectedSuggestions.length === 0 || dashboardGoals.length === 0 || createGoalsMutation.isPending}
-          className="bg-purple-600 hover:bg-purple-700"
+        <Button 
+          onClick={handleContinue}
+          disabled={selectedSuggestions.length === 0}
+          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
         >
-          {createGoalsMutation.isPending ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Creating Goals...
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4 mr-2" />
-              Create My Smart Goals ({selectedSuggestions.length})
-            </>
-          )}
+          <Sparkles className="h-4 w-4 mr-2" />
+          Continue with Selected Goals
         </Button>
       </div>
     </div>
