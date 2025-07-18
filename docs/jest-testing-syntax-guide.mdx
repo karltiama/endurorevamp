@@ -1,0 +1,303 @@
+# Jest Testing Syntax Guide
+
+A comprehensive reference for Jest testing syntax and command-line options used in this project.
+
+## Command-Line Syntax
+
+### Basic Structure
+```bash
+npm test -- [jest-options]
+```
+
+The `--` is crucial - it tells npm to pass everything after it to the Jest command.
+
+### Common Patterns
+
+#### Filter Tests by Name
+```bash
+# Run tests containing "AddGoalModal" in the name
+npm test -- --testNamePattern="AddGoalModal"
+
+# Run tests containing "DashboardLayout" in the name
+npm test -- --testNamePattern="DashboardLayout"
+
+# Use regex patterns
+npm test -- --testNamePattern=".*Modal.*"
+```
+
+#### Verbose Output
+```bash
+# Show detailed test output
+npm test -- --testNamePattern="AddGoalModal" --verbose
+
+# Without verbose (default)
+npm test -- --testNamePattern="AddGoalModal"
+```
+
+#### Handle No Matching Tests
+```bash
+# Prevents failure when no tests match pattern
+npm test -- --testNamePattern="NonExistent" --passWithNoTests
+```
+
+## Jest Command-Line Options
+
+### Test Filtering
+| Option | Description | Example |
+|--------|-------------|---------|
+| `--testNamePattern` or `-t` | Run tests matching pattern | `--testNamePattern="Modal"` |
+| `--testPathPattern` | Run tests in files matching pattern | `--testPathPattern="components"` |
+| `--testPathIgnorePatterns` | Ignore files matching pattern | `--testPathIgnorePatterns="node_modules"` |
+
+### Output Control
+| Option | Description | Example |
+|--------|-------------|---------|
+| `--verbose` | Show detailed output | `--verbose` |
+| `--silent` | Suppress console output | `--silent` |
+| `--silent=false` | Show console.log output | `--silent=false` |
+| `--passWithNoTests` | Don't fail if no tests found | `--passWithNoTests` |
+
+### Execution Control
+| Option | Description | Example |
+|--------|-------------|---------|
+| `--watch` | Run in watch mode | `--watch` |
+| `--watchAll` | Watch all files | `--watchAll` |
+| `--runInBand` | Run tests serially | `--runInBand` |
+| `--maxWorkers` | Limit parallel execution | `--maxWorkers=2` |
+
+### Coverage
+| Option | Description | Example |
+|--------|-------------|---------|
+| `--coverage` | Generate coverage report | `--coverage` |
+| `--coverageDirectory` | Specify coverage output dir | `--coverageDirectory="./coverage"` |
+| `--collectCoverageFrom` | Specify files to collect from | `--collectCoverageFrom="src/**/*.ts"` |
+
+## Common Testing Patterns
+
+### Running Specific Test Files
+```bash
+# Run a specific test file
+npm test -- __tests__/components/goals/GoalsPage.test.tsx
+
+# Run multiple specific files
+npm test -- __tests__/components/goals/GoalsPage.test.tsx __tests__/components/dashboard/DashboardLayoutHover.test.tsx
+```
+
+### Running Tests by Category
+```bash
+# Run all component tests
+npm test -- --testPathPattern="components"
+
+# Run all API tests
+npm test -- --testPathPattern="api"
+
+# Run all hook tests
+npm test -- --testPathPattern="hooks"
+```
+
+### Debugging Tests
+```bash
+# Run with verbose output for debugging
+npm test -- --testNamePattern="AddGoalModal" --verbose --silent=false
+
+# Run in watch mode for development
+npm test -- --testNamePattern="AddGoalModal" --watch
+```
+
+## Test File Syntax
+
+### Basic Test Structure
+```typescript
+describe('Component Name', () => {
+  beforeEach(() => {
+    // Setup code runs before each test
+  });
+
+  afterEach(() => {
+    // Cleanup code runs after each test
+  });
+
+  it('should do something', () => {
+    // Test implementation
+    expect(something).toBe(expected);
+  });
+
+  it('should handle async operations', async () => {
+    // Async test
+    await waitFor(() => {
+      expect(something).toBe(expected);
+    });
+  });
+});
+```
+
+### Common Jest Matchers
+```typescript
+// Basic matchers
+expect(value).toBe(expected);
+expect(value).toEqual(expected);
+expect(value).toBeTruthy();
+expect(value).toBeFalsy();
+
+// String matchers
+expect(string).toMatch(regex);
+expect(string).toContain(substring);
+
+// Array/Object matchers
+expect(array).toContain(item);
+expect(object).toHaveProperty(key);
+expect(array).toHaveLength(length);
+
+// Async matchers
+expect(promise).resolves.toBe(expected);
+expect(promise).rejects.toThrow(error);
+```
+
+### Mocking Patterns
+```typescript
+// Mock modules
+jest.mock('@/hooks/useGoals', () => ({
+  useGoalTypes: jest.fn(),
+  useCreateGoal: jest.fn(),
+}));
+
+// Mock functions
+const mockFunction = jest.fn();
+const mockAsyncFunction = jest.fn().mockResolvedValue(result);
+
+// Mock implementation
+jest.fn().mockImplementation(() => {
+  return 'mocked value';
+});
+
+// Mock return values
+jest.fn().mockReturnValue('static value');
+jest.fn().mockResolvedValue('async value');
+```
+
+## React Testing Library Patterns
+
+### Rendering Components
+```typescript
+import { render, screen } from '@testing-library/react';
+
+// Basic rendering
+render(<MyComponent />);
+
+// Render with providers
+render(
+  <QueryClientProvider client={queryClient}>
+    <MyComponent />
+  </QueryClientProvider>
+);
+```
+
+### Finding Elements
+```typescript
+// By text
+screen.getByText('Button Text');
+screen.getByText(/regex pattern/);
+
+// By role
+screen.getByRole('button');
+screen.getByRole('button', { name: 'Submit' });
+
+// By test ID
+screen.getByTestId('submit-button');
+
+// By label
+screen.getByLabelText('Email');
+```
+
+### User Interactions
+```typescript
+import { fireEvent, waitFor } from '@testing-library/react';
+
+// Click events
+fireEvent.click(screen.getByText('Submit'));
+
+// Form input
+fireEvent.change(screen.getByLabelText('Email'), {
+  target: { value: 'test@example.com' }
+});
+
+// Wait for async operations
+await waitFor(() => {
+  expect(screen.getByText('Success')).toBeInTheDocument();
+});
+```
+
+## Best Practices
+
+### Test Organization
+```typescript
+describe('Component Name', () => {
+  describe('when user is logged in', () => {
+    it('should show user profile', () => {
+      // Test implementation
+    });
+  });
+
+  describe('when user is not logged in', () => {
+    it('should show login button', () => {
+      // Test implementation
+    });
+  });
+});
+```
+
+### Setup and Teardown
+```typescript
+describe('Component Tests', () => {
+  let mockFunction: jest.Mock;
+
+  beforeEach(() => {
+    // Setup mocks
+    mockFunction = jest.fn();
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    // Cleanup
+    jest.restoreAllMocks();
+  });
+});
+```
+
+### Async Testing
+```typescript
+it('should handle async operations', async () => {
+  // Setup
+  const mockAsyncFunction = jest.fn().mockResolvedValue('result');
+  
+  // Act
+  render(<AsyncComponent onLoad={mockAsyncFunction} />);
+  
+  // Assert
+  await waitFor(() => {
+    expect(mockAsyncFunction).toHaveBeenCalled();
+  });
+});
+```
+
+## Troubleshooting
+
+### Common Issues
+1. **Tests not found**: Check `--testNamePattern` spelling
+2. **Async test failures**: Use `waitFor()` for async operations
+3. **Mock not working**: Ensure mocks are set up in `beforeEach`
+4. **Provider missing**: Wrap components with necessary providers
+
+### Debug Commands
+```bash
+# Run single test with verbose output
+npm test -- --testNamePattern="specific test name" --verbose
+
+# Run tests with console output
+npm test -- --testNamePattern="Component" --silent=false
+
+# Run tests in watch mode for development
+npm test -- --testNamePattern="Component" --watch
+```
+
+This guide covers the most common Jest testing patterns used in this project. For more advanced features, refer to the [Jest documentation](https://jestjs.io/docs/getting-started). 

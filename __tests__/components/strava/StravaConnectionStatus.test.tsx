@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import { useSearchParams } from 'next/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StravaConnectionStatus } from '@/components/strava/StravaConnectionStatus';
@@ -224,8 +224,10 @@ describe('StravaConnectionStatus OAuth Callback', () => {
 
     const onSuccessCallback = mockExchangeToken.mock.calls[0][1].onSuccess;
     
-    // Simulate successful OAuth
-    await onSuccessCallback({ success: true, athlete: { id: 123 } });
+    // Simulate successful OAuth with act() wrapper
+    await act(async () => {
+      await onSuccessCallback({ success: true, athlete: { id: 123 } });
+    });
 
     // Verify cache invalidation
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({

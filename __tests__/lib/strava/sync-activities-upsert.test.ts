@@ -14,17 +14,14 @@ jest.mock('@/lib/goals/automatic-progress', () => ({
   },
 }))
 
-const mockUpsert = jest.fn()
-const mockSelect = jest.fn()
-const mockSingle = jest.fn()
 const mockRpc = jest.fn()
 
 // Create a properly chained mock that captures the actual call sequence
 const mockSupabase = {
   from: jest.fn((table: string) => ({
-    upsert: mockUpsert.mockReturnValue({
-      select: mockSelect.mockReturnValue({
-        single: mockSingle.mockResolvedValue({
+    upsert: jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        single: jest.fn().mockResolvedValue({
           data: { id: 'test-id', created_at: '2023-01-01T10:00:00Z', updated_at: '2023-01-01T10:00:00Z' },
           error: null
         })
@@ -101,7 +98,13 @@ describe('StravaActivitySync - Upsert Functionality', () => {
       // Verify that from was called with 'activities' table
       expect(mockSupabase.from).toHaveBeenCalledWith('activities')
       
-      // Verify that upsert was called without onConflict specification
+      // Verify that upsert was called with the correct parameters
+      const mockFrom = mockSupabase.from as jest.Mock
+      expect(mockFrom).toHaveBeenCalledWith('activities')
+      
+      // Get the upsert mock from the last call
+      const lastCall = mockFrom.mock.results[mockFrom.mock.results.length - 1]
+      const mockUpsert = lastCall.value.upsert as jest.Mock
       expect(mockUpsert).toHaveBeenCalledWith(
         expect.objectContaining({
           user_id: mockUserId,
@@ -133,9 +136,9 @@ describe('StravaActivitySync - Upsert Functionality', () => {
       
       mockSupabase.from.mockReturnValueOnce({
         select: mockSelectChain,
-        upsert: mockUpsert.mockReturnValue({
-          select: mockSelect.mockReturnValue({
-            single: mockSingle.mockResolvedValue({
+        upsert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
               data: { id: 'test-id', created_at: '2023-01-01T10:00:00Z', updated_at: '2023-01-01T10:05:00Z' },
               error: null
             })
@@ -196,6 +199,9 @@ describe('StravaActivitySync - Upsert Functionality', () => {
       })
 
       // Access the upsert call arguments directly from the mock
+      const mockFrom = mockSupabase.from as jest.Mock
+      const lastCall = mockFrom.mock.results[mockFrom.mock.results.length - 1]
+      const mockUpsert = lastCall.value.upsert as jest.Mock
       expect(mockUpsert).toHaveBeenCalledTimes(1)
       const upsertCall = mockUpsert.mock.calls[0][0]
       
@@ -251,17 +257,16 @@ describe('Activity Upsert Conflict Resolution', () => {
     // Get the mock supabase instance
     const mockSupabaseInstance = (createClient as jest.Mock)()
     
-    // Simulate what the fixed code should do
+    // Simulate what the actual implementation does
     const { data, error } = await mockSupabaseInstance
       .from('activities')
       .upsert(testData, {
-        onConflict: 'strava_activity_id', // Use actual database constraint
         ignoreDuplicates: false
       })
       .select('*')
       .single()
 
-    // Verify the upsert was called with correct conflict specification
+    // Verify the upsert was called with correct parameters
     expect(mockSupabaseInstance.from).toHaveBeenCalledWith('activities')
     
     expect(mockUpsertCall).toHaveBeenCalledWith(

@@ -133,12 +133,9 @@ describe('WeeklyTrainingLoadWidget', () => {
     
     expect(screen.getByText('Weekly Training Load')).toBeInTheDocument();
     
-    // Look for zone-related information - use more specific selectors
-    const zoneText = screen.queryByText(/heart rate/i) || 
-                    screen.queryByText(/zone/i);
-    if (zoneText) {
-      expect(zoneText).toBeInTheDocument();
-    }
+    // Look for zone-related information - use getAllByText since there might be multiple zone elements
+    const zoneElements = screen.getAllByText(/heart rate|zone/i);
+    expect(zoneElements.length).toBeGreaterThan(0);
   });
 
   it('displays daily TSS breakdown', () => {

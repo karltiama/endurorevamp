@@ -60,31 +60,88 @@ describe('Goals API Routes', () => {
         current_step: 'complete'
       }
 
-      // Mock activity count
-      mockSupabase.from.mockReturnValue({
+      // Mock Supabase chain for goals query
+      const mockGoalsQuery = {
         select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
-            data: mockGoals,
-            error: null
+          eq: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              order: jest.fn().mockResolvedValue({
+                data: mockGoals,
+                error: null
+              })
+            })
           })
-        }),
+        })
+      };
+
+      // Mock Supabase chain for onboarding query
+      const mockOnboardingQuery = {
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockOnboarding,
+              error: null
+            })
+          })
+        })
+      };
+
+      // Mock Supabase chain for activity count
+      const mockActivityCountQuery = {
         count: jest.fn().mockReturnValue({
           eq: jest.fn().mockResolvedValue({
             count: 5,
             error: null
           })
         })
-      })
+      };
 
-      // Mock Strava token check
-      mockSupabase.from.mockReturnValueOnce({
+      // Mock Supabase chain for Strava token
+      const mockStravaTokenQuery = {
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockResolvedValue({
             data: { id: 'token-1' },
             error: null
           })
         })
-      })
+      };
+
+      // Set up the mock to return different values based on the table name
+      mockSupabase.from.mockImplementation((table: string) => {
+        switch (table) {
+          case 'user_goals':
+            return mockGoalsQuery;
+          case 'user_onboarding':
+            return mockOnboardingQuery;
+          case 'activities':
+            return mockActivityCountQuery;
+          case 'strava_tokens':
+            return mockStravaTokenQuery;
+          case 'goal_types':
+            return {
+              select: jest.fn().mockReturnValue({
+                eq: jest.fn().mockReturnValue({
+                  eq: jest.fn().mockResolvedValue({
+                    data: { id: 'distance', name: 'Weekly Distance' },
+                    error: null
+                  })
+                })
+              })
+            };
+          default:
+            // For any other table, return a basic mock
+            return {
+              select: jest.fn().mockReturnValue({
+                eq: jest.fn().mockReturnValue({
+                  single: jest.fn().mockResolvedValue({
+                    data: null,
+                    error: null
+                  })
+                })
+              })
+            };
+        }
+      });
 
       const response = await GET()
       const data = await response.json()
@@ -107,7 +164,7 @@ describe('Goals API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
+      expect(data.error).toBe('Authentication required')
     })
 
     it('should handle database errors gracefully', async () => {
@@ -115,14 +172,14 @@ describe('Goals API Routes', () => {
       getUser.mockResolvedValue(mockUser)
 
       // Mock database error
-      mockSupabase.from.mockReturnValue({
+      mockSupabase.from.mockImplementation((table: string) => ({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockResolvedValue({
             data: null,
             error: { message: 'Database connection failed' }
           })
         })
-      })
+      }));
 
       const response = await GET()
       const data = await response.json()
@@ -136,32 +193,48 @@ describe('Goals API Routes', () => {
       getUser.mockResolvedValue(mockUser)
 
       // Mock no existing onboarding (PGRST116 error)
-      mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
-            data: null,
-            error: { code: 'PGRST116' }
-          })
-        }),
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: {
-                id: 'new-onboarding',
-                user_id: mockUser.id,
-                current_step: 'goals'
-              },
-              error: null
+      mockSupabase.from.mockImplementation((table: string) => {
+        if (table === 'user_onboarding') {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({
+                data: null,
+                error: { code: 'PGRST116' }
+              })
+            }),
+            insert: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({
+                  data: {
+                    id: 'new-onboarding',
+                    user_id: mockUser.id,
+                    current_step: 'goals'
+                  },
+                  error: null
+                })
+              })
             })
-          })
-        }),
-        count: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
-            count: 0,
-            error: null
-          })
-        })
-      })
+          };
+        } else if (table === 'activities') {
+          return {
+            count: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({
+                count: 0,
+                error: null
+              })
+            })
+          };
+        } else {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({
+                data: [],
+                error: null
+              })
+            })
+          };
+        }
+      });
 
       const response = await GET()
       const data = await response.json()
@@ -186,23 +259,41 @@ describe('Goals API Routes', () => {
       }
 
       // Mock successful goal creation
-      mockSupabase.from.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: {
-                id: 'new-goal-id',
-                user_id: mockUser.id,
-                ...newGoal,
-                current_progress: 0,
-                is_active: true,
-                is_completed: false
-              },
-              error: null
+      mockSupabase.from.mockImplementation((table: string) => {
+        if (table === 'goal_types') {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                eq: jest.fn().mockReturnValue({
+                  single: jest.fn().mockResolvedValue({
+                    data: { id: 'distance', name: 'Weekly Distance', unit: 'km' },
+                    error: null
+                  })
+                })
+              })
             })
-          })
-        })
-      })
+          };
+        } else if (table === 'user_goals') {
+          return {
+            insert: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({
+                  data: {
+                    id: 'new-goal-id',
+                    user_id: mockUser.id,
+                    ...newGoal,
+                    current_progress: 0,
+                    is_active: true,
+                    is_completed: false
+                  },
+                  error: null
+                })
+              })
+            })
+          };
+        }
+        return {};
+      });
 
       const request = new NextRequest('http://localhost:3000/api/goals', {
         method: 'POST',
@@ -242,8 +333,7 @@ describe('Goals API Routes', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error).toContain('validation')
+      expect(data.error).toBe('Goal type is required')
     })
 
     it('should handle database errors during creation', async () => {
@@ -258,16 +348,34 @@ describe('Goals API Routes', () => {
       }
 
       // Mock database error
-      mockSupabase.from.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'Constraint violation' }
+      mockSupabase.from.mockImplementation((table: string) => {
+        if (table === 'goal_types') {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                eq: jest.fn().mockReturnValue({
+                  single: jest.fn().mockResolvedValue({
+                    data: { id: 'distance', name: 'Weekly Distance', unit: 'km' },
+                    error: null
+                  })
+                })
+              })
             })
-          })
-        })
-      })
+          };
+        } else if (table === 'user_goals') {
+          return {
+            insert: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({
+                  data: null,
+                  error: { message: 'Constraint violation' }
+                })
+              })
+            })
+          };
+        }
+        return {};
+      });
 
       const request = new NextRequest('http://localhost:3000/api/goals', {
         method: 'POST',

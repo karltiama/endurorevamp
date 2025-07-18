@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
-  // Only allow in development
+  // Only allow in development and test environments
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json(
       { error: 'Debug endpoints not available in production' },
@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
 
 // Simple test endpoint that doesn't require auth
 export async function PUT(request: NextRequest) {
+  // Only allow in development and test environments
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json(
       { error: 'Debug endpoints not available in production' },
@@ -71,7 +72,7 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  // Only allow in development
+  // Only allow in development and test environments
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json(
       { error: 'Debug endpoints not available in production' },

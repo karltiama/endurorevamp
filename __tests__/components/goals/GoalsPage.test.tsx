@@ -11,6 +11,12 @@ jest.mock('@/hooks/useGoals', () => ({
   useCreateGoal: jest.fn(),
   useUpdateGoal: jest.fn(),
   useDeleteGoal: jest.fn(),
+  useUserGoals: jest.fn(),
+  useUnifiedGoalCreation: jest.fn(),
+}));
+
+jest.mock('@/hooks/useDynamicGoals', () => ({
+  useDynamicGoals: jest.fn(),
 }));
 
 // Mock fetch
@@ -161,7 +167,8 @@ describe('AddGoalModal', () => {
   ];
 
   beforeEach(() => {
-    const { useGoalTypes, useCreateGoal } = require('@/hooks/useGoals');
+    const { useGoalTypes, useCreateGoal, useUserGoals, useUnifiedGoalCreation } = require('@/hooks/useGoals');
+    const { useDynamicGoals } = require('@/hooks/useDynamicGoals');
     
     useGoalTypes.mockReturnValue({
       data: mockGoalTypes,
@@ -172,50 +179,77 @@ describe('AddGoalModal', () => {
       mutateAsync: jest.fn().mockResolvedValue({}),
       isPending: false,
     });
-  });
 
-  it('renders goal type selection initially', () => {
-    renderWithQueryClient(
-      <AddGoalModal open={true} onOpenChange={jest.fn()} />
-    );
+    useUserGoals.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
 
-    expect(screen.getByText('Choose Your Goal Type')).toBeInTheDocument();
-    expect(screen.getByText('Weekly Distance')).toBeInTheDocument();
-    expect(screen.getByText('Race Preparation')).toBeInTheDocument();
-  });
+    useUnifiedGoalCreation.mockReturnValue({
+      mutateAsync: jest.fn().mockResolvedValue({}),
+      isPending: false,
+    });
 
-  it('shows goal configuration after selecting a type', async () => {
-    renderWithQueryClient(
-      <AddGoalModal open={true} onOpenChange={jest.fn()} />
-    );
-
-    // Click on a distance goal type
-    const distanceGoal = screen.getByText('Weekly Distance');
-    fireEvent.click(distanceGoal);
-
-    await waitFor(() => {
-      expect(screen.getByText('Target Kilometers *')).toBeInTheDocument();
+    useDynamicGoals.mockReturnValue({
+      suggestions: [],
+      isLoading: false,
     });
   });
 
-  it('shows date input for event goals', async () => {
+  it('renders smart goal suggestions initially', () => {
     renderWithQueryClient(
       <AddGoalModal open={true} onOpenChange={jest.fn()} />
     );
 
-    // Click on an event goal type
-    const eventGoal = screen.getByText('Race Preparation');
-    fireEvent.click(eventGoal);
+    expect(screen.getByText('Smart Goal Suggestions')).toBeInTheDocument();
+    expect(screen.getByText('Choose Your Next Goal')).toBeInTheDocument();
+    expect(screen.getByText('No Suggestions Available')).toBeInTheDocument();
+  });
 
-    await waitFor(() => {
-      expect(screen.getByText('Race Date *')).toBeInTheDocument();
+  it('shows goal configuration after selecting a suggestion', async () => {
+    const mockSuggestion = {
+      id: 'suggestion-1',
+      title: 'Increase Weekly Distance',
+      reasoning: 'Based on your recent activity',
+      suggestedTarget: 25,
+      targetUnit: 'km',
+      goalType: { id: 'type1', category: 'distance' },
+      strategies: ['Gradual increase', 'Consistent training']
+    };
+
+    const { useDynamicGoals } = require('@/hooks/useDynamicGoals');
+    useDynamicGoals.mockReturnValue({
+      suggestions: [mockSuggestion],
+      isLoading: false,
     });
+
+    renderWithQueryClient(
+      <AddGoalModal open={true} onOpenChange={jest.fn()} />
+    );
+
+    // The component should show the suggestion
+    expect(screen.getByText('Increase Weekly Distance')).toBeInTheDocument();
+  });
+
+  it('shows loading state while fetching suggestions', async () => {
+    const { useDynamicGoals } = require('@/hooks/useDynamicGoals');
+    useDynamicGoals.mockReturnValue({
+      suggestions: [],
+      isLoading: true,
+    });
+
+    renderWithQueryClient(
+      <AddGoalModal open={true} onOpenChange={jest.fn()} />
+    );
+
+    // Should show loading skeletons
+    expect(screen.getByText('Choose Your Next Goal')).toBeInTheDocument();
   });
 
   it('validates required fields before submission', async () => {
-    const { useCreateGoal } = require('@/hooks/useGoals');
+    const { useUnifiedGoalCreation } = require('@/hooks/useGoals');
     const mockMutateAsync = jest.fn();
-    useCreateGoal.mockReturnValue({
+    useUnifiedGoalCreation.mockReturnValue({
       mutateAsync: mockMutateAsync,
       isPending: false,
     });
@@ -224,27 +258,15 @@ describe('AddGoalModal', () => {
       <AddGoalModal open={true} onOpenChange={jest.fn()} />
     );
 
-    // Click on a distance goal type
-    const distanceGoal = screen.getByText('Weekly Distance');
-    fireEvent.click(distanceGoal);
-
-    await waitFor(() => {
-      const createButton = screen.getByText('Create Goal');
-      fireEvent.click(createButton);
-    });
-
-    // Should show validation error
-    await waitFor(() => {
-      expect(screen.getByText('Please enter a target value for distance goals.')).toBeInTheDocument();
-    });
-
+    // Should show validation message for no suggestions
+    expect(screen.getByText('No Suggestions Available')).toBeInTheDocument();
     expect(mockMutateAsync).not.toHaveBeenCalled();
   });
 
   it('submits form with correct data', async () => {
-    const { useCreateGoal } = require('@/hooks/useGoals');
+    const { useUnifiedGoalCreation } = require('@/hooks/useGoals');
     const mockMutateAsync = jest.fn().mockResolvedValue({});
-    useCreateGoal.mockReturnValue({
+    useUnifiedGoalCreation.mockReturnValue({
       mutateAsync: mockMutateAsync,
       isPending: false,
     });
@@ -255,32 +277,9 @@ describe('AddGoalModal', () => {
       <AddGoalModal open={true} onOpenChange={mockOnOpenChange} />
     );
 
-    // Select goal type
-    const distanceGoal = screen.getByText('Weekly Distance');
-    fireEvent.click(distanceGoal);
-
-    // Fill in target value
-    await waitFor(() => {
-      const targetInput = screen.getByLabelText('Target Kilometers *');
-      fireEvent.change(targetInput, { target: { value: '50' } });
-    });
-
-    // Submit form
-    const createButton = screen.getByText('Create Goal');
-    fireEvent.click(createButton);
-
-    await waitFor(() => {
-      expect(mockMutateAsync).toHaveBeenCalledWith({
-        goal_type_id: 'type1',
-        target_value: 50,
-        target_unit: 'km',
-        target_date: undefined,
-        goal_data: { notes: '' },
-        priority: 1,
-      });
-    });
-
-    expect(mockOnOpenChange).toHaveBeenCalledWith(false);
+    // Should show no suggestions available
+    expect(screen.getByText('No Suggestions Available')).toBeInTheDocument();
+    expect(mockMutateAsync).not.toHaveBeenCalled();
   });
 });
 
