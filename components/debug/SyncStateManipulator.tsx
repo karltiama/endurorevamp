@@ -16,21 +16,15 @@ export function SyncStateManipulator() {
   const [lastAction, setLastAction] = useState<string>('')
   
   const {
-    refreshStatus,
-    isSyncing,
-    syncError,
-    syncResult
+    refreshStatus
   } = useStravaSync()
 
   const {
-    lastSyncText,
     canSync,
     syncDisabledReason,
-    activityCount,
     todaySyncs,
     maxSyncs,
-    consecutiveErrors,
-    lastError
+    consecutiveErrors
   } = useSyncStatusInfo()
 
   const executeAction = async (action: DebugAction) => {
@@ -456,10 +450,10 @@ export function SyncStateManipulator() {
       <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
         <h3 className="text-sm font-medium text-purple-800 mb-3">🔧 Debugging Guide</h3>
         <div className="text-xs text-purple-700 space-y-2">
-          <p><strong>Step 1:</strong> Click "Test API" to verify basic connectivity</p>
-          <p><strong>Step 2:</strong> Click "Check Auth" to verify authentication</p>
-          <p><strong>Step 3:</strong> Click "Check State" to see current sync state</p>
-          <p><strong>Step 4:</strong> Try "Add 1 Sync" to test the incrementor</p>
+          <p><strong>Step 1:</strong> Click &quot;Test API&quot; to verify basic connectivity</p>
+          <p><strong>Step 2:</strong> Click &quot;Check Auth&quot; to verify authentication</p>
+          <p><strong>Step 3:</strong> Click &quot;Check State&quot; to see current sync state</p>
+          <p><strong>Step 4:</strong> Try &quot;Add 1 Sync&quot; to test the incrementor</p>
           <p><strong>Console:</strong> Open browser dev tools to see detailed logs</p>
         </div>
       </div>

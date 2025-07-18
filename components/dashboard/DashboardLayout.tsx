@@ -9,7 +9,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -102,7 +101,7 @@ const navigation = [
   },
 ]
 
-function AppSidebar({ user }: { user: SupabaseUser }) {
+function AppSidebar() {
   const pathname = usePathname()
 
   return (
@@ -192,12 +191,12 @@ function AppSidebar({ user }: { user: SupabaseUser }) {
   )
 }
 
-export function DashboardLayout({ children, user }: DashboardLayoutProps) {
+export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider defaultOpen={false}>
       <GoalsProvider>
         <div className="flex min-h-screen w-full">
-          <AppSidebar user={user} />
+          <AppSidebar />
           <main className="flex-1">
             {/* Header with sidebar trigger */}
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">

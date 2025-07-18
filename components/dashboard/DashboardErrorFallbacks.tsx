@@ -9,22 +9,22 @@ import {
 } from '@/components/dashboard/DashboardSkeletons'
 
 // Error fallback components
-export function TrainingReadinessErrorFallback({ error, retry }: { error: Error; retry: () => void }) {
+export function TrainingReadinessErrorFallback() {
   return <TrainingReadinessSkeleton />
 }
 
-export function TrainingLoadErrorFallback({ error, retry }: { error: Error; retry: () => void }) {
+export function TrainingLoadErrorFallback() {
   return <TrainingLoadSkeleton />
 }
 
-export function PerformanceInsightsErrorFallback({ error, retry }: { error: Error; retry: () => void }) {
+export function PerformanceInsightsErrorFallback() {
   return <PerformanceInsightsSkeleton />
 }
 
-export function QuickActionsErrorFallback({ error, retry }: { error: Error; retry: () => void }) {
+export function QuickActionsErrorFallback() {
   return <QuickActionsSkeleton />
 }
 
-export function GoalsErrorFallback({ error, retry }: { error: Error; retry: () => void }) {
+export function GoalsErrorFallback() {
   return <GoalsSkeleton />
 } 

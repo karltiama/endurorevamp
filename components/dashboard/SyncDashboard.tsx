@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+
 import { useStravaSync, useSyncStatusInfo } from '@/hooks/use-strava-sync'
 
 export default function SyncDashboard() {

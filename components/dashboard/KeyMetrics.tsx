@@ -15,7 +15,7 @@ interface KeyMetricsProps {
 }
 
 export function KeyMetrics({ userId }: KeyMetricsProps) {
-  const { data: goalsData, isLoading: goalsLoading } = useUserGoals()
+  const { isLoading: goalsLoading } = useUserGoals()
   const { isLoading: activitiesLoading } = useUserActivities(userId)
   const { preferences } = useUnitPreferences()
   const { getDashboardGoals } = useGoalManagement()

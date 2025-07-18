@@ -1,6 +1,7 @@
 'use client'
+/* eslint-disable react/no-unescaped-entities */
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useStravaSync, useSyncStatusInfo } from '@/hooks/use-strava-sync'
 import { SyncStateManipulator } from './SyncStateManipulator'
 
@@ -21,7 +22,6 @@ export function SyncProcessDebugger() {
     syncStatus,
     isLoadingStatus,
     statusError,
-    forceFullSync,
     refreshStatus,
     isSyncing,
     syncError,
@@ -29,7 +29,6 @@ export function SyncProcessDebugger() {
   } = useStravaSync()
 
   const {
-    lastSyncText,
     canSync,
     syncDisabledReason,
     activityCount,
@@ -211,6 +210,24 @@ export function SyncProcessDebugger() {
     }
   }
 
+  const rawDataJson = useMemo(() => {
+    return JSON.stringify({
+      syncStatus,
+      isLoadingStatus,
+      statusError,
+      canSync,
+      syncDisabledReason,
+      activityCount,
+      todaySyncs,
+      maxSyncs,
+      consecutiveErrors,
+      lastError,
+      isSyncing,
+      syncError,
+      syncResult
+    }, null, 2);
+  }, [syncStatus, isLoadingStatus, statusError, canSync, syncDisabledReason, activityCount, todaySyncs, maxSyncs, consecutiveErrors, lastError, isSyncing, syncError, syncResult]);
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-6">
@@ -316,21 +333,7 @@ export function SyncProcessDebugger() {
             Click to view raw sync data
           </summary>
           <pre className="mt-2 p-3 bg-gray-100 rounded overflow-auto text-xs">
-            {JSON.stringify({
-              syncStatus,
-              isLoadingStatus,
-              statusError,
-              canSync,
-              syncDisabledReason,
-              activityCount,
-              todaySyncs,
-              maxSyncs,
-              consecutiveErrors,
-              lastError,
-              isSyncing,
-              syncError,
-              syncResult
-            }, null, 2)}
+            {rawDataJson}
           </pre>
         </details>
       </div>

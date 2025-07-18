@@ -7,9 +7,34 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { TrainingProfileService } from '@/lib/training/profile-service';
 import { useRequireAuth } from '@/hooks/auth/useRequireAuth';
 
+interface TestResults {
+  profileCreation: {
+    success: boolean;
+    profile?: unknown;
+    completeProfile?: unknown;
+    existing?: boolean;
+  };
+  thresholdCalculation: {
+    success: boolean;
+    thresholds: unknown;
+  };
+  tssTargetGeneration: {
+    success: boolean;
+    tssTarget: number;
+  };
+  trainingZones: {
+    success: boolean;
+    zones: unknown;
+  };
+  profileAnalysis: {
+    success: boolean;
+    analysis: unknown;
+  };
+}
+
 export default function TestTrainingProfilePage() {
   const { user, isLoading: authLoading } = useRequireAuth();
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<TestResults | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +48,7 @@ export default function TestTrainingProfilePage() {
     setResults(null);
 
     try {
-      const testResults: any = {};
+      const testResults: TestResults = {} as TestResults;
 
       // Test 1: Create/Get Profile
       console.log('Testing profile creation...');
@@ -72,9 +97,9 @@ export default function TestTrainingProfilePage() {
       setResults(testResults);
       console.log('All tests completed successfully!', testResults);
 
-    } catch (err: any) {
+    } catch (err) {
       console.error('Test failed:', err);
-      setError(err.message || 'Unknown error occurred');
+      setError(err instanceof Error ? err.message : 'Unknown error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -89,8 +114,8 @@ export default function TestTrainingProfilePage() {
       setResults(null);
       setError(null);
       console.log('Profile results cleared');
-    } catch (err: any) {
-      setError(err.message || 'Failed to reset');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reset');
     } finally {
       setIsLoading(false);
     }
@@ -191,18 +216,10 @@ export default function TestTrainingProfilePage() {
                 <CardContent>
                   <div className="space-y-2">
                     <div>
-                      <strong>Completeness:</strong> {Math.round(results.profileAnalysis?.analysis?.completeness_percentage || 0)}%
-                    </div>
-                    <div>
-                      <strong>Missing Fields:</strong> {results.profileAnalysis?.analysis?.missing_fields?.join(', ') || 'None'}
-                    </div>
-                    <div>
-                      <strong>Recommendations:</strong>
-                      <ul className="list-disc list-inside ml-4">
-                        {results.profileAnalysis?.analysis?.recommendations?.map((rec: string, i: number) => (
-                          <li key={i} className="text-sm">{rec}</li>
-                        ))}
-                      </ul>
+                      <strong>Analysis Results:</strong>
+                      <pre className="text-xs bg-gray-50 p-2 rounded overflow-auto mt-2">
+                        {JSON.stringify(results.profileAnalysis?.analysis, null, 2)}
+                      </pre>
                     </div>
                   </div>
                 </CardContent>

@@ -1,8 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { getUser } from '@/lib/auth/server'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export async function POST(request: NextRequest) {
+interface GoalProgress {
+  goal_type: string
+  current_progress: number
+  target_value: number
+  progress_percentage: number
+}
+
+export async function POST() {
   try {
     const user = await getUser()
     
@@ -35,7 +42,7 @@ export async function POST(request: NextRequest) {
     
     // Log progress for each goal
     if (goalProgressResults?.length) {
-      goalProgressResults.forEach((goal: any) => {
+      goalProgressResults.forEach((goal: GoalProgress) => {
         console.log(`📈 Goal "${goal.goal_type}": ${goal.current_progress}/${goal.target_value} (${goal.progress_percentage.toFixed(1)}%)`)
       })
     }

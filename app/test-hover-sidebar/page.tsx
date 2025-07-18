@@ -5,7 +5,6 @@ import {
   SidebarContent, 
   SidebarGroup, 
   SidebarGroupContent, 
-  SidebarGroupLabel, 
   SidebarMenu, 
   SidebarMenuButton, 
   SidebarMenuItem, 
@@ -80,7 +79,7 @@ export default function TestHoverSidebarPage() {
                     <li>Sidebar starts collapsed (icon width: 3rem / 48px)</li>
                     <li>On hover: Expands to full width (16rem / 256px) as an overlay</li>
                     <li>Text labels appear (no group headings)</li>
-                    <li>Main content stays in place (doesn't shift right)</li>
+                    <li>Main content stays in place (doesn&apos;t shift right)</li>
                     <li>Smooth transition animation</li>
                     <li>On mouse leave: Collapses back to icon width</li>
                     <li>Text labels hide</li>

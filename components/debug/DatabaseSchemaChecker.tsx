@@ -57,15 +57,11 @@ export function DatabaseSchemaChecker() {
       }
 
       // Get constraint information (simplified)
-      const { data: constraintsData, error: constraintsError } = await supabase
+      const { data: constraintsData } = await supabase
         .from('information_schema.table_constraints')
         .select('constraint_name, constraint_type')
         .eq('table_name', 'activities')
         .eq('table_schema', 'public')
-
-      if (constraintsError) {
-        console.warn('Error fetching constraints:', constraintsError)
-      }
 
       console.log('Raw columns data:', columnsData)
       console.log('Raw constraints data:', constraintsData)

@@ -210,7 +210,7 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
       weeklyTSSTarget,
       weeklyTSSCurrent
     }
-  }, [activities])
+  }, [activities, personalizedTSSTarget])
 
 
 

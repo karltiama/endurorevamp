@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useGoalTypes } from '@/hooks/useGoals';
+
 import { useDynamicGoals } from '@/hooks/useDynamicGoals';
 import { useAuth } from '@/providers/AuthProvider';
 import { useGoalsContext } from '@/components/goals/GoalsProvider';
@@ -9,7 +9,6 @@ import { UserGoal } from '@/types/goals';
 import { 
   Card, 
   CardContent, 
-  CardDescription, 
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
@@ -30,7 +29,7 @@ import {
 import { GoalCard } from '@/components/goals/GoalCard';
 import { AddGoalModal } from '@/components/goals/AddGoalModal';
 import { EditGoalModal } from '@/components/goals/EditGoalModal';
-import { DynamicGoalSuggestions } from '@/components/goals/DynamicGoalSuggestions';
+
 import { AutomaticGoalTracker } from '@/components/goals/AutomaticGoalTracker';
 import { SmartGoalCard, SmartGoalCardCompact, SmartGoalCardSkeleton } from '@/components/goals/SmartGoalCard';
 import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
@@ -38,8 +37,8 @@ import { toast } from 'sonner';
 
 export function GoalsPageClient() {
   const { user } = useAuth();
-  const { activeGoals, completedGoals, isLoading: isLoadingGoals } = useGoalsContext();
-  const { data: goalTypes = [], isLoading: isLoadingTypes } = useGoalTypes();
+  const { activeGoals, completedGoals } = useGoalsContext();
+
   const { suggestions, isLoading: isLoadingSuggestions, refetch: refetchSuggestions } = useDynamicGoals(user?.id || '', { maxSuggestions: 6 });
   
   const [showAddModal, setShowAddModal] = useState(false);
@@ -69,7 +68,7 @@ export function GoalsPageClient() {
       } else {
         toast.error(data.error || 'Failed to refresh goals');
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to refresh goals');
     } finally {
       setRefreshing(false);

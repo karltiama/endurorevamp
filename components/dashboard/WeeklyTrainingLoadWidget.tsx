@@ -194,7 +194,7 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
       dailyTSS,
       weeklyTrend
     }
-  }, [activities])
+  }, [activities, personalizedTSSTarget])
 
 
   if (isLoading) {

@@ -148,7 +148,7 @@ const calculateTrainingLoadTrend = (recent: StravaActivity[], previous: StravaAc
   return 'stable'
 }
 
-const findRecentAchievements = (activities: StravaActivity[], preferences: any): Achievement[] => {
+const findRecentAchievements = (activities: StravaActivity[], preferences: { distance: 'km' | 'miles' }): Achievement[] => {
   const achievements: Achievement[] = []
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 

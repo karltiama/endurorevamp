@@ -14,12 +14,8 @@ import { DashboardGoalSelector } from './DashboardGoalSelector';
 import { AddGoalModal } from '@/components/goals/AddGoalModal';
 import { DashboardGoalCard } from './DashboardGoalCard';
 
-interface DashboardGoalsSectionProps {
-  userId: string;
-}
-
-export function DashboardGoalsSection({ userId }: DashboardGoalsSectionProps) {
-  const { data: goalsData, isLoading } = useUserGoals();
+export function DashboardGoalsSection() {
+  const { isLoading } = useUserGoals();
   const { getDashboardGoals } = useGoalManagement();
   const [showGoalSelector, setShowGoalSelector] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);

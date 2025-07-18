@@ -45,7 +45,7 @@ export async function GET() {
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT() {
   try {
     const supabase = await createClient()
     
