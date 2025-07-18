@@ -6,7 +6,7 @@ import {
   UserProfileFormData,
   TrainingPreferencesFormData 
 } from '@/types/training-profile-simplified'
-import { Activity } from '@/lib/strava/types'
+
 
 // Query keys for React Query
 export const TRAINING_PROFILE_KEYS = {
@@ -21,7 +21,7 @@ export const TRAINING_PROFILE_KEYS = {
 export function useTrainingProfile(userId: string) {
   return useQuery({
     queryKey: TRAINING_PROFILE_KEYS.profile(userId),
-    queryFn: () => TrainingProfileService.getCompleteProfile(userId),
+    queryFn: () => TrainingProfileService.getCompleteProfile(userId, false),
     enabled: !!userId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
@@ -35,7 +35,7 @@ export function useProfileAnalysis(userId: string) {
   return useQuery({
     queryKey: TRAINING_PROFILE_KEYS.analysis(userId),
     queryFn: async (): Promise<ProfileAnalysis | null> => {
-      const profile = await TrainingProfileService.getCompleteProfile(userId)
+      const profile = await TrainingProfileService.getCompleteProfile(userId, false)
       if (!profile) return null
       return TrainingProfileService.analyzeProfile(profile)
     },
@@ -88,8 +88,8 @@ export function useCalculateThresholds() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: ({ userId, activities }: { userId: string; activities: Activity[] }) =>
-      TrainingProfileService.calculateThresholds(userId, activities),
+    mutationFn: ({ userId }: { userId: string }) =>
+      TrainingProfileService.calculateThresholds(userId),
     onSuccess: (_, { userId }) => {
       // Invalidate threshold calculation and profile queries
       queryClient.invalidateQueries({ queryKey: TRAINING_PROFILE_KEYS.thresholds(userId) })
