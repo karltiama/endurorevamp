@@ -1,4 +1,4 @@
-import { GoalsOrchestrator } from '@/lib/goals/orchestrator';
+import { GoalOrchestrator } from '@/lib/goals/orchestrator';
 import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
 import { CreateGoalRequest, GoalType } from '@/types/goals';
 
@@ -18,7 +18,7 @@ jest.mock('@/lib/goals/automatic-progress', () => ({
   }
 }));
 
-describe('GoalsOrchestrator', () => {
+describe('GoalOrchestrator', () => {
   beforeEach(() => {
     mockFetch.mockClear();
   });
@@ -43,7 +43,7 @@ describe('GoalsOrchestrator', () => {
         goal_data: { notes: 'Test goal' }
       };
 
-      const result = await GoalsOrchestrator.createGoal(goalData, {
+      const result = await GoalOrchestrator.createGoal(goalData, {
         type: 'manual',
         source: 'test'
       });
@@ -76,7 +76,7 @@ describe('GoalsOrchestrator', () => {
         goal_data: {}
       };
 
-      await expect(GoalsOrchestrator.createGoal(goalData)).rejects.toThrow('Creation failed');
+      await expect(GoalOrchestrator.createGoal(goalData)).rejects.toThrow('Creation failed');
     });
   });
 
@@ -112,7 +112,7 @@ describe('GoalsOrchestrator', () => {
         requiredCommitment: 'medium'
       };
 
-      const result = await GoalsOrchestrator.createGoalFromSuggestion(suggestion);
+      const result = await GoalOrchestrator.createGoalFromSuggestion(suggestion);
 
       expect(mockFetch).toHaveBeenCalledWith('/api/goals', {
         method: 'POST',
@@ -155,7 +155,7 @@ describe('GoalsOrchestrator', () => {
         warnings: ['High intensity', 'Risk of overtraining']
       };
 
-      const result = await GoalsOrchestrator.createGoalFromSuggestion(suggestion);
+      const result = await GoalOrchestrator.createGoalFromSuggestion(suggestion);
 
       expect(result).toEqual(mockGoal);
     });
@@ -177,7 +177,7 @@ describe('GoalsOrchestrator', () => {
       const updates = { target_value: 60 };
       const context = { updateType: 'target' as const, reason: 'adjusted_target' };
 
-      const result = await GoalsOrchestrator.updateGoal('goal-1', updates, context);
+      const result = await GoalOrchestrator.updateGoal('goal-1', updates, context);
 
       const fetchCall = mockFetch.mock.calls[0];
       const requestBody = JSON.parse(fetchCall[1].body);
@@ -214,7 +214,7 @@ describe('GoalsOrchestrator', () => {
           json: async () => ({ success: true, goal: {} })
         });
 
-      const result = await GoalsOrchestrator.manageDashboardGoals(['1', '2'], 'user-1');
+      const result = await GoalOrchestrator.manageDashboardGoals(['1', '2'], 'user-1');
 
       expect(mockFetch).toHaveBeenCalledWith('/api/goals');
       expect(result).toHaveLength(4);
@@ -222,7 +222,7 @@ describe('GoalsOrchestrator', () => {
 
     it('should reject more than 3 dashboard goals', async () => {
       await expect(
-        GoalsOrchestrator.manageDashboardGoals(['1', '2', '3', '4'], 'user-1')
+        GoalOrchestrator.manageDashboardGoals(['1', '2', '3', '4'], 'user-1')
       ).rejects.toThrow('Maximum 3 dashboard goals allowed');
     });
   });
@@ -255,7 +255,7 @@ describe('GoalsOrchestrator', () => {
         json: async () => ({ success: true, goals: mockGoals })
       });
 
-      const analytics = await GoalsOrchestrator.getGoalAnalytics('user-1');
+      const analytics = await GoalOrchestrator.getGoalAnalytics('user-1');
 
       expect(analytics).toEqual({
         totalGoals: 2,
@@ -297,7 +297,7 @@ describe('GoalsOrchestrator', () => {
         json: async () => ({ success: true, goals: mockGoals })
       });
 
-      const recommendations = await GoalsOrchestrator.getGoalRecommendations('user-1');
+      const recommendations = await GoalOrchestrator.getGoalRecommendations('user-1');
 
       expect(recommendations).toEqual(
         expect.arrayContaining([
@@ -327,7 +327,7 @@ describe('GoalsOrchestrator', () => {
         goal_data: {}
       };
 
-      const validation = GoalsOrchestrator.validateGoalData(validGoalData);
+      const validation = GoalOrchestrator.validateGoalData(validGoalData);
 
       expect(validation.isValid).toBe(true);
       expect(validation.errors).toHaveLength(0);
@@ -341,7 +341,7 @@ describe('GoalsOrchestrator', () => {
         goal_data: {}
       };
 
-      const validation = GoalsOrchestrator.validateGoalData(invalidGoalData);
+      const validation = GoalOrchestrator.validateGoalData(invalidGoalData);
 
       expect(validation.isValid).toBe(false);
       expect(validation.errors).toContain('Goal type is required');
@@ -366,7 +366,7 @@ describe('GoalsOrchestrator', () => {
 
       const context = { updateType: 'target' as const, reason: 'bulk_update' };
 
-      const results = await GoalsOrchestrator.bulkUpdateGoals(updates, context);
+      const results = await GoalOrchestrator.bulkUpdateGoals(updates, context);
 
       expect(results).toHaveLength(2);
       expect(mockFetch).toHaveBeenCalledTimes(2);
@@ -391,7 +391,7 @@ describe('GoalsOrchestrator', () => {
           json: async () => ({ success: true, goal: {} })
         });
 
-      const archivedCount = await GoalsOrchestrator.archiveCompletedGoals('user-1');
+      const archivedCount = await GoalOrchestrator.archiveCompletedGoals('user-1');
 
       expect(archivedCount).toBe(2);
       expect(mockFetch).toHaveBeenCalledTimes(3); // 1 for fetch, 2 for updates
@@ -400,7 +400,7 @@ describe('GoalsOrchestrator', () => {
 
   describe('getGoalInsights', () => {
     it('should return goal insights', async () => {
-      const insights = await GoalsOrchestrator.getGoalInsights('goal-1');
+      const insights = await GoalOrchestrator.getGoalInsights('goal-1');
 
       expect(insights).toEqual({
         progressTrend: 'stable',

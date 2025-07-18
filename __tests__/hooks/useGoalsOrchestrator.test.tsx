@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 import { useGoalsOrchestrator, useGoalAnalytics, useGoalRecommendations } from '@/hooks/useGoalsOrchestrator';
-import { GoalsOrchestrator } from '@/lib/goals/orchestrator';
+import { GoalOrchestrator } from '@/lib/goals/orchestrator';
 
 // Mock the AuthProvider
 const mockUser = { id: 'user-1', email: 'test@example.com' };
@@ -10,9 +10,9 @@ jest.mock('@/providers/AuthProvider', () => ({
   useAuth: () => ({ user: mockUser })
 }));
 
-// Mock the GoalsOrchestrator
+// Mock the GoalOrchestrator
 jest.mock('@/lib/goals/orchestrator', () => ({
-  GoalsOrchestrator: {
+  GoalOrchestrator: {
     getGoalAnalytics: jest.fn(),
     getGoalRecommendations: jest.fn(),
     createGoal: jest.fn(),
@@ -36,7 +36,7 @@ jest.mock('@/hooks/useGoals', () => ({
   }
 }));
 
-const mockOrchestrator = GoalsOrchestrator as jest.Mocked<typeof GoalsOrchestrator>;
+const mockOrchestrator = GoalOrchestrator as jest.Mocked<typeof GoalOrchestrator>;
 
 // Test wrapper with React Query
 function createWrapper() {

@@ -2,13 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/providers/AuthProvider';
-import { 
-  GoalsOrchestrator, 
-  GoalAnalytics, 
-  GoalRecommendation, 
-  GoalCreationContext, 
-  GoalUpdateContext 
-} from '@/lib/goals/orchestrator';
+import { GoalOrchestrator } from '@/lib/goals/orchestrator';
 import { UserGoal, CreateGoalRequest } from '@/types/goals';
 import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
 import { goalQueryKeys } from './useGoals';
@@ -23,14 +17,14 @@ export const useGoalsOrchestrator = () => {
   // Analytics query
   const analyticsQuery = useQuery({
     queryKey: ['goals', 'analytics', user?.id],
-    queryFn: () => GoalsOrchestrator.getGoalAnalytics(user!.id),
+    queryFn: () => GoalOrchestrator.getGoalAnalytics(user!.id),
     enabled: !!user,
   });
 
   // Recommendations query
   const recommendationsQuery = useQuery({
     queryKey: ['goals', 'recommendations', user?.id],
-    queryFn: () => GoalsOrchestrator.getGoalRecommendations(user!.id),
+    queryFn: () => GoalOrchestrator.getGoalRecommendations(user!.id),
     enabled: !!user,
   });
 
@@ -38,9 +32,9 @@ export const useGoalsOrchestrator = () => {
   const createGoalMutation = useMutation({
     mutationFn: async ({ goalData, context }: { 
       goalData: CreateGoalRequest; 
-      context?: GoalCreationContext 
+      context?: GoalOrchestrator.GoalCreationContext 
     }) => {
-      return GoalsOrchestrator.createGoal(goalData, context);
+      return GoalOrchestrator.createGoal(goalData, context);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });
@@ -58,7 +52,7 @@ export const useGoalsOrchestrator = () => {
       suggestion: DynamicGoalSuggestion; 
       customizations?: Partial<CreateGoalRequest> 
     }) => {
-      return GoalsOrchestrator.createGoalFromSuggestion(suggestion, customizations);
+      return GoalOrchestrator.createGoalFromSuggestion(suggestion, customizations);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });
@@ -76,9 +70,9 @@ export const useGoalsOrchestrator = () => {
     }: { 
       goalId: string; 
       updates: Partial<UserGoal>; 
-      context?: GoalUpdateContext 
+      context?: GoalOrchestrator.GoalUpdateContext 
     }) => {
-      return GoalsOrchestrator.updateGoal(goalId, updates, context);
+      return GoalOrchestrator.updateGoal(goalId, updates, context);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });
@@ -89,7 +83,7 @@ export const useGoalsOrchestrator = () => {
   // Manage dashboard goals mutation
   const manageDashboardGoalsMutation = useMutation({
     mutationFn: async (goalIds: string[]) => {
-      return GoalsOrchestrator.manageDashboardGoals(goalIds, user!.id);
+      return GoalOrchestrator.manageDashboardGoals(goalIds, user!.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });
@@ -104,9 +98,9 @@ export const useGoalsOrchestrator = () => {
       context 
     }: { 
       updates: Array<{ goalId: string; updates: Partial<UserGoal> }>; 
-      context?: GoalUpdateContext 
+      context?: GoalOrchestrator.GoalUpdateContext 
     }) => {
-      return GoalsOrchestrator.bulkUpdateGoals(updates, context);
+      return GoalOrchestrator.bulkUpdateGoals(updates, context);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });
@@ -116,7 +110,7 @@ export const useGoalsOrchestrator = () => {
 
   // Archive completed goals mutation
   const archiveCompletedGoalsMutation = useMutation({
-    mutationFn: () => GoalsOrchestrator.archiveCompletedGoals(user!.id),
+    mutationFn: () => GoalOrchestrator.archiveCompletedGoals(user!.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });
       queryClient.invalidateQueries({ queryKey: ['goals', 'analytics'] });
@@ -146,8 +140,8 @@ export const useGoalsOrchestrator = () => {
     isManaging: manageDashboardGoalsMutation.isPending,
     
     // Utility functions
-    validateGoalData: GoalsOrchestrator.validateGoalData,
-    getGoalInsights: GoalsOrchestrator.getGoalInsights,
+    validateGoalData: GoalOrchestrator.validateGoalData,
+    getGoalInsights: GoalOrchestrator.getGoalInsights,
     
     // Refresh functions
     refreshAnalytics: () => analyticsQuery.refetch(),
@@ -159,7 +153,7 @@ export const useGoalsOrchestrator = () => {
  * Hook for goal analytics
  */
 export const useGoalAnalytics = (): {
-  analytics: GoalAnalytics | undefined;
+  analytics: GoalOrchestrator.GoalAnalytics | undefined;
   isLoading: boolean;
   error: Error | null;
   refresh: () => void;
@@ -168,7 +162,7 @@ export const useGoalAnalytics = (): {
   
   const query = useQuery({
     queryKey: ['goals', 'analytics', user?.id],
-    queryFn: () => GoalsOrchestrator.getGoalAnalytics(user!.id),
+    queryFn: () => GoalOrchestrator.getGoalAnalytics(user!.id),
     enabled: !!user,
   });
 
@@ -184,7 +178,7 @@ export const useGoalAnalytics = (): {
  * Hook for goal recommendations
  */
 export const useGoalRecommendations = (): {
-  recommendations: GoalRecommendation[] | undefined;
+  recommendations: GoalOrchestrator.GoalRecommendation[] | undefined;
   isLoading: boolean;
   error: Error | null;
   refresh: () => void;
@@ -193,7 +187,7 @@ export const useGoalRecommendations = (): {
   
   const query = useQuery({
     queryKey: ['goals', 'recommendations', user?.id],
-    queryFn: () => GoalsOrchestrator.getGoalRecommendations(user!.id),
+    queryFn: () => GoalOrchestrator.getGoalRecommendations(user!.id),
     enabled: !!user,
   });
 
@@ -214,9 +208,9 @@ export const useCreateGoalOrchestrated = () => {
   return useMutation({
     mutationFn: async ({ goalData, context }: { 
       goalData: CreateGoalRequest; 
-      context?: GoalCreationContext 
+      context?: GoalOrchestrator.GoalCreationContext 
     }) => {
-      return GoalsOrchestrator.createGoal(goalData, context);
+      return GoalOrchestrator.createGoal(goalData, context);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });
@@ -240,9 +234,9 @@ export const useUpdateGoalOrchestrated = () => {
     }: { 
       goalId: string; 
       updates: Partial<UserGoal>; 
-      context?: GoalUpdateContext 
+      context?: GoalOrchestrator.GoalUpdateContext 
     }) => {
-      return GoalsOrchestrator.updateGoal(goalId, updates, context);
+      return GoalOrchestrator.updateGoal(goalId, updates, context);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });
@@ -260,7 +254,7 @@ export const useDashboardGoalsManager = () => {
   
   return useMutation({
     mutationFn: async (goalIds: string[]) => {
-      return GoalsOrchestrator.manageDashboardGoals(goalIds, user!.id);
+      return GoalOrchestrator.manageDashboardGoals(goalIds, user!.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });

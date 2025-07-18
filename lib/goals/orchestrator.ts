@@ -6,7 +6,8 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
-import { UserGoal, GoalType, GoalData } from '@/types/goals';
+import { UserGoal, GoalType, GoalData, CreateGoalRequest } from '@/types/goals';
+import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
 
 interface GoalOrchestratorOptions {
   userId: string;
@@ -30,6 +31,44 @@ interface GoalSuggestion {
   unit: string;
   priority: 'high' | 'medium' | 'low';
   reasoning: string;
+}
+
+// Types for static methods
+export namespace GoalOrchestrator {
+  export interface GoalCreationContext {
+    type: 'manual' | 'suggestion' | 'automatic';
+    source?: string;
+  }
+
+  export interface GoalUpdateContext {
+    updateType: 'target' | 'progress' | 'status' | 'priority';
+    reason?: string;
+  }
+
+  export interface GoalAnalytics {
+    totalGoals: number;
+    activeGoals: number;
+    completedGoals: number;
+    dashboardGoals: number;
+    goalsByCategory: Record<string, number>;
+    goalsByContext: Record<string, number>;
+    suggestionGoals: number;
+    autoTrackingGoals: number;
+    averageProgress: number;
+    completionRate: number;
+  }
+
+  export interface GoalRecommendation {
+    id: string;
+    type: 'dashboard_setup' | 'goal_creation' | 'progress_update';
+    title: string;
+    description: string;
+    priority: 'high' | 'medium' | 'low';
+    action: {
+      type: 'manage_dashboard' | 'create_goal' | 'update_progress';
+      data?: any;
+    };
+  }
 }
 
 export class GoalOrchestrator {
@@ -205,5 +244,189 @@ export class GoalOrchestrator {
     }
 
     return true;
+  }
+
+  // Static methods for API-based operations
+  static async createGoal(goalData: CreateGoalRequest, context?: GoalOrchestrator.GoalCreationContext): Promise<UserGoal> {
+    const response = await fetch('/api/goals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...goalData,
+        goal_data: {
+          ...goalData.goal_data,
+          creation_context: context?.type || 'manual',
+          creation_source: context?.source || 'unknown',
+          created_at: new Date().toISOString()
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create goal');
+    }
+
+    const result = await response.json();
+    return result.goal;
+  }
+
+  static async createGoalFromSuggestion(suggestion: DynamicGoalSuggestion, customizations?: Partial<CreateGoalRequest>): Promise<UserGoal> {
+    const goalData: CreateGoalRequest = {
+      goal_type_id: suggestion.goalType.id,
+      target_value: suggestion.suggestedTarget,
+      target_unit: suggestion.targetUnit,
+      time_period: 'ongoing',
+      goal_data: {
+        from_suggestion: true,
+        suggestion_id: suggestion.id,
+        suggestion_reasoning: suggestion.reasoning,
+        difficulty_level: suggestion.difficulty === 'conservative' ? 'beginner' : 
+                         suggestion.difficulty === 'moderate' ? 'intermediate' : 'advanced',
+        success_probability: suggestion.successProbability,
+        warnings: suggestion.warnings || [],
+        ...customizations?.goal_data
+      },
+      ...customizations
+    };
+
+    return this.createGoal(goalData, { type: 'suggestion', source: 'ai' });
+  }
+
+  static async updateGoal(goalId: string, updates: Partial<UserGoal>, context?: GoalOrchestrator.GoalUpdateContext): Promise<UserGoal> {
+    const response = await fetch(`/api/goals/${goalId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...updates,
+        goal_data: {
+          ...updates.goal_data,
+          last_update_context: context?.updateType,
+          last_update_reason: context?.reason,
+          last_updated: new Date().toISOString()
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to update goal');
+    }
+
+    const result = await response.json();
+    return result.goal;
+  }
+
+  static async manageDashboardGoals(goalIds: string[], userId: string): Promise<UserGoal[]> {
+    if (goalIds.length > 3) {
+      throw new Error('Maximum 3 dashboard goals allowed');
+    }
+
+    const response = await fetch('/api/goals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ goalIds, userId })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to manage dashboard goals');
+    }
+
+    const result = await response.json();
+    return result.goals || [];
+  }
+
+  static async getGoalAnalytics(userId: string): Promise<GoalOrchestrator.GoalAnalytics> {
+    const response = await fetch(`/api/goals/analytics?userId=${userId}`);
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch goal analytics');
+    }
+
+    const result = await response.json();
+    return result.analytics || result;
+  }
+
+  static async getGoalRecommendations(userId: string): Promise<GoalOrchestrator.GoalRecommendation[]> {
+    const response = await fetch(`/api/goals/recommendations?userId=${userId}`);
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch goal recommendations');
+    }
+
+    const result = await response.json();
+    return result.recommendations || result;
+  }
+
+  static validateGoalData(goalData: CreateGoalRequest): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+
+    if (!goalData.goal_type_id) {
+      errors.push('Goal type is required');
+    }
+
+    if (goalData.target_value !== undefined && goalData.target_value <= 0) {
+      errors.push('Target value must be greater than 0');
+    }
+
+    if (!goalData.time_period) {
+      errors.push('Time period is required');
+    }
+
+    if (goalData.target_date && new Date(goalData.target_date) <= new Date()) {
+      errors.push('Target date must be in the future');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+
+  static async bulkUpdateGoals(updates: Array<{ goalId: string; updates: Partial<UserGoal> }>, context?: GoalOrchestrator.GoalUpdateContext): Promise<UserGoal[]> {
+    const response = await fetch('/api/goals/bulk-update', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ updates, context })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to bulk update goals');
+    }
+
+    const result = await response.json();
+    return result.goals || [];
+  }
+
+  static async archiveCompletedGoals(userId: string): Promise<number> {
+    const response = await fetch('/api/goals/archive-completed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to archive completed goals');
+    }
+
+    const result = await response.json();
+    return result.archivedCount || 0;
+  }
+
+  static async getGoalInsights(goalId: string): Promise<any> {
+    const response = await fetch(`/api/goals/${goalId}/insights`);
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch goal insights');
+    }
+
+    const result = await response.json();
+    return result.insights || result;
   }
 } 
