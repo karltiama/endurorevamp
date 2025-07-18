@@ -56,7 +56,7 @@ describe('/api/goals/update-progress', () => {
     })
 
     // Call the API
-    const response = await POST(request as NextRequest)
+    const response = await POST()
     const data = await response.json()
 
     // Verify response
@@ -82,7 +82,7 @@ describe('/api/goals/update-progress', () => {
     })
 
     // Call the API
-    const response = await POST(request as NextRequest)
+    const response = await POST()
     const data = await response.json()
 
     // Verify response
@@ -111,7 +111,7 @@ describe('/api/goals/update-progress', () => {
     })
 
     // Call the API
-    const response = await POST(request as NextRequest)
+    const response = await POST()
     const data = await response.json()
 
     // Verify response
@@ -141,7 +141,7 @@ describe('/api/goals/update-progress', () => {
     })
 
     // Call the API
-    const response = await POST(request as NextRequest)
+    const response = await POST()
     const data = await response.json()
 
     // Verify response

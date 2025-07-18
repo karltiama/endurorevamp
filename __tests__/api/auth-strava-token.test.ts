@@ -16,6 +16,10 @@ import * as headers from 'next/headers';
 const mockCreateClient = createClient as jest.MockedFunction<typeof createClient>
 const mockCookies = cookies as jest.MockedFunction<typeof cookies>
 
+// Mock console methods to reduce test noise
+const originalConsoleLog = console.log
+const originalConsoleError = console.error
+
 // Helper function to create a mock user
 const createMockUser = (overrides = {}) => ({
   id: 'test-user-id',
@@ -55,6 +59,16 @@ describe('/api/auth/strava/token', () => {
     jest.clearAllMocks()
     // Mock global fetch
     global.fetch = jest.fn()
+    
+    // Suppress console output during tests
+    console.log = jest.fn()
+    console.error = jest.fn()
+  })
+  
+  afterEach(() => {
+    // Restore console methods
+    console.log = originalConsoleLog
+    console.error = originalConsoleError
   })
 
   describe('GET /api/auth/strava/token', () => {
@@ -432,10 +446,7 @@ describe('/api/auth/strava/token', () => {
       }
       mockCreateClient.mockResolvedValue(mockSupabase as any)
 
-      const request = new NextRequest('http://localhost:3000/api/auth/strava/token', {
-        method: 'PUT'
-      })
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       expect(response.status).toBe(401)
@@ -467,10 +478,7 @@ describe('/api/auth/strava/token', () => {
       }
       mockCreateClient.mockResolvedValue(mockSupabase as any)
 
-      const request = new NextRequest('http://localhost:3000/api/auth/strava/token', {
-        method: 'PUT'
-      })
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       expect(response.status).toBe(404)
@@ -523,10 +531,7 @@ describe('/api/auth/strava/token', () => {
         json: jest.fn().mockResolvedValue(mockStravaAuthResponse)
       })
 
-      const request = new NextRequest('http://localhost:3000/api/auth/strava/token', {
-        method: 'PUT'
-      })
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -606,10 +611,7 @@ describe('/api/auth/strava/token', () => {
         text: jest.fn().mockResolvedValue('invalid_grant')
       })
 
-      const request = new NextRequest('http://localhost:3000/api/auth/strava/token', {
-        method: 'PUT'
-      })
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -659,10 +661,7 @@ describe('/api/auth/strava/token', () => {
         json: jest.fn().mockResolvedValue(mockStravaAuthResponse)
       })
 
-      const request = new NextRequest('http://localhost:3000/api/auth/strava/token', {
-        method: 'PUT'
-      })
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       expect(response.status).toBe(500)
@@ -675,10 +674,7 @@ describe('/api/auth/strava/token', () => {
     it('should handle unexpected errors', async () => {
       mockCreateClient.mockRejectedValue(new Error('Unexpected error'))
 
-      const request = new NextRequest('http://localhost:3000/api/auth/strava/token', {
-        method: 'PUT'
-      })
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       expect(response.status).toBe(500)

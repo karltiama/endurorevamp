@@ -70,7 +70,7 @@ export default async function DashboardPage() {
         {/* Dynamic Goals Section */}
         <ErrorBoundary fallback={GoalsErrorFallback}>
           <Suspense fallback={<GoalsSkeleton />}>
-            <DashboardGoalsSection userId={user.id} />
+            <DashboardGoalsSection />
           </Suspense>
         </ErrorBoundary>
 

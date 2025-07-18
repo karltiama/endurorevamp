@@ -126,7 +126,7 @@ describe('Auth Token API (Refactored with Helpers)', () => {
 
       // Act
       const request = RequestBuilder.authTokenPut()
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       // Assert
@@ -144,7 +144,7 @@ describe('Auth Token API (Refactored with Helpers)', () => {
 
       // Act
       const request = RequestBuilder.authTokenPut()
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       // Assert
@@ -161,7 +161,7 @@ describe('Auth Token API (Refactored with Helpers)', () => {
 
       // Act
       const request = RequestBuilder.authTokenPut()
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       // Assert
@@ -181,7 +181,7 @@ describe('Auth Token API (Refactored with Helpers)', () => {
 
       // Act
       const request = RequestBuilder.authTokenPut()
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       // Assert
@@ -206,7 +206,7 @@ describe('Auth Token API (Refactored with Helpers)', () => {
 
       // Act
       const request = RequestBuilder.authTokenPut()
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       // Assert

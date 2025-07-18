@@ -242,11 +242,7 @@ describe('Auth Token API', () => {
       
       mockCreateClient.mockResolvedValue(mockSupabaseClient as any)
 
-      const request = new Request('http://localhost:3000/api/auth/strava/token', {
-        method: 'PUT'
-      })
-
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -285,11 +281,7 @@ describe('Auth Token API', () => {
       
       mockCreateClient.mockResolvedValue(mockSupabaseClient as any)
 
-      const request = new Request('http://localhost:3000/api/auth/strava/token', {
-        method: 'PUT'
-      })
-
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       expect(response.status).toBe(401)
@@ -321,11 +313,7 @@ describe('Auth Token API', () => {
       
       mockCreateClient.mockResolvedValue(mockSupabaseClient as any)
 
-      const request = new Request('http://localhost:3000/api/auth/strava/token', {
-        method: 'PUT'
-      })
-
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       expect(response.status).toBe(404)
@@ -370,11 +358,7 @@ describe('Auth Token API', () => {
       
       mockCreateClient.mockResolvedValue(mockSupabaseClient as any)
 
-      const request = new Request('http://localhost:3000/api/auth/strava/token', {
-        method: 'PUT'
-      })
-
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -433,11 +417,7 @@ describe('Auth Token API', () => {
       
       mockCreateClient.mockResolvedValue(mockSupabaseClient as any)
 
-      const request = new Request('http://localhost:3000/api/auth/strava/token', {
-        method: 'PUT'
-      })
-
-      const response = await PUT(request)
+      const response = await PUT()
       const data = await response.json()
 
       expect(response.status).toBe(500)
