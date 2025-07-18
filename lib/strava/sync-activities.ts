@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { Activity as StravaActivity } from '@/lib/strava/types';
+import { AutomaticGoalProgress } from '@/lib/goals/automatic-progress';
 
 interface SyncOptions {
   userId: string;
@@ -67,31 +68,38 @@ export class StravaActivitySync {
   }> {
     const supabase = await createClient();
     
-    // Check if activity already exists
+    // Check if activity already exists - fix the query chaining
     const { data: existingActivity } = await supabase
       .from('activities')
       .select('id')
       .eq('user_id', userId)
       .eq('strava_activity_id', activity.id)
-      .single();
+      .maybeSingle();
+
+    // Helper function to safely convert values to numbers
+    const safeNumber = (value: any, defaultValue: number = 0): number => {
+      if (value === null || value === undefined) return defaultValue;
+      const num = Number(value);
+      return isNaN(num) ? defaultValue : num;
+    };
 
     const activityData = {
       user_id: userId,
-      strava_activity_id: activity.id,
+      strava_activity_id: activity.id || 0,
       name: activity.name,
-      distance: activity.distance || 0,
-      moving_time: activity.moving_time || 0,
-      elapsed_time: activity.elapsed_time || 0,
-      total_elevation_gain: activity.total_elevation_gain || 0,
+      distance: safeNumber(activity.distance, 0),
+      moving_time: safeNumber(activity.moving_time, 0),
+      elapsed_time: safeNumber(activity.elapsed_time, 0),
+      total_elevation_gain: safeNumber(activity.total_elevation_gain, 0),
       sport_type: activity.sport_type,
       start_date: activity.start_date,
       start_date_local: activity.start_date_local,
       timezone: activity.timezone,
-      achievement_count: activity.achievement_count || 0,
-      kudos_count: activity.kudos_count || 0,
-      comment_count: activity.comment_count || 0,
-      athlete_count: activity.athlete_count || 0,
-      photo_count: activity.photo_count || 0,
+      achievement_count: safeNumber(activity.achievement_count, 0),
+      kudos_count: safeNumber(activity.kudos_count, 0),
+      comment_count: safeNumber(activity.comment_count, 0),
+      athlete_count: safeNumber(activity.athlete_count, 0),
+      photo_count: safeNumber(activity.photo_count, 0),
       trainer: activity.trainer || false,
       commute: activity.commute || false,
       manual: activity.manual || false,
@@ -119,6 +127,23 @@ export class StravaActivitySync {
         throw new Error(`Failed to update activity: ${error.message}`);
       }
 
+      // 🎯 AUTOMATIC GOAL PROGRESS UPDATE
+      // This connects your activities to your goals automatically!
+      try {
+        // Convert activityData to proper Activity type for goal progress
+        const goalActivity = {
+          ...activityData,
+          strava_activity_id: Number(activityData.strava_activity_id), // Ensure it's a number
+          id: activity.id // Add the Strava activity ID as the main ID
+        } as any; // Type assertion for compatibility
+        
+        await AutomaticGoalProgress.updateProgressFromActivity(userId, goalActivity);
+        console.log(`🎯 Updated goal progress for activity ${activity.id}`);
+      } catch (goalError) {
+        console.error('Goal progress update failed (non-critical):', goalError);
+        // Don't fail the sync if goal update fails - it's supplementary
+      }
+
       return { data, isNew: false };
     } else {
       // Insert new activity
@@ -130,6 +155,23 @@ export class StravaActivitySync {
 
       if (error) {
         throw new Error(`Failed to insert activity: ${error.message}`);
+      }
+
+      // 🎯 AUTOMATIC GOAL PROGRESS UPDATE
+      // This connects your activities to your goals automatically!
+      try {
+        // Convert activityData to proper Activity type for goal progress
+        const goalActivity = {
+          ...activityData,
+          strava_activity_id: Number(activityData.strava_activity_id), // Ensure it's a number
+          id: activity.id // Add the Strava activity ID as the main ID
+        } as any; // Type assertion for compatibility
+        
+        await AutomaticGoalProgress.updateProgressFromActivity(userId, goalActivity);
+        console.log(`🎯 Updated goal progress for activity ${activity.id}`);
+      } catch (goalError) {
+        console.error('Goal progress update failed (non-critical):', goalError);
+        // Don't fail the sync if goal update fails - it's supplementary
       }
 
       return { data, isNew: true };
@@ -154,7 +196,7 @@ export async function syncStravaActivities(options: SyncOptions): Promise<SyncRe
     const { data: tokens, error: tokenError } = await supabase
       .from('strava_tokens')
       .select('*')
-          .eq('user_id', userId)
+      .eq('user_id', userId)
       .single();
 
     if (tokenError || !tokens) {
@@ -266,42 +308,49 @@ async function syncActivitiesToDatabase(userId: string, activities: StravaActivi
   let newActivities = 0;
   let updatedActivities = 0;
 
+  // Helper function to safely convert values to numbers
+  const safeNumber = (value: any, defaultValue: number = 0): number => {
+    if (value === null || value === undefined) return defaultValue;
+    const num = Number(value);
+    return isNaN(num) ? defaultValue : num;
+  };
+
   for (const activity of activities) {
     try {
-      // Check if activity already exists
+      // Check if activity already exists - fix the query chaining
       const { data: existingActivity } = await supabase
         .from('activities')
         .select('id')
         .eq('user_id', userId)
         .eq('strava_activity_id', activity.id)
-        .single();
+        .maybeSingle();
 
       const activityData = {
         user_id: userId,
         strava_activity_id: activity.id,
         name: activity.name,
-        distance: activity.distance,
-        moving_time: activity.moving_time,
-        elapsed_time: activity.elapsed_time,
-        total_elevation_gain: activity.total_elevation_gain,
+        distance: safeNumber(activity.distance, 0),
+        moving_time: safeNumber(activity.moving_time, 0),
+        elapsed_time: safeNumber(activity.elapsed_time, 0),
+        total_elevation_gain: safeNumber(activity.total_elevation_gain, 0),
         sport_type: activity.sport_type,
         start_date: activity.start_date,
         start_date_local: activity.start_date_local,
         timezone: activity.timezone,
-        achievement_count: activity.achievement_count,
-        kudos_count: activity.kudos_count,
-        comment_count: activity.comment_count,
-        athlete_count: activity.athlete_count,
-        photo_count: activity.photo_count,
-        trainer: activity.trainer,
-        commute: activity.commute,
-        manual: activity.manual,
-        private: activity.private,
+        achievement_count: safeNumber(activity.achievement_count, 0),
+        kudos_count: safeNumber(activity.kudos_count, 0),
+        comment_count: safeNumber(activity.comment_count, 0),
+        athlete_count: safeNumber(activity.athlete_count, 0),
+        photo_count: safeNumber(activity.photo_count, 0),
+        trainer: activity.trainer || false,
+        commute: activity.commute || false,
+        manual: activity.manual || false,
+        private: activity.private || false,
         gear_id: activity.gear_id,
         average_speed: activity.average_speed,
         max_speed: activity.max_speed,
         average_cadence: activity.average_cadence,
-        has_heartrate: activity.has_heartrate,
+        has_heartrate: activity.has_heartrate || false,
         average_heartrate: activity.average_heartrate,
         max_heartrate: activity.max_heartrate,
         updated_at: new Date().toISOString(),

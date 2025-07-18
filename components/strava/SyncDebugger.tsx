@@ -119,25 +119,25 @@ export function SyncDebugger() {
             console.log('🚀 Starting sync process test with access token:', accessToken ? 'Present' : 'Missing');
             
             // Test import first
-            console.log('📦 Importing StravaSync...');
-            const { StravaSync } = await import('@/lib/strava/sync');
-            console.log('✅ StravaSync imported successfully');
+            console.log('📦 Importing StravaActivitySync...');
+            const { StravaActivitySync } = await import('@/lib/strava/sync-activities');
+            console.log('✅ StravaActivitySync imported successfully');
             
-            console.log('🏗️ Creating StravaSync instance...');
-            const stravaSync = new StravaSync(accessToken, false);
-            console.log('✅ StravaSync instance created successfully');
+            console.log('🏗️ Creating StravaActivitySync instance...');
+            const stravaSync = new StravaActivitySync(user.id);
+            console.log('✅ StravaActivitySync instance created successfully');
             
-            console.log('🔄 Starting syncAll operation...');
-            const result = await stravaSync.syncAll(user.id, {
+            console.log('🔄 Starting syncUserActivities operation...');
+            const result = await stravaSync.syncUserActivities({
               maxActivities: 5, // Small test
-              sinceDays: 7
+              forceRefresh: false
             });
             console.log('🎉 Sync completed with result:', result);
 
             updateStep(4, { 
               status: result.success ? 'success' : 'error',
               message: result.success 
-                ? `Sync completed: ${result.activitiesProcessed} activities processed`
+                ? `Sync completed: ${result.activitiesProcessed} activities processed (${result.newActivities} new, ${result.updatedActivities} updated)`
                 : `Sync failed: ${result.errors.join(', ')}`,
               data: result
             });

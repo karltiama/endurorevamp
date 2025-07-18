@@ -27,12 +27,32 @@ const mockSupabase = {
         })
       })
     }),
+    insert: jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        single: jest.fn().mockResolvedValue({
+          data: { id: 'test-id', created_at: '2023-01-01T10:00:00Z', updated_at: '2023-01-01T10:00:00Z' },
+          error: null
+        })
+      })
+    }),
+    update: jest.fn().mockReturnValue({
+      eq: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          single: jest.fn().mockResolvedValue({
+            data: { id: 'test-id', created_at: '2023-01-01T10:00:00Z', updated_at: '2023-01-01T10:05:00Z' },
+            error: null
+          })
+        })
+      })
+    }),
     select: jest.fn(() => ({
       eq: jest.fn(() => ({
-        single: jest.fn().mockResolvedValue({
-          data: null, // No existing activity found
-          error: { code: 'PGRST116' } // Not found error
-        })
+        eq: jest.fn(() => ({
+          maybeSingle: jest.fn().mockResolvedValue({
+            data: null, // No existing activity found
+            error: { code: 'PGRST116' } // Not found error
+          })
+        }))
       }))
     }))
   })),
@@ -98,20 +118,17 @@ describe('StravaActivitySync - Upsert Functionality', () => {
       // Verify that from was called with 'activities' table
       expect(mockSupabase.from).toHaveBeenCalledWith('activities')
       
-      // Verify that upsert was called with the correct parameters
+      // Verify that insert was called with the correct parameters
       const mockFrom = mockSupabase.from as jest.Mock
       expect(mockFrom).toHaveBeenCalledWith('activities')
       
-      // Get the upsert mock from the last call
+      // Get the insert mock from the last call
       const lastCall = mockFrom.mock.results[mockFrom.mock.results.length - 1]
-      const mockUpsert = lastCall.value.upsert as jest.Mock
-      expect(mockUpsert).toHaveBeenCalledWith(
+      const mockInsert = lastCall.value.insert as jest.Mock
+      expect(mockInsert).toHaveBeenCalledWith(
         expect.objectContaining({
           user_id: mockUserId,
           strava_activity_id: 12345
-        }),
-        expect.objectContaining({
-          ignoreDuplicates: false
         })
       )
       
@@ -127,10 +144,12 @@ describe('StravaActivitySync - Upsert Functionality', () => {
       // Override the select mock to return existing activity for the first call (existence check)
       const mockSelectChain = jest.fn(() => ({
         eq: jest.fn(() => ({
-          single: jest.fn().mockResolvedValue({
-            data: mockExistingActivity, // Activity exists
-            error: null
-          })
+          eq: jest.fn(() => ({
+            maybeSingle: jest.fn().mockResolvedValue({
+              data: mockExistingActivity, // Activity exists
+              error: null
+            })
+          }))
         }))
       }))
       
@@ -141,6 +160,24 @@ describe('StravaActivitySync - Upsert Functionality', () => {
             single: jest.fn().mockResolvedValue({
               data: { id: 'test-id', created_at: '2023-01-01T10:00:00Z', updated_at: '2023-01-01T10:05:00Z' },
               error: null
+            })
+          })
+        }),
+        insert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: { id: 'test-id', created_at: '2023-01-01T10:00:00Z', updated_at: '2023-01-01T10:00:00Z' },
+              error: null
+            })
+          })
+        }),
+        update: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: { id: 'test-id', created_at: '2023-01-01T10:00:00Z', updated_at: '2023-01-01T10:05:00Z' },
+                error: null
+              })
             })
           })
         })
@@ -198,18 +235,18 @@ describe('StravaActivitySync - Upsert Functionality', () => {
         has_heartrate: false
       } as any)
 
-      // Access the upsert call arguments directly from the mock
+      // Access the insert call arguments directly from the mock
       const mockFrom = mockSupabase.from as jest.Mock
       const lastCall = mockFrom.mock.results[mockFrom.mock.results.length - 1]
-      const mockUpsert = lastCall.value.upsert as jest.Mock
-      expect(mockUpsert).toHaveBeenCalledTimes(1)
-      const upsertCall = mockUpsert.mock.calls[0][0]
+      const mockInsert = lastCall.value.insert as jest.Mock
+      expect(mockInsert).toHaveBeenCalledTimes(1)
+      const insertCall = mockInsert.mock.calls[0][0]
       
       // Verify null/undefined handling
-      expect(upsertCall.distance).toBe(0) // safeNumberRequired fallback
-      expect(upsertCall.moving_time).toBe(0) // safeNumberRequired fallback  
-      expect(upsertCall.elapsed_time).toBe(0) // safeNumberRequired fallback
-      expect(upsertCall.total_elevation_gain).toBeNull() // safeNumber allows null
+      expect(insertCall.distance).toBe(0) // safeNumberRequired fallback
+      expect(insertCall.moving_time).toBe(0) // safeNumberRequired fallback  
+      expect(insertCall.elapsed_time).toBe(0) // safeNumberRequired fallback
+      expect(insertCall.total_elevation_gain).toBe(0) // Invalid values default to 0
     })
   })
 })

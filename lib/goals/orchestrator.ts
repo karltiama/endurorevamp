@@ -75,7 +75,7 @@ export class GoalOrchestrator {
 
   constructor(options: GoalOrchestratorOptions) {
     this.userId = options.userId;
-    this.supabase = options.supabase || null as any; // Will be initialized in init()
+    this.supabase = options.supabase || (null as unknown as Awaited<ReturnType<typeof createClient>>); // Will be initialized in init()
   }
 
   async init(): Promise<void> {
@@ -416,7 +416,7 @@ export class GoalOrchestrator {
     return result.archivedCount || 0;
   }
 
-  static async getGoalInsights(goalId: string): Promise<any> {
+  static async getGoalInsights(goalId: string): Promise<unknown> {
     const response = await fetch(`/api/goals/${goalId}/insights`);
     
     if (!response.ok) {

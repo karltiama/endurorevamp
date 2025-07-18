@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/providers/AuthProvider';
-import { GoalOrchestrator } from '@/lib/goals/orchestrator';
+import { GoalOrchestrator, GoalCreationContext, GoalUpdateContext, GoalAnalytics, GoalRecommendation } from '@/lib/goals/orchestrator';
 import { UserGoal, CreateGoalRequest } from '@/types/goals';
 import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
 import { goalQueryKeys } from './useGoals';
@@ -17,22 +17,32 @@ export const useGoalsOrchestrator = () => {
   // Analytics query
   const analyticsQuery = useQuery({
     queryKey: ['goals', 'analytics', user?.id],
-    queryFn: () => GoalOrchestrator.getGoalAnalytics(user!.id),
-    enabled: !!user,
+    queryFn: () => {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+      return GoalOrchestrator.getGoalAnalytics(user.id);
+    },
+    enabled: !!user?.id,
   });
 
   // Recommendations query
   const recommendationsQuery = useQuery({
     queryKey: ['goals', 'recommendations', user?.id],
-    queryFn: () => GoalOrchestrator.getGoalRecommendations(user!.id),
-    enabled: !!user,
+    queryFn: () => {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+      return GoalOrchestrator.getGoalRecommendations(user.id);
+    },
+    enabled: !!user?.id,
   });
 
   // Create goal mutation
   const createGoalMutation = useMutation({
     mutationFn: async ({ goalData, context }: { 
       goalData: CreateGoalRequest; 
-      context?: GoalOrchestrator.GoalCreationContext 
+      context?: GoalCreationContext 
     }) => {
       return GoalOrchestrator.createGoal(goalData, context);
     },
@@ -70,7 +80,7 @@ export const useGoalsOrchestrator = () => {
     }: { 
       goalId: string; 
       updates: Partial<UserGoal>; 
-      context?: GoalOrchestrator.GoalUpdateContext 
+      context?: GoalUpdateContext 
     }) => {
       return GoalOrchestrator.updateGoal(goalId, updates, context);
     },
@@ -83,7 +93,10 @@ export const useGoalsOrchestrator = () => {
   // Manage dashboard goals mutation
   const manageDashboardGoalsMutation = useMutation({
     mutationFn: async (goalIds: string[]) => {
-      return GoalOrchestrator.manageDashboardGoals(goalIds, user!.id);
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+      return GoalOrchestrator.manageDashboardGoals(goalIds, user.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });
@@ -98,7 +111,7 @@ export const useGoalsOrchestrator = () => {
       context 
     }: { 
       updates: Array<{ goalId: string; updates: Partial<UserGoal> }>; 
-      context?: GoalOrchestrator.GoalUpdateContext 
+      context?: GoalUpdateContext 
     }) => {
       return GoalOrchestrator.bulkUpdateGoals(updates, context);
     },
@@ -110,7 +123,12 @@ export const useGoalsOrchestrator = () => {
 
   // Archive completed goals mutation
   const archiveCompletedGoalsMutation = useMutation({
-    mutationFn: () => GoalOrchestrator.archiveCompletedGoals(user!.id),
+    mutationFn: async () => {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+      return GoalOrchestrator.archiveCompletedGoals(user.id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });
       queryClient.invalidateQueries({ queryKey: ['goals', 'analytics'] });
@@ -153,7 +171,7 @@ export const useGoalsOrchestrator = () => {
  * Hook for goal analytics
  */
 export const useGoalAnalytics = (): {
-  analytics: GoalOrchestrator.GoalAnalytics | undefined;
+  analytics: GoalAnalytics | undefined;
   isLoading: boolean;
   error: Error | null;
   refresh: () => void;
@@ -162,8 +180,13 @@ export const useGoalAnalytics = (): {
   
   const query = useQuery({
     queryKey: ['goals', 'analytics', user?.id],
-    queryFn: () => GoalOrchestrator.getGoalAnalytics(user!.id),
-    enabled: !!user,
+    queryFn: async () => {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+      return GoalOrchestrator.getGoalAnalytics(user.id);
+    },
+    enabled: !!user?.id,
   });
 
   return {
@@ -178,7 +201,7 @@ export const useGoalAnalytics = (): {
  * Hook for goal recommendations
  */
 export const useGoalRecommendations = (): {
-  recommendations: GoalOrchestrator.GoalRecommendation[] | undefined;
+  recommendations: GoalRecommendation[] | undefined;
   isLoading: boolean;
   error: Error | null;
   refresh: () => void;
@@ -187,8 +210,13 @@ export const useGoalRecommendations = (): {
   
   const query = useQuery({
     queryKey: ['goals', 'recommendations', user?.id],
-    queryFn: () => GoalOrchestrator.getGoalRecommendations(user!.id),
-    enabled: !!user,
+    queryFn: async () => {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+      return GoalOrchestrator.getGoalRecommendations(user.id);
+    },
+    enabled: !!user?.id,
   });
 
   return {
@@ -208,7 +236,7 @@ export const useCreateGoalOrchestrated = () => {
   return useMutation({
     mutationFn: async ({ goalData, context }: { 
       goalData: CreateGoalRequest; 
-      context?: GoalOrchestrator.GoalCreationContext 
+      context?: GoalCreationContext 
     }) => {
       return GoalOrchestrator.createGoal(goalData, context);
     },
@@ -234,7 +262,7 @@ export const useUpdateGoalOrchestrated = () => {
     }: { 
       goalId: string; 
       updates: Partial<UserGoal>; 
-      context?: GoalOrchestrator.GoalUpdateContext 
+      context?: GoalUpdateContext 
     }) => {
       return GoalOrchestrator.updateGoal(goalId, updates, context);
     },
@@ -254,7 +282,10 @@ export const useDashboardGoalsManager = () => {
   
   return useMutation({
     mutationFn: async (goalIds: string[]) => {
-      return GoalOrchestrator.manageDashboardGoals(goalIds, user!.id);
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+      return GoalOrchestrator.manageDashboardGoals(goalIds, user.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: goalQueryKeys.userGoals });

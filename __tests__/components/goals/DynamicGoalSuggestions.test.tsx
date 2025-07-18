@@ -18,13 +18,6 @@ jest.mock('@/hooks/useUnitPreferences');
 jest.mock('@/hooks/useDynamicGoals');
 jest.mock('@/providers/AuthProvider');
 
-jest.mock('@/lib/goals/dynamic-suggestions', () => ({
-  DynamicGoalEngine: {
-    analyzeUserPerformance: jest.fn(),
-    generateDynamicSuggestions: jest.fn(),
-  }
-}));
-
 const mockUseUserActivities = useUserActivities as jest.MockedFunction<typeof useUserActivities>;
 const mockUseUserGoals = useUserGoals as jest.MockedFunction<typeof useUserGoals>;
 const mockUseUnitPreferences = useUnitPreferences as jest.MockedFunction<typeof useUnitPreferences>;
@@ -32,14 +25,18 @@ const mockUseUnifiedGoalCreation = useUnifiedGoalCreation as jest.MockedFunction
 const mockUseDynamicGoals = useDynamicGoals as jest.MockedFunction<typeof useDynamicGoals>;
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 
-// Get the mocked functions from the module
-const { DynamicGoalEngine } = require('@/lib/goals/dynamic-suggestions');
-const mockAnalyzeUserPerformance = DynamicGoalEngine.analyzeUserPerformance as jest.MockedFunction<any>;
-const mockGenerateDynamicSuggestions = DynamicGoalEngine.generateDynamicSuggestions as jest.MockedFunction<any>;
-
 describe('DynamicGoalSuggestions Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Create activities from the current week
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay() + 1);
+    weekStart.setHours(0, 0, 0, 0);
+    
+    const activityDate = new Date(weekStart);
+    activityDate.setDate(weekStart.getDate() + 2); // Wednesday
     
     mockUseUserActivities.mockReturnValue({
       data: [
@@ -47,9 +44,18 @@ describe('DynamicGoalSuggestions Component', () => {
           id: 1,
           name: 'Morning Run',
           sport_type: 'Run',
-          distance: 5000,
-          moving_time: 1500,
-          start_date_local: '2024-01-01T08:00:00Z',
+          distance: 5000, // 5km
+          moving_time: 1500, // 25 minutes
+          start_date_local: activityDate.toISOString(),
+          activity_type: 'Run'
+        },
+        {
+          id: 2,
+          name: 'Evening Run',
+          sport_type: 'Run',
+          distance: 3000, // 3km
+          moving_time: 900, // 15 minutes
+          start_date_local: new Date(activityDate.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Next day
           activity_type: 'Run'
         }
       ],
@@ -94,53 +100,13 @@ describe('DynamicGoalSuggestions Component', () => {
       toggleUnits: jest.fn()
     });
 
-    const mockProfile = {
-      weeklyDistance: 25, // km
-      monthlyDistance: 100,
-      averagePace: 300, // 5:00 per km
-      runFrequency: 4,
-      longestRun: 15,
-      averageHeartRate: 150,
-      distanceTrend: 'improving' as const,
-      paceTrend: 'stable' as const,
-      frequencyTrend: 'improving' as const,
-      preferredSportTypes: ['Run'],
-      preferredDays: [1, 3, 5],
-      averageActivityDuration: 45,
-      goalCompletionRate: 80,
-      consistencyScore: 75,
-      totalActivities: 50,
-      runningExperience: 'intermediate' as const,
-      hasRecentInjuries: false
-    };
-
-    mockAnalyzeUserPerformance.mockReturnValue(mockProfile);
-    mockGenerateDynamicSuggestions.mockReturnValue([
-      {
-        id: 'test-suggestion-1',
-        title: 'Test Suggestion',
-        description: 'Test description',
-        priority: 'medium',
-        difficulty: 'moderate',
-        category: 'distance',
-        targetValue: 30,
-        targetUnit: 'km',
-        timeframe: 'weekly',
-        confidence: 0.8,
-        reasoning: 'Test reasoning',
-        suggestedTarget: 30,
-        goalType: { id: '1', category: 'distance' },
-        strategies: ['Test strategy'],
-        benefits: ['Test benefit'],
-        successProbability: 80,
-        requiredCommitment: 'medium'
-      }
-    ]);
-
     renderWithQueryClient(<DynamicGoalSuggestions />);
 
     await waitFor(() => {
-      expect(screen.getByText('Test Suggestion')).toBeInTheDocument();
+      // Check for the suggestions that should be generated
+      expect(screen.getByText('Build Consistency')).toBeInTheDocument();
+      expect(screen.getByText('Improve Running Pace')).toBeInTheDocument();
+      expect(screen.getByText('Extend Workout Duration')).toBeInTheDocument();
     });
   });
 
@@ -153,53 +119,13 @@ describe('DynamicGoalSuggestions Component', () => {
       toggleUnits: jest.fn()
     });
 
-    const mockProfile = {
-      weeklyDistance: 25, // km, should be converted to ~15.5 miles
-      monthlyDistance: 100,
-      averagePace: 300, // 5:00 per km, should be converted to ~8:02 per mile
-      runFrequency: 4,
-      longestRun: 15,
-      averageHeartRate: 150,
-      distanceTrend: 'improving' as const,
-      paceTrend: 'stable' as const,
-      frequencyTrend: 'improving' as const,
-      preferredSportTypes: ['Run'],
-      preferredDays: [1, 3, 5],
-      averageActivityDuration: 45,
-      goalCompletionRate: 80,
-      consistencyScore: 75,
-      totalActivities: 50,
-      runningExperience: 'intermediate' as const,
-      hasRecentInjuries: false
-    };
-
-    mockAnalyzeUserPerformance.mockReturnValue(mockProfile);
-    mockGenerateDynamicSuggestions.mockReturnValue([
-      {
-        id: 'test-suggestion-1',
-        title: 'Test Suggestion',
-        description: 'Test description',
-        priority: 'medium',
-        difficulty: 'moderate',
-        category: 'distance',
-        targetValue: 30,
-        targetUnit: 'miles',
-        timeframe: 'weekly',
-        confidence: 0.8,
-        reasoning: 'Test reasoning',
-        suggestedTarget: 30,
-        goalType: { id: '1', category: 'distance' },
-        strategies: ['Test strategy'],
-        benefits: ['Test benefit'],
-        successProbability: 80,
-        requiredCommitment: 'medium'
-      }
-    ]);
-
     renderWithQueryClient(<DynamicGoalSuggestions />);
 
     await waitFor(() => {
-      expect(screen.getByText('Test Suggestion')).toBeInTheDocument();
+      // Check for the suggestions that should be generated
+      expect(screen.getByText('Build Consistency')).toBeInTheDocument();
+      expect(screen.getByText('Improve Running Pace')).toBeInTheDocument();
+      expect(screen.getByText('Extend Workout Duration')).toBeInTheDocument();
     });
   });
 
@@ -220,8 +146,8 @@ describe('DynamicGoalSuggestions Component', () => {
 
     renderWithQueryClient(<DynamicGoalSuggestions />);
 
-    // When activities are loading and there are no activities, show empty state
-    expect(screen.getByText('Complete more activities to unlock personalized goal recommendations.')).toBeInTheDocument();
+    // When activities are loading, show loading skeleton
+    expect(screen.getByTestId('loading-skeleton')).toBeInTheDocument();
   });
 
   it('shows no data message when no activities available', async () => {
@@ -239,17 +165,17 @@ describe('DynamicGoalSuggestions Component', () => {
       toggleUnits: jest.fn()
     });
 
-    mockAnalyzeUserPerformance.mockReturnValue(null);
-    mockGenerateDynamicSuggestions.mockReturnValue([]);
-
     renderWithQueryClient(<DynamicGoalSuggestions />);
 
     await waitFor(() => {
-      expect(screen.getByText('Complete more activities to unlock personalized goal recommendations.')).toBeInTheDocument();
+      expect(screen.getByText('Start Your Journey')).toBeInTheDocument();
+      expect(screen.getByText('Complete your first activity')).toBeInTheDocument();
     });
   });
 
-  it('displays goal suggestions when available', async () => {
+  it('calls onGoalCreated when Set Goal button is clicked', async () => {
+    const mockOnGoalCreated = jest.fn();
+    
     mockUseUnitPreferences.mockReturnValue({
       preferences: { distance: 'km', pace: 'min/km' },
       isLoading: false,
@@ -258,54 +184,14 @@ describe('DynamicGoalSuggestions Component', () => {
       toggleUnits: jest.fn()
     });
 
-    const mockProfile = {
-      weeklyDistance: 25,
-      monthlyDistance: 100,
-      averagePace: 300,
-      runFrequency: 4,
-      longestRun: 15,
-      averageHeartRate: 150,
-      distanceTrend: 'improving' as const,
-      paceTrend: 'stable' as const,
-      frequencyTrend: 'improving' as const,
-      preferredSportTypes: ['Run'],
-      preferredDays: [1, 3, 5],
-      averageActivityDuration: 45,
-      goalCompletionRate: 80,
-      consistencyScore: 75,
-      totalActivities: 50,
-      runningExperience: 'intermediate' as const,
-      hasRecentInjuries: false
-    };
-
-    const mockSuggestions = [
-      {
-        id: 'test-suggestion',
-        title: 'Increase Weekly Distance',
-        description: 'Build your endurance by increasing weekly distance',
-        reasoning: 'Your consistency shows you are ready for more volume',
-        priority: 'high' as const,
-        category: 'distance' as const,
-        goalType: { id: '1', category: 'distance' },
-        suggestedTarget: 30,
-        targetUnit: 'km',
-        timeframe: '4 weeks',
-        difficulty: 'moderate' as const,
-        benefits: ['Better endurance', 'Improved fitness'],
-        strategies: ['Gradual increases', 'Long runs'],
-        successProbability: 80,
-        requiredCommitment: 'medium' as const
-      }
-    ];
-
-    mockAnalyzeUserPerformance.mockReturnValue(mockProfile);
-    mockGenerateDynamicSuggestions.mockReturnValue(mockSuggestions);
-
-    renderWithQueryClient(<DynamicGoalSuggestions />);
+    renderWithQueryClient(<DynamicGoalSuggestions onGoalCreated={mockOnGoalCreated} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Increase Weekly Distance')).toBeInTheDocument();
-      expect(screen.getByText('Build your endurance by increasing weekly distance')).toBeInTheDocument();
+      const setGoalButtons = screen.getAllByText('Set Goal');
+      expect(setGoalButtons.length).toBeGreaterThan(0);
+      
+      setGoalButtons[0].click();
+      expect(mockOnGoalCreated).toHaveBeenCalled();
     });
   });
 }); 

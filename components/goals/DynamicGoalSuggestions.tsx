@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +18,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { Activity as StravaActivity } from '@/lib/strava/types';
 
 interface DynamicGoalSuggestionsProps {
-  // onGoalCreated?: () => void;
+  onGoalCreated?: () => void;
 }
 
 interface GoalSuggestion {
@@ -65,7 +65,7 @@ const calculateAveragePace = (activities: StravaActivity[]): number => {
   return totalPace / runningActivities.length;
 };
 
-export function DynamicGoalSuggestions({}: DynamicGoalSuggestionsProps) {
+export function DynamicGoalSuggestions({ onGoalCreated }: DynamicGoalSuggestionsProps) {
   const { user } = useAuth();
   const { data: activities, isLoading } = useUserActivities(user?.id || '');
   const { preferences } = useUnitPreferences();
@@ -176,7 +176,7 @@ export function DynamicGoalSuggestions({}: DynamicGoalSuggestionsProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4" data-testid="loading-skeleton">
         {[1, 2, 3].map((i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
@@ -219,6 +219,7 @@ export function DynamicGoalSuggestions({}: DynamicGoalSuggestionsProps) {
                       <Button 
                         size="sm" 
                         className="ml-4"
+                        onClick={onGoalCreated}
                       >
                         <Target className="h-4 w-4 mr-2" />
                         Set Goal

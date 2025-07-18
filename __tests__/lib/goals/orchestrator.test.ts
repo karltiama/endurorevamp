@@ -202,22 +202,19 @@ describe('GoalOrchestrator', () => {
         { id: '3', goal_data: { show_on_dashboard: true } }
       ];
 
-      // Mock fetch for getting goals
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ success: true, goals: mockGoals })
-        })
-        // Mock fetch for updating goals
-        .mockResolvedValue({
-          ok: true,
-          json: async () => ({ success: true, goal: {} })
-        });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, goals: mockGoals })
+      });
 
       const result = await GoalOrchestrator.manageDashboardGoals(['1', '2'], 'user-1');
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/goals');
-      expect(result).toHaveLength(4);
+      expect(mockFetch).toHaveBeenCalledWith('/api/goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ goalIds: ['1', '2'], userId: 'user-1' })
+      });
+      expect(result).toEqual(mockGoals);
     });
 
     it('should reject more than 3 dashboard goals', async () => {
@@ -228,36 +225,8 @@ describe('GoalOrchestrator', () => {
   });
 
   describe('getGoalAnalytics', () => {
-    it('should return comprehensive analytics', async () => {
-      const mockGoals = [
-        {
-          id: '1',
-          is_active: true,
-          is_completed: false,
-          current_progress: 25,
-          target_value: 50,
-          goal_type: { category: 'distance' },
-          goal_data: { creation_context: 'manual', show_on_dashboard: true }
-        },
-        {
-          id: '2',
-          is_active: false,
-          is_completed: true,
-          current_progress: 100,
-          target_value: 100,
-          goal_type: { category: 'frequency' },
-          goal_data: { creation_context: 'suggestion', from_suggestion: true }
-        }
-      ];
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ success: true, goals: mockGoals })
-      });
-
-      const analytics = await GoalOrchestrator.getGoalAnalytics('user-1');
-
-      expect(analytics).toEqual({
+    it('should return analytics from API', async () => {
+      const mockAnalytics = {
         totalGoals: 2,
         activeGoals: 1,
         completedGoals: 1,
@@ -272,49 +241,100 @@ describe('GoalOrchestrator', () => {
         },
         suggestionGoals: 1,
         autoTrackingGoals: 2,
-        averageProgress: 50, // (50 + 100) / 2
-        completionRate: 50  // 1 completed out of 2 total
+        averageProgress: 50,
+        completionRate: 50
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, analytics: mockAnalytics })
       });
+
+      const analytics = await GoalOrchestrator.getGoalAnalytics('user-1');
+
+      expect(mockFetch).toHaveBeenCalledWith('/api/goals/analytics?userId=user-1');
+      expect(analytics).toEqual(mockAnalytics);
+    });
+
+    it('should handle API response without analytics field', async () => {
+      const mockResponse = {
+        totalGoals: 2,
+        activeGoals: 1,
+        completedGoals: 1
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, ...mockResponse })
+      });
+
+      const analytics = await GoalOrchestrator.getGoalAnalytics('user-1');
+
+      expect(analytics).toEqual({ success: true, ...mockResponse });
     });
   });
 
   describe('getGoalRecommendations', () => {
-    it('should return personalized recommendations', async () => {
-      const mockGoals = [
+    it('should return recommendations from API', async () => {
+      const mockRecommendations = [
         {
-          id: '1',
-          is_active: true,
-          is_completed: false,
-          current_progress: 10,
-          target_value: 50,
-          goal_type: { category: 'distance' },
-          goal_data: { creation_context: 'manual', show_on_dashboard: false }
+          id: 'setup_dashboard',
+          type: 'dashboard_setup',
+          title: 'Set Up Dashboard Goals',
+          description: 'Configure your dashboard',
+          priority: 'high',
+          action: {
+            type: 'manage_dashboard',
+            data: {}
+          }
+        },
+        {
+          id: 'review_progress',
+          type: 'progress_update',
+          title: 'Review Goal Progress',
+          description: 'Check your progress',
+          priority: 'medium',
+          action: {
+            type: 'update_progress',
+            data: {}
+          }
         }
       ];
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ success: true, goals: mockGoals })
+        json: async () => ({ success: true, recommendations: mockRecommendations })
       });
 
       const recommendations = await GoalOrchestrator.getGoalRecommendations('user-1');
 
-      expect(recommendations).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: 'setup_dashboard',
-            type: 'dashboard_setup',
-            title: 'Set Up Dashboard Goals',
-            priority: 'high'
-          }),
-          expect.objectContaining({
-            id: 'review_progress',
-            type: 'low_progress',
-            title: 'Review Goal Progress',
-            priority: 'medium'
-          })
-        ])
-      );
+      expect(mockFetch).toHaveBeenCalledWith('/api/goals/recommendations?userId=user-1');
+      expect(recommendations).toEqual(mockRecommendations);
+    });
+
+    it('should handle API response without recommendations field', async () => {
+      const mockResponse = {
+        goals: [
+          {
+            id: '1',
+            is_active: true,
+            is_completed: false,
+            current_progress: 10,
+            target_value: 50,
+            goal_type: { category: 'distance' },
+            goal_data: { creation_context: 'manual', show_on_dashboard: false }
+          }
+        ]
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, ...mockResponse })
+      });
+
+      const recommendations = await GoalOrchestrator.getGoalRecommendations('user-1');
+
+      expect(recommendations).toEqual({ success: true, ...mockResponse });
     });
   });
 
@@ -323,7 +343,7 @@ describe('GoalOrchestrator', () => {
       const validGoalData: CreateGoalRequest = {
         goal_type_id: 'type-1',
         target_value: 50,
-        target_date: '2025-12-31', // Use a future date
+        time_period: 'weekly',
         goal_data: {}
       };
 
@@ -348,15 +368,31 @@ describe('GoalOrchestrator', () => {
       expect(validation.errors).toContain('Target value must be greater than 0');
       expect(validation.errors).toContain('Target date must be in the future');
     });
+
+    it('should require time_period', () => {
+      const invalidGoalData: CreateGoalRequest = {
+        goal_type_id: 'type-1',
+        target_value: 50,
+        goal_data: {}
+      };
+
+      const validation = GoalOrchestrator.validateGoalData(invalidGoalData);
+
+      expect(validation.isValid).toBe(false);
+      expect(validation.errors).toContain('Time period is required');
+    });
   });
 
   describe('bulkUpdateGoals', () => {
     it('should update multiple goals with context', async () => {
-      const mockGoal = { id: 'goal-1', target_value: 60 };
+      const mockGoals = [
+        { id: 'goal-1', target_value: 60 },
+        { id: 'goal-2', target_value: 70 }
+      ];
 
       mockFetch.mockResolvedValue({
         ok: true,
-        json: async () => ({ success: true, goal: mockGoal })
+        json: async () => ({ success: true, goals: mockGoals })
       });
 
       const updates = [
@@ -368,48 +404,80 @@ describe('GoalOrchestrator', () => {
 
       const results = await GoalOrchestrator.bulkUpdateGoals(updates, context);
 
-      expect(results).toHaveLength(2);
-      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenCalledWith('/api/goals/bulk-update', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates, context })
+      });
+      expect(results).toEqual(mockGoals);
     });
   });
 
   describe('archiveCompletedGoals', () => {
     it('should archive completed goals', async () => {
-      const mockGoals = [
-        { id: '1', is_completed: true, goal_data: {} },
-        { id: '2', is_completed: false, goal_data: {} },
-        { id: '3', is_completed: true, goal_data: {} }
-      ];
-
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ success: true, goals: mockGoals })
-        })
-        .mockResolvedValue({
-          ok: true,
-          json: async () => ({ success: true, goal: {} })
-        });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, archivedCount: 2 })
+      });
 
       const archivedCount = await GoalOrchestrator.archiveCompletedGoals('user-1');
 
+      expect(mockFetch).toHaveBeenCalledWith('/api/goals/archive-completed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: 'user-1' })
+      });
       expect(archivedCount).toBe(2);
-      expect(mockFetch).toHaveBeenCalledTimes(3); // 1 for fetch, 2 for updates
+    });
+
+    it('should handle API response without archivedCount field', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true })
+      });
+
+      const archivedCount = await GoalOrchestrator.archiveCompletedGoals('user-1');
+
+      expect(archivedCount).toBe(0);
     });
   });
 
   describe('getGoalInsights', () => {
-    it('should return goal insights', async () => {
-      const insights = await GoalOrchestrator.getGoalInsights('goal-1');
-
-      expect(insights).toEqual({
+    it('should return goal insights from API', async () => {
+      const mockInsights = {
         progressTrend: 'stable',
         timeToCompletion: null,
         recommendations: [
           'Stay consistent with your activities',
           'Review your target if needed'
         ]
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, insights: mockInsights })
       });
+
+      const insights = await GoalOrchestrator.getGoalInsights('goal-1');
+
+      expect(mockFetch).toHaveBeenCalledWith('/api/goals/goal-1/insights');
+      expect(insights).toEqual(mockInsights);
+    });
+
+    it('should handle API response without insights field', async () => {
+      const mockResponse = {
+        goal: {},
+        success: true
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse
+      });
+
+      const insights = await GoalOrchestrator.getGoalInsights('goal-1');
+
+      expect(insights).toEqual(mockResponse);
     });
   });
 }); 
