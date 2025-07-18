@@ -1,27 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { 
   Target, 
   TrendingUp, 
   Calendar,
-  Activity,
   Clock,
   MapPin,
-  Trophy,
   Award,
   CheckCircle,
-  AlertTriangle,
   Sparkles
 } from 'lucide-react';
 import { UserGoal } from '@/types/goals';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
 import { convertDistance, convertPace } from '@/lib/utils';
-import { SmartGoalCard } from '@/components/goals/SmartGoalCard';
 
 interface GoalsSelectionStepProps {
   onGoalsSelected: (goals: UserGoal[]) => void;
@@ -145,7 +140,7 @@ const defaultSuggestions: GoalSuggestion[] = [
   }
 ];
 
-export function GoalsSelectionStep({ onGoalsSelected, selectedGoals, onComplete }: GoalsSelectionStepProps) {
+export function GoalsSelectionStep({ onGoalsSelected, onComplete }: GoalsSelectionStepProps) {
   const { preferences } = useUnitPreferences();
   const [suggestions, setSuggestions] = useState<GoalSuggestion[]>(defaultSuggestions);
   const [selectedSuggestions, setSelectedSuggestions] = useState<GoalSuggestion[]>([]);

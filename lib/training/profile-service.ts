@@ -34,14 +34,14 @@ export class TrainingProfileService {
         .single()
 
       // Get training preferences
-      const { data: preferences, error: preferencesError } = await supabase
+      const { data: preferences } = await supabase
         .from('user_training_preferences')
         .select('*')
         .eq('user_id', userId)
         .single()
 
       // Get calculation history (last 5 entries)
-      const { data: history, error: historyError } = await supabase
+      const { data: history } = await supabase
         .from('threshold_calculation_history')
         .select('*')
         .eq('user_id', userId)
@@ -552,18 +552,21 @@ export class TrainingProfileService {
     }
   }
 
-  private static generateThresholdRecommendations(confidence: any, estimated: any): string[] {
+  private static generateThresholdRecommendations(confidence: unknown, estimated: unknown): string[] {
     const recommendations: string[] = []
     
-    if (confidence.max_heart_rate < 0.7) {
+    const conf = confidence as { max_heart_rate?: number; functional_threshold_power?: number; overall?: number }
+    const est = estimated as { functionalThresholdPower?: number }
+    
+    if (conf.max_heart_rate && conf.max_heart_rate < 0.7) {
       recommendations.push('Complete more activities with heart rate data for better max HR estimation')
     }
     
-    if (confidence.functional_threshold_power < 0.7 && estimated.functionalThresholdPower) {
+    if (conf.functional_threshold_power && conf.functional_threshold_power < 0.7 && est.functionalThresholdPower) {
       recommendations.push('Add more cycling activities with power data for better FTP estimation')
     }
     
-    if (confidence.overall < 0.6) {
+    if (conf.overall && conf.overall < 0.6) {
       recommendations.push('Complete more training activities to improve threshold estimations')
     }
     

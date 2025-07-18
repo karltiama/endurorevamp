@@ -35,7 +35,7 @@ export class TrainingProfileService {
         .single()
 
       // Get training preferences
-      const { data: preferences, error: preferencesError } = await supabase
+      const { data: preferences } = await supabase
         .from('training_preferences')
         .select('*')
         .eq('user_id', userId)
@@ -147,7 +147,7 @@ export class TrainingProfileService {
    * Use existing zone analysis system for thresholds
    * This integrates with the existing TrainingZoneAnalysis instead of duplicating it
    */
-  static async calculateThresholds(userId: string, activities: Activity[]): Promise<any> {
+  static async calculateThresholds(userId: string, activities: Activity[]): Promise<unknown> {
     try {
       console.log('🔄 Using existing zone analysis system...')
       
@@ -169,7 +169,7 @@ export class TrainingProfileService {
   /**
    * Get training zones using existing system
    */
-  static async getTrainingZones(userId: string): Promise<any> {
+  static async getTrainingZones(userId: string): Promise<unknown> {
     try {
       console.log('🎯 Getting training zones from existing system...')
       

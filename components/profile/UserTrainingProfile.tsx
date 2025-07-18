@@ -2,29 +2,22 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
 import { 
   TrendingUp, 
   Target,
-  Heart,
-  Zap,
   Activity,
   MapPin,
-  Trophy,
   Award,
   CheckCircle,
-  AlertTriangle,
   Sparkles,
-  BarChart3,
+  Trophy,
   Target as TargetIcon,
-  TrendingDown,
-  Minus
+  AlertTriangle
 } from 'lucide-react';
 import { useUserActivities } from '@/hooks/use-user-activities';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
 import { usePersonalizedTSSTarget } from '@/hooks/useTrainingProfile';
-import { formatDistance, formatPace, convertDistance, convertPace } from '@/lib/utils';
+import { formatDistance, formatPace } from '@/lib/utils';
 import { Activity as StravaActivity } from '@/lib/strava/types';
 import { ActivityWithTrainingData } from '@/types';
 
@@ -187,22 +180,21 @@ const analyzeTrainingProfile = (activities: StravaActivity[], preferences: { dis
 export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
   const { data: activities, isLoading } = useUserActivities(userId);
   const { preferences } = useUnitPreferences();
-  const { data: personalizedTSSTarget } = usePersonalizedTSSTarget(userId);
 
   const profile = analyzeTrainingProfile(activities || [], preferences);
 
   if (isLoading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
+          {[1, 2, 3].map((i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
               <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
               <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
               <div className="h-8 bg-gray-200 rounded w-1/4"></div>
             </CardContent>
-          </Card>
-        ))}
+            </Card>
+          ))}
       </div>
     );
   }
@@ -210,15 +202,15 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
   return (
     <div className="space-y-6">
       {/* Experience Level */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-yellow-500" />
             Training Experience Level
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+              <div className="flex items-center justify-between">
             <div>
               <Badge 
                 variant={profile.experienceLevel === 'beginner' ? 'secondary' : 
@@ -226,7 +218,7 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
                 className="text-lg px-3 py-1"
               >
                 {profile.experienceLevel.charAt(0).toUpperCase() + profile.experienceLevel.slice(1)}
-              </Badge>
+                </Badge>
               <p className="text-sm text-muted-foreground mt-2">
                 Based on your training volume and consistency
               </p>
@@ -236,8 +228,8 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
                 {profile.weeklyTSSTarget}
               </div>
               <div className="text-sm text-muted-foreground">Weekly TSS Target</div>
-            </div>
-          </div>
+                </div>
+                  </div>
         </CardContent>
       </Card>
 
@@ -257,17 +249,17 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
           </CardContent>
         </Card>
 
-        <Card>
+          <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-3">
               <TrendingUp className="h-5 w-5 text-green-500" />
-              <div>
+                <div>
                 <div className="text-sm text-muted-foreground">Average Pace</div>
                 <div className="text-xl font-semibold">
                   {formatPace(profile.preferredPace, preferences.pace)}
                 </div>
               </div>
-            </div>
+                </div>
           </CardContent>
         </Card>
 
@@ -275,26 +267,26 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-3">
               <Activity className="h-5 w-5 text-purple-500" />
-              <div>
+                <div>
                 <div className="text-sm text-muted-foreground">Weekly Frequency</div>
                 <div className="text-xl font-semibold">
                   {profile.trainingFrequency} runs
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
       </div>
 
       {/* Strengths and Areas for Improvement */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
+          <Card>
+            <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700">
               <CheckCircle className="h-5 w-5" />
               Your Strengths
             </CardTitle>
-          </CardHeader>
+            </CardHeader>
           <CardContent>
             <div className="space-y-2">
               {profile.strengths.map((strength, index) => (
@@ -303,29 +295,29 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
                   <span className="text-sm">{strength}</span>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
+          <Card>
+            <CardHeader>
             <CardTitle className="flex items-center gap-2 text-orange-700">
               <TargetIcon className="h-5 w-5" />
               Areas for Improvement
-            </CardTitle>
-          </CardHeader>
+              </CardTitle>
+            </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+                <div className="space-y-2">
               {profile.areasForImprovement.map((area, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-orange-500" />
                   <span className="text-sm">{area}</span>
                 </div>
               ))}
-            </div>
+                    </div>
           </CardContent>
         </Card>
-      </div>
+              </div>
 
       {/* Recommendations */}
       <Card>
@@ -344,8 +336,8 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
     </div>
   );
 } 

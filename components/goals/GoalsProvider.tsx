@@ -21,10 +21,10 @@ interface GoalsContextType {
   getSuggestionGoals: () => UserGoal[];
   
   // Orchestrator functions
-  createGoal: (params: any) => Promise<any>;
-  createGoalFromSuggestion: (params: any) => Promise<any>;
-  updateGoal: (params: any) => Promise<any>;
-  manageDashboardGoals: (params: any) => Promise<any>;
+  createGoal: (params: unknown) => Promise<unknown>;
+  createGoalFromSuggestion: (params: unknown) => Promise<unknown>;
+  updateGoal: (params: unknown) => Promise<unknown>;
+  manageDashboardGoals: (params: unknown) => Promise<unknown>;
   isCreating: boolean;
   isUpdating: boolean;
   isManaging: boolean;
@@ -74,7 +74,7 @@ export function GoalsProvider({ children }: GoalsProviderProps) {
     
     // Refresh functions
     refreshGoals: refetch,
-  } as GoalsContextType;
+  } as unknown as GoalsContextType;
 
   return (
     <GoalsContext.Provider value={value}>

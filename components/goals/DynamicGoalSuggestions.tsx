@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -9,19 +9,16 @@ import {
   TrendingUp, 
   Calendar,
   Activity,
-  Zap,
   Clock,
-  MapPin,
-  Trophy
+  MapPin
 } from 'lucide-react';
 import { useUserActivities } from '@/hooks/use-user-activities';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
 import { useAuth } from '@/providers/AuthProvider';
 import { Activity as StravaActivity } from '@/lib/strava/types';
-import { ActivityWithTrainingData } from '@/types';
 
 interface DynamicGoalSuggestionsProps {
-  onGoalCreated?: () => void;
+  // onGoalCreated?: () => void;
 }
 
 interface GoalSuggestion {
@@ -37,17 +34,6 @@ interface GoalSuggestion {
 }
 
 // Helper functions moved outside component
-const estimateTSS = (activity: StravaActivity): number => {
-  const durationHours = activity.moving_time / 3600;
-  const baseIntensity = activity.sport_type === 'Run' ? 70 : 60;
-  
-  let intensityMultiplier = 1;
-  if (activity.average_heartrate) {
-    intensityMultiplier = Math.max(0.5, Math.min(1.5, activity.average_heartrate / 140));
-  }
-  
-  return durationHours * baseIntensity * intensityMultiplier;
-};
 
 const calculateWeeklyDistance = (activities: StravaActivity[]): number => {
   const now = new Date();
@@ -79,11 +65,10 @@ const calculateAveragePace = (activities: StravaActivity[]): number => {
   return totalPace / runningActivities.length;
 };
 
-export function DynamicGoalSuggestions({ onGoalCreated }: DynamicGoalSuggestionsProps) {
+export function DynamicGoalSuggestions({}: DynamicGoalSuggestionsProps) {
   const { user } = useAuth();
   const { data: activities, isLoading } = useUserActivities(user?.id || '');
   const { preferences } = useUnitPreferences();
-  const [showAddModal, setShowAddModal] = useState(false);
 
   const generateSuggestions = useCallback((activities: StravaActivity[], preferences: { distance: 'km' | 'miles' }): GoalSuggestion[] => {
     if (!activities || activities.length === 0) {
@@ -185,7 +170,7 @@ export function DynamicGoalSuggestions({ onGoalCreated }: DynamicGoalSuggestions
     }
 
     return suggestions.slice(0, 4); // Limit to 4 suggestions
-  }, [preferences]);
+  }, []);
 
   const suggestions = generateSuggestions(activities || [], preferences);
 
@@ -233,7 +218,6 @@ export function DynamicGoalSuggestions({ onGoalCreated }: DynamicGoalSuggestions
                       </div>
                       <Button 
                         size="sm" 
-                        onClick={() => setShowAddModal(true)}
                         className="ml-4"
                       >
                         <Target className="h-4 w-4 mr-2" />

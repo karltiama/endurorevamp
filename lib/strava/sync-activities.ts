@@ -62,7 +62,7 @@ export class StravaActivitySync {
   }
 
   async storeActivity(userId: string, activity: StravaActivity): Promise<{
-    data: any;
+    data: Record<string, unknown>;
     isNew: boolean;
   }> {
     const supabase = await createClient();
@@ -154,7 +154,7 @@ export async function syncStravaActivities(options: SyncOptions): Promise<SyncRe
     const { data: tokens, error: tokenError } = await supabase
       .from('strava_tokens')
       .select('*')
-      .eq('user_id', userId)
+          .eq('user_id', userId)
       .single();
 
     if (tokenError || !tokens) {

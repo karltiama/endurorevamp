@@ -34,41 +34,39 @@ interface GoalSuggestion {
 }
 
 // Types for static methods
-export namespace GoalOrchestrator {
-  export interface GoalCreationContext {
-    type: 'manual' | 'suggestion' | 'automatic';
-    source?: string;
-  }
+export interface GoalCreationContext {
+  type: 'manual' | 'suggestion' | 'automatic';
+  source?: string;
+}
 
-  export interface GoalUpdateContext {
-    updateType: 'target' | 'progress' | 'status' | 'priority';
-    reason?: string;
-  }
+export interface GoalUpdateContext {
+  updateType: 'target' | 'progress' | 'status' | 'priority';
+  reason?: string;
+}
 
-  export interface GoalAnalytics {
-    totalGoals: number;
-    activeGoals: number;
-    completedGoals: number;
-    dashboardGoals: number;
-    goalsByCategory: Record<string, number>;
-    goalsByContext: Record<string, number>;
-    suggestionGoals: number;
-    autoTrackingGoals: number;
-    averageProgress: number;
-    completionRate: number;
-  }
+export interface GoalAnalytics {
+  totalGoals: number;
+  activeGoals: number;
+  completedGoals: number;
+  dashboardGoals: number;
+  goalsByCategory: Record<string, number>;
+  goalsByContext: Record<string, number>;
+  suggestionGoals: number;
+  autoTrackingGoals: number;
+  averageProgress: number;
+  completionRate: number;
+}
 
-  export interface GoalRecommendation {
-    id: string;
-    type: 'dashboard_setup' | 'goal_creation' | 'progress_update';
-    title: string;
-    description: string;
-    priority: 'high' | 'medium' | 'low';
-    action: {
-      type: 'manage_dashboard' | 'create_goal' | 'update_progress';
-      data?: any;
-    };
-  }
+export interface GoalRecommendation {
+  id: string;
+  type: 'dashboard_setup' | 'goal_creation' | 'progress_update';
+  title: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+  action: {
+    type: 'manage_dashboard' | 'create_goal' | 'update_progress';
+    data?: unknown;
+  };
 }
 
 export class GoalOrchestrator {
@@ -247,7 +245,7 @@ export class GoalOrchestrator {
   }
 
   // Static methods for API-based operations
-  static async createGoal(goalData: CreateGoalRequest, context?: GoalOrchestrator.GoalCreationContext): Promise<UserGoal> {
+  static async createGoal(goalData: CreateGoalRequest, context?: GoalCreationContext): Promise<UserGoal> {
     const response = await fetch('/api/goals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -293,7 +291,7 @@ export class GoalOrchestrator {
     return this.createGoal(goalData, { type: 'suggestion', source: 'ai' });
   }
 
-  static async updateGoal(goalId: string, updates: Partial<UserGoal>, context?: GoalOrchestrator.GoalUpdateContext): Promise<UserGoal> {
+  static async updateGoal(goalId: string, updates: Partial<UserGoal>, context?: GoalUpdateContext): Promise<UserGoal> {
     const response = await fetch(`/api/goals/${goalId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -337,7 +335,7 @@ export class GoalOrchestrator {
     return result.goals || [];
   }
 
-  static async getGoalAnalytics(userId: string): Promise<GoalOrchestrator.GoalAnalytics> {
+  static async getGoalAnalytics(userId: string): Promise<GoalAnalytics> {
     const response = await fetch(`/api/goals/analytics?userId=${userId}`);
     
     if (!response.ok) {
@@ -349,7 +347,7 @@ export class GoalOrchestrator {
     return result.analytics || result;
   }
 
-  static async getGoalRecommendations(userId: string): Promise<GoalOrchestrator.GoalRecommendation[]> {
+  static async getGoalRecommendations(userId: string): Promise<GoalRecommendation[]> {
     const response = await fetch(`/api/goals/recommendations?userId=${userId}`);
     
     if (!response.ok) {
@@ -386,7 +384,7 @@ export class GoalOrchestrator {
     };
   }
 
-  static async bulkUpdateGoals(updates: Array<{ goalId: string; updates: Partial<UserGoal> }>, context?: GoalOrchestrator.GoalUpdateContext): Promise<UserGoal[]> {
+  static async bulkUpdateGoals(updates: Array<{ goalId: string; updates: Partial<UserGoal> }>, context?: GoalUpdateContext): Promise<UserGoal[]> {
     const response = await fetch('/api/goals/bulk-update', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

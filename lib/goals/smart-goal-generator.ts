@@ -1,5 +1,4 @@
 import { Activity as StravaActivity } from '@/lib/strava/types';
-import { UserGoal, GoalType } from '@/types/goals';
 
 interface SmartGoalGeneratorOptions {
   userId: string;
@@ -102,7 +101,7 @@ export class SmartGoalGenerator {
     const averageDuration = this.activities.length > 0
       ? this.activities.reduce((sum, activity) => sum + activity.moving_time, 0) / this.activities.length / 60 // minutes
       : 0;
-
+    
     return {
       weeklyDistance,
       weeklyFrequency,
@@ -115,7 +114,7 @@ export class SmartGoalGenerator {
   private generateDistanceGoal(analysis: ReturnType<typeof this.analyzeTrainingPatterns>): GoalSuggestion {
     const currentWeekly = analysis.weeklyDistance;
     const targetWeekly = Math.round(currentWeekly * 1.2 * 10) / 10; // 20% increase
-
+    
     return {
       id: 'weekly-distance',
       title: 'Increase Weekly Distance',
@@ -142,7 +141,7 @@ export class SmartGoalGenerator {
 
   private generateFrequencyGoal(analysis: ReturnType<typeof this.analyzeTrainingPatterns>): GoalSuggestion {
     const targetFrequency = Math.min(analysis.weeklyFrequency + 1, 5);
-
+    
     return {
       id: 'weekly-frequency',
       title: 'Build Training Consistency',
@@ -170,7 +169,7 @@ export class SmartGoalGenerator {
   private generatePaceGoal(analysis: ReturnType<typeof this.analyzeTrainingPatterns>): GoalSuggestion {
     const currentPace = analysis.averagePace;
     const targetPace = Math.round(currentPace * 0.95); // 5% improvement
-
+    
     return {
       id: 'pace-improvement',
       title: 'Improve Running Pace',
@@ -201,7 +200,7 @@ export class SmartGoalGenerator {
 
   private generateDurationGoal(analysis: ReturnType<typeof this.analyzeTrainingPatterns>): GoalSuggestion {
     const targetDuration = Math.round(analysis.averageDuration * 1.15); // 15% increase
-
+    
     return {
       id: 'duration-increase',
       title: 'Extend Workout Duration',
