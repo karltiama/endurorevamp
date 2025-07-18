@@ -6,7 +6,7 @@ import { SyncButton } from '@/components/strava/SyncButton';
 // Mock the working hook
 jest.mock('@/hooks/use-strava-sync', () => ({
   useStravaSync: jest.fn(() => ({
-    customSync: jest.fn(),
+    forceFullSync: jest.fn(),
     isSyncing: false,
     syncError: null,
     syncResult: null,
@@ -39,7 +39,7 @@ describe('SyncButton (Fixed)', () => {
   it('shows syncing state', () => {
     const mockUseStravaSync = require('@/hooks/use-strava-sync').useStravaSync;
     mockUseStravaSync.mockReturnValue({
-      customSync: jest.fn(),
+      forceFullSync: jest.fn(),
       isSyncing: true,
       syncError: null,
       syncResult: null,
@@ -54,7 +54,7 @@ describe('SyncButton (Fixed)', () => {
   it('shows error state', () => {
     const mockUseStravaSync = require('@/hooks/use-strava-sync').useStravaSync;
     mockUseStravaSync.mockReturnValue({
-      customSync: jest.fn(),
+      forceFullSync: jest.fn(),
       isSyncing: false,
       syncError: { message: 'Test error' },
       syncResult: null,
@@ -70,7 +70,7 @@ describe('SyncButton (Fixed)', () => {
   it('shows success state', () => {
     const mockUseStravaSync = require('@/hooks/use-strava-sync').useStravaSync;
     mockUseStravaSync.mockReturnValue({
-      customSync: jest.fn(),
+      forceFullSync: jest.fn(),
       isSyncing: false,
       syncError: null,
       syncResult: {
@@ -92,11 +92,11 @@ describe('SyncButton (Fixed)', () => {
     expect(screen.getByText(/New activities:/)).toBeInTheDocument();
   });
 
-  it('calls customSync when clicked', () => {
-    const mockCustomSync = jest.fn();
+  it('calls forceFullSync when clicked', () => {
+    const mockForceFullSync = jest.fn();
     const mockUseStravaSync = require('@/hooks/use-strava-sync').useStravaSync;
     mockUseStravaSync.mockReturnValue({
-      customSync: mockCustomSync,
+      forceFullSync: mockForceFullSync,
       isSyncing: false,
       syncError: null,
       syncResult: null,
@@ -109,9 +109,6 @@ describe('SyncButton (Fixed)', () => {
     const button = screen.getByText('Sync Strava Data');
     fireEvent.click(button);
     
-    expect(mockCustomSync).toHaveBeenCalledWith({
-      maxActivities: 50,
-      sinceDays: 30,
-    });
+    expect(mockForceFullSync).toHaveBeenCalled();
   });
 }); 

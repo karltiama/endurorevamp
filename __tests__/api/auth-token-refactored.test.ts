@@ -223,6 +223,7 @@ describe('Auth Token API (Refactored with Helpers)', () => {
       // Arrange
       const mockClient = new MockSupabaseClient()
         .withAuthenticatedUser()
+        .withStravaTokens(null) // No existing tokens for this test
         .build()
       TestHelpers.mockSupabaseClient(mockClient)
       

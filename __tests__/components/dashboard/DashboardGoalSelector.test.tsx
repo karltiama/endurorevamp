@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DashboardGoalSelector } from '@/components/dashboard/DashboardGoalSelector';
-import { useUserGoals, useUpdateGoal, useGoalTypes } from '@/hooks/useGoals';
+import { useUserGoals, useUpdateGoal, useGoalTypes, useGoalManagement, useUnifiedGoalCreation } from '@/hooks/useGoals';
 
 // Mock the hooks
 jest.mock('@/hooks/useGoals', () => ({
@@ -11,11 +11,15 @@ jest.mock('@/hooks/useGoals', () => ({
   useGoalTypes: jest.fn(),
   useCreateGoal: jest.fn(),
   useDeleteGoal: jest.fn(),
+  useGoalManagement: jest.fn(),
+  useUnifiedGoalCreation: jest.fn(),
 }));
 
 const mockUseUserGoals = useUserGoals as jest.MockedFunction<typeof useUserGoals>;
 const mockUseUpdateGoal = useUpdateGoal as jest.MockedFunction<typeof useUpdateGoal>;
 const mockUseGoalTypes = useGoalTypes as jest.MockedFunction<typeof useGoalTypes>;
+const mockUseGoalManagement = useGoalManagement as jest.MockedFunction<typeof useGoalManagement>;
+const mockUseUnifiedGoalCreation = useUnifiedGoalCreation as jest.MockedFunction<typeof useUnifiedGoalCreation>;
 
 // Test wrapper component
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -133,6 +137,9 @@ const mockGoals = [
 
 describe('DashboardGoalSelector', () => {
   const mockUpdateGoal = jest.fn();
+  const mockToggleDashboardGoal = jest.fn();
+  const mockGetDashboardGoals = jest.fn();
+  const mockCreateGoal = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -163,6 +170,20 @@ describe('DashboardGoalSelector', () => {
       isError: false,
       isSuccess: true
     } as any);
+
+    mockUseGoalManagement.mockReturnValue({
+      toggleDashboardGoal: mockToggleDashboardGoal,
+      getDashboardGoals: mockGetDashboardGoals,
+    } as any);
+
+    mockUseUnifiedGoalCreation.mockReturnValue({
+      mutateAsync: mockCreateGoal,
+      isPending: false,
+      error: null
+    } as any);
+
+    // Mock getDashboardGoals to return the goal with show_on_dashboard: true
+    mockGetDashboardGoals.mockReturnValue([mockGoals[1]]); // Monthly Runs
   });
 
   it('renders correctly when open', () => {
@@ -288,6 +309,8 @@ describe('DashboardGoalSelector', () => {
       isSuccess: true
     } as any);
 
+    mockGetDashboardGoals.mockReturnValue([]);
+
     render(
       <TestWrapper>
         <DashboardGoalSelector open={true} onOpenChange={jest.fn()} />
@@ -338,7 +361,7 @@ describe('DashboardGoalSelector', () => {
     fireEvent.click(saveButton);
 
     await waitFor(() => {
-      expect(mockUpdateGoal).toHaveBeenCalled();
+      expect(mockToggleDashboardGoal).toHaveBeenCalled();
       expect(mockOnOpenChange).toHaveBeenCalledWith(false);
     });
   });
@@ -365,7 +388,7 @@ describe('DashboardGoalSelector', () => {
   });
 
   it('handles errors gracefully', async () => {
-    mockUpdateGoal.mockRejectedValueOnce(new Error('Failed to update'));
+    mockToggleDashboardGoal.mockRejectedValueOnce(new Error('Failed to update'));
 
     render(
       <TestWrapper>

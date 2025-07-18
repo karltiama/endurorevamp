@@ -9,9 +9,15 @@ jest.mock('@/hooks/use-user-activities', () => ({
   useUserActivities: jest.fn()
 }));
 
+jest.mock('@/hooks/useTrainingProfile', () => ({
+  usePersonalizedTSSTarget: jest.fn()
+}));
+
 import { useUserActivities } from '@/hooks/use-user-activities';
+import { usePersonalizedTSSTarget } from '@/hooks/useTrainingProfile';
 
 const mockUseUserActivities = useUserActivities as jest.MockedFunction<typeof useUserActivities>;
+const mockUsePersonalizedTSSTarget = usePersonalizedTSSTarget as jest.MockedFunction<typeof usePersonalizedTSSTarget>;
 
 // Mock activity data factory
 const createMockActivity = (overrides: Partial<Activity> = {}): Activity => ({
@@ -48,6 +54,12 @@ const createWrapper = () => {
 describe('WeeklyTrainingLoadWidget', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default mock for usePersonalizedTSSTarget
+    mockUsePersonalizedTSSTarget.mockReturnValue({
+      data: 400,
+      isLoading: false,
+      error: null
+    } as any);
   });
 
   it('renders loading skeleton when data is loading', () => {
@@ -97,13 +109,11 @@ describe('WeeklyTrainingLoadWidget', () => {
     
     expect(screen.getByText('Weekly Training Load')).toBeInTheDocument();
     
-    // Look for TSS or progress-related text (more flexible)
-    const progressText = screen.queryByText(/TSS/i) || 
-                        screen.queryByText(/progress/i) ||
-                        screen.queryByText(/target/i);
-    if (progressText) {
-      expect(progressText).toBeInTheDocument();
-    }
+    // Check for TSS Progress section specifically
+    expect(screen.getByText('TSS Progress')).toBeInTheDocument();
+    
+    // Check for progress percentage
+    expect(screen.getByText(/complete/)).toBeInTheDocument();
   });
 
   it('shows heart rate zone distribution', () => {
@@ -133,9 +143,15 @@ describe('WeeklyTrainingLoadWidget', () => {
     
     expect(screen.getByText('Weekly Training Load')).toBeInTheDocument();
     
-    // Look for zone-related information - use getAllByText since there might be multiple zone elements
-    const zoneElements = screen.getAllByText(/heart rate|zone/i);
-    expect(zoneElements.length).toBeGreaterThan(0);
+    // Check for Training Zones section
+    expect(screen.getByText('Training Zones')).toBeInTheDocument();
+    
+    // Check for zone labels
+    expect(screen.getByText('Z1')).toBeInTheDocument();
+    expect(screen.getByText('Z2')).toBeInTheDocument();
+    expect(screen.getByText('Z3')).toBeInTheDocument();
+    expect(screen.getByText('Z4')).toBeInTheDocument();
+    expect(screen.getByText('Z5')).toBeInTheDocument();
   });
 
   it('displays daily TSS breakdown', () => {
@@ -164,13 +180,17 @@ describe('WeeklyTrainingLoadWidget', () => {
     
     expect(screen.getByText('Weekly Training Load')).toBeInTheDocument();
     
-    // Look for daily distribution or day labels
-    const dailyText = screen.queryByText(/daily/i) || 
-                     screen.queryByText(/distribution/i) ||
-                     screen.queryByText(/Mon|Tue|Wed|Thu|Fri|Sat|Sun/);
-    if (dailyText) {
-      expect(dailyText).toBeInTheDocument();
-    }
+    // Check for Daily Distribution section
+    expect(screen.getByText('Daily Distribution')).toBeInTheDocument();
+    
+    // Check for day labels
+    expect(screen.getByText('Mon')).toBeInTheDocument();
+    expect(screen.getByText('Tue')).toBeInTheDocument();
+    expect(screen.getByText('Wed')).toBeInTheDocument();
+    expect(screen.getByText('Thu')).toBeInTheDocument();
+    expect(screen.getByText('Fri')).toBeInTheDocument();
+    expect(screen.getByText('Sat')).toBeInTheDocument();
+    expect(screen.getByText('Sun')).toBeInTheDocument();
   });
 
   it('shows weekly overview statistics', () => {
@@ -193,13 +213,11 @@ describe('WeeklyTrainingLoadWidget', () => {
     
     expect(screen.getByText('Weekly Training Load')).toBeInTheDocument();
     
-    // Look for overview statistics
-    const overviewText = screen.queryByText(/workout/i) || 
-                        screen.queryByText(/week/i) ||
-                        screen.queryByText(/aerobic/i);
-    if (overviewText) {
-      expect(overviewText).toBeInTheDocument();
-    }
+    // Check for overview statistics
+    expect(screen.getByText('Workouts')).toBeInTheDocument();
+    expect(screen.getByText('Zone 2')).toBeInTheDocument();
+    expect(screen.getByText('This week')).toBeInTheDocument();
+    expect(screen.getByText('Aerobic base')).toBeInTheDocument();
   });
 
   it('handles empty state for new users', () => {
@@ -214,13 +232,8 @@ describe('WeeklyTrainingLoadWidget', () => {
     
     expect(screen.getByText('Weekly Training Load')).toBeInTheDocument();
     
-    // Look for empty state messaging
-    const emptyStateText = screen.queryByText(/no activities/i) || 
-                          screen.queryByText(/start training/i) ||
-                          screen.queryByText(/track your first/i);
-    if (emptyStateText) {
-      expect(emptyStateText).toBeInTheDocument();
-    }
+    // Check for empty state message
+    expect(screen.getByText('No training data for this week')).toBeInTheDocument();
   });
 
   it('displays training load metrics', () => {
@@ -244,7 +257,8 @@ describe('WeeklyTrainingLoadWidget', () => {
     expect(screen.getByText('Weekly Training Load')).toBeInTheDocument();
     
     // Check that the component renders with training data
-    const trainingLoadCard = screen.getByText('Weekly Training Load').closest('div');
-    expect(trainingLoadCard).toBeInTheDocument();
+    expect(screen.getByText('TSS Progress')).toBeInTheDocument();
+    expect(screen.getByText('Training Zones')).toBeInTheDocument();
+    expect(screen.getByText('Daily Distribution')).toBeInTheDocument();
   });
 }); 

@@ -347,7 +347,7 @@ export const TestHelpers = {
   },
 
   mockSupabaseClient: (client: any) => {
-    const { createClient } = require('@/lib/supabase/server')
-    ;(createClient as jest.Mock).mockResolvedValue(client)
+    const mockCreateClient = require('@/lib/supabase/server').createClient
+    ;(mockCreateClient as jest.Mock).mockResolvedValue(client)
   }
 } 

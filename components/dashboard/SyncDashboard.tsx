@@ -24,15 +24,15 @@ export default function SyncDashboard() {
     lastError
   } = useSyncStatusInfo()
 
-  // Debug logging
-  console.log('SyncDashboard Debug:', {
-    canSync,
-    todaySyncs,
-    maxSyncs,
-    syncDisabledReason,
-    isSyncing,
-    buttonDisabled: !canSync || isSyncing
-  })
+  // Debug logging (commented out for production)
+  // console.log('SyncDashboard Debug:', {
+  //   canSync,
+  //   todaySyncs,
+  //   maxSyncs,
+  //   syncDisabledReason,
+  //   isSyncing,
+  //   buttonDisabled: !canSync || isSyncing
+  // })
 
   if (isLoadingStatus) {
     return (

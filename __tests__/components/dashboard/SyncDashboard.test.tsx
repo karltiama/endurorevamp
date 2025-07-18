@@ -163,7 +163,11 @@ describe('SyncDashboard', () => {
     renderSyncDashboard()
 
     expect(screen.getByText('Daily Sync Limit Reached')).toBeInTheDocument()
-    expect(screen.getByText(/You've reached your daily sync limit. Please try again tomorrow/)).toBeInTheDocument()
+    
+    // Use getAllByText to get all instances and check the first one
+    const limitMessages = screen.getAllByText(/You've reached your daily sync limit. Please try again tomorrow/)
+    expect(limitMessages.length).toBeGreaterThan(0)
+    
     expect(screen.getByText('Daily limit reached. Try again tomorrow!')).toBeInTheDocument()
     
     // Verify button is disabled and shows correct text

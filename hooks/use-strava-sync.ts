@@ -79,17 +79,17 @@ function formatSyncStatusInfo(syncStatus: SyncStatus | undefined) {
   }
 
   // Debug logging
-  console.log('useSyncStatusInfo Debug:', {
-    syncState: {
-      sync_enabled: syncState?.sync_enabled,
-      sync_requests_today: syncState?.sync_requests_today,
-      last_activity_sync: syncState?.last_activity_sync
-    },
-    canSync,
-    syncDisabledReason,
-    todaySyncs: syncState?.sync_requests_today || 0,
-    maxSyncs: 5
-  })
+  // console.log('useSyncStatusInfo Debug:', {
+  //   syncState: {
+  //     sync_enabled: syncState?.sync_enabled,
+  //     sync_requests_today: syncState?.sync_requests_today,
+  //     last_activity_sync: syncState?.last_activity_sync
+  //   },
+  //   canSync,
+  //   syncDisabledReason,
+  //   todaySyncs: syncState?.sync_requests_today || 0,
+  //   maxSyncs: 5
+  // })
 
   return {
     lastSyncText,
@@ -161,8 +161,6 @@ export function useStravaSync() {
   } = useMutation({
     mutationFn: triggerSync,
     onSuccess: (data) => {
-      console.log('✅ Sync completed:', data)
-      
       // Invalidate related queries - comprehensive cache refresh
       queryClient.invalidateQueries({ queryKey: ['strava', 'sync-status'] })
       queryClient.invalidateQueries({ queryKey: ['strava', 'activities'] })

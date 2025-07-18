@@ -15,7 +15,6 @@ export function SyncButton() {
   } = useStravaSync();
 
   const handleSync = async () => {
-    console.log('🔄 SyncButton: Starting sync process');
     try {
       // Use forceFullSync to test rate limiting
       forceFullSync();
@@ -40,14 +39,14 @@ export function SyncButton() {
     return <RefreshCw className="h-4 w-4" />;
   };
 
-  // Debug logging for hook state changes
-  console.log('🔍 SyncButton state:', {
-    isSyncing,
-    hasError: !!syncError,
-    syncError: syncError?.message,
-    syncResult,
-    hasLastResult: !!syncResult
-  });
+  // Debug logging for hook state changes (commented out for production)
+  // console.log('🔍 SyncButton state:', {
+  //   isSyncing,
+  //   hasError: !!syncError,
+  //   syncError: syncError?.message,
+  //   syncResult,
+  //   hasLastResult: !!syncResult
+  // });
 
   return (
     <div className="space-y-4">
