@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { Activity as StravaActivity } from '@/lib/strava/types';
 import { AutomaticGoalProgress } from '@/lib/goals/automatic-progress';
+import { Activity } from '@/lib/strava/types'; // Correct import for Activity type
 
 interface SyncOptions {
   userId: string;
@@ -77,7 +78,7 @@ export class StravaActivitySync {
       .maybeSingle();
 
     // Helper function to safely convert values to numbers
-    const safeNumber = (value: any, defaultValue: number = 0): number => {
+    const safeNumber = (value: unknown, defaultValue: number = 0): number => {
       if (value === null || value === undefined) return defaultValue;
       const num = Number(value);
       return isNaN(num) ? defaultValue : num;
@@ -131,12 +132,36 @@ export class StravaActivitySync {
       // This connects your activities to your goals automatically!
       try {
         // Convert activityData to proper Activity type for goal progress
-        const goalActivity = {
-          ...activityData,
-          strava_activity_id: Number(activityData.strava_activity_id), // Ensure it's a number
-          id: activity.id // Add the Strava activity ID as the main ID
-        } as any; // Type assertion for compatibility
-        
+        const goalActivity: Activity = {
+          id: (activity.id ?? 0).toString(),
+          user_id: userId,
+          strava_activity_id: Number(activityData.strava_activity_id),
+          name: activityData.name,
+          sport_type: activityData.sport_type,
+          distance: activityData.distance,
+          moving_time: activityData.moving_time,
+          elapsed_time: activityData.elapsed_time,
+          total_elevation_gain: activityData.total_elevation_gain,
+          start_date: activityData.start_date,
+          start_date_local: activityData.start_date_local,
+          timezone: activityData.timezone,
+          achievement_count: activityData.achievement_count,
+          kudos_count: activityData.kudos_count,
+          comment_count: activityData.comment_count,
+          athlete_count: activityData.athlete_count,
+          photo_count: activityData.photo_count,
+          trainer: activityData.trainer,
+          commute: activityData.commute,
+          manual: activityData.manual,
+          private: activityData.private,
+          gear_id: activityData.gear_id,
+          average_speed: activityData.average_speed,
+          max_speed: activityData.max_speed,
+          average_cadence: activityData.average_cadence,
+          has_heartrate: activityData.has_heartrate,
+          average_heartrate: activityData.average_heartrate,
+          max_heartrate: activityData.max_heartrate,
+        };
         await AutomaticGoalProgress.updateProgressFromActivity(userId, goalActivity);
         console.log(`🎯 Updated goal progress for activity ${activity.id}`);
       } catch (goalError) {
@@ -161,12 +186,36 @@ export class StravaActivitySync {
       // This connects your activities to your goals automatically!
       try {
         // Convert activityData to proper Activity type for goal progress
-        const goalActivity = {
-          ...activityData,
-          strava_activity_id: Number(activityData.strava_activity_id), // Ensure it's a number
-          id: activity.id // Add the Strava activity ID as the main ID
-        } as any; // Type assertion for compatibility
-        
+        const goalActivity: Activity = {
+          id: (activity.id ?? 0).toString(),
+          user_id: userId,
+          strava_activity_id: Number(activityData.strava_activity_id),
+          name: activityData.name,
+          sport_type: activityData.sport_type,
+          distance: activityData.distance,
+          moving_time: activityData.moving_time,
+          elapsed_time: activityData.elapsed_time,
+          total_elevation_gain: activityData.total_elevation_gain,
+          start_date: activityData.start_date,
+          start_date_local: activityData.start_date_local,
+          timezone: activityData.timezone,
+          achievement_count: activityData.achievement_count,
+          kudos_count: activityData.kudos_count,
+          comment_count: activityData.comment_count,
+          athlete_count: activityData.athlete_count,
+          photo_count: activityData.photo_count,
+          trainer: activityData.trainer,
+          commute: activityData.commute,
+          manual: activityData.manual,
+          private: activityData.private,
+          gear_id: activityData.gear_id,
+          average_speed: activityData.average_speed,
+          max_speed: activityData.max_speed,
+          average_cadence: activityData.average_cadence,
+          has_heartrate: activityData.has_heartrate,
+          average_heartrate: activityData.average_heartrate,
+          max_heartrate: activityData.max_heartrate,
+        };
         await AutomaticGoalProgress.updateProgressFromActivity(userId, goalActivity);
         console.log(`🎯 Updated goal progress for activity ${activity.id}`);
       } catch (goalError) {
@@ -309,7 +358,7 @@ async function syncActivitiesToDatabase(userId: string, activities: StravaActivi
   let updatedActivities = 0;
 
   // Helper function to safely convert values to numbers
-  const safeNumber = (value: any, defaultValue: number = 0): number => {
+  const safeNumber = (value: unknown, defaultValue: number = 0): number => {
     if (value === null || value === undefined) return defaultValue;
     const num = Number(value);
     return isNaN(num) ? defaultValue : num;

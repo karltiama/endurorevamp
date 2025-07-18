@@ -10,7 +10,7 @@ import {
   ExperienceLevel,
   getDefaultIntensityDistribution
 } from '@/types/training-profile-simplified'
-import { Activity } from '@/lib/strava/types'
+
 
 /**
  * Simplified Training Profile Service
@@ -147,7 +147,7 @@ export class TrainingProfileService {
    * Use existing zone analysis system for thresholds
    * This integrates with the existing TrainingZoneAnalysis instead of duplicating it
    */
-  static async calculateThresholds(userId: string, activities: Activity[]): Promise<unknown> {
+  static async calculateThresholds(userId: string): Promise<unknown> {
     try {
       console.log('🔄 Using existing zone analysis system...')
       

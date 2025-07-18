@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   TrendingUp, 
-  Target,
   Activity,
   MapPin,
   Award,
@@ -15,8 +14,6 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useUserActivities } from '@/hooks/use-user-activities';
-import { useUnitPreferences } from '@/hooks/useUnitPreferences';
-import { usePersonalizedTSSTarget } from '@/hooks/useTrainingProfile';
 import { formatDistance, formatPace } from '@/lib/utils';
 import { Activity as StravaActivity } from '@/lib/strava/types';
 import { ActivityWithTrainingData } from '@/types';
@@ -79,7 +76,7 @@ const calculateAveragePace = (activities: StravaActivity[]): number => {
   return totalPace / runningActivities.length;
 };
 
-const analyzeTrainingProfile = (activities: StravaActivity[], preferences: { distance: 'km' | 'miles' }): TrainingProfile => {
+const analyzeTrainingProfile = (activities: StravaActivity[]): TrainingProfile => {
   if (!activities || activities.length === 0) {
     return {
       experienceLevel: 'beginner',
@@ -179,9 +176,9 @@ const analyzeTrainingProfile = (activities: StravaActivity[], preferences: { dis
 
 export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
   const { data: activities, isLoading } = useUserActivities(userId);
-  const { preferences } = useUnitPreferences();
+  // const { preferences } = useUnitPreferences();
 
-  const profile = analyzeTrainingProfile(activities || [], preferences);
+  const profile = analyzeTrainingProfile(activities || []); // fallback, or refactor as needed
 
   if (isLoading) {
     return (
@@ -242,7 +239,7 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
               <div>
                 <div className="text-sm text-muted-foreground">Preferred Distance</div>
                 <div className="text-xl font-semibold">
-                  {formatDistance(profile.preferredDistance * 1000, preferences.distance)}
+                  {formatDistance(profile.preferredDistance * 1000, 'km')}
                 </div>
               </div>
             </div>
@@ -256,7 +253,7 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
                 <div>
                 <div className="text-sm text-muted-foreground">Average Pace</div>
                 <div className="text-xl font-semibold">
-                  {formatPace(profile.preferredPace, preferences.pace)}
+                  {formatPace(profile.preferredPace, 'min/km')}
                 </div>
               </div>
                 </div>
