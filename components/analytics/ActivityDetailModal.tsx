@@ -4,13 +4,18 @@ import { Fragment, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { formatDistance, formatPace, getActivityIcon } from '@/lib/utils'
+import { formatDistance, getActivityIcon } from '@/lib/utils'
 import type { StravaActivity } from '@/lib/strava/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Heart, TrendingUp, Save, Edit } from 'lucide-react'
+import { Heart, Save, Edit } from 'lucide-react'
 import { Label } from '@/components/ui/label'
+
+// Type for activities with RPE data
+interface ActivityWithRPE {
+  perceived_exertion?: number
+}
 
 interface ActivityDetailModalProps {
   activity: StravaActivity
@@ -39,7 +44,7 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
   const [rpeError, setRpeError] = useState<string>('')
   
   // Check if activity has RPE data (assuming it's in the activity object)
-  const currentRPE = (activity as any)?.perceived_exertion
+  const currentRPE = (activity as ActivityWithRPE)?.perceived_exertion
   
   const formatDistanceWithUnits = (meters: number) => {
     return formatDistance(meters, preferences.distance)
@@ -96,10 +101,10 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
       }
 
       // Update the activity object locally
-      ;(activity as any).perceived_exertion = selectedRPE
+      ;(activity as ActivityWithRPE).perceived_exertion = selectedRPE
       setIsEditingRPE(false)
       setSelectedRPE(null)
-    } catch (error) {
+    } catch {
       setRpeError('Failed to save RPE. Please try again.')
     } finally {
       setIsSavingRPE(false)
@@ -288,7 +293,7 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
                         </>
                       ) : (
                         <div className="text-sm text-blue-600">
-                          No effort rating yet. Click "Add Effort" to rate this workout.
+                          No effort rating yet. Click &quot;Add Effort&quot; to rate this workout.
                         </div>
                       )}
                     </div>

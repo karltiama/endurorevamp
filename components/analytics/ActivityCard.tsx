@@ -1,13 +1,17 @@
 'use client'
 
-import { formatDistance, formatPace, getActivityIcon } from '@/lib/utils'
+import { formatDistance, getActivityIcon } from '@/lib/utils'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import type { Activity, StravaActivity } from '@/lib/strava/types'
-import { Heart } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
 // Union type for activities from database or API
 type ActivityCardActivity = Activity | StravaActivity
+
+// Type for activities with RPE data
+interface ActivityWithRPE {
+  perceived_exertion?: number
+}
 
 interface ActivityCardProps {
   activity: ActivityCardActivity
@@ -35,7 +39,7 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
         kudos_count: act.kudos_count || 0,
         private: act.private || false,
         trainer: act.trainer || false,
-        perceived_exertion: (act as any)?.perceived_exertion
+        perceived_exertion: (act as ActivityWithRPE)?.perceived_exertion
       }
     } else {
       // API StravaActivity type
@@ -53,7 +57,7 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
         kudos_count: act.kudos_count || 0,
         private: act.private || false,
         trainer: act.trainer || false,
-        perceived_exertion: (act as any)?.perceived_exertion
+        perceived_exertion: (act as ActivityWithRPE)?.perceived_exertion
       }
     }
   }
@@ -97,7 +101,7 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
     })
   }
 
-  const getRPEBadge = (rpe: number) => {
+  const getRPEBadge = (rpe: number | undefined) => {
     if (!rpe) return null
     
     // RPE Emoji Scale (matching the modal)

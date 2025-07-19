@@ -47,13 +47,17 @@ describe('ActivityDetailModal', () => {
     render(<ActivityDetailModal {...defaultProps} />)
     
     expect(screen.getByText('Morning Run')).toBeInTheDocument()
-    expect(screen.getByText('Run')).toBeInTheDocument()
+    expect(screen.getAllByText('Run')).toHaveLength(2) // Badge and type
     expect(screen.getByText('5.0 km')).toBeInTheDocument()
     expect(screen.getByText('30:00')).toBeInTheDocument()
   })
 
   it('shows effort section with add button when no RPE exists', () => {
-    render(<ActivityDetailModal {...defaultProps} />)
+    // Ensure the activity has no perceived_exertion
+    const activityWithoutRPE = { ...mockActivity }
+    delete (activityWithoutRPE as any).perceived_exertion
+    
+    render(<ActivityDetailModal {...defaultProps} activity={activityWithoutRPE} />)
     
     expect(screen.getByText('How did this workout feel?')).toBeInTheDocument()
     expect(screen.getByText('Add Effort')).toBeInTheDocument()
@@ -70,7 +74,11 @@ describe('ActivityDetailModal', () => {
   })
 
   it('opens effort selection when add button is clicked', () => {
-    render(<ActivityDetailModal {...defaultProps} />)
+    // Ensure the activity has no perceived_exertion
+    const activityWithoutRPE = { ...mockActivity }
+    delete (activityWithoutRPE as any).perceived_exertion
+    
+    render(<ActivityDetailModal {...defaultProps} activity={activityWithoutRPE} />)
     
     const addButton = screen.getByText('Add Effort')
     fireEvent.click(addButton)
@@ -83,27 +91,31 @@ describe('ActivityDetailModal', () => {
   })
 
   it('validates effort selection correctly', async () => {
-    render(<ActivityDetailModal {...defaultProps} />)
+    // Ensure the activity has no perceived_exertion
+    const activityWithoutRPE = { ...mockActivity }
+    delete (activityWithoutRPE as any).perceived_exertion
+    
+    render(<ActivityDetailModal {...defaultProps} activity={activityWithoutRPE} />)
     
     const addButton = screen.getByText('Add Effort')
     fireEvent.click(addButton)
     
+    // Wait for edit mode to be active
+    await waitFor(() => {
+      expect(screen.getByText('Save Effort')).toBeInTheDocument()
+    })
+    
     const saveButton = screen.getByText('Save Effort')
     
-    // Test no selection
-    fireEvent.click(saveButton)
-    
-    await waitFor(() => {
-      expect(screen.getByText('Please select how the workout felt')).toBeInTheDocument()
-    })
+    // Test no selection - the save button should be disabled
+    expect(saveButton).toBeDisabled()
     
     // Test valid selection
     const moderateButton = screen.getByText('Moderate')
     fireEvent.click(moderateButton)
-    fireEvent.click(saveButton)
     
-    // Should not show validation error
-    expect(screen.queryByText('Please select how the workout felt')).not.toBeInTheDocument()
+    // Save button should be enabled after selection
+    expect(saveButton).not.toBeDisabled()
   })
 
   it('calls API when saving effort', async () => {
@@ -113,7 +125,11 @@ describe('ActivityDetailModal', () => {
       json: async () => ({ success: true, activity: { ...mockActivity, perceived_exertion: 8 } })
     } as Response)
 
-    render(<ActivityDetailModal {...defaultProps} />)
+    // Ensure the activity has no perceived_exertion
+    const activityWithoutRPE = { ...mockActivity }
+    delete (activityWithoutRPE as any).perceived_exertion
+    
+    render(<ActivityDetailModal {...defaultProps} activity={activityWithoutRPE} />)
     
     const addButton = screen.getByText('Add Effort')
     fireEvent.click(addButton)
@@ -140,24 +156,26 @@ describe('ActivityDetailModal', () => {
       json: async () => ({ success: true, activity: { ...mockActivity, perceived_exertion: 7 } })
     } as Response)
 
-    // Test with database activity (has strava_activity_id)
+    // Test with database activity (has strava_activity_id) and no RPE
     const dbActivity = { ...mockActivity, strava_activity_id: 987654 }
+    delete (dbActivity as any).perceived_exertion
+    
     render(<ActivityDetailModal {...defaultProps} activity={dbActivity} />)
     
-    const addButton = screen.getByText('Add RPE')
+    const addButton = screen.getByText('Add Effort')
     fireEvent.click(addButton)
     
-    const input = screen.getByPlaceholderText('Enter 1-10')
-    const saveButton = screen.getByText('Save')
+    const hardButton = screen.getByText('Hard')
+    const saveButton = screen.getByText('Save Effort')
     
-    fireEvent.change(input, { target: { value: '7' } })
+    fireEvent.click(hardButton)
     fireEvent.click(saveButton)
     
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/activities/987654/rpe', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ perceived_exertion: 7 })
+        body: JSON.stringify({ perceived_exertion: 5 })
       })
     })
   })
@@ -169,7 +187,11 @@ describe('ActivityDetailModal', () => {
       status: 500
     } as Response)
 
-    render(<ActivityDetailModal {...defaultProps} />)
+    // Ensure the activity has no perceived_exertion
+    const activityWithoutRPE = { ...mockActivity }
+    delete (activityWithoutRPE as any).perceived_exertion
+    
+    render(<ActivityDetailModal {...defaultProps} activity={activityWithoutRPE} />)
     
     const addButton = screen.getByText('Add Effort')
     fireEvent.click(addButton)
@@ -186,7 +208,11 @@ describe('ActivityDetailModal', () => {
   })
 
   it('shows emoji effort scale', () => {
-    render(<ActivityDetailModal {...defaultProps} />)
+    // Ensure the activity has no perceived_exertion
+    const activityWithoutRPE = { ...mockActivity }
+    delete (activityWithoutRPE as any).perceived_exertion
+    
+    render(<ActivityDetailModal {...defaultProps} activity={activityWithoutRPE} />)
     
     const addButton = screen.getByText('Add Effort')
     fireEvent.click(addButton)
