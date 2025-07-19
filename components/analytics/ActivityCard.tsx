@@ -1,12 +1,13 @@
 'use client'
 
-import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { formatDistance, formatPace, getActivityIcon } from '@/lib/utils'
-import type { StravaActivity } from '@/lib/strava/types'
-import type { Activity } from '@/lib/strava/types'
+import { useUnitPreferences } from '@/hooks/useUnitPreferences'
+import type { Activity, StravaActivity } from '@/lib/strava/types'
+import { Heart } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
-// Union type to handle both database and API activity types
-type ActivityCardActivity = StravaActivity | Activity
+// Union type for activities from database or API
+type ActivityCardActivity = Activity | StravaActivity
 
 interface ActivityCardProps {
   activity: ActivityCardActivity
@@ -33,7 +34,8 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
         average_speed: act.average_speed,
         kudos_count: act.kudos_count || 0,
         private: act.private || false,
-        trainer: act.trainer || false
+        trainer: act.trainer || false,
+        perceived_exertion: (act as any)?.perceived_exertion
       }
     } else {
       // API StravaActivity type
@@ -50,7 +52,8 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
         average_speed: act.average_speed,
         kudos_count: act.kudos_count || 0,
         private: act.private || false,
-        trainer: act.trainer || false
+        trainer: act.trainer || false,
+        perceived_exertion: (act as any)?.perceived_exertion
       }
     }
   }
@@ -68,11 +71,23 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - date.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 1) {
+      return 'Yesterday'
+    } else if (diffDays === 2) {
+      return '2 days ago'
+    } else if (diffDays <= 7) {
+      return `${diffDays} days ago`
+    } else {
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      })
+    }
   }
 
   const formatTime = (dateString: string) => {
@@ -82,41 +97,36 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
     })
   }
 
-
-
-  const formatPaceWithUnits = (normalized: ReturnType<typeof normalizeActivity>) => {
-    if (normalized.type === 'Run' && normalized.distance > 0) {
-      const paceSecondsPerKm = normalized.moving_time / (normalized.distance / 1000)
-      return formatPace(paceSecondsPerKm, preferences.pace)
+  const getRPEBadge = (rpe: number) => {
+    if (!rpe) return null
+    
+    // RPE Emoji Scale (matching the modal)
+    const rpeEmojis = ['😴', '😌', '🙂', '😐', '😤', '😰', '😫', '😵', '🤯', '💀']
+    const rpeLabels = ['Very Easy', 'Easy', 'Moderate', 'Somewhat Hard', 'Hard', 'Very Hard', 'Very Hard+', 'Extremely Hard', 'Maximum', 'All Out']
+    
+    const emoji = rpeEmojis[rpe - 1] || '😐'
+    const label = rpeLabels[rpe - 1] || 'Unknown'
+    
+    let color = 'bg-gray-100 text-gray-800'
+    if (rpe <= 3) {
+      color = 'bg-green-100 text-green-800'
+    } else if (rpe <= 5) {
+      color = 'bg-blue-100 text-blue-800'
+    } else if (rpe <= 7) {
+      color = 'bg-yellow-100 text-yellow-800'
+    } else if (rpe <= 9) {
+      color = 'bg-orange-100 text-orange-800'
+    } else {
+      color = 'bg-red-100 text-red-800'
     }
     
-    if ((normalized.type === 'Ride' || normalized.type === 'VirtualRide') && normalized.average_speed) {
-      // For cycling, show speed in km/h or mph based on distance unit preference
-      const speedKmh = normalized.average_speed * 3.6
-      if (preferences.distance === 'miles') {
-        const speedMph = speedKmh * 0.621371
-        return `${speedMph.toFixed(1)} mph`
-      } else {
-        return `${speedKmh.toFixed(1)} km/h`
-      }
-    }
-    
-    return null
+    return (
+      <Badge variant="secondary" className={`text-xs ${color}`}>
+        <span className="text-sm mr-1">{emoji}</span>
+        {label}
+      </Badge>
+    )
   }
-
-  const calculateTSS = (normalized: ReturnType<typeof normalizeActivity>) => {
-    // Simple TSS estimation based on duration and intensity
-    if (normalized.average_heartrate && normalized.moving_time) {
-      // Rough estimation: assume max HR of 190, threshold HR of 85%
-      const intensityFactor = normalized.average_heartrate / (190 * 0.85)
-      const hours = normalized.moving_time / 3600
-      return Math.round(intensityFactor * intensityFactor * hours * 100)
-    }
-    return null
-  }
-
-  const tss = calculateTSS(normalized)
-  const pace = formatPaceWithUnits(normalized)
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-2.5 hover:shadow-md transition-shadow">
@@ -125,11 +135,14 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
         <h3 className="font-semibold text-base text-gray-900 truncate">
           {normalized.name}
         </h3>
-        {normalized.private && (
-          <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
-            Private
-          </span>
-        )}
+        <div className="flex items-center justify-center gap-2 mt-1">
+          {normalized.private && (
+            <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+              Private
+            </span>
+          )}
+          {getRPEBadge(normalized.perceived_exertion)}
+        </div>
       </div>
       
       {/* Main content - Compact layout */}
@@ -169,23 +182,6 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
           </button>
         </div>
       </div>
-
-      {/* Performance metrics - Compact row */}
-      {(pace || normalized.average_heartrate || normalized.average_watts || tss || normalized.kudos_count > 0) && (
-        <div className="flex items-center gap-3 text-xs text-gray-500 mt-1.5 pt-1.5 border-t border-gray-100">
-          {pace && <span>⚡ {pace}</span>}
-          {normalized.average_heartrate && (
-            <span>❤️ {Math.round(normalized.average_heartrate)} bpm</span>
-          )}
-          {normalized.average_watts && (
-            <span>⚡ {Math.round(normalized.average_watts)}w</span>
-          )}
-          {tss && <span>📊 {tss} TSS</span>}
-          {normalized.kudos_count > 0 && (
-            <span>👍 {normalized.kudos_count}</span>
-          )}
-        </div>
-      )}
     </div>
   )
 } 

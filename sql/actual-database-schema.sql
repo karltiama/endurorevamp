@@ -1,7 +1,7 @@
 -- =====================================================
 -- ACTUAL DATABASE SCHEMA REFERENCE
 -- =====================================================
--- Generated: 2025-06-17
+-- Generated: 2025-01-XX (Updated)
 -- Source: Schema analysis from /api/debug/schema
 -- 
 -- This file documents the REAL structure of the database
@@ -73,7 +73,21 @@ CREATE TABLE activities (
   day_of_week INTEGER,                   -- Day (0-6, Sunday=0)
   average_pace NUMERIC,                  -- Seconds per km (e.g., 7.48)
   elevation_per_km NUMERIC,              -- Elevation gain per km (e.g., 5.46)
-  efficiency_score NUMERIC               -- Performance metric (e.g., 2.23)
+  efficiency_score NUMERIC,              -- Performance metric (e.g., 2.23)
+  
+  -- TRAINING METRICS (manually logged or calculated)
+  relative_effort INTEGER,               -- Strava's relative effort score
+  perceived_exertion INTEGER,            -- RPE 1-10 scale (manually logged)
+  training_load_score DOUBLE PRECISION,  -- Calculated training load
+  intensity_score DOUBLE PRECISION,      -- Workout intensity rating
+  recovery_time INTEGER,                 -- Hours needed for recovery
+  normalized_power DOUBLE PRECISION,     -- Power-based normalized score
+  training_stress_score DOUBLE PRECISION, -- TSS (Training Stress Score)
+  
+  -- ZONE DATA (stored as JSON)
+  power_zones JSONB,                     -- Power zone distribution
+  heart_rate_zones JSONB,                -- Heart rate zone data
+  pace_zones JSONB                       -- Pace zone information
 );
 
 -- Sample data from actual database:

@@ -376,7 +376,16 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
 
         {/* Quick Actions */}
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="flex-1">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex-1"
+            onClick={() => {
+              // This would ideally open the activity detail modal for the most recent activity
+              // For now, we'll show a message about where to log RPE
+              alert('To log RPE, go to your Activity Feed and click "View Details" on any activity.')
+            }}
+          >
             Log RPE
           </Button>
           <Button variant="outline" size="sm" className="flex-1">
