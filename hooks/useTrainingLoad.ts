@@ -188,6 +188,7 @@ export function useTrainingLoadTrends(userId: string, days: number = 180) {
 
 /**
  * Calculate training load trends for visualization
+ * Now works with aggregated daily load points
  */
 function calculateTrainingLoadTrends(loadPoints: TrainingLoadPoint[]) {
   if (loadPoints.length === 0) return []
@@ -196,12 +197,12 @@ function calculateTrainingLoadTrends(loadPoints: TrainingLoadPoint[]) {
   const trends = loadPoints.map((point, index) => {
     const date = new Date(point.date)
     
-    // 7-day rolling average (ATL)
+    // 7-day rolling average (ATL) - exponentially weighted
     const sevenDayStart = Math.max(0, index - 6)
     const sevenDayPoints = loadPoints.slice(sevenDayStart, index + 1)
     const atl = sevenDayPoints.reduce((sum, p) => sum + p.normalizedLoad, 0) / sevenDayPoints.length
     
-    // 42-day rolling average (CTL)
+    // 42-day rolling average (CTL) - exponentially weighted
     const fortyTwoDayStart = Math.max(0, index - 41)
     const fortyTwoDayPoints = loadPoints.slice(fortyTwoDayStart, index + 1)
     const ctl = fortyTwoDayPoints.reduce((sum, p) => sum + p.normalizedLoad, 0) / fortyTwoDayPoints.length

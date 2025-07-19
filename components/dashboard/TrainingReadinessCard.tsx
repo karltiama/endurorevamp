@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { usePersonalizedTSSTarget } from '@/hooks/useTrainingProfile'
 import { useMemo } from 'react'
@@ -14,9 +15,8 @@ import {
   AlertTriangle, 
   CheckCircle, 
   Clock,
-  TrendingUp,
-  TrendingDown,
-  Activity
+  Activity,
+  Info
 } from 'lucide-react'
 import { ActivityWithTrainingData } from '@/types'
 
@@ -292,34 +292,67 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Heart className="h-4 w-4" />
-              Last RPE
-            </div>
-            <div className="text-lg font-semibold">
-              {trainingReadiness.lastRPE ? `${trainingReadiness.lastRPE}/10` : 'N/A'}
-            </div>
+        <TooltipProvider>
+          <div className="grid grid-cols-2 gap-4">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="space-y-1 cursor-help">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Heart className="h-4 w-4" />
+                    Last RPE
+                    <Info className="h-3 w-3 text-gray-400" />
+                  </div>
+                  <div className="text-lg font-semibold">
+                    {trainingReadiness.lastRPE ? `${trainingReadiness.lastRPE}/10` : 'N/A'}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-64">
+                <div className="space-y-1">
+                  <p className="font-medium text-sm">Rate of Perceived Exertion</p>
+                  <p className="text-xs text-gray-600">
+                    How hard your last workout felt (1-10 scale). Higher = more recovery needed.
+                  </p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="space-y-1 cursor-help">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Zap className="h-4 w-4" />
+                    TSS Balance
+                    <Info className="h-3 w-3 text-gray-400" />
+                  </div>
+                  <div className={`text-lg font-semibold flex items-center gap-1 ${
+                    trainingReadiness.tssBalance > 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {trainingReadiness.tssBalance > 0 ? (
+                      <CheckCircle className="h-4 w-4" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4" />
+                    )}
+                    {Math.abs(trainingReadiness.tssBalance)}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-64">
+                <div className="space-y-1">
+                  <p className="font-medium text-sm">TSS Balance</p>
+                  <p className="text-xs text-gray-600">
+                    {trainingReadiness.tssBalance > 0 
+                      ? `${Math.abs(trainingReadiness.tssBalance)} points under target - well rested` 
+                      : trainingReadiness.tssBalance < 0 
+                        ? `${Math.abs(trainingReadiness.tssBalance)} points over target - accumulating fatigue`
+                        : 'On target - balanced'
+                    }
+                  </p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
           </div>
-          
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Zap className="h-4 w-4" />
-              TSS Balance
-            </div>
-            <div className={`text-lg font-semibold flex items-center gap-1 ${
-              trainingReadiness.tssBalance > 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {trainingReadiness.tssBalance > 0 ? (
-                <TrendingUp className="h-4 w-4" />
-              ) : (
-                <TrendingDown className="h-4 w-4" />
-              )}
-              {Math.abs(trainingReadiness.tssBalance)}
-            </div>
-          </div>
-        </div>
+        </TooltipProvider>
 
         {/* Weekly Progress */}
         <div className="space-y-2">

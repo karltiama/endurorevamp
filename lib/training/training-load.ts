@@ -228,24 +228,58 @@ export class TrainingLoadCalculator {
 
   /**
    * Process activities into training load points
+   * Aggregates multiple activities per day into single daily load points
    */
   processActivities(activities: Activity[]): TrainingLoadPoint[] {
-    return activities
+    // Filter activities and group by date
+    const activitiesByDate = new Map<string, Activity[]>()
+    
+    activities
       .filter(activity => activity.moving_time > 300) // At least 5 minutes
-      .map(activity => ({
-        date: activity.start_date_local,
-        trimp: this.calculateTRIMP(activity),
-        tss: this.calculateTSS(activity),
-        normalizedLoad: this.calculateNormalizedLoad(activity),
-        activity: {
-          name: activity.name,
-          sport_type: activity.sport_type,
-          duration: activity.moving_time,
-          avgHR: activity.average_heartrate || undefined,
-          avgPower: activity.average_watts || undefined
+      .forEach(activity => {
+        const date = activity.start_date_local.split('T')[0] // Get just the date part
+        if (!activitiesByDate.has(date)) {
+          activitiesByDate.set(date, [])
         }
-      }))
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        activitiesByDate.get(date)!.push(activity)
+      })
+    
+    // Create aggregated load points (one per day)
+    const loadPoints = Array.from(activitiesByDate.entries()).map(([date, dayActivities]) => {
+      // Aggregate all metrics for the day
+      const totalTrimp = dayActivities.reduce((sum, activity) => sum + this.calculateTRIMP(activity), 0)
+      const totalTss = dayActivities.reduce((sum, activity) => sum + this.calculateTSS(activity), 0)
+      const totalLoad = dayActivities.reduce((sum, activity) => sum + this.calculateNormalizedLoad(activity), 0)
+      
+      // Get the primary activity for display (longest duration)
+      const primaryActivity = dayActivities.reduce((longest, current) => 
+        current.moving_time > longest.moving_time ? current : longest
+      )
+      
+      return {
+        date: `${date}T00:00:00Z`, // Standardize to start of day
+        trimp: totalTrimp,
+        tss: totalTss,
+        normalizedLoad: totalLoad,
+        activity: {
+          name: dayActivities.length > 1 
+            ? `${dayActivities.length} activities` 
+            : primaryActivity.name,
+          sport_type: dayActivities.length > 1 
+            ? 'Mixed' 
+            : primaryActivity.sport_type,
+          duration: dayActivities.reduce((sum, act) => sum + act.moving_time, 0),
+          avgHR: dayActivities.some(act => act.average_heartrate) 
+            ? Math.round(dayActivities.reduce((sum, act) => sum + (act.average_heartrate || 0), 0) / dayActivities.length)
+            : undefined,
+          avgPower: dayActivities.some(act => act.average_watts) 
+            ? Math.round(dayActivities.reduce((sum, act) => sum + (act.average_watts || 0), 0) / dayActivities.length)
+            : undefined
+        }
+      }
+    })
+    
+    return loadPoints.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   }
 
   // Private helper methods

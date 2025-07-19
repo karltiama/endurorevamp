@@ -226,7 +226,52 @@ describe('TrainingLoadCalculator', () => {
 
       const loadPoints = calculator.processActivities(activities)
       
-      expect(loadPoints).toHaveLength(2) // Only activities > 5 minutes
+      expect(loadPoints).toHaveLength(1) // Only activities > 5 minutes, grouped by date
+    })
+
+    it('should filter out very short activities and group by date', () => {
+      const activities = [
+        createMockActivity({ 
+          start_date_local: '2024-01-15T08:00:00Z',
+          moving_time: 120 // 2 minutes - should be filtered
+        }),
+        createMockActivity({ 
+          start_date_local: '2024-01-15T08:00:00Z',
+          moving_time: 1800 // 30 minutes - should be included
+        }),
+        createMockActivity({ 
+          start_date_local: '2024-01-16T08:00:00Z',
+          moving_time: 3600 // 1 hour - should be included
+        })
+      ]
+
+      const loadPoints = calculator.processActivities(activities)
+      
+      expect(loadPoints).toHaveLength(2) // 2 different dates with valid activities
+      expect(loadPoints[0].activity?.name).toBe('Morning Run') // Single activity on first day
+      expect(loadPoints[1].activity?.name).toBe('Morning Run') // Single activity on second day
+    })
+
+    it('should aggregate multiple activities on same day', () => {
+      const activities = [
+        createMockActivity({ 
+          start_date_local: '2024-01-15T08:00:00Z',
+          moving_time: 1800,
+          name: 'Morning Run'
+        }),
+        createMockActivity({ 
+          start_date_local: '2024-01-15T14:00:00Z', // Same day, different time
+          moving_time: 3600,
+          name: 'Afternoon Ride'
+        })
+      ]
+
+      const loadPoints = calculator.processActivities(activities)
+      
+      expect(loadPoints).toHaveLength(1) // One load point for one day
+      expect(loadPoints[0].activity?.name).toBe('2 activities') // Aggregated name
+      expect(loadPoints[0].activity?.sport_type).toBe('Mixed') // Mixed sports
+      expect(loadPoints[0].activity?.duration).toBe(5400) // Total duration (1800 + 3600)
     })
 
     it('should sort load points by date', () => {
