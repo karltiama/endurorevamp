@@ -235,11 +235,10 @@ describe('TrainingReadinessCard', () => {
     
     expect(screen.getByText('Training Readiness')).toBeInTheDocument();
     
-    // Check for Last RPE section
+    // Check for Last RPE section (still exists in the metrics)
     expect(screen.getByText('Last RPE')).toBeInTheDocument();
     
-    // Check for Log RPE button
-    expect(screen.getByText('Log RPE')).toBeInTheDocument();
+    // Log RPE button was removed - no longer checking for it
   });
 
   it('handles error state gracefully', () => {
@@ -297,7 +296,8 @@ describe('TrainingReadinessCard', () => {
 
     render(<TrainingReadinessCard userId="test-user" />, { wrapper: createWrapper() });
     
-    expect(screen.getByText('Recommendation')).toBeInTheDocument();
+    // Updated to check for "Recommended Workout" instead of "Recommendation"
+    expect(screen.getByText('Recommended Workout')).toBeInTheDocument();
     expect(screen.getByText(/moderate training|hard workout|easy run|recovery/)).toBeInTheDocument();
   });
 
@@ -318,7 +318,7 @@ describe('TrainingReadinessCard', () => {
 
     render(<TrainingReadinessCard userId="test-user" />, { wrapper: createWrapper() });
     
-    expect(screen.getByText('Log RPE')).toBeInTheDocument();
+    // Updated to only check for "Plan Workout" button since "Log RPE" was removed
     expect(screen.getByText('Plan Workout')).toBeInTheDocument();
   });
 

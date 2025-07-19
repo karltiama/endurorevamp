@@ -366,29 +366,22 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
           />
         </div>
 
-        {/* Recommendation */}
+        {/* Recommendation & Workout Planning */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-2">Recommendation</h4>
-          <p className="text-sm text-blue-800">
+          <h4 className="font-medium text-blue-900 mb-2">Recommended Workout</h4>
+          <p className="text-sm text-blue-800 mb-3">
             {trainingReadiness.recommendation}
           </p>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="flex gap-2">
+          
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex-1"
+            className="w-full"
             onClick={() => {
-              // This would ideally open the activity detail modal for the most recent activity
-              // For now, we'll show a message about where to log RPE
-              alert('To log RPE, go to your Activity Feed and click "View Details" on any activity.')
+              // This would open workout planning when the feature is implemented
+              alert('Workout planning feature coming soon! For now, check your Activity Feed for workout ideas.')
             }}
           >
-            Log RPE
-          </Button>
-          <Button variant="outline" size="sm" className="flex-1">
             Plan Workout
           </Button>
         </div>
