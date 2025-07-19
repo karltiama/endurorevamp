@@ -7,12 +7,23 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
+interface DailyAnalysis {
+  date: string
+  totalLoad: number
+  activityCount: number
+  activities: Array<{
+    name: string
+    sport_type: string
+    load: number
+  }>
+}
+
 export function SimplifiedDailyDebugger() {
   const [selectedDate1, setSelectedDate1] = useState('2024-07-16')
   const [selectedDate2, setSelectedDate2] = useState('2024-07-18')
   const [analysis, setAnalysis] = useState<{
-    date1?: any
-    date2?: any
+    date1?: DailyAnalysis
+    date2?: DailyAnalysis
   }>({})
 
   const analyzeDates = () => {
@@ -120,7 +131,7 @@ export function SimplifiedDailyDebugger() {
 
           {(!analysis.date1 || !analysis.date2) && (
             <div className="text-center py-8 text-gray-500">
-              <p>Click "Analyze" to compare the selected dates</p>
+              <p>Click &quot;Analyze&quot; to compare the selected dates</p>
             </div>
           )}
         </CardContent>

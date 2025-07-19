@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge'
 import { useTrainingLoad, useTrainingLoadTrends } from '@/hooks/useTrainingLoad'
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { useAuth } from '@/providers/AuthProvider'
-import { format, parseISO } from 'date-fns'
 
 interface DateAnalysis {
   date: string
@@ -20,10 +19,17 @@ interface DateAnalysis {
   }>
 }
 
+interface TrendAnalysis {
+  date: string
+  dailyLoad: number
+  ctl: number
+  atl: number
+}
+
 export function TrainingLoadDebugger() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [dateAnalysis, setDateAnalysis] = useState<DateAnalysis[]>([])
-  const [trendsAnalysis, setTrendsAnalysis] = useState<any[]>([])
+  const [trendsAnalysis, setTrendsAnalysis] = useState<TrendAnalysis[]>([])
   const { user } = useAuth()
 
   const { data: activities = [] } = useUserActivities(user?.id || '')

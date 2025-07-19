@@ -334,7 +334,7 @@ export function DailyLoadDebugger() {
 
           {(!analysis.date1 || !analysis.date2) && !error && (
             <div className="text-center py-8 text-gray-500">
-              <p>Click "Analyze" to compare the selected dates</p>
+              <p>Click &quot;Analyze&quot; to compare the selected dates</p>
               <p className="text-sm mt-2">
                 Make sure you have activities on both dates: {selectedDate1} and {selectedDate2}
               </p>
