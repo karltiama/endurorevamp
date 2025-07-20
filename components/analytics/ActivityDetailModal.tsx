@@ -70,7 +70,7 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
   }
 
   const formatTime = (dateString: string) => {
-    return formatStravaTime(dateString, activity.timezone)
+    return formatStravaTime(dateString)
   }
 
   const handleSaveRPE = async () => {

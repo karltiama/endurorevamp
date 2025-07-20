@@ -75,8 +75,8 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
   }
 
   // Use the new utility functions for proper timezone handling
-  const formatDate = (dateString: string) => formatStravaDate(dateString, activity.timezone)
-  const formatTime = (dateString: string) => formatStravaTime(dateString, activity.timezone)
+  const formatDate = (dateString: string) => formatStravaDate(dateString)
+  const formatTime = (dateString: string) => formatStravaTime(dateString)
 
   const getRPEBadge = (rpe: number | undefined) => {
     if (!rpe) {

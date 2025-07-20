@@ -66,8 +66,8 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
   }
 
   // Format date to readable format using proper timezone handling
-  const formatDate = (dateString: string, timezone?: string): string => {
-    return formatStravaDateTime(dateString, timezone)
+  const formatDate = (dateString: string): string => {
+    return formatStravaDateTime(dateString)
   }
 
   // Get activity type color - handle both sport_type and activity_type
