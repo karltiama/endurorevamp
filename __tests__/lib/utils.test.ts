@@ -1,4 +1,4 @@
-import { formatDistance, getActivityIcon, formatStravaTime, formatStravaDate, formatStravaDateTime } from '@/lib/utils'
+import { formatDistance, getActivityIcon, formatStravaTime, formatStravaDate, formatStravaDateTime, getCurrentWeekBoundaries, isInCurrentWeek, getDayOfWeek } from '@/lib/utils'
 
 describe('Utils', () => {
   describe('formatDistance', () => {
@@ -171,6 +171,69 @@ describe('Utils', () => {
 
     it('handles invalid date string', () => {
       expect(formatStravaDateTime('invalid-date')).toBe('')
+    })
+  })
+
+  describe('getCurrentWeekBoundaries', () => {
+    it('returns Monday to Sunday week boundaries', () => {
+      const { start, end } = getCurrentWeekBoundaries()
+      
+      // Start should be Monday (day 1)
+      expect(start.getDay()).toBe(1)
+      expect(start.getHours()).toBe(0)
+      expect(start.getMinutes()).toBe(0)
+      expect(start.getSeconds()).toBe(0)
+      
+      // End should be Sunday (day 0)
+      expect(end.getDay()).toBe(0)
+      expect(end.getHours()).toBe(23)
+      expect(end.getMinutes()).toBe(59)
+      expect(end.getSeconds()).toBe(59)
+      
+      // Should be 6 days apart (Monday to Sunday)
+      const diffTime = end.getTime() - start.getTime()
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      expect(diffDays).toBe(7)
+    })
+  })
+
+  describe('isInCurrentWeek', () => {
+    it('correctly identifies dates in current week', () => {
+      const { start, end } = getCurrentWeekBoundaries()
+      
+      // Test start of week
+      expect(isInCurrentWeek(start)).toBe(true)
+      
+      // Test end of week
+      expect(isInCurrentWeek(end)).toBe(true)
+      
+      // Test middle of week
+      const middleOfWeek = new Date(start)
+      middleOfWeek.setDate(start.getDate() + 3)
+      expect(isInCurrentWeek(middleOfWeek)).toBe(true)
+      
+      // Test previous week
+      const previousWeek = new Date(start)
+      previousWeek.setDate(start.getDate() - 1)
+      expect(isInCurrentWeek(previousWeek)).toBe(false)
+      
+      // Test next week
+      const nextWeek = new Date(end)
+      nextWeek.setDate(end.getDate() + 1)
+      expect(isInCurrentWeek(nextWeek)).toBe(false)
+    })
+  })
+
+  describe('getDayOfWeek', () => {
+    it('returns correct day abbreviations', () => {
+      // Create dates for specific days of the week
+      const monday = new Date(2024, 0, 1) // Monday (Jan 1, 2024)
+      const wednesday = new Date(2024, 0, 3) // Wednesday (Jan 3, 2024)
+      const sunday = new Date(2024, 0, 7) // Sunday (Jan 7, 2024)
+      
+      expect(getDayOfWeek(monday)).toBe('Mon')
+      expect(getDayOfWeek(wednesday)).toBe('Wed')
+      expect(getDayOfWeek(sunday)).toBe('Sun')
     })
   })
 }) 

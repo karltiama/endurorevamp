@@ -19,6 +19,7 @@ import {
   Info
 } from 'lucide-react'
 import { ActivityWithTrainingData } from '@/types'
+import { getCurrentWeekBoundaries } from '@/lib/utils'
 
 interface TrainingReadinessCardProps {
   userId: string
@@ -150,13 +151,7 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
     if (!activities || activities.length === 0) return null
 
     // Get current week activities (Monday to Sunday)
-    const now = new Date()
-    const currentWeekStart = new Date(now)
-    currentWeekStart.setDate(now.getDate() - now.getDay() + 1) // Monday
-    currentWeekStart.setHours(0, 0, 0, 0)
-    const currentWeekEnd = new Date(currentWeekStart)
-    currentWeekEnd.setDate(currentWeekStart.getDate() + 6) // Sunday
-    currentWeekEnd.setHours(23, 59, 59, 999)
+    const { start: currentWeekStart, end: currentWeekEnd } = getCurrentWeekBoundaries()
 
     // Filter activities for current week
     const thisWeekActivities = activities.filter(activity => {
@@ -165,6 +160,7 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
     })
 
     const lastActivity = thisWeekActivities[0]
+    const now = new Date()
     const daysSinceLastWorkout = lastActivity 
       ? Math.floor((now.getTime() - new Date(lastActivity.start_date).getTime()) / (1000 * 60 * 60 * 24))
       : 7

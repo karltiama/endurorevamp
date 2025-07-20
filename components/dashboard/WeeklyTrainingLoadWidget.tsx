@@ -15,6 +15,7 @@ import {
   Clock
 } from 'lucide-react'
 import { ActivityWithTrainingData } from '@/types'
+import { getCurrentWeekBoundaries } from '@/lib/utils'
 
 interface WeeklyTrainingLoadWidgetProps {
   userId: string
@@ -89,10 +90,14 @@ const calculateDailyTSS = (activities: ActivityWithTrainingData[], weekStart: Da
   for (let i = 0; i < 7; i++) {
     const dayDate = new Date(weekStart)
     dayDate.setDate(weekStart.getDate() + i)
+    dayDate.setHours(0, 0, 0, 0)
+    
+    const nextDay = new Date(dayDate)
+    nextDay.setDate(dayDate.getDate() + 1)
     
     const dayActivities = activities.filter(activity => {
       const activityDate = new Date(activity.start_date)
-      return activityDate.toDateString() === dayDate.toDateString()
+      return activityDate >= dayDate && activityDate < nextDay
     })
 
     const dayTSS = dayActivities.reduce((sum, activity) => {
@@ -136,14 +141,7 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
     if (!activities || activities.length === 0) return null
 
     // Get current week activities (Monday to Sunday)
-    const now = new Date()
-    const currentWeekStart = new Date(now)
-    currentWeekStart.setDate(now.getDate() - now.getDay() + 1) // Monday
-    currentWeekStart.setHours(0, 0, 0, 0)
-    
-    const currentWeekEnd = new Date(currentWeekStart)
-    currentWeekEnd.setDate(currentWeekStart.getDate() + 6) // Sunday
-    currentWeekEnd.setHours(23, 59, 59, 999)
+    const { start: currentWeekStart, end: currentWeekEnd } = getCurrentWeekBoundaries()
 
     // Filter activities for current week
     const thisWeekActivities = activities.filter(activity => {

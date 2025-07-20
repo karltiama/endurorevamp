@@ -315,4 +315,37 @@ export function formatStravaDateTime(dateString: string): string {
   }
 }
 
+/**
+ * Get the current week boundaries (Monday to Sunday)
+ * Returns start and end dates for the current week
+ */
+export function getCurrentWeekBoundaries(): { start: Date; end: Date } {
+  const now = new Date()
+  const currentWeekStart = new Date(now)
+  currentWeekStart.setDate(now.getDate() - now.getDay() + 1) // Monday
+  currentWeekStart.setHours(0, 0, 0, 0)
+  
+  const currentWeekEnd = new Date(currentWeekStart)
+  currentWeekEnd.setDate(currentWeekStart.getDate() + 6) // Sunday
+  currentWeekEnd.setHours(23, 59, 59, 999)
+  
+  return { start: currentWeekStart, end: currentWeekEnd }
+}
+
+/**
+ * Check if a date falls within the current week (Monday to Sunday)
+ */
+export function isInCurrentWeek(date: Date): boolean {
+  const { start, end } = getCurrentWeekBoundaries()
+  return date >= start && date <= end
+}
+
+/**
+ * Get the day of week as a string (Mon, Tue, etc.)
+ */
+export function getDayOfWeek(date: Date): string {
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  return days[date.getDay()]
+}
+
 
