@@ -164,22 +164,25 @@ describe('DashboardLayout with Hover Sidebar', () => {
   })
 
   describe('User Information', () => {
-    it('shows user account section', () => {
+    it('shows user profile in settings and logout at bottom', () => {
       renderDashboardLayout()
       
-      expect(screen.getByText('Account')).toBeInTheDocument()
+      // Check for Profile button in Settings group
+      expect(screen.getByText('Profile')).toBeInTheDocument()
+      
+      // Check for Logout button in footer
+      expect(screen.getByText('Logout')).toBeInTheDocument()
     })
 
-    it('includes logout functionality in dropdown', async () => {
+    it('includes logout functionality at bottom of sidebar', async () => {
       renderDashboardLayout()
       
-      // Check that the Account button exists (logout is inside the dropdown)
-      const accountButton = screen.getByText('Account')
-      expect(accountButton).toBeInTheDocument()
+      // Check that the Logout button exists in the footer
+      const logoutButton = screen.getByText('Logout')
+      expect(logoutButton).toBeInTheDocument()
       
-      // The logout functionality is in a dropdown, but testing dropdown interactions
-      // in this environment is complex due to Radix UI's portal behavior
-      // In a real scenario, clicking Account would show the logout option
+      // The logout button should be clickable and trigger form submission
+      expect(logoutButton.closest('button')).toBeInTheDocument()
     })
   })
 

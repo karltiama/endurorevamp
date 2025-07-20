@@ -14,6 +14,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useUserActivities } from '@/hooks/use-user-activities';
+import { useUnitPreferences } from '@/hooks/useUnitPreferences';
 import { formatDistance, formatPace } from '@/lib/utils';
 import { Activity as StravaActivity } from '@/lib/strava/types';
 import { ActivityWithTrainingData } from '@/types';
@@ -127,22 +128,91 @@ const analyzeTrainingProfile = (activities: StravaActivity[]): TrainingProfile =
   const strengths: string[] = [];
   const areasForImprovement: string[] = [];
 
-  if (trainingFrequency >= 4) {
-    strengths.push('High training consistency');
+  // Always provide positive feedback based on experience level
+  if (experienceLevel === 'beginner') {
+    // Beginner-friendly strengths
+    if (trainingFrequency >= 1) {
+      strengths.push('Getting started with running');
+    }
+    if (trainingFrequency >= 2) {
+      strengths.push('Building a consistent routine');
+    }
+    if (trainingFrequency >= 3) {
+      strengths.push('Great training frequency for a beginner');
+    }
+    if (weeklyDistance > 0) {
+      strengths.push('Taking the first steps in your running journey');
+    }
+    if (weeklyDistance >= 5) {
+      strengths.push('Building a solid foundation');
+    }
+    
+    // Beginner-friendly areas for improvement
+    if (trainingFrequency < 2) {
+      areasForImprovement.push('Try to run 2-3 times per week');
+    }
+    if (weeklyDistance < 10) {
+      areasForImprovement.push('Gradually increase your weekly distance');
+    }
+  } else if (experienceLevel === 'intermediate') {
+    // Intermediate strengths
+    if (trainingFrequency >= 4) {
+      strengths.push('High training consistency');
+    } else if (trainingFrequency >= 3) {
+      strengths.push('Good training frequency');
+    }
+    if (averagePace < 300) {
+      strengths.push('Good running pace');
+    }
+    if (weeklyDistance > 30) {
+      strengths.push('Strong endurance base');
+    } else if (weeklyDistance > 20) {
+      strengths.push('Building endurance');
+    }
+    
+    // Intermediate areas for improvement
+    if (trainingFrequency < 4) {
+      areasForImprovement.push('Increase training frequency');
+    }
+    if (averagePace >= 300) {
+      areasForImprovement.push('Work on pace improvement');
+    }
+    if (weeklyDistance < 30) {
+      areasForImprovement.push('Build distance gradually');
+    }
   } else {
-    areasForImprovement.push('Increase training frequency');
+    // Advanced strengths
+    if (trainingFrequency >= 5) {
+      strengths.push('Elite training consistency');
+    } else if (trainingFrequency >= 4) {
+      strengths.push('High training consistency');
+    }
+    if (averagePace < 250) {
+      strengths.push('Excellent running pace');
+    } else if (averagePace < 300) {
+      strengths.push('Good running pace');
+    }
+    if (weeklyDistance > 50) {
+      strengths.push('Elite endurance base');
+    } else if (weeklyDistance > 40) {
+      strengths.push('Strong endurance base');
+    }
+    
+    // Advanced areas for improvement
+    if (trainingFrequency < 5) {
+      areasForImprovement.push('Optimize training frequency');
+    }
+    if (averagePace >= 300) {
+      areasForImprovement.push('Focus on pace improvement');
+    }
+    if (weeklyDistance < 40) {
+      areasForImprovement.push('Increase weekly volume');
+    }
   }
 
-  if (averagePace < 300) {
-    strengths.push('Good running pace');
-  } else {
-    areasForImprovement.push('Work on pace improvement');
-  }
-
-  if (weeklyDistance > 30) {
-    strengths.push('Strong endurance base');
-  } else {
-    areasForImprovement.push('Build distance gradually');
+  // Ensure we always have at least one strength
+  if (strengths.length === 0) {
+    strengths.push('Starting your running journey');
   }
 
   // Generate recommendations
@@ -176,7 +246,7 @@ const analyzeTrainingProfile = (activities: StravaActivity[]): TrainingProfile =
 
 export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
   const { data: activities, isLoading } = useUserActivities(userId);
-  // const { preferences } = useUnitPreferences();
+  const { preferences } = useUnitPreferences();
 
   const profile = analyzeTrainingProfile(activities || []); // fallback, or refactor as needed
 
@@ -222,9 +292,12 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-blue-600">
-                {profile.weeklyTSSTarget}
+                {profile.weeklyTSSTarget} TSS
               </div>
-              <div className="text-sm text-muted-foreground">Weekly TSS Target</div>
+              <div className="text-sm text-muted-foreground">Recent Training Capacity</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Based on recent activity
+              </div>
                 </div>
                   </div>
         </CardContent>
@@ -237,10 +310,10 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
             <div className="flex items-center gap-3 mb-3">
               <MapPin className="h-5 w-5 text-blue-500" />
               <div>
-                <div className="text-sm text-muted-foreground">Preferred Distance</div>
-                <div className="text-xl font-semibold">
-                  {formatDistance(profile.preferredDistance * 1000, 'km')}
-                </div>
+                                  <div className="text-sm text-muted-foreground">Preferred Distance</div>
+                  <div className="text-xl font-semibold">
+                    {formatDistance(profile.preferredDistance * 1000, preferences.distance)}
+                  </div>
               </div>
             </div>
           </CardContent>
@@ -251,10 +324,10 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
             <div className="flex items-center gap-3 mb-3">
               <TrendingUp className="h-5 w-5 text-green-500" />
                 <div>
-                <div className="text-sm text-muted-foreground">Average Pace</div>
-                <div className="text-xl font-semibold">
-                  {formatPace(profile.preferredPace, 'min/km')}
-                </div>
+                                  <div className="text-sm text-muted-foreground">Average Pace</div>
+                  <div className="text-xl font-semibold">
+                    {formatPace(profile.preferredPace, preferences.pace)}
+                  </div>
               </div>
                 </div>
           </CardContent>

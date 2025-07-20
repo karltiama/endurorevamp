@@ -355,16 +355,31 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
         </TooltipProvider>
 
         {/* Weekly Progress */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Weekly TSS Progress</span>
-            <span>{trainingReadiness.weeklyTSSCurrent} / {trainingReadiness.weeklyTSSTarget}</span>
-          </div>
-          <Progress 
-            value={(trainingReadiness.weeklyTSSCurrent / trainingReadiness.weeklyTSSTarget) * 100} 
-            className="h-2"
-          />
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="space-y-2 cursor-help">
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Weekly TSS Progress</span>
+                <span>{trainingReadiness.weeklyTSSCurrent} / {trainingReadiness.weeklyTSSTarget}</span>
+              </div>
+              <Progress 
+                value={(trainingReadiness.weeklyTSSCurrent / trainingReadiness.weeklyTSSTarget) * 100} 
+                className="h-2"
+              />
+              <div className="text-xs text-gray-500">
+                Based on your personalized training target
+              </div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-64">
+            <div className="space-y-1">
+              <p className="font-medium text-sm">Personalized TSS Target</p>
+              <p className="text-xs text-gray-600">
+                Your weekly target is calculated based on your experience level and training preferences from your profile.
+              </p>
+            </div>
+          </TooltipContent>
+        </Tooltip>
 
         {/* Recommendation & Workout Planning */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

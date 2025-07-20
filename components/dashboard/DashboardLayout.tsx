@@ -17,12 +17,6 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -97,6 +91,12 @@ const navigation = [
         icon: Settings,
         description: "App settings and integrations"
       },
+      {
+        title: "Profile",
+        url: "/dashboard/settings/profile",
+        icon: User,
+        description: "User profile and preferences"
+      },
     ]
   },
 ]
@@ -133,7 +133,6 @@ function AppSidebar() {
                       <SidebarMenuButton 
                         asChild 
                         isActive={isActive}
-                        tooltip={item.description}
                       >
                         <Link href={item.url}>
                           <item.icon className="size-4" />
@@ -152,37 +151,18 @@ function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                >
-                  <User className="size-4" />
-                  <span className="truncate font-semibold">Account</span>
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                side="bottom"
-                align="end"
-                sideOffset={4}
-              >
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/settings" className="flex items-center">
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <form action="/auth/logout" method="post" className="w-full">
-                    <button type="submit" className="flex w-full items-center">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
-                    </button>
-                  </form>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <SidebarMenuButton
+              onClick={() => {
+                const form = document.createElement('form')
+                form.method = 'post'
+                form.action = '/auth/logout'
+                document.body.appendChild(form)
+                form.submit()
+              }}
+            >
+              <LogOut className="size-4" />
+              <span>Logout</span>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
