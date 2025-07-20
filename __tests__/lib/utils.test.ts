@@ -44,10 +44,9 @@ describe('Utils', () => {
       expect(formatted).toMatch(/^\d{1,2}:\d{2}\s?(AM|PM)$/)
     })
 
-    it('formats time with timezone correctly', () => {
+    it('formats time correctly', () => {
       const testTime = '2024-01-15T14:30:00Z'
-      const timezone = '(GMT-05:00) America/Detroit'
-      const formatted = formatStravaTime(testTime, timezone)
+      const formatted = formatStravaTime(testTime)
       
       // Should return a time in 12-hour format
       expect(formatted).toMatch(/^\d{1,2}:\d{2}\s?(AM|PM)$/)
@@ -100,13 +99,12 @@ describe('Utils', () => {
       expect(result).toMatch(/^\d+\sdays\sago$/)
     })
 
-    it('shows relative days with timezone', () => {
+    it('shows relative days correctly', () => {
       const twoDaysAgo = new Date()
       twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
       const twoDaysAgoString = twoDaysAgo.toISOString()
-      const timezone = '(GMT-05:00) America/Detroit'
       
-      const result = formatStravaDate(twoDaysAgoString, timezone)
+      const result = formatStravaDate(twoDaysAgoString)
       expect(result).toMatch(/^\d+\sdays\sago$/)
     })
 
@@ -159,10 +157,9 @@ describe('Utils', () => {
       expect(formatted).toMatch(/^[A-Za-z]{3}\s\d{1,2},\s\d{1,2}:\d{2}\s?(AM|PM)$/)
     })
 
-    it('formats date and time with timezone', () => {
+    it('formats date and time correctly', () => {
       const testDateTime = '2024-01-15T14:30:00Z'
-      const timezone = '(GMT-05:00) America/Detroit'
-      const formatted = formatStravaDateTime(testDateTime, timezone)
+      const formatted = formatStravaDateTime(testDateTime)
       
       // Should return a format like "Jan 15, 2:30 PM"
       expect(formatted).toMatch(/^[A-Za-z]{3}\s\d{1,2},\s\d{1,2}:\d{2}\s?(AM|PM)$/)
