@@ -6,7 +6,6 @@ import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { convertDistance, getDistanceUnit } from '@/lib/utils'
 import {
   Bar,
-  BarChart,
   ResponsiveContainer,
   XAxis,
   YAxis,
@@ -15,6 +14,8 @@ import {
   Pie,
   PieChart,
   Cell,
+  ComposedChart,
+  Line,
 } from 'recharts'
 import { ActivityContributionCalendar } from './ActivityContributionCalendar'
 
@@ -36,27 +37,44 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
     }))
   })
 
-  const monthlyData = useMemo(() => {
+  const weeklyData = useMemo(() => {
     if (!activities) return []
 
-    const currentYear = new Date().getFullYear()
-    const monthlyTotals = new Array(12).fill(0)
-    const monthlyCounts = new Array(12).fill(0)
-
-    activities.forEach((activity: Activity) => {
-      const date = new Date(activity.start_date)
-      if (date.getFullYear() === currentYear) {
-        const month = date.getMonth()
-        monthlyTotals[month] += activity.distance
-        monthlyCounts[month]++
-      }
-    })
-
-    return monthlyTotals.map((distance, index) => ({
-      month: new Date(2024, index, 1).toLocaleString('default', { month: 'short' }),
-      distance: Math.round(convertDistance(distance, preferences.distance)), // Convert based on user preference
-      count: monthlyCounts[index]
-    }))
+    const currentDate = new Date()
+    const weeks = []
+    
+    // Generate last 16 weeks
+    for (let i = 15; i >= 0; i--) {
+      const weekStart = new Date(currentDate)
+      weekStart.setDate(currentDate.getDate() - (currentDate.getDay() + 7 * i))
+      weekStart.setHours(0, 0, 0, 0)
+      
+      const weekEnd = new Date(weekStart)
+      weekEnd.setDate(weekStart.getDate() + 6)
+      weekEnd.setHours(23, 59, 59, 999)
+      
+      let weeklyDistance = 0
+      let weeklyCount = 0
+      
+      activities.forEach((activity: Activity) => {
+        const activityDate = new Date(activity.start_date)
+        if (activityDate >= weekStart && activityDate <= weekEnd) {
+          weeklyDistance += activity.distance
+          weeklyCount++
+        }
+      })
+      
+      weeks.push({
+        week: `Week ${16 - i}`,
+        weekStart: weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        weekEnd: weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        distance: Math.round(convertDistance(weeklyDistance, preferences.distance)),
+        count: weeklyCount,
+        dateRange: `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+      })
+    }
+    
+    return weeks
   }, [activities, preferences.distance])
 
   const activityTypeData = useMemo(() => {
@@ -74,8 +92,6 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
     }))
   }, [activities])
 
-
-
   return (
     <Card>
       <CardHeader>
@@ -83,53 +99,69 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
         <CardDescription>View your activity data in different ways</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="monthly" className="w-full">
+        <Tabs defaultValue="weekly" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="monthly">Monthly Distance</TabsTrigger>
+            <TabsTrigger value="weekly">Weekly Distance</TabsTrigger>
             <TabsTrigger value="types">Activity Types</TabsTrigger>
             <TabsTrigger value="frequency">Activity Frequency</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="monthly" className="mt-4">
+          <TabsContent value="weekly" className="mt-4">
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyData}>
+                <ComposedChart data={weeklyData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis 
-                    dataKey="month" 
+                    dataKey="week" 
                     stroke="#888888"
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
                   />
                   <YAxis
+                    yAxisId="left"
                     stroke="#888888"
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
                     tickFormatter={(value) => `${value}${getDistanceUnit(preferences.distance)}`}
                   />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    stroke="#888888"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `${value}`}
+                  />
                   <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
+                        const data = payload[0].payload
                         return (
                           <div className="rounded-lg border bg-background p-2 shadow-sm">
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="flex flex-col">
-                                <span className="text-[0.70rem] uppercase text-muted-foreground">
-                                  Distance
-                                </span>
-                                <span className="font-bold text-muted-foreground">
-                                  {payload[0].value}{getDistanceUnit(preferences.distance)}
-                                </span>
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium text-muted-foreground">
+                                {data.dateRange}
                               </div>
-                              <div className="flex flex-col">
-                                <span className="text-[0.70rem] uppercase text-muted-foreground">
-                                  Activities
-                                </span>
-                                <span className="font-bold text-muted-foreground">
-                                  {payload[0].payload.count}
-                                </span>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="flex flex-col">
+                                  <span className="text-[0.70rem] uppercase text-muted-foreground">
+                                    Distance
+                                  </span>
+                                  <span className="font-bold text-muted-foreground">
+                                    {data.distance}{getDistanceUnit(preferences.distance)}
+                                  </span>
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-[0.70rem] uppercase text-muted-foreground">
+                                    Activities
+                                  </span>
+                                  <span className="font-bold text-muted-foreground">
+                                    {data.count}
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -143,8 +175,17 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
                     fill="hsl(var(--primary))"
                     radius={[4, 4, 0, 0]}
                     className="fill-primary"
+                    yAxisId="left"
                   />
-                </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#8884d8"
+                    strokeWidth={2}
+                    dot={{ fill: '#8884d8', strokeWidth: 2, r: 4 }}
+                    yAxisId="right"
+                  />
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           </TabsContent>

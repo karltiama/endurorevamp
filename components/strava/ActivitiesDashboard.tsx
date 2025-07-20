@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { formatDistance } from '@/lib/utils'
+import { formatDistance, formatStravaDateTime } from '@/lib/utils'
 import { Activity } from '@/lib/strava/types'
 import { Button } from '@/components/ui/button'
 
@@ -65,15 +65,9 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
     return `${kmh.toFixed(1)} km/h`
   }
 
-  // Format date to readable format
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+  // Format date to readable format using proper timezone handling
+  const formatDate = (dateString: string, timezone?: string): string => {
+    return formatStravaDateTime(dateString, timezone)
   }
 
   // Get activity type color - handle both sport_type and activity_type

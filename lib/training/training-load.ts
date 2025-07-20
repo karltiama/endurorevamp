@@ -1,4 +1,5 @@
 import { Activity } from '@/lib/strava/types'
+import { ActivityWithTrainingData } from '@/types'
 
 // Training Load interfaces
 export interface TrainingLoadPoint {
@@ -64,6 +65,16 @@ const SPORT_MULTIPLIERS = {
   'Default': 0.8
 }
 
+// Enhanced weight training multipliers based on exercise type
+const WEIGHT_TRAINING_MULTIPLIERS = {
+  'strength': 0.7,      // Low rep, high intensity (1-5 reps)
+  'hypertrophy': 0.8,   // Moderate rep range (6-12 reps)
+  'endurance': 0.9,     // High rep, low intensity (15+ reps)
+  'power': 0.75,        // Explosive movements
+  'circuit': 1.0,       // High intensity circuit training
+  'default': 0.8
+}
+
 export class TrainingLoadCalculator {
   private athleteThresholds: AthleteThresholds
 
@@ -102,6 +113,81 @@ export class TrainingLoadCalculator {
     trimp *= sportMultiplier
 
     return Math.round(trimp)
+  }
+
+  /**
+   * Calculate weight training-specific load
+   * Considers exercise type, intensity, and neuromuscular stress
+   */
+  calculateWeightTrainingLoad(activity: ActivityWithTrainingData): number {
+    const duration = activity.moving_time / 60 // minutes
+    
+    // Base calculation using heart rate if available
+    let baseLoad = 0
+    
+    if (activity.has_heartrate && activity.average_heartrate) {
+      const avgHR = activity.average_heartrate
+      const maxHR = this.athleteThresholds.maxHeartRate
+      const restHR = this.athleteThresholds.restingHeartRate
+      
+      // Heart rate reserve ratio
+      const hrReserve = (avgHR - restHR) / (maxHR - restHR)
+      const hrRatio = Math.max(0, Math.min(1, hrReserve))
+      
+      // Weight training typically has lower HR but higher neuromuscular stress
+      const neuromuscularFactor = 1.3 // Compensate for lower HR in strength training
+      baseLoad = duration * hrRatio * neuromuscularFactor
+    } else {
+      // Fallback: duration-based estimation
+      baseLoad = duration * 0.8 // Moderate intensity assumption
+    }
+    
+    // Determine exercise type from activity name or use default
+    const exerciseType = this.determineWeightTrainingType(activity)
+    const typeMultiplier = WEIGHT_TRAINING_MULTIPLIERS[exerciseType] || WEIGHT_TRAINING_MULTIPLIERS.default
+    
+    // Apply intensity adjustments based on RPE if available
+    let intensityMultiplier = 1.0
+    if (activity.perceived_exertion) {
+      // RPE 1-10 scale to intensity multiplier
+      intensityMultiplier = 0.5 + (activity.perceived_exertion / 10) * 0.8 // 0.5 to 1.3 range
+    }
+    
+    const finalLoad = baseLoad * typeMultiplier * intensityMultiplier
+    return Math.round(finalLoad)
+  }
+
+  /**
+   * Determine weight training type from activity name
+   */
+  private determineWeightTrainingType(activity: ActivityWithTrainingData): keyof typeof WEIGHT_TRAINING_MULTIPLIERS {
+    const name = activity.name.toLowerCase()
+    
+    // Circuit training indicators
+    if (name.includes('circuit') || name.includes('hiit') || name.includes('crossfit')) {
+      return 'circuit'
+    }
+    
+    // Power training indicators
+    if (name.includes('power') || name.includes('clean') || name.includes('snatch') || 
+        name.includes('jerk') || name.includes('plyo')) {
+      return 'power'
+    }
+    
+    // Strength training indicators (low rep, high weight)
+    if (name.includes('strength') || name.includes('max') || name.includes('1rm') || 
+        name.includes('heavy') || name.includes('3x5') || name.includes('5x5')) {
+      return 'strength'
+    }
+    
+    // Endurance training indicators (high rep, low weight)
+    if (name.includes('endurance') || name.includes('light') || name.includes('15+') || 
+        name.includes('20+') || name.includes('burnout')) {
+      return 'endurance'
+    }
+    
+    // Default to hypertrophy (moderate rep range)
+    return 'hypertrophy'
   }
 
   /**
@@ -148,7 +234,12 @@ export class TrainingLoadCalculator {
    * Calculate normalized training load (0-100 scale)
    * Combines TRIMP and TSS with activity context
    */
-  calculateNormalizedLoad(activity: Activity): number {
+  calculateNormalizedLoad(activity: ActivityWithTrainingData): number {
+    // Use weight training-specific calculation for weight training activities
+    if (activity.sport_type === 'WeightTraining') {
+      return this.calculateWeightTrainingLoad(activity)
+    }
+
     const trimp = this.calculateTRIMP(activity)
     const tss = this.calculateTSS(activity)
     const duration = activity.moving_time / 3600 // hours

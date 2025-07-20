@@ -4,7 +4,7 @@ import { Fragment, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { formatDistance, getActivityIcon } from '@/lib/utils'
+import { formatDistance, getActivityIcon, formatStravaTime } from '@/lib/utils'
 import type { StravaActivity } from '@/lib/strava/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -70,10 +70,7 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
   }
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit'
-    })
+    return formatStravaTime(dateString, activity.timezone)
   }
 
   const handleSaveRPE = async () => {

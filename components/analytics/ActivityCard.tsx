@@ -1,6 +1,6 @@
 'use client'
 
-import { formatDistance, getActivityIcon } from '@/lib/utils'
+import { formatDistance, getActivityIcon, formatStravaDate, formatStravaTime } from '@/lib/utils'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import type { Activity, StravaActivity } from '@/lib/strava/types'
 import { Badge } from '@/components/ui/badge'
@@ -74,35 +74,19 @@ export function ActivityCard({ activity, onViewDetails }: ActivityCardProps) {
     return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffTime = Math.abs(now.getTime() - date.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays === 1) {
-      return 'Yesterday'
-    } else if (diffDays === 2) {
-      return '2 days ago'
-    } else if (diffDays <= 7) {
-      return `${diffDays} days ago`
-    } else {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
-      })
-    }
-  }
-
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit'
-    })
-  }
+  // Use the new utility functions for proper timezone handling
+  const formatDate = (dateString: string) => formatStravaDate(dateString, activity.timezone)
+  const formatTime = (dateString: string) => formatStravaTime(dateString, activity.timezone)
 
   const getRPEBadge = (rpe: number | undefined) => {
-    if (!rpe) return null
+    if (!rpe) {
+      return (
+        <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
+          <span className="text-sm mr-1">📝</span>
+          Log RPE
+        </Badge>
+      )
+    }
     
     // RPE Emoji Scale (matching the modal)
     const rpeEmojis = ['😴', '😌', '🙂', '😐', '😤', '😰', '😫', '😵', '🤯', '💀']

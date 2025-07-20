@@ -413,7 +413,9 @@ describe('TSS Calculation Consistency', () => {
 
     render(
       <QueryClientProvider client={queryClient}>
-        <TrainingReadinessCard userId="test-user" />
+        <TooltipProvider>
+          <TrainingReadinessCard userId="test-user" />
+        </TooltipProvider>
       </QueryClientProvider>
     );
 

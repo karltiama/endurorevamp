@@ -200,4 +200,163 @@ export function getActivityIcon(type: string, trainer?: boolean): string {
   return icons[type] || '🏃‍♂️'
 }
 
+/**
+ * Parse Strava's timezone field to extract timezone offset
+ * Example: "(GMT-05:00) America/Detroit" -> -5
+ */
+function parseStravaTimezone(timezone: string): number {
+  if (!timezone) return 0
+  
+  // Extract GMT offset from strings like "(GMT-05:00) America/Detroit"
+  const gmtMatch = timezone.match(/GMT([+-]\d{2}):\d{2}/)
+  if (gmtMatch) {
+    return parseInt(gmtMatch[1], 10)
+  }
+  
+  // Fallback: try to extract just the offset
+  const offsetMatch = timezone.match(/[+-]\d{1,2}/)
+  if (offsetMatch) {
+    return parseInt(offsetMatch[0], 10)
+  }
+  
+  return 0
+}
+
+/**
+ * Convert Strava's start_date_local to actual local time
+ * Strava's start_date_local is already local time, just needs proper parsing
+ */
+function convertStravaLocalTime(dateString: string, timezone: string): Date {
+  if (!dateString) return new Date()
+  
+  try {
+    // Parse the date string directly - it's already local time
+    const localDate = new Date(dateString)
+    
+    // Validate the date
+    if (isNaN(localDate.getTime())) {
+      console.warn('Invalid date string:', dateString)
+      return new Date()
+    }
+    
+    return localDate
+  } catch (error) {
+    console.error('Error converting Strava local time:', error, dateString, timezone)
+    return new Date(dateString) // Fallback to original parsing
+  }
+}
+
+/**
+ * Format time from Strava's start_date_local field
+ * Handles timezone conversion properly
+ */
+export function formatStravaTime(dateString: string, timezone?: string): string {
+  if (!dateString) return ''
+  
+  try {
+    // Parse the date string and extract time components manually
+    // This avoids JavaScript's automatic timezone conversion
+    const date = new Date(dateString)
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date string:', dateString)
+      return ''
+    }
+    
+    // Get the time in the local timezone of the activity (not browser timezone)
+    const hours = date.getUTCHours()
+    const minutes = date.getUTCMinutes()
+    
+    // Convert to 12-hour format
+    const period = hours >= 12 ? 'PM' : 'AM'
+    const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours
+    
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
+  } catch (error) {
+    console.error('Error formatting Strava time:', error, dateString)
+    return ''
+  }
+}
+
+/**
+ * Format date from Strava's start_date_local field
+ * Shows relative dates for recent activities
+ */
+export function formatStravaDate(dateString: string, timezone?: string): string {
+  if (!dateString) return ''
+  
+  try {
+    // Parse the date string directly
+    const date = new Date(dateString)
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date string:', dateString)
+      return ''
+    }
+    
+    // For date calculations, we need to compare only the date part, not the full timestamp
+    const now = new Date()
+    const activityDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    
+    const diffTime = today.getTime() - activityDate.getTime()
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 1) {
+      return 'Yesterday'
+    } else if (diffDays === 2) {
+      return '2 days ago'
+    } else if (diffDays > 0 && diffDays <= 7) {
+      return `${diffDays} days ago`
+    } else if (diffDays === 0) {
+      return 'Today'
+    } else {
+      // For older dates, use the local date components
+      const month = date.toLocaleDateString('en-US', { month: 'short' })
+      const day = date.getDate() // Use local date, not UTC
+      
+      return `${month} ${day}`
+    }
+  } catch (error) {
+    console.error('Error formatting Strava date:', error, dateString)
+    return ''
+  }
+}
+
+/**
+ * Format date and time from Strava's start_date_local field
+ * Shows both date and time with proper timezone handling
+ */
+export function formatStravaDateTime(dateString: string, timezone?: string): string {
+  if (!dateString) return ''
+  
+  try {
+    // Parse the date string directly
+    const date = new Date(dateString)
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date string:', dateString)
+      return ''
+    }
+    
+    // Get date components (use local date, not UTC)
+    const month = date.toLocaleDateString('en-US', { month: 'short' })
+    const day = date.getDate() // Use local date, not UTC
+    
+    // Get time components (using UTC to avoid timezone conversion)
+    const hours = date.getUTCHours()
+    const minutes = date.getUTCMinutes()
+    const period = hours >= 12 ? 'PM' : 'AM'
+    const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours
+    
+    return `${month} ${day}, ${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
+  } catch (error) {
+    console.error('Error formatting Strava date/time:', error, dateString)
+    return ''
+  }
+}
+
 
