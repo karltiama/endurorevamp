@@ -159,7 +159,9 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
       return activityDate >= currentWeekStart && activityDate <= currentWeekEnd
     })
 
-    const lastActivity = thisWeekActivities[0]
+    // Get the most recent activity from ALL activities (not just this week)
+    // This ensures Last RPE shows the actual last workout, not just this week's last workout
+    const lastActivity = activities[0] // Activities are already sorted by date descending
     const now = new Date()
     const daysSinceLastWorkout = lastActivity 
       ? Math.floor((now.getTime() - new Date(lastActivity.start_date).getTime()) / (1000 * 60 * 60 * 24))

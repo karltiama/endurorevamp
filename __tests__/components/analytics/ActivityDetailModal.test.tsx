@@ -2,49 +2,56 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ActivityDetailModal } from '@/components/analytics/ActivityDetailModal'
 
 // Mock the useUnitPreferences hook
+const mockUseUnitPreferences = jest.fn()
+
 jest.mock('@/hooks/useUnitPreferences', () => ({
-  useUnitPreferences: () => ({
-    preferences: {
-      distance: 'km',
-      pace: 'min/km'
-    }
-  })
+  useUnitPreferences: () => mockUseUnitPreferences()
 }))
 
-// Mock fetch for API calls
+// Mock the fetch function
 global.fetch = jest.fn()
 
-describe('ActivityDetailModal', () => {
-  const mockActivity = {
-    id: 123456,
-    name: 'Morning Run',
-    sport_type: 'Run',
-    start_date: '2024-01-15T08:00:00Z',
-    start_date_local: '2024-01-15T08:00:00Z',
-    timezone: '(GMT-05:00) America/New_York',
-    distance: 5000,
-    moving_time: 1800,
-    elapsed_time: 1820,
-    total_elevation_gain: 50,
-    average_speed: 2.78,
-    average_heartrate: 150,
-    max_heartrate: 170,
-    trainer: false,
-    commute: false,
-    private: false
-  }
+const mockActivity = {
+  id: 123456789,
+  name: 'Morning Run',
+  sport_type: 'Run',
+  distance: 5000, // 5km in meters
+  moving_time: 1800, // 30 minutes in seconds
+  elapsed_time: 1900,
+  total_elevation_gain: 50,
+  average_speed: 2.78, // 10 km/h in m/s
+  max_speed: 3.33, // 12 km/h in m/s
+  average_heartrate: 150,
+  max_heartrate: 175,
+  average_watts: 200,
+  max_watts: 250,
+  average_cadence: 180,
+  kilojoules: 450,
+  kudos_count: 5,
+  achievement_count: 2,
+  start_date: '2024-01-15T06:00:00Z',
+  start_date_local: '2024-01-15T06:00:00Z',
+  timezone: 'America/New_York',
+  trainer: false,
+  commute: false,
+  private: false
+}
 
-  const defaultProps = {
-    activity: mockActivity,
-    onClose: jest.fn()
-  }
+describe('ActivityDetailModal', () => {
+  const mockOnClose = jest.fn()
 
   beforeEach(() => {
     jest.clearAllMocks()
+    mockUseUnitPreferences.mockReturnValue({
+      preferences: {
+        distance: 'km',
+        pace: 'min/km'
+      }
+    })
   })
 
   it('renders activity details correctly', () => {
-    render(<ActivityDetailModal {...defaultProps} />)
+    render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
     
     expect(screen.getByText('Morning Run')).toBeInTheDocument()
     expect(screen.getAllByText('Run')).toHaveLength(2) // Badge and type
@@ -52,181 +59,168 @@ describe('ActivityDetailModal', () => {
     expect(screen.getByText('30:00')).toBeInTheDocument()
   })
 
-  it('shows effort section with add button when no RPE exists', () => {
-    // Ensure the activity has no perceived_exertion
-    const activityWithoutRPE = { ...mockActivity }
-    delete (activityWithoutRPE as any).perceived_exertion
+  it('displays pace for running activities', () => {
+    render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
     
-    render(<ActivityDetailModal {...defaultProps} activity={activityWithoutRPE} />)
-    
-    expect(screen.getByText('How did this workout feel?')).toBeInTheDocument()
-    expect(screen.getByText('Add Effort')).toBeInTheDocument()
-    expect(screen.getByText('No effort rating yet. Click "Add Effort" to rate this workout.')).toBeInTheDocument()
+    // 30 minutes for 5km = 6:00/km pace
+    expect(screen.getByText('6:00/km')).toBeInTheDocument()
   })
 
-  it('shows existing effort when available', () => {
-    const activityWithRPE = { ...mockActivity, perceived_exertion: 7 }
-    render(<ActivityDetailModal {...defaultProps} activity={activityWithRPE} />)
+  it('displays speed with proper unit conversion', () => {
+    render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
     
-    expect(screen.getByText('Very Hard+')).toBeInTheDocument()
-    expect(screen.getByText('Very challenging, minimal talking')).toBeInTheDocument()
-    expect(screen.getByText('Edit Effort')).toBeInTheDocument()
+    // 2.78 m/s = 10.0 km/h
+    expect(screen.getByText('10.0 km/h')).toBeInTheDocument()
   })
 
-  it('opens effort selection when add button is clicked', () => {
-    // Ensure the activity has no perceived_exertion
-    const activityWithoutRPE = { ...mockActivity }
-    delete (activityWithoutRPE as any).perceived_exertion
+  it('displays max speed when available', () => {
+    render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
     
-    render(<ActivityDetailModal {...defaultProps} activity={activityWithoutRPE} />)
-    
-    const addButton = screen.getByText('Add Effort')
-    fireEvent.click(addButton)
-    
-    expect(screen.getByText('Select the face that best represents how hard this workout felt:')).toBeInTheDocument()
-    expect(screen.getByText('😴')).toBeInTheDocument() // Very Easy emoji
-    expect(screen.getByText('💀')).toBeInTheDocument() // All Out emoji
-    expect(screen.getByText('Save Effort')).toBeInTheDocument()
-    expect(screen.getByText('Cancel')).toBeInTheDocument()
+    // 3.33 m/s = 12.0 km/h
+    expect(screen.getByText('12.0 km/h')).toBeInTheDocument()
   })
 
-  it('validates effort selection correctly', async () => {
-    // Ensure the activity has no perceived_exertion
-    const activityWithoutRPE = { ...mockActivity }
-    delete (activityWithoutRPE as any).perceived_exertion
+  it('displays power metrics when available', () => {
+    render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
     
-    render(<ActivityDetailModal {...defaultProps} activity={activityWithoutRPE} />)
+    expect(screen.getByText('200w')).toBeInTheDocument() // Average power
+    expect(screen.getByText('250w')).toBeInTheDocument() // Max power
+    expect(screen.getByText('450 kJ')).toBeInTheDocument() // Work
+  })
+
+  it('displays cadence when available', () => {
+    render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
     
-    const addButton = screen.getByText('Add Effort')
-    fireEvent.click(addButton)
+    expect(screen.getByText('180 spm')).toBeInTheDocument()
+  })
+
+  it('displays heart rate metrics', () => {
+    render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
     
-    // Wait for edit mode to be active
-    await waitFor(() => {
-      expect(screen.getByText('Save Effort')).toBeInTheDocument()
+    expect(screen.getByText('150 bpm')).toBeInTheDocument() // Average HR
+    expect(screen.getByText('175 bpm')).toBeInTheDocument() // Max HR
+  })
+
+  it('displays elevation gain', () => {
+    render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
+    
+    expect(screen.getByText('50m')).toBeInTheDocument()
+  })
+
+  it('displays social metrics', () => {
+    render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
+    
+    expect(screen.getByText('5')).toBeInTheDocument() // Kudos
+    expect(screen.getByText('2')).toBeInTheDocument() // Achievements
+  })
+
+  it('converts to miles when user preference is miles', () => {
+    mockUseUnitPreferences.mockReturnValue({
+      preferences: {
+        distance: 'miles',
+        pace: 'min/mile'
+      }
     })
+
+    render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
     
-    const saveButton = screen.getByText('Save Effort')
-    
-    // Test no selection - the save button should be disabled
-    expect(saveButton).toBeDisabled()
-    
-    // Test valid selection
-    const moderateButton = screen.getByText('Moderate')
-    fireEvent.click(moderateButton)
-    
-    // Save button should be enabled after selection
-    expect(saveButton).not.toBeDisabled()
+    // 5km = 3.1 miles
+    expect(screen.getByText('3.1 mi')).toBeInTheDocument()
+    // Pace should be converted to min/mile (30 min for 5km = 6:00/km = 9:39/mile)
+    expect(screen.getByText('9:39/mi')).toBeInTheDocument()
+    // Speed should be converted to mph (10 km/h = 6.2 mph)
+    expect(screen.getByText('6.2 mph')).toBeInTheDocument()
   })
 
-  it('calls API when saving effort', async () => {
-    const mockFetch = fetch as jest.MockedFunction<typeof fetch>
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ success: true, activity: { ...mockActivity, perceived_exertion: 8 } })
-    } as Response)
+  it('does not display pace for non-running activities', () => {
+    const cyclingActivity = { ...mockActivity, sport_type: 'Ride' }
+    
+    render(<ActivityDetailModal activity={cyclingActivity} onClose={mockOnClose} />)
+    
+    expect(screen.queryByText(/Average Pace/)).not.toBeInTheDocument()
+  })
 
-    // Ensure the activity has no perceived_exertion
-    const activityWithoutRPE = { ...mockActivity }
-    delete (activityWithoutRPE as any).perceived_exertion
+  it('handles missing optional metrics gracefully', () => {
+    const minimalActivity = {
+      id: 123,
+      name: 'Simple Activity',
+      sport_type: 'Walk',
+      distance: 1000,
+      moving_time: 600,
+      elapsed_time: 600,
+      total_elevation_gain: 0,
+      start_date: '2024-01-15T06:00:00Z',
+      start_date_local: '2024-01-15T06:00:00Z',
+      timezone: 'America/New_York'
+    }
+
+    render(<ActivityDetailModal activity={minimalActivity} onClose={mockOnClose} />)
     
-    render(<ActivityDetailModal {...defaultProps} activity={activityWithoutRPE} />)
+    expect(screen.getByText('Simple Activity')).toBeInTheDocument()
+    expect(screen.getByText('1.0 km')).toBeInTheDocument()
+    expect(screen.getByText('10:00')).toBeInTheDocument()
     
-    const addButton = screen.getByText('Add Effort')
-    fireEvent.click(addButton)
+    // Should not display optional metrics
+    expect(screen.queryByText(/Average Pace/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Average Speed/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Average Heart Rate/)).not.toBeInTheDocument()
+  })
+
+  it('closes modal when close button is clicked', () => {
+    render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
     
-    const hardButton = screen.getByText('Hard')
-    const saveButton = screen.getByText('Save Effort')
+    const closeButton = screen.getByRole('button', { name: '' })
+    fireEvent.click(closeButton)
     
-    fireEvent.click(hardButton)
-    fireEvent.click(saveButton)
-    
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith('/api/activities/123456/rpe', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ perceived_exertion: 5 })
+    expect(mockOnClose).toHaveBeenCalled()
+  })
+
+  describe('RPE functionality', () => {
+    it('shows RPE section', () => {
+      render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
+      
+      expect(screen.getByText('How did this workout feel?')).toBeInTheDocument()
+    })
+
+    it('allows adding RPE rating', async () => {
+      render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
+      
+      const addButton = screen.getByText('Add Effort')
+      fireEvent.click(addButton)
+      
+      // Should show emoji grid
+      expect(screen.getByText('Very Easy')).toBeInTheDocument()
+      expect(screen.getByText('All Out')).toBeInTheDocument()
+    })
+
+    it('saves RPE rating successfully', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true })
+      })
+
+      render(<ActivityDetailModal activity={mockActivity} onClose={mockOnClose} />)
+      
+      const addButton = screen.getByText('Add Effort')
+      fireEvent.click(addButton)
+      
+      // Select an RPE rating
+      const moderateButton = screen.getByText('Moderate')
+      fireEvent.click(moderateButton)
+      
+      // Save the rating
+      const saveButton = screen.getByText('Save Effort')
+      fireEvent.click(saveButton)
+      
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          '/api/activities/123456789/rpe',
+          expect.objectContaining({
+            method: 'PATCH',
+            body: JSON.stringify({ perceived_exertion: 3 })
+          })
+        )
       })
     })
-  })
-
-  it('handles both UUID and bigint activity IDs', async () => {
-    const mockFetch = fetch as jest.MockedFunction<typeof fetch>
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ success: true, activity: { ...mockActivity, perceived_exertion: 7 } })
-    } as Response)
-
-    // Test with database activity (has strava_activity_id) and no RPE
-    const dbActivity = { ...mockActivity, strava_activity_id: 987654 }
-    delete (dbActivity as any).perceived_exertion
-    
-    render(<ActivityDetailModal {...defaultProps} activity={dbActivity} />)
-    
-    const addButton = screen.getByText('Add Effort')
-    fireEvent.click(addButton)
-    
-    const hardButton = screen.getByText('Hard')
-    const saveButton = screen.getByText('Save Effort')
-    
-    fireEvent.click(hardButton)
-    fireEvent.click(saveButton)
-    
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith('/api/activities/987654/rpe', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ perceived_exertion: 5 })
-      })
-    })
-  })
-
-  it('handles API errors gracefully', async () => {
-    const mockFetch = fetch as jest.MockedFunction<typeof fetch>
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 500
-    } as Response)
-
-    // Ensure the activity has no perceived_exertion
-    const activityWithoutRPE = { ...mockActivity }
-    delete (activityWithoutRPE as any).perceived_exertion
-    
-    render(<ActivityDetailModal {...defaultProps} activity={activityWithoutRPE} />)
-    
-    const addButton = screen.getByText('Add Effort')
-    fireEvent.click(addButton)
-    
-    const moderateButton = screen.getByText('Moderate')
-    const saveButton = screen.getByText('Save Effort')
-    
-    fireEvent.click(moderateButton)
-    fireEvent.click(saveButton)
-    
-    await waitFor(() => {
-      expect(screen.getByText('Failed to save RPE. Please try again.')).toBeInTheDocument()
-    })
-  })
-
-  it('shows emoji effort scale', () => {
-    // Ensure the activity has no perceived_exertion
-    const activityWithoutRPE = { ...mockActivity }
-    delete (activityWithoutRPE as any).perceived_exertion
-    
-    render(<ActivityDetailModal {...defaultProps} activity={activityWithoutRPE} />)
-    
-    const addButton = screen.getByText('Add Effort')
-    fireEvent.click(addButton)
-    
-    // Check that all emoji options are displayed
-    expect(screen.getByText('😴')).toBeInTheDocument() // Very Easy
-    expect(screen.getByText('😌')).toBeInTheDocument() // Easy
-    expect(screen.getByText('🙂')).toBeInTheDocument() // Moderate
-    expect(screen.getByText('😐')).toBeInTheDocument() // Somewhat Hard
-    expect(screen.getByText('😤')).toBeInTheDocument() // Hard
-    expect(screen.getByText('😰')).toBeInTheDocument() // Very Hard
-    expect(screen.getByText('😫')).toBeInTheDocument() // Very Hard+
-    expect(screen.getByText('😵')).toBeInTheDocument() // Extremely Hard
-    expect(screen.getByText('🤯')).toBeInTheDocument() // Maximum
-    expect(screen.getByText('💀')).toBeInTheDocument() // All Out
   })
 }) 

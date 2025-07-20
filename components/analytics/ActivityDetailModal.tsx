@@ -4,12 +4,12 @@ import { Fragment, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { formatDistance, getActivityIcon, formatStravaTime } from '@/lib/utils'
+import { formatDistance, getActivityIcon, formatStravaTime, formatPace } from '@/lib/utils'
 import type { StravaActivity } from '@/lib/strava/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Heart, Save, Edit } from 'lucide-react'
+import { Heart, Save, Edit, Zap, Gauge, TrendingUp } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 
 // Type for activities with RPE data
@@ -73,6 +73,35 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
     return formatStravaTime(dateString)
   }
 
+  // Calculate pace for running activities
+  const calculatePace = () => {
+    if (activity.sport_type === 'Run' && activity.distance > 0 && activity.moving_time > 0) {
+      const secondsPerKm = activity.moving_time / (activity.distance / 1000)
+      return formatPace(secondsPerKm, preferences.pace)
+    }
+    return null
+  }
+
+  // Format speed with proper unit conversion
+  const formatSpeed = (speedMs: number) => {
+    const speedKmh = speedMs * 3.6
+    if (preferences.distance === 'miles') {
+      const speedMph = speedKmh * 0.621371
+      return `${speedMph.toFixed(1)} mph`
+    }
+    return `${speedKmh.toFixed(1)} km/h`
+  }
+
+  // Format power with proper units
+  const formatPower = (watts: number) => {
+    return `${Math.round(watts)}w`
+  }
+
+  // Format cadence
+  const formatCadence = (cadence: number) => {
+    return `${Math.round(cadence)} spm`
+  }
+
   const handleSaveRPE = async () => {
     if (!selectedRPE) {
       setRpeError('Please select how the workout felt')
@@ -126,6 +155,7 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
   }
 
   const currentRPEInfo = getCurrentRPEInfo()
+  const pace = calculatePace()
 
   return (
     <Transition appear show={true} as={Fragment}>
@@ -297,7 +327,7 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
                   )}
                 </div>
 
-                {/* Metrics Grid */}
+                {/* Primary Metrics Grid */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h4 className="text-sm font-medium text-gray-600 mb-1">Distance</h4>
@@ -311,19 +341,37 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
                       {formatDuration(activity.moving_time)}
                     </p>
                   </div>
-                  {activity.total_elevation_gain > 0 && (
+                  {pace && (
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-600 mb-1">Elevation Gain</h4>
+                      <h4 className="text-sm font-medium text-gray-600 mb-1 flex items-center gap-1">
+                        <Gauge className="h-4 w-4" />
+                        Average Pace
+                      </h4>
                       <p className="text-2xl font-bold text-gray-900">
-                        {activity.total_elevation_gain}m
+                        {pace}
                       </p>
                     </div>
                   )}
                   {activity.average_speed && (
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-600 mb-1">Average Speed</h4>
+                      <h4 className="text-sm font-medium text-gray-600 mb-1 flex items-center gap-1">
+                        <TrendingUp className="h-4 w-4" />
+                        Average Speed
+                      </h4>
                       <p className="text-2xl font-bold text-gray-900">
-                        {(activity.average_speed * 3.6).toFixed(1)} km/h
+                        {formatSpeed(activity.average_speed)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Secondary Metrics Grid */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  {activity.total_elevation_gain > 0 && (
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h4 className="text-sm font-medium text-gray-600 mb-1">Elevation Gain</h4>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {activity.total_elevation_gain}m
                       </p>
                     </div>
                   )}
@@ -343,7 +391,59 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
                       </p>
                     </div>
                   )}
+                  {activity.max_speed && (
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h4 className="text-sm font-medium text-gray-600 mb-1">Max Speed</h4>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {formatSpeed(activity.max_speed)}
+                      </p>
+                    </div>
+                  )}
                 </div>
+
+                {/* Power and Cadence Grid */}
+                {(activity.average_watts || activity.average_cadence) && (
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    {activity.average_watts && (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-gray-600 mb-1 flex items-center gap-1">
+                          <Zap className="h-4 w-4" />
+                          Average Power
+                        </h4>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {formatPower(activity.average_watts)}
+                        </p>
+                      </div>
+                    )}
+                    {activity.average_cadence && (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-gray-600 mb-1">Average Cadence</h4>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {formatCadence(activity.average_cadence)}
+                        </p>
+                      </div>
+                    )}
+                    {activity.max_watts && (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-gray-600 mb-1 flex items-center gap-1">
+                          <Zap className="h-4 w-4" />
+                          Max Power
+                        </h4>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {formatPower(activity.max_watts)}
+                        </p>
+                      </div>
+                    )}
+                    {activity.kilojoules && (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-gray-600 mb-1">Work (kJ)</h4>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {Math.round(activity.kilojoules)} kJ
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Additional Details */}
                 <div className="border-t pt-4">
@@ -367,6 +467,18 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
                       <div>
                         <span className="text-gray-500">Commute:</span>
                         <span className="ml-2">Yes</span>
+                      </div>
+                    )}
+                    {activity.kudos_count !== undefined && (
+                      <div>
+                        <span className="text-gray-500">Kudos:</span>
+                        <span className="ml-2">{activity.kudos_count}</span>
+                      </div>
+                    )}
+                    {activity.achievement_count !== undefined && (
+                      <div>
+                        <span className="text-gray-500">Achievements:</span>
+                        <span className="ml-2">{activity.achievement_count}</span>
                       </div>
                     )}
                   </div>

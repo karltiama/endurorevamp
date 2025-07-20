@@ -22,7 +22,7 @@ const mockUseUserActivities = useUserActivities as jest.MockedFunction<typeof us
 const mockUsePersonalizedTSSTarget = usePersonalizedTSSTarget as jest.MockedFunction<typeof usePersonalizedTSSTarget>;
 
 // Mock activity data factory
-const createMockActivity = (overrides: Partial<Activity> = {}): Activity => ({
+const createMockActivity = (overrides: Partial<ActivityWithTrainingData> = {}): ActivityWithTrainingData => ({
   id: '1',
   user_id: 'user-1',
   strava_activity_id: 123456,
@@ -244,6 +244,73 @@ describe('TrainingReadinessCard', () => {
     expect(screen.getByText('Last RPE')).toBeInTheDocument();
     
     // Log RPE button was removed - no longer checking for it
+  });
+
+  it('shows Last RPE from most recent activity regardless of week', () => {
+    // Create activities from different weeks
+    const activities = [
+      // Most recent activity (this week) - no RPE
+      createMockActivity({
+        start_date: new Date().toISOString(),
+        perceived_exertion: undefined
+      }),
+      // Previous activity (last week) - has RPE
+      createMockActivity({
+        start_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), // 8 days ago
+        perceived_exertion: 7
+      }),
+      // Even older activity - has different RPE
+      createMockActivity({
+        start_date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+        perceived_exertion: 5
+      })
+    ];
+
+    mockUseUserActivities.mockReturnValue({
+      data: activities,
+      isLoading: false,
+      error: null,
+      refetch: jest.fn()
+    } as any);
+
+    render(<TrainingReadinessCard userId="test-user" />, { wrapper: createWrapper() });
+    
+    // Should show RPE from the most recent activity (first in the array)
+    // Since the most recent activity has no RPE, it should show 'N/A'
+    expect(screen.getByText('N/A')).toBeInTheDocument();
+  });
+
+  it('shows Last RPE from most recent activity with RPE', () => {
+    // Create activities from different weeks
+    const activities = [
+      // Most recent activity (this week) - has RPE
+      createMockActivity({
+        start_date: new Date().toISOString(),
+        perceived_exertion: 8
+      }),
+      // Previous activity (last week) - has different RPE
+      createMockActivity({
+        start_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), // 8 days ago
+        perceived_exertion: 7
+      }),
+      // Even older activity - has different RPE
+      createMockActivity({
+        start_date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+        perceived_exertion: 5
+      })
+    ];
+
+    mockUseUserActivities.mockReturnValue({
+      data: activities,
+      isLoading: false,
+      error: null,
+      refetch: jest.fn()
+    } as any);
+
+    render(<TrainingReadinessCard userId="test-user" />, { wrapper: createWrapper() });
+    
+    // Should show RPE from the most recent activity (first in the array)
+    expect(screen.getByText('8/10')).toBeInTheDocument();
   });
 
   it('handles error state gracefully', () => {

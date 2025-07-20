@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { Activity as StravaActivity } from '@/lib/strava/types'
 import { ActivityWithTrainingData } from '@/types'
+import Link from 'next/link'
 
 interface PerformanceInsightsCardProps {
   userId: string
@@ -402,7 +403,12 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
 
         {/* Weekly Distance Comparison */}
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-600">Weekly Distance</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium text-gray-600">Weekly Distance</h4>
+            <Link href="/dashboard/analytics" className="text-xs text-blue-600 hover:text-blue-700 hover:underline">
+              View Details →
+            </Link>
+          </div>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-lg font-bold">
