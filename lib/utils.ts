@@ -200,57 +200,13 @@ export function getActivityIcon(type: string, trainer?: boolean): string {
   return icons[type] || '🏃‍♂️'
 }
 
-/**
- * Parse Strava's timezone field to extract timezone offset
- * Example: "(GMT-05:00) America/Detroit" -> -5
- */
-function parseStravaTimezone(timezone: string): number {
-  if (!timezone) return 0
-  
-  // Extract GMT offset from strings like "(GMT-05:00) America/Detroit"
-  const gmtMatch = timezone.match(/GMT([+-]\d{2}):\d{2}/)
-  if (gmtMatch) {
-    return parseInt(gmtMatch[1], 10)
-  }
-  
-  // Fallback: try to extract just the offset
-  const offsetMatch = timezone.match(/[+-]\d{1,2}/)
-  if (offsetMatch) {
-    return parseInt(offsetMatch[0], 10)
-  }
-  
-  return 0
-}
 
-/**
- * Convert Strava's start_date_local to actual local time
- * Strava's start_date_local is already local time, just needs proper parsing
- */
-function convertStravaLocalTime(dateString: string, timezone: string): Date {
-  if (!dateString) return new Date()
-  
-  try {
-    // Parse the date string directly - it's already local time
-    const localDate = new Date(dateString)
-    
-    // Validate the date
-    if (isNaN(localDate.getTime())) {
-      console.warn('Invalid date string:', dateString)
-      return new Date()
-    }
-    
-    return localDate
-  } catch (error) {
-    console.error('Error converting Strava local time:', error, dateString, timezone)
-    return new Date(dateString) // Fallback to original parsing
-  }
-}
 
 /**
  * Format time from Strava's start_date_local field
  * Handles timezone conversion properly
  */
-export function formatStravaTime(dateString: string, timezone?: string): string {
+export function formatStravaTime(dateString: string): string {
   if (!dateString) return ''
   
   try {
@@ -283,7 +239,7 @@ export function formatStravaTime(dateString: string, timezone?: string): string 
  * Format date from Strava's start_date_local field
  * Shows relative dates for recent activities
  */
-export function formatStravaDate(dateString: string, timezone?: string): string {
+export function formatStravaDate(dateString: string): string {
   if (!dateString) return ''
   
   try {
@@ -329,7 +285,7 @@ export function formatStravaDate(dateString: string, timezone?: string): string 
  * Format date and time from Strava's start_date_local field
  * Shows both date and time with proper timezone handling
  */
-export function formatStravaDateTime(dateString: string, timezone?: string): string {
+export function formatStravaDateTime(dateString: string): string {
   if (!dateString) return ''
   
   try {
