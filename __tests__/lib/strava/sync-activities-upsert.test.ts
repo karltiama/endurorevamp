@@ -1,6 +1,6 @@
-import { StravaActivitySync, syncActivitiesToDatabase } from '@/lib/strava/sync-activities'
+import { syncActivitiesToDatabase } from '@/lib/strava/sync-activities'
 import { createClient } from '@/lib/supabase/server'
-import { StravaActivity } from '@/lib/strava/types'
+import type { StravaActivity } from '@/lib/strava/types'
 
 // Mock the Supabase client
 jest.mock('@/lib/supabase/server', () => ({
@@ -15,14 +15,12 @@ const mockSupabase = {
   }
 }
 
-describe('StravaActivitySync - Upsert Functionality', () => {
-  let stravaSync: StravaActivitySync
+describe('syncActivitiesToDatabase - Upsert Functionality', () => {
   const mockUserId = 'test-user-id'
 
   beforeEach(() => {
     jest.clearAllMocks()
     mockCreateClient.mockResolvedValue(mockSupabase as any)
-    stravaSync = new StravaActivitySync('test-user-id')
   })
 
   describe('Activity Storage', () => {
@@ -53,7 +51,7 @@ describe('StravaActivitySync - Upsert Functionality', () => {
         insert: mockInsert
       })
 
-      const mockActivity: StravaActivity = {
+      const mockActivity = {
         id: 12345,
         name: 'Test Run',
         sport_type: 'Run',
@@ -73,7 +71,7 @@ describe('StravaActivitySync - Upsert Functionality', () => {
         kudos_count: 0,
         comment_count: 0,
         has_heartrate: false
-      }
+      } as StravaActivity
 
       // Call the syncActivitiesToDatabase function
       const result = await syncActivitiesToDatabase(mockUserId, [mockActivity])
@@ -116,7 +114,7 @@ describe('StravaActivitySync - Upsert Functionality', () => {
         update: mockUpdate
       })
 
-      const mockActivity: StravaActivity = {
+      const mockActivity = {
         id: 12345,
         name: 'Test Run',
         sport_type: 'Run',
@@ -136,7 +134,7 @@ describe('StravaActivitySync - Upsert Functionality', () => {
         kudos_count: 0,
         comment_count: 0,
         has_heartrate: false
-      }
+      } as StravaActivity
 
       const result = await syncActivitiesToDatabase(mockUserId, [mockActivity])
 
@@ -235,7 +233,7 @@ describe('StravaActivitySync - Upsert Functionality', () => {
         insert: mockInsert
       })
 
-      await syncActivitiesToDatabase(mockUserId, [{
+      const testActivity = {
         id: 12345,
         name: 'Test Run',
         sport_type: 'Run',
@@ -255,7 +253,9 @@ describe('StravaActivitySync - Upsert Functionality', () => {
         kudos_count: 0,
         comment_count: 0,
         has_heartrate: false
-      }])
+      } as any
+      
+      await syncActivitiesToDatabase(mockUserId, [testActivity])
 
       // Verify that insert was called with safe number conversions
       expect(mockInsert).toHaveBeenCalledWith(

@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { Activity as StravaActivity } from '@/lib/strava/types';
+import { StravaActivity, Activity } from '@/lib/strava/types';
 import { TrainingLoadCalculator } from '@/lib/training/training-load';
 
 interface SyncOptions {
@@ -255,7 +255,7 @@ export async function syncActivitiesToDatabase(userId: string, activities: Strav
         .maybeSingle();
 
       // Calculate TSS for this activity
-      const tss = trainingLoadCalculator.calculateTSS(activity);
+      const tss = trainingLoadCalculator.calculateTSS(activity as unknown as Activity);
 
       const activityData = {
         user_id: userId,
