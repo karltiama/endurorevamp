@@ -318,11 +318,24 @@ export function formatStravaDateTime(dateString: string): string {
 /**
  * Get the current week boundaries (Monday to Sunday)
  * Returns start and end dates for the current week
+ * 
+ * User-friendly approach: If it's Sunday, show the week that's ending today
+ * rather than the week that starts tomorrow
  */
 export function getCurrentWeekBoundaries(): { start: Date; end: Date } {
   const now = new Date()
   const currentWeekStart = new Date(now)
-  currentWeekStart.setDate(now.getDate() - now.getDay() + 1) // Monday
+  
+  // If it's Sunday (day 0), show the week that's ending today
+  // Otherwise, show the week that starts on Monday
+  if (now.getDay() === 0) {
+    // Sunday: show the week that started last Monday and ends today
+    currentWeekStart.setDate(now.getDate() - 6) // Go back 6 days to get Monday
+  } else {
+    // Other days: show the week that starts on Monday
+    currentWeekStart.setDate(now.getDate() - now.getDay() + 1)
+  }
+  
   currentWeekStart.setHours(0, 0, 0, 0)
   
   const currentWeekEnd = new Date(currentWeekStart)
@@ -346,6 +359,91 @@ export function isInCurrentWeek(date: Date): boolean {
 export function getDayOfWeek(date: Date): string {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   return days[date.getDay()]
+}
+
+/**
+ * Parse Hevy workout data from Strava description
+ * Extracts exercises, sets, weights, and reps from Hevy format
+ */
+export function parseHevyWorkout(description: string): {
+  exercises: Array<{
+    name: string;
+    sets: Array<{
+      weight: number;
+      reps: number;
+    }>;
+  }>;
+  totalVolume: number;
+  totalSets: number;
+} | null {
+  if (!description) return null;
+
+  const lines = description.split('\n').filter(line => line.trim());
+  const exercises: Array<{
+    name: string;
+    sets: Array<{
+      weight: number;
+      reps: number;
+    }>;
+  }> = [];
+
+  let currentExercise: { name: string; sets: Array<{ weight: number; reps: number }> } | null = null;
+  let totalVolume = 0;
+  let totalSets = 0;
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    
+    // Check if this is a set line (contains "Set" and weight/reps pattern)
+    const setMatch = trimmedLine.match(/Set \d+:\s*(\d+(?:\.\d+)?)\s*(?:lbs?|kg)\s*x\s*(\d+)/i);
+    if (setMatch && currentExercise) {
+      const weight = parseFloat(setMatch[1]);
+      const reps = parseInt(setMatch[2]);
+      
+      if (!isNaN(weight) && !isNaN(reps)) {
+        currentExercise.sets.push({ weight, reps });
+        totalVolume += weight * reps;
+        totalSets++;
+      }
+    } else if (!trimmedLine.includes('Set') && !trimmedLine.includes('set')) {
+      // This might be an exercise name - only treat as exercise if we have sets or it's not empty
+      if (currentExercise && currentExercise.sets.length > 0) {
+        exercises.push(currentExercise);
+      }
+      
+      // Start new exercise
+      currentExercise = {
+        name: trimmedLine,
+        sets: []
+      };
+    }
+  }
+
+  // Add the last exercise if it has sets
+  if (currentExercise && currentExercise.sets.length > 0) {
+    exercises.push(currentExercise);
+  }
+
+  return exercises.length > 0 ? {
+    exercises,
+    totalVolume,
+    totalSets
+  } : null;
+}
+
+/**
+ * Format Hevy workout data for display
+ */
+export function formatHevyWorkout(parsedWorkout: ReturnType<typeof parseHevyWorkout>): string {
+  if (!parsedWorkout) return '';
+
+  return parsedWorkout.exercises.map(exercise => {
+    const setsText = exercise.sets.map(set => 
+      `${set.weight} lbs × ${set.reps}`
+    ).join('\n  ');
+    
+    return `${exercise.name}\n  ${setsText}`;
+  }).join('\n\n');
 }
 
 

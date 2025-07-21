@@ -10,6 +10,10 @@ import { StravaDataAnalyzer } from '@/components/debug/StravaDataAnalyzer';
 import { SchemaComparisonAnalyzer } from '@/components/debug/SchemaComparisonAnalyzer';
 import { CoreDataValidator } from '@/components/debug/CoreDataValidator';
 import { SyncProcessDebugger } from '@/components/debug/SyncProcessDebugger';
+import { HevyDataDebugger } from '@/components/debug/HevyDataDebugger'
+import { TSSUpdateDebugger } from '@/components/debug/TSSUpdateDebugger';
+import { WeekBoundaryDebugger } from '@/components/debug/WeekBoundaryDebugger';
+import { SyncStateDebugger } from '@/components/debug/SyncStateDebugger';
 import SyncDashboard from '@/components/dashboard/SyncDashboard';
 import { redirect } from 'next/navigation';
 
@@ -100,6 +104,42 @@ export default function TestSyncPage() {
               Comprehensive debugging tool that traces through each stage of the sync process
             </p>
             <SyncProcessDebugger />
+          </div>
+
+          {/* Hevy Data Debugger */}
+          <div className="mt-6">
+            <h3 className="text-base font-medium mb-4">🏋️ Hevy Data Debugger</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Examine the actual format of workout data from Strava to debug Hevy integration
+            </p>
+            <HevyDataDebugger />
+          </div>
+
+          {/* TSS Update Debugger */}
+          <div className="mt-6">
+            <h3 className="text-base font-medium mb-4">📊 TSS Update Debugger</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Calculate and store Training Stress Score (TSS) for all activities
+            </p>
+            <TSSUpdateDebugger />
+          </div>
+
+          {/* Week Boundary Debugger */}
+          <div className="mt-6">
+            <h3 className="text-base font-medium mb-4">📅 Week Boundary Debugger</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Debug week boundary calculations and see which activities are included
+            </p>
+            <WeekBoundaryDebugger />
+          </div>
+
+          {/* Sync State Debugger */}
+          <div className="mt-6">
+            <h3 className="text-base font-medium mb-4">🔄 Sync State Debugger</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              View and manipulate sync state to test sync tracking
+            </p>
+            <SyncStateDebugger />
           </div>
 
           <div className="mt-6">

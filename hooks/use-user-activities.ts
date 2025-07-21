@@ -22,7 +22,8 @@ export function useUserActivities(userId: string) {
         sampleData: data?.slice(0, 3).map(d => ({
           name: d.name,
           start_date: d.start_date,
-          start_date_local: d.start_date_local
+          start_date_local: d.start_date_local,
+          training_stress_score: (d as any).training_stress_score
         }))
       })
 
@@ -34,7 +35,10 @@ export function useUserActivities(userId: string) {
       return data || []
     },
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1,
+    staleTime: 2 * 60 * 1000, // Reduced from 5 minutes to 2 minutes for better freshness
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    retry: 2, // Increased retry attempts
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnReconnect: true, // Refetch when network reconnects
   })
 } 

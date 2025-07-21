@@ -4,6 +4,8 @@
 import { useState, useMemo } from 'react'
 import { useStravaSync, useSyncStatusInfo } from '@/hooks/use-strava-sync'
 import { SyncStateManipulator } from './SyncStateManipulator'
+import { createClient } from '@/lib/supabase/client'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface DebugStep {
   id: string
@@ -37,6 +39,8 @@ export function SyncProcessDebugger() {
     consecutiveErrors,
     lastError
   } = useSyncStatusInfo()
+
+  const queryClient = useQueryClient()
 
   const addStep = (step: Omit<DebugStep, 'timestamp'>) => {
     setDebugSteps(prev => [...prev, { ...step, timestamp: new Date() }])
@@ -103,76 +107,154 @@ export function SyncProcessDebugger() {
         details: 'Sync is possible and allowed'
       })
 
-      // Step 3: Attempt sync
+      // Step 3: Check current database state
+      addStep({
+        id: 'database-check',
+        name: 'Check Current Database State',
+        status: 'running',
+        details: 'Checking what activities are currently in the database'
+      })
+
+      // Get current activities from database
+      const supabase = createClient()
+      const { data: currentActivities, error: dbError } = await supabase
+        .from('activities')
+        .select('id, name, sport_type, start_date_local, strava_activity_id')
+        .order('start_date', { ascending: false })
+        .limit(10)
+
+      if (dbError) {
+        updateStep('database-check', {
+          status: 'error',
+          details: `Database error: ${dbError.message}`,
+          error: dbError.message
+        })
+        setIsRunning(false)
+        return
+      }
+
+      updateStep('database-check', {
+        status: 'success',
+        details: `Database has ${currentActivities?.length || 0} activities. Latest: ${currentActivities?.[0]?.name || 'None'}`
+      })
+
+      // Step 4: Attempt sync
       addStep({
         id: 'sync-attempt',
         name: 'Attempt Sync',
         status: 'running',
-        details: 'Triggering sync operation'
+        details: 'Triggering sync operation to fetch latest activities'
       })
 
       console.log('🔄 Debug: Starting sync...')
       
-      // We'll use a timeout to simulate the sync process
-      // In a real scenario, you'd call forceFullSync() here
-      setTimeout(() => {
-        updateStep('sync-attempt', {
-          status: 'success',
-          details: 'Sync operation completed'
+      // Actually trigger the sync
+      try {
+        const syncResponse = await fetch('/api/strava/sync', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            maxActivities: 50,
+            forceRefresh: false
+          })
         })
 
-        // Step 4: Check results
-        addStep({
-          id: 'sync-results',
-          name: 'Check Sync Results',
-          status: 'running',
-          details: 'Analyzing sync results and errors'
-        })
-
-        console.log('📊 Debug: Sync Results', {
-          syncResult,
-          syncError,
-          isSyncing
-        })
-
-        if (syncError) {
-          updateStep('sync-results', {
+        if (!syncResponse.ok) {
+          const syncError = await syncResponse.json()
+          updateStep('sync-attempt', {
             status: 'error',
-            details: `Sync failed: ${syncError.message}`,
-            error: syncError.message
-          })
-        } else if (syncResult) {
-          updateStep('sync-results', {
-            status: 'success',
-            details: `Sync successful: ${syncResult.message}`
-          })
-        } else {
-          updateStep('sync-results', {
-            status: 'success',
-            details: 'Sync completed without errors'
-          })
-        }
-
-        // Step 5: Final state check
-        addStep({
-          id: 'final-state',
-          name: 'Check Final State',
-          status: 'running',
-          details: 'Verifying final sync state'
-        })
-
-        // Refresh status to get updated values
-        refreshStatus()
-
-        setTimeout(() => {
-          updateStep('final-state', {
-            status: 'success',
-            details: `Final state: ${activityCount} activities, ${todaySyncs}/${maxSyncs} syncs today`
+            details: `Sync failed: ${syncError.message || 'Unknown error'}`,
+            error: syncError.message || 'Unknown error'
           })
           setIsRunning(false)
-        }, 1000)
+          return
+        }
 
-      }, 2000)
+        const syncResult = await syncResponse.json()
+        updateStep('sync-attempt', {
+          status: 'success',
+          details: `Sync completed: ${syncResult.data?.activitiesProcessed || 0} activities processed, ${syncResult.data?.newActivities || 0} new, ${syncResult.data?.updatedActivities || 0} updated`
+        })
+
+      } catch (syncError) {
+        updateStep('sync-attempt', {
+          status: 'error',
+          details: `Sync error: ${syncError instanceof Error ? syncError.message : 'Unknown error'}`,
+          error: syncError instanceof Error ? syncError.message : 'Unknown error'
+        })
+        setIsRunning(false)
+        return
+      }
+
+      // Step 5: Check database after sync
+      addStep({
+        id: 'post-sync-check',
+        name: 'Check Database After Sync',
+        status: 'running',
+        details: 'Verifying activities were added to database'
+      })
+
+      // Wait a moment for database to update
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // Check database again
+      const { data: updatedActivities, error: updatedDbError } = await supabase
+        .from('activities')
+        .select('id, name, sport_type, start_date_local, strava_activity_id')
+        .order('start_date', { ascending: false })
+        .limit(10)
+
+      if (updatedDbError) {
+        updateStep('post-sync-check', {
+          status: 'error',
+          details: `Database error after sync: ${updatedDbError.message}`,
+          error: updatedDbError.message
+        })
+      } else {
+        const newCount = (updatedActivities?.length || 0) - (currentActivities?.length || 0)
+        updateStep('post-sync-check', {
+          status: 'success',
+          details: `Database updated: ${updatedActivities?.length || 0} total activities (${newCount > 0 ? `+${newCount} new` : 'no change'}). Latest: ${updatedActivities?.[0]?.name || 'None'}`
+        })
+      }
+
+      // Step 6: Check React Query cache
+      addStep({
+        id: 'cache-check',
+        name: 'Check React Query Cache',
+        status: 'running',
+        details: 'Verifying that components will see updated data'
+      })
+
+      // Invalidate cache to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['user', 'activities'] })
+      queryClient.invalidateQueries({ queryKey: ['strava', 'sync-status'] })
+
+      updateStep('cache-check', {
+        status: 'success',
+        details: 'Cache invalidated. Components should now show updated data.'
+      })
+
+      // Step 7: Final state check
+      addStep({
+        id: 'final-state',
+        name: 'Check Final State',
+        status: 'running',
+        details: 'Verifying final sync state and activity count'
+      })
+
+      // Refresh status to get updated values
+      refreshStatus()
+
+      setTimeout(() => {
+        updateStep('final-state', {
+          status: 'success',
+          details: `Final state: ${activityCount} activities, ${todaySyncs}/${maxSyncs} syncs today. Check your dashboard components now!`
+        })
+        setIsRunning(false)
+      }, 1000)
 
     } catch (error) {
       addStep({
@@ -228,6 +310,22 @@ export function SyncProcessDebugger() {
     }, null, 2);
   }, [syncStatus, isLoadingStatus, statusError, canSync, syncDisabledReason, activityCount, todaySyncs, maxSyncs, consecutiveErrors, lastError, isSyncing, syncError, syncResult]);
 
+  // Add state for activities data
+  const [activitiesData, setActivitiesData] = useState<any[]>([])
+
+  const checkActivities = async () => {
+    const supabase = createClient()
+    const { data: activities, error } = await supabase
+      .from('activities')
+      .select('id, name, sport_type, start_date_local, strava_activity_id, distance, moving_time')
+      .order('start_date', { ascending: false })
+      .limit(10)
+    
+    if (!error && activities) {
+      setActivitiesData(activities)
+    }
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-6">
@@ -245,6 +343,12 @@ export function SyncProcessDebugger() {
             className="px-4 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
           >
             Clear
+          </button>
+          <button
+            onClick={checkActivities}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          >
+            Check Activities
           </button>
         </div>
       </div>
@@ -277,6 +381,29 @@ export function SyncProcessDebugger() {
           </div>
         </div>
       </div>
+
+      {/* Activities Data Display */}
+      {activitiesData.length > 0 && (
+        <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+          <h3 className="text-sm font-medium text-green-700 mb-2">📊 Database Activities ({activitiesData.length})</h3>
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {activitiesData.map((activity, index) => (
+              <div key={activity.id} className="flex items-center justify-between p-2 bg-white rounded border">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">#{index + 1}</span>
+                  <span className="font-medium text-sm">{activity.name}</span>
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    {activity.sport_type}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-600">
+                  {new Date(activity.start_date_local).toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Debug Steps */}
       <div className="space-y-3">

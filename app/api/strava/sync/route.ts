@@ -1,94 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { syncStravaActivities } from '@/lib/strava/sync-activities'
+import { updateActivitiesWithTSS } from '@/lib/strava/sync-activities'
 import { createClient } from '@/lib/supabase/server'
-import { StravaActivitySync } from '@/lib/strava/sync-activities'
 
 export async function POST(request: NextRequest) {
   try {
-    // Get authenticated user (secure)
     const supabase = await createClient()
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
-    const userId = user.id
-
-    // Parse request body for sync options
-    let syncOptions: { maxActivities?: number; sinceDays?: number; forceRefresh?: boolean } = {}
-    try {
-      const body = await request.json()
-      syncOptions = {
-        maxActivities: body.maxActivities,
-        sinceDays: body.sinceDays,
-        forceRefresh: body.forceRefresh || false
-      }
-    } catch {
-      // Use default options if body is empty or invalid
-    }
-
-    console.log(`🔄 Sync requested by user ${userId}`)
-
-    // 🚨 CRITICAL FIX: Check rate limits BEFORE starting sync
-    const { data: syncState } = await supabase
-      .from('sync_state')
-      .select('*')
-      .eq('user_id', userId)
-      .single()
-
-    const canSync = await checkCanSync(userId, syncState)
     
-    if (!canSync && !syncOptions.forceRefresh) {
-      console.log('🚫 Rate limit exceeded - blocking sync')
-      return NextResponse.json({
-        success: false,
-        message: 'Sync rate limit exceeded. Please wait before trying again.',
-        error: 'RATE_LIMIT_EXCEEDED'
-      }, { status: 429 })
+    // Get the current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Initialize sync service and perform sync
-    const syncService = new StravaActivitySync(userId)
-    const result = await syncService.syncUserActivities(syncOptions)
+    const { action, ...options } = await request.json()
 
-    // Return result
-    if (result.success) {
+    if (action === 'update-tss') {
+      // Update existing activities with TSS calculations
+      const result = await updateActivitiesWithTSS(user.id)
       return NextResponse.json({
         success: true,
-        message: 'Sync completed successfully',
-        data: {
-          activitiesProcessed: result.activitiesProcessed,
-          newActivities: result.newActivities,
-          updatedActivities: result.updatedActivities,
-          syncDuration: result.syncDuration
-        }
+        action: 'update-tss',
+        ...result
       })
-    } else {
-      return NextResponse.json({
-        success: false,
-        message: 'Sync completed with errors',
-        errors: result.errors,
-        data: {
-          activitiesProcessed: result.activitiesProcessed,
-          newActivities: result.newActivities,
-          updatedActivities: result.updatedActivities,
-          syncDuration: result.syncDuration
-        }
-      }, { status: 422 })
     }
 
+    // Default action: sync activities
+    const result = await syncStravaActivities({
+      userId: user.id,
+      ...options
+    })
+
+    return NextResponse.json(result)
   } catch (error) {
-    console.error('❌ Sync API error:', error)
-    
+    console.error('Sync API error:', error)
     return NextResponse.json(
-      { 
-        success: false,
-        error: 'Internal server error during sync',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

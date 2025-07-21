@@ -4,7 +4,7 @@ import { Fragment, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { formatDistance, getActivityIcon, formatStravaTime, formatPace } from '@/lib/utils'
+import { formatDistance, getActivityIcon, formatStravaTime, formatPace, parseHevyWorkout, formatHevyWorkout } from '@/lib/utils'
 import type { StravaActivity } from '@/lib/strava/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -329,80 +329,151 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
 
                 {/* Primary Metrics Grid */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-600 mb-1">Distance</h4>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {formatDistanceWithUnits(activity.distance)}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-600 mb-1">Duration</h4>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {formatDuration(activity.moving_time)}
-                    </p>
-                  </div>
-                  {pace && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-600 mb-1 flex items-center gap-1">
-                        <Gauge className="h-4 w-4" />
-                        Average Pace
-                      </h4>
+                  {/* For weight training, show only duration */}
+                  {(activity.sport_type === 'WeightTraining' || activity.sport_type === 'Workout') ? (
+                    <div className="bg-gray-50 p-4 rounded-lg col-span-2">
+                      <h4 className="text-sm font-medium text-gray-600 mb-1">Duration</h4>
                       <p className="text-2xl font-bold text-gray-900">
-                        {pace}
+                        {formatDuration(activity.moving_time)}
                       </p>
                     </div>
-                  )}
-                  {activity.average_speed && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-600 mb-1 flex items-center gap-1">
-                        <TrendingUp className="h-4 w-4" />
-                        Average Speed
-                      </h4>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {formatSpeed(activity.average_speed)}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Secondary Metrics Grid */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  {activity.total_elevation_gain > 0 && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-600 mb-1">Elevation Gain</h4>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {activity.total_elevation_gain}m
-                      </p>
-                    </div>
-                  )}
-                  {activity.average_heartrate && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-600 mb-1">Average Heart Rate</h4>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {activity.average_heartrate} bpm
-                      </p>
-                    </div>
-                  )}
-                  {activity.max_heartrate && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-600 mb-1">Max Heart Rate</h4>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {activity.max_heartrate} bpm
-                      </p>
-                    </div>
-                  )}
-                  {activity.max_speed && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-600 mb-1">Max Speed</h4>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {formatSpeed(activity.max_speed)}
-                      </p>
-                    </div>
+                  ) : (
+                    <>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-gray-600 mb-1">Distance</h4>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {formatDistanceWithUnits(activity.distance)}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-gray-600 mb-1">Duration</h4>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {formatDuration(activity.moving_time)}
+                        </p>
+                      </div>
+                      {pace && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h4 className="text-sm font-medium text-gray-600 mb-1 flex items-center gap-1">
+                            <Gauge className="h-4 w-4" />
+                            Average Pace
+                          </h4>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {pace}
+                          </p>
+                        </div>
+                      )}
+                      {activity.average_speed && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h4 className="text-sm font-medium text-gray-600 mb-1 flex items-center gap-1">
+                            <TrendingUp className="h-4 w-4" />
+                            Average Speed
+                          </h4>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {formatSpeed(activity.average_speed)}
+                          </p>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
-                {/* Power and Cadence Grid */}
-                {(activity.average_watts || activity.average_cadence) && (
+                 {/* Weight Training Info - Show for weight training activities */}
+                 {(activity.sport_type === 'WeightTraining' || activity.sport_type === 'Workout') && (
+                   <div className="mb-6">
+                     <h4 className="text-sm font-medium text-gray-600 mb-2">Workout Info</h4>
+                     <div className="bg-gray-50 p-4 rounded-lg">
+                       <div className="text-sm text-gray-700">
+                         <p className="mb-2">
+                           <span className="font-medium">Activity:</span> {activity.name}
+                         </p>
+                         <p className="mb-2">
+                           <span className="font-medium">Duration:</span> {formatDuration(activity.moving_time)}
+                         </p>
+                         {activity.manual && (
+                           <p className="text-blue-600 text-xs">
+                             📝 Manually logged workout
+                           </p>
+                         )}
+                         {!activity.description && (
+                           <p className="text-gray-500 text-xs mt-2">
+                             💡 Tip: Detailed workout data (sets, reps) not available from Strava.
+                             <br />
+                             Consider logging workouts directly in this app for better tracking.
+                           </p>
+                         )}
+                       </div>
+                     </div>
+                   </div>
+                 )}
+
+                 {/* Hevy Workout Data - Show when description exists */}
+                 {activity.description && (() => {
+                   const parsedWorkout = parseHevyWorkout(activity.description);
+                   return (
+                     <div className="mb-6">
+                       <h4 className="text-sm font-medium text-gray-600 mb-2">Workout Details</h4>
+                       <div className="bg-gray-50 p-4 rounded-lg">
+                         {parsedWorkout ? (
+                           <div>
+                             <div className="mb-3 text-sm text-gray-600">
+                               <span className="font-medium">Total Volume:</span> {parsedWorkout.totalVolume.toLocaleString()} lbs
+                               <span className="mx-2">•</span>
+                               <span className="font-medium">Total Sets:</span> {parsedWorkout.totalSets}
+                             </div>
+                             <pre className="text-sm text-gray-900 whitespace-pre-wrap font-mono">
+                               {formatHevyWorkout(parsedWorkout)}
+                             </pre>
+                           </div>
+                         ) : (
+                           <pre className="text-sm text-gray-900 whitespace-pre-wrap font-mono">
+                             {activity.description}
+                           </pre>
+                         )}
+                       </div>
+                     </div>
+                   );
+                 })()}
+
+                {/* Secondary Metrics Grid - Hide for weight training */}
+                {!(activity.sport_type === 'WeightTraining' || activity.sport_type === 'Workout') && (
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    {activity.total_elevation_gain > 0 && (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-gray-600 mb-1">Elevation Gain</h4>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {activity.total_elevation_gain}m
+                        </p>
+                      </div>
+                    )}
+                    {activity.average_heartrate && (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-gray-600 mb-1">Average Heart Rate</h4>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {activity.average_heartrate} bpm
+                        </p>
+                      </div>
+                    )}
+                    {activity.max_heartrate && (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-gray-600 mb-1">Max Heart Rate</h4>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {activity.max_heartrate} bpm
+                        </p>
+                      </div>
+                    )}
+                    {activity.max_speed && (
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-gray-600 mb-1">Max Speed</h4>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {formatSpeed(activity.max_speed)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Power and Cadence Grid - Hide for weight training */}
+                {!(activity.sport_type === 'WeightTraining' || activity.sport_type === 'Workout') && (activity.average_watts || activity.average_cadence) && (
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     {activity.average_watts && (
                       <div className="bg-gray-50 p-4 rounded-lg">

@@ -66,6 +66,9 @@ CREATE TABLE activities (
   kudos_count INTEGER,                   -- Kudos received
   comment_count INTEGER,                 -- Comments received
   
+  -- Additional data
+  description TEXT,                      -- Activity description (Hevy workout data)
+  
   -- COMPUTED FIELDS (calculated by our app)
   week_number INTEGER,                   -- Week of year (1-52)
   month_number INTEGER,                  -- Month (1-12)

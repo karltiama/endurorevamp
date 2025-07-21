@@ -118,27 +118,28 @@ export function SyncDebugger() {
           try {
             console.log('🚀 Starting sync process test with access token:', accessToken ? 'Present' : 'Missing');
             
-            // Test import first
-            console.log('📦 Importing StravaActivitySync...');
-            const { StravaActivitySync } = await import('@/lib/strava/sync-activities');
-            console.log('✅ StravaActivitySync imported successfully');
-            
-            console.log('🏗️ Creating StravaActivitySync instance...');
-            const stravaSync = new StravaActivitySync(user.id);
-            console.log('✅ StravaActivitySync instance created successfully');
-            
-            console.log('🔄 Starting syncUserActivities operation...');
-            const result = await stravaSync.syncUserActivities({
-              maxActivities: 5, // Small test
-              forceRefresh: false
+            // Call the API route instead of using StravaActivitySync directly
+            console.log('📡 Calling sync API route...');
+            const syncResponse = await fetch('/api/strava/sync', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                maxActivities: 5, // Small test
+                forceRefresh: false
+              })
             });
-            console.log('🎉 Sync completed with result:', result);
+            
+            console.log('📡 Sync API response status:', syncResponse.status);
+            const result = await syncResponse.json();
+            console.log('🎉 Sync API response:', result);
 
             updateStep(4, { 
               status: result.success ? 'success' : 'error',
               message: result.success 
-                ? `Sync completed: ${result.activitiesProcessed} activities processed (${result.newActivities} new, ${result.updatedActivities} updated)`
-                : `Sync failed: ${result.errors.join(', ')}`,
+                ? `Sync completed: ${result.data?.activitiesProcessed || 0} activities processed (${result.data?.newActivities || 0} new, ${result.data?.updatedActivities || 0} updated)`
+                : `Sync failed: ${result.message || result.errors?.join(', ') || 'Unknown error'}`,
               data: result
             });
 

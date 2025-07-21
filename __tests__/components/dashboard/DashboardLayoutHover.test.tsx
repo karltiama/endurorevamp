@@ -80,7 +80,7 @@ describe('DashboardLayout with Hover Sidebar', () => {
       expect(screen.getByText('Activity Analysis')).toBeInTheDocument()
       expect(screen.getByText('Training Load')).toBeInTheDocument()
       expect(screen.getByText('Goals')).toBeInTheDocument()
-      expect(screen.getByText('Calendar')).toBeInTheDocument()
+      expect(screen.getByText('Workout Planning')).toBeInTheDocument()
       expect(screen.getByText('Settings')).toBeInTheDocument()
     })
 

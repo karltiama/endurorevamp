@@ -1,4 +1,5 @@
 import { formatDistance, getActivityIcon, formatStravaTime, formatStravaDate, formatStravaDateTime, getCurrentWeekBoundaries, isInCurrentWeek, getDayOfWeek } from '@/lib/utils'
+import { parseHevyWorkout, formatHevyWorkout } from '@/lib/utils'
 
 describe('Utils', () => {
   describe('formatDistance', () => {
@@ -234,6 +235,130 @@ describe('Utils', () => {
       expect(getDayOfWeek(monday)).toBe('Mon')
       expect(getDayOfWeek(wednesday)).toBe('Wed')
       expect(getDayOfWeek(sunday)).toBe('Sun')
+    })
+  })
+}) 
+
+describe('Hevy Workout Parser', () => {
+  describe('parseHevyWorkout', () => {
+    it('should parse Hevy workout data correctly', () => {
+      const description = `Incline Bench Press (Dumbbell)
+Set 1: 45 lbs x 8
+Set 2: 45 lbs x 8
+Set 3: 45 lbs x 8
+
+Chest Press (Machine)
+Set 1: 70 lbs x 6
+Set 2: 45 lbs x 8
+Set 3: 45 lbs x 8
+
+Low Cable Fly Crossovers
+Set 1: 17 lbs x 8
+Set 2: 17 lbs x 8
+Set 3: 17 lbs x 8
+
+Butterfly (Pec Deck)
+Set 1: 70 lbs x 8
+Set 2: 70 lbs x 8
+Set 3: 70 lbs x 8`
+
+      const result = parseHevyWorkout(description)
+
+      expect(result).toEqual({
+        exercises: [
+          {
+            name: 'Incline Bench Press (Dumbbell)',
+            sets: [
+              { weight: 45, reps: 8 },
+              { weight: 45, reps: 8 },
+              { weight: 45, reps: 8 }
+            ]
+          },
+          {
+            name: 'Chest Press (Machine)',
+            sets: [
+              { weight: 70, reps: 6 },
+              { weight: 45, reps: 8 },
+              { weight: 45, reps: 8 }
+            ]
+          },
+          {
+            name: 'Low Cable Fly Crossovers',
+            sets: [
+              { weight: 17, reps: 8 },
+              { weight: 17, reps: 8 },
+              { weight: 17, reps: 8 }
+            ]
+          },
+          {
+            name: 'Butterfly (Pec Deck)',
+            sets: [
+              { weight: 70, reps: 8 },
+              { weight: 70, reps: 8 },
+              { weight: 70, reps: 8 }
+            ]
+          }
+        ],
+        totalVolume: 45 * 8 * 3 + 70 * 6 + 45 * 8 * 2 + 17 * 8 * 3 + 70 * 8 * 3,
+        totalSets: 12
+      })
+    })
+
+    it('should return null for empty description', () => {
+      expect(parseHevyWorkout('')).toBeNull()
+      expect(parseHevyWorkout(null as any)).toBeNull()
+      expect(parseHevyWorkout(undefined as any)).toBeNull()
+    })
+
+    it('should return null for non-Hevy format', () => {
+      expect(parseHevyWorkout('Just some random text')).toBeNull()
+    })
+
+    it('should handle decimal weights', () => {
+      const description = `Bench Press
+Set 1: 135.5 lbs x 5
+Set 2: 135.5 lbs x 5`
+
+      const result = parseHevyWorkout(description)
+
+      expect(result?.exercises[0].sets[0].weight).toBe(135.5)
+    })
+  })
+
+  describe('formatHevyWorkout', () => {
+    it('should format parsed workout data correctly', () => {
+      const parsedWorkout = {
+        exercises: [
+          {
+            name: 'Bench Press',
+            sets: [
+              { weight: 135, reps: 5 },
+              { weight: 135, reps: 5 }
+            ]
+          },
+          {
+            name: 'Squats',
+            sets: [
+              { weight: 185, reps: 3 }
+            ]
+          }
+        ],
+        totalVolume: 135 * 5 * 2 + 185 * 3,
+        totalSets: 3
+      }
+
+      const result = formatHevyWorkout(parsedWorkout)
+
+      expect(result).toBe(`Bench Press
+  135 lbs × 5
+  135 lbs × 5
+
+Squats
+  185 lbs × 3`)
+    })
+
+    it('should return empty string for null input', () => {
+      expect(formatHevyWorkout(null)).toBe('')
     })
   })
 }) 

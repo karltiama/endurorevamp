@@ -2,17 +2,21 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { Button } from '@/components/ui/button'
+import { useQueryClient } from '@tanstack/react-query'
 
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { usePersonalizedTSSTarget } from '@/hooks/useTrainingProfile'
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import { 
   TrendingUp, 
   Calendar, 
   Target,
   Activity,
   BarChart3,
-  Clock
+  Clock,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react'
 import { ActivityWithTrainingData } from '@/types'
 import { getCurrentWeekBoundaries } from '@/lib/utils'
@@ -35,6 +39,14 @@ interface WeeklyTrainingLoad {
   }
   dailyTSS: { day: string; tss: number }[]
   weeklyTrend: 'up' | 'down' | 'stable'
+  debugInfo?: {
+    weekStart: string
+    weekEnd: string
+    activitiesInWeek: number
+    totalActivities: number
+    activitiesWithTSS: number
+    lastSyncTime?: string
+  }
 }
 
 // Helper functions moved outside the component
@@ -101,7 +113,7 @@ const calculateDailyTSS = (activities: ActivityWithTrainingData[], weekStart: Da
     })
 
     const dayTSS = dayActivities.reduce((sum, activity) => {
-      const tss = (activity as ActivityWithTrainingData).training_stress_score || estimateTSS(activity as ActivityWithTrainingData)
+      const tss = activity.training_stress_score || estimateTSS(activity)
       return sum + tss
     }, 0)
 
@@ -116,26 +128,37 @@ const calculateDailyTSS = (activities: ActivityWithTrainingData[], weekStart: Da
 
 const getZoneColor = (zone: number): string => {
   const colors = {
-    1: 'bg-gray-400',
-    2: 'bg-blue-400', 
-    3: 'bg-green-400',
-    4: 'bg-yellow-400',
-    5: 'bg-red-400'
+    1: 'bg-blue-200',
+    2: 'bg-green-200', 
+    3: 'bg-yellow-200',
+    4: 'bg-orange-200',
+    5: 'bg-red-200'
   }
-  return colors[zone as keyof typeof colors] || 'bg-gray-400'
+  return colors[zone as keyof typeof colors] || 'bg-gray-200'
 }
 
 const getTrendIcon = (trend: string) => {
   switch (trend) {
-    case 'up': return <TrendingUp className="h-4 w-4 text-green-600" />
-    case 'down': return <TrendingUp className="h-4 w-4 text-red-600 rotate-180" />
-    default: return <BarChart3 className="h-4 w-4 text-gray-600" />
+    case 'up':
+      return <TrendingUp className="h-4 w-4 text-green-600" />
+    case 'down':
+      return <TrendingUp className="h-4 w-4 text-red-600 rotate-180" />
+    default:
+      return <TrendingUp className="h-4 w-4 text-gray-400" />
   }
 }
 
 export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetProps) {
-  const { data: activities, isLoading, error } = useUserActivities(userId)
+  const queryClient = useQueryClient()
+  const { data: activities, isLoading, error, refetch } = useUserActivities(userId)
   const { data: personalizedTSSTarget } = usePersonalizedTSSTarget(userId)
+
+  // Force refresh data when component mounts to ensure freshness
+  useEffect(() => {
+    // Invalidate cache to ensure fresh data
+    queryClient.invalidateQueries({ queryKey: ['user', 'activities', userId] })
+    queryClient.invalidateQueries({ queryKey: ['personalized-tss-target', userId] })
+  }, [userId, queryClient])
 
   const weeklyTrainingLoad = useMemo((): WeeklyTrainingLoad | null => {
     if (!activities || activities.length === 0) return null
@@ -183,6 +206,12 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
     const weeklyTrend = currentTSS > previousTSS * 1.1 ? 'up' : 
                       currentTSS < previousTSS * 0.9 ? 'down' : 'stable'
 
+    // Debug information
+    const activitiesWithTSS = thisWeekActivities.filter(activity => 
+      (activity as ActivityWithTrainingData).training_stress_score !== null && 
+      (activity as ActivityWithTrainingData).training_stress_score !== undefined
+    ).length
+
     return {
       currentTSS: Math.round(currentTSS),
       targetTSS,
@@ -190,10 +219,47 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
       workoutsCompleted: thisWeekActivities.length,
       zoneDistribution,
       dailyTSS,
-      weeklyTrend
+      weeklyTrend,
+      debugInfo: {
+        weekStart: currentWeekStart.toISOString(),
+        weekEnd: currentWeekEnd.toISOString(),
+        activitiesInWeek: thisWeekActivities.length,
+        totalActivities: activities.length,
+        activitiesWithTSS
+      }
     }
   }, [activities, personalizedTSSTarget])
 
+  const handleRefresh = () => {
+    // Force refresh of all related data
+    queryClient.invalidateQueries({ queryKey: ['user', 'activities', userId] })
+    queryClient.invalidateQueries({ queryKey: ['personalized-tss-target', userId] })
+    queryClient.invalidateQueries({ queryKey: ['training', 'load', userId] })
+    refetch()
+  }
+
+  const handleUpdateTSS = async () => {
+    try {
+      const response = await fetch('/api/activities/update-tss', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update TSS')
+      }
+
+      const result = await response.json()
+      console.log('TSS update result:', result)
+
+      // Refresh data after TSS update
+      handleRefresh()
+    } catch (error) {
+      console.error('Error updating TSS:', error)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -205,7 +271,7 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse space-y-4">
+          <div className="animate-pulse space-y-4" data-testid="loading-skeleton">
             <div className="h-20 bg-gray-100 rounded-lg"></div>
             <div className="h-16 bg-gray-100 rounded-lg"></div>
           </div>
@@ -227,11 +293,25 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
           <div className="text-center py-8 text-gray-500">
             <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No training data for this week</p>
+            <Button 
+              onClick={handleRefresh} 
+              variant="outline" 
+              size="sm" 
+              className="mt-4"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh Data
+            </Button>
           </div>
         </CardContent>
       </Card>
     )
   }
+
+  // Show warning if no activities have TSS calculated
+  const needsTSSUpdate = weeklyTrainingLoad.debugInfo && 
+    weeklyTrainingLoad.debugInfo.activitiesInWeek > 0 && 
+    weeklyTrainingLoad.debugInfo.activitiesWithTSS === 0
 
   return (
     <Card>
@@ -240,6 +320,14 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
           <BarChart3 className="h-5 w-5" />
           Weekly Training Load
           {getTrendIcon(weeklyTrainingLoad.weeklyTrend)}
+          <Button 
+            onClick={handleRefresh} 
+            variant="ghost" 
+            size="sm"
+            className="ml-auto"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -270,6 +358,30 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
             <span>{weeklyTrainingLoad.targetTSS - weeklyTrainingLoad.currentTSS} TSS remaining</span>
           </div>
         </div>
+
+        {/* Warning if TSS needs updating */}
+        {needsTSSUpdate && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-yellow-800">
+                <AlertTriangle className="h-4 w-4" />
+                <span className="text-sm font-medium">TSS Calculation Needed</span>
+              </div>
+              <Button 
+                onClick={handleUpdateTSS} 
+                variant="outline" 
+                size="sm"
+                className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
+              >
+                Calculate TSS
+              </Button>
+            </div>
+            <p className="text-xs text-yellow-700 mt-2">
+              Some activities don&apos;t have training stress scores calculated. 
+              Click &quot;Calculate TSS&quot; to get accurate values.
+            </p>
+          </div>
+        )}
 
         {/* Zone Distribution */}
         <div className="space-y-3">
@@ -335,6 +447,19 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
             ))}
           </div>
         </div>
+
+        {/* Debug Info (only in development) */}
+        {process.env.NODE_ENV === 'development' && weeklyTrainingLoad.debugInfo && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs">
+            <div className="font-medium mb-2">Debug Info:</div>
+            <div className="space-y-1 text-gray-600">
+              <div>Week: {new Date(weeklyTrainingLoad.debugInfo.weekStart).toLocaleDateString()} - {new Date(weeklyTrainingLoad.debugInfo.weekEnd).toLocaleDateString()}</div>
+              <div>Activities in week: {weeklyTrainingLoad.debugInfo.activitiesInWeek}</div>
+              <div>Activities with TSS: {weeklyTrainingLoad.debugInfo.activitiesWithTSS}</div>
+              <div>Total activities: {weeklyTrainingLoad.debugInfo.totalActivities}</div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

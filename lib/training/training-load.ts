@@ -1,5 +1,6 @@
 import { Activity } from '@/lib/strava/types'
 import { ActivityWithTrainingData } from '@/types'
+import { createClient } from '@/lib/supabase/client'
 
 // Training Load interfaces
 export interface TrainingLoadPoint {
@@ -490,5 +491,145 @@ export function estimateAthleteThresholds(activities: Activity[]): AthleteThresh
     restingHeartRate,
     functionalThresholdPower,
     lactateThreshold: maxHeartRate * 0.85, // Rough estimate
+  }
+} 
+
+/**
+ * Ensure all activities have TSS calculated
+ * This function updates activities in the database that don't have TSS values
+ */
+export async function ensureActivitiesHaveTSS(userId: string): Promise<{ updated: number; errors: number }> {
+  const supabase = await createClient()
+  let updated = 0
+  let errors = 0
+
+  try {
+    // Get all activities for this user that don't have TSS
+    const { data: activities, error } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('user_id', userId)
+      .is('training_stress_score', null)
+
+    if (error) {
+      console.error('Error fetching activities for TSS update:', error)
+      return { updated: 0, errors: 1 }
+    }
+
+    if (!activities || activities.length === 0) {
+      console.log('✅ All activities already have TSS values')
+      return { updated: 0, errors: 0 }
+    }
+
+    console.log(`🔄 Updating TSS for ${activities.length} activities...`)
+
+    // Initialize training load calculator with default thresholds
+    const defaultThresholds = {
+      maxHeartRate: 185,
+      restingHeartRate: 60,
+      functionalThresholdPower: 250,
+      lactateThreshold: 157
+    }
+    const trainingLoadCalculator = new TrainingLoadCalculator(defaultThresholds)
+
+    for (const activity of activities) {
+      try {
+        // Calculate TSS for this activity
+        const tss = trainingLoadCalculator.calculateTSS(activity)
+
+        // Update the activity with TSS
+        const { error: updateError } = await supabase
+          .from('activities')
+          .update({ 
+            training_stress_score: tss,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', activity.id)
+
+        if (updateError) {
+          console.error(`Error updating TSS for activity ${activity.id}:`, updateError)
+          errors++
+        } else {
+          updated++
+          console.log(`✅ Updated TSS for activity ${activity.id}: ${tss}`)
+        }
+      } catch (error) {
+        console.error(`Error processing activity ${activity.id}:`, error)
+        errors++
+      }
+    }
+
+    console.log(`📊 TSS update summary: ${updated} updated, ${errors} errors`)
+    return { updated, errors }
+  } catch (error) {
+    console.error('Error in ensureActivitiesHaveTSS:', error)
+    return { updated: 0, errors: 1 }
+  }
+}
+
+/**
+ * Get activities with calculated TSS for a specific time period
+ */
+export async function getActivitiesWithTSS(userId: string, startDate?: Date, endDate?: Date): Promise<Activity[]> {
+  const supabase = await createClient()
+  
+  let query = supabase
+    .from('activities')
+    .select('*')
+    .eq('user_id', userId)
+    .not('training_stress_score', 'is', null)
+    .order('start_date', { ascending: false })
+
+  if (startDate) {
+    query = query.gte('start_date', startDate.toISOString())
+  }
+  
+  if (endDate) {
+    query = query.lte('start_date', endDate.toISOString())
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Error fetching activities with TSS:', error)
+    throw new Error(`Failed to fetch activities: ${error.message}`)
+  }
+
+  return data || []
+}
+
+/**
+ * Calculate weekly TSS for a specific week
+ */
+export async function calculateWeeklyTSS(userId: string, weekStart: Date): Promise<{
+  totalTSS: number
+  activitiesCount: number
+  averageTSS: number
+  dailyBreakdown: { [key: string]: number }
+}> {
+  const weekEnd = new Date(weekStart)
+  weekEnd.setDate(weekStart.getDate() + 6)
+  weekEnd.setHours(23, 59, 59, 999)
+
+  const activities = await getActivitiesWithTSS(userId, weekStart, weekEnd)
+  
+  const dailyBreakdown: { [key: string]: number } = {}
+  let totalTSS = 0
+
+  activities.forEach(activity => {
+    const activityDate = new Date(activity.start_date)
+    const dayKey = activityDate.toISOString().split('T')[0]
+    
+    const tss = (activity as Activity & { training_stress_score?: number }).training_stress_score || 0
+    totalTSS += tss
+    
+    dailyBreakdown[dayKey] = (dailyBreakdown[dayKey] || 0) + tss
+  })
+
+  return {
+    totalTSS: Math.round(totalTSS),
+    activitiesCount: activities.length,
+    averageTSS: activities.length > 0 ? Math.round(totalTSS / activities.length) : 0,
+    dailyBreakdown
   }
 } 

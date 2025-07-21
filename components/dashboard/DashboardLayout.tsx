@@ -28,7 +28,7 @@ import {
   User,
   Home,
   TrendingUp,
-  Calendar,
+  Dumbbell,
 } from "lucide-react"
 
 interface DashboardLayoutProps {
@@ -75,10 +75,10 @@ const navigation = [
         description: "Set and track training goals"
       },
       {
-        title: "Calendar",
-        url: "/dashboard/calendar",
-        icon: Calendar,
-        description: "Training calendar and planning"
+        title: "Workout Planning",
+        url: "/dashboard/planning",
+        icon: Dumbbell,
+        description: "Smart workout recommendations and planning"
       },
     ]
   },
