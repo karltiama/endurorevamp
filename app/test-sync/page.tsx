@@ -10,7 +10,7 @@ import { StravaDataAnalyzer } from '@/components/debug/StravaDataAnalyzer';
 import { SchemaComparisonAnalyzer } from '@/components/debug/SchemaComparisonAnalyzer';
 import { CoreDataValidator } from '@/components/debug/CoreDataValidator';
 import { SyncProcessDebugger } from '@/components/debug/SyncProcessDebugger';
-import { HevyDataDebugger } from '@/components/debug/HevyDataDebugger'
+
 import { TSSUpdateDebugger } from '@/components/debug/TSSUpdateDebugger';
 import { WeekBoundaryDebugger } from '@/components/debug/WeekBoundaryDebugger';
 import { SyncStateDebugger } from '@/components/debug/SyncStateDebugger';
@@ -106,14 +106,7 @@ export default function TestSyncPage() {
             <SyncProcessDebugger />
           </div>
 
-          {/* Hevy Data Debugger */}
-          <div className="mt-6">
-            <h3 className="text-base font-medium mb-4">🏋️ Hevy Data Debugger</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Examine the actual format of workout data from Strava to debug Hevy integration
-            </p>
-            <HevyDataDebugger />
-          </div>
+
 
           {/* TSS Update Debugger */}
           <div className="mt-6">

@@ -2,13 +2,42 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Calendar, Clock, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Calendar, AlertTriangle, CheckCircle } from 'lucide-react'
 import { getCurrentWeekBoundaries } from '@/lib/utils'
 import { useUserActivities } from '@/hooks/use-user-activities'
 
 interface WeekBoundaryDebuggerProps {
   userId?: string
+}
+
+interface ActivityDebugInfo {
+  id: string | undefined
+  name: string
+  start_date: string
+  start_date_local: string
+  parsed_date: string
+  sport_type: string
+  training_stress_score?: number
+}
+
+interface WeekDebugInfo {
+  start: string
+  end: string
+  activities: ActivityDebugInfo[]
+}
+
+interface DebugInfo {
+  now: string
+  currentWeek: WeekDebugInfo
+  previousWeek: WeekDebugInfo
+  nextWeek: WeekDebugInfo
+  allActivities: ActivityDebugInfo[]
+  dateCalculation: {
+    currentDay: number
+    currentDate: number
+    weekStartCalculation: string
+    explanation: string
+  }
 }
 
 export function WeekBoundaryDebugger({ userId }: WeekBoundaryDebuggerProps) {
@@ -37,7 +66,7 @@ export function WeekBoundaryDebugger({ userId }: WeekBoundaryDebuggerProps) {
   }, [userId])
 
   const { data: activities, isLoading } = useUserActivities(currentUserId || '')
-  const [debugInfo, setDebugInfo] = useState<any>(null)
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null)
 
   useEffect(() => {
     if (!activities) return
@@ -85,7 +114,7 @@ export function WeekBoundaryDebugger({ userId }: WeekBoundaryDebuggerProps) {
           start_date_local: a.start_date_local,
           parsed_date: new Date(a.start_date).toISOString(),
           sport_type: a.sport_type,
-          training_stress_score: (a as any).training_stress_score
+          training_stress_score: (a as { training_stress_score?: number }).training_stress_score
         }))
       },
       previousWeek: {
@@ -98,7 +127,7 @@ export function WeekBoundaryDebugger({ userId }: WeekBoundaryDebuggerProps) {
           start_date_local: a.start_date_local,
           parsed_date: new Date(a.start_date).toISOString(),
           sport_type: a.sport_type,
-          training_stress_score: (a as any).training_stress_score
+          training_stress_score: (a as { training_stress_score?: number }).training_stress_score
         }))
       },
       nextWeek: {
@@ -111,7 +140,7 @@ export function WeekBoundaryDebugger({ userId }: WeekBoundaryDebuggerProps) {
           start_date_local: a.start_date_local,
           parsed_date: new Date(a.start_date).toISOString(),
           sport_type: a.sport_type,
-          training_stress_score: (a as any).training_stress_score
+          training_stress_score: (a as { training_stress_score?: number }).training_stress_score
         }))
       },
       allActivities: activities.slice(0, 5).map(a => ({
@@ -121,7 +150,7 @@ export function WeekBoundaryDebugger({ userId }: WeekBoundaryDebuggerProps) {
         start_date_local: a.start_date_local,
         parsed_date: new Date(a.start_date).toISOString(),
         sport_type: a.sport_type,
-        training_stress_score: (a as any).training_stress_score
+        training_stress_score: (a as { training_stress_score?: number }).training_stress_score
       })),
       // Add debug info about the date calculation
       dateCalculation: {

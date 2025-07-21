@@ -57,7 +57,7 @@ export function TSSUpdateDebugger() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-sm text-gray-600">
-          <p>This will calculate and store Training Stress Score (TSS) for all activities that don't have it yet.</p>
+          <p>This will calculate and store Training Stress Score (TSS) for all activities that don&apos;t have it yet.</p>
           <p className="mt-2 text-xs">
             TSS is calculated using heart rate data, power data, or duration-based estimation.
           </p>

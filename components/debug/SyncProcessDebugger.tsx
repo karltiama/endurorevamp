@@ -311,7 +311,15 @@ export function SyncProcessDebugger() {
   }, [syncStatus, isLoadingStatus, statusError, canSync, syncDisabledReason, activityCount, todaySyncs, maxSyncs, consecutiveErrors, lastError, isSyncing, syncError, syncResult]);
 
   // Add state for activities data
-  const [activitiesData, setActivitiesData] = useState<any[]>([])
+  const [activitiesData, setActivitiesData] = useState<Array<{
+    id: string
+    name: string
+    sport_type: string
+    start_date_local: string
+    strava_activity_id: number
+    distance: number
+    moving_time: number
+  }>>([])
 
   const checkActivities = async () => {
     const supabase = createClient()
