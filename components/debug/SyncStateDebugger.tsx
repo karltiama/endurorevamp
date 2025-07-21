@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { RefreshCw, AlertTriangle, CheckCircle, Calendar } from 'lucide-react'
+import { RefreshCw, AlertTriangle, Calendar } from 'lucide-react'
 
 interface SyncState {
   user_id: string

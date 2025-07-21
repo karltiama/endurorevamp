@@ -198,7 +198,7 @@ export function WeekBoundaryDebugger({ userId }: WeekBoundaryDebuggerProps) {
     )
   }
 
-  const currentWeekTSS = debugInfo.currentWeek.activities.reduce((sum: number, a: any) => 
+  const currentWeekTSS = debugInfo.currentWeek.activities.reduce((sum: number, a: ActivityDebugInfo) => 
     sum + (a.training_stress_score || 0), 0
   )
 
@@ -232,7 +232,7 @@ export function WeekBoundaryDebugger({ userId }: WeekBoundaryDebuggerProps) {
             <div className="mt-3">
               <p className="text-xs font-medium text-gray-600 mb-2">Activities in current week:</p>
               <div className="space-y-1">
-                {debugInfo.currentWeek.activities.map((activity: any, index: number) => (
+                {debugInfo.currentWeek.activities.map((activity: ActivityDebugInfo, index: number) => (
                   <div key={index} className="text-xs bg-gray-50 p-2 rounded">
                     <p><strong>{activity.name}</strong></p>
                     <p>Date: {new Date(activity.start_date).toLocaleString()}</p>
@@ -287,7 +287,7 @@ export function WeekBoundaryDebugger({ userId }: WeekBoundaryDebuggerProps) {
         <div className="border rounded-lg p-4">
           <h3 className="font-medium text-gray-700 mb-2">Recent Activities (All)</h3>
           <div className="space-y-1">
-            {debugInfo.allActivities.map((activity: any, index: number) => (
+            {debugInfo.allActivities.map((activity: ActivityDebugInfo, index: number) => (
               <div key={index} className="text-xs bg-gray-50 p-2 rounded">
                 <p><strong>{activity.name}</strong></p>
                 <p>Date: {new Date(activity.start_date).toLocaleString()}</p>
