@@ -90,7 +90,7 @@ export function OnboardingModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="onboarding-description">
         <DialogHeader className="text-center pb-6">
           <DialogTitle className="text-2xl font-bold">
             Welcome to Your Running Journey! 🏃‍♂️
@@ -99,6 +99,10 @@ export function OnboardingModal({
             Let&apos;s set up your account to help you achieve your running goals
           </DialogDescription>
         </DialogHeader>
+
+        <div id="onboarding-description" className="sr-only">
+          Welcome to your running journey. Set up your account to help you achieve your running goals.
+        </div>
 
         <div className="space-y-8">
           {/* Progress indicator */}

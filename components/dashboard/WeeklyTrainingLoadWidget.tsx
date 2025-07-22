@@ -39,14 +39,6 @@ interface WeeklyTrainingLoad {
   }
   dailyTSS: { day: string; tss: number }[]
   weeklyTrend: 'up' | 'down' | 'stable'
-  debugInfo?: {
-    weekStart: string
-    weekEnd: string
-    activitiesInWeek: number
-    totalActivities: number
-    activitiesWithTSS: number
-    lastSyncTime?: string
-  }
 }
 
 // Helper functions moved outside the component
@@ -219,14 +211,7 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
       workoutsCompleted: thisWeekActivities.length,
       zoneDistribution,
       dailyTSS,
-      weeklyTrend,
-      debugInfo: {
-        weekStart: currentWeekStart.toISOString(),
-        weekEnd: currentWeekEnd.toISOString(),
-        activitiesInWeek: thisWeekActivities.length,
-        totalActivities: activities.length,
-        activitiesWithTSS
-      }
+      weeklyTrend
     }
   }, [activities, personalizedTSSTarget])
 
@@ -309,9 +294,7 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
   }
 
   // Show warning if no activities have TSS calculated
-  const needsTSSUpdate = weeklyTrainingLoad.debugInfo && 
-    weeklyTrainingLoad.debugInfo.activitiesInWeek > 0 && 
-    weeklyTrainingLoad.debugInfo.activitiesWithTSS === 0
+  const needsTSSUpdate = false // Removed debug info check
 
   return (
     <Card>
@@ -448,18 +431,7 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
           </div>
         </div>
 
-        {/* Debug Info (only in development) */}
-        {process.env.NODE_ENV === 'development' && weeklyTrainingLoad.debugInfo && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs">
-            <div className="font-medium mb-2">Debug Info:</div>
-            <div className="space-y-1 text-gray-600">
-              <div>Week: {new Date(weeklyTrainingLoad.debugInfo.weekStart).toLocaleDateString()} - {new Date(weeklyTrainingLoad.debugInfo.weekEnd).toLocaleDateString()}</div>
-              <div>Activities in week: {weeklyTrainingLoad.debugInfo.activitiesInWeek}</div>
-              <div>Activities with TSS: {weeklyTrainingLoad.debugInfo.activitiesWithTSS}</div>
-              <div>Total activities: {weeklyTrainingLoad.debugInfo.totalActivities}</div>
-            </div>
-          </div>
-        )}
+
       </CardContent>
     </Card>
   )

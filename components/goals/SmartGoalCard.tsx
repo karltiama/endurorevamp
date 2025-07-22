@@ -44,7 +44,7 @@ export function SmartGoalCard({
     if (unit === 'km' && preferences.distance === 'miles') {
       // Convert km to miles
       const miles = convertDistance(target * 1000, 'miles');
-      return `${miles.toFixed(1)} mi`;
+      return `${miles % 1 === 0 ? miles.toFixed(0) : miles.toFixed(1)} mi`;
     } else if (unit === 'min/km' && preferences.pace === 'min/mile') {
       // Convert pace from min/km to min/mile
       const pacePerMile = convertPace(target, 'min/mile');
@@ -70,7 +70,7 @@ export function SmartGoalCard({
         .replace(/(\d+(?:\.\d+)?)\s*km/g, (match, value) => {
           const km = parseFloat(value);
           const miles = convertDistance(km * 1000, 'miles');
-          return `${miles.toFixed(1)} mi`;
+          return `${miles % 1 === 0 ? miles.toFixed(0) : miles.toFixed(1)} mi`;
         })
         .replace(/\/km/g, '/mi');
     }
@@ -250,7 +250,7 @@ export function SmartGoalCardCompact({
         .replace(/(\d+(?:\.\d+)?)\s*km/g, (match, value) => {
           const km = parseFloat(value);
           const miles = convertDistance(km * 1000, 'miles');
-          return `${miles.toFixed(1)} mi`;
+          return `${miles % 1 === 0 ? miles.toFixed(0) : miles.toFixed(1)} mi`;
         })
         .replace(/\/km/g, '/mi');
     }

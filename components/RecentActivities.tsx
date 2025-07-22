@@ -94,8 +94,14 @@ function ActivityCard({ activity }: { activity: Activity }) {
           {activity.average_speed && (
             <p className="text-xs text-gray-500">
               Avg Speed: {preferences.distance === 'miles' 
-                ? `${(activity.average_speed * 3.6 * 0.621371).toFixed(1)} mph`
-                : `${(activity.average_speed * 3.6).toFixed(1)} km/h`
+                ? (() => {
+                    const mph = activity.average_speed * 3.6 * 0.621371
+                    return `${mph % 1 === 0 ? mph.toFixed(0) : mph.toFixed(1)} mph`
+                  })()
+                : (() => {
+                    const kmh = activity.average_speed * 3.6
+                    return `${kmh % 1 === 0 ? kmh.toFixed(0) : kmh.toFixed(1)} km/h`
+                  })()
               }
             </p>
           )}

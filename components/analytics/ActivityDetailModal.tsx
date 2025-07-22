@@ -87,9 +87,9 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
     const speedKmh = speedMs * 3.6
     if (preferences.distance === 'miles') {
       const speedMph = speedKmh * 0.621371
-      return `${speedMph.toFixed(1)} mph`
+      return `${speedMph % 1 === 0 ? speedMph.toFixed(0) : speedMph.toFixed(1)} mph`
     }
-    return `${speedKmh.toFixed(1)} km/h`
+    return `${speedKmh % 1 === 0 ? speedKmh.toFixed(0) : speedKmh.toFixed(1)} km/h`
   }
 
   // Format power with proper units

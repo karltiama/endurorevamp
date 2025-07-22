@@ -100,7 +100,7 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" aria-describedby="edit-goal-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Edit className="h-5 w-5" />
@@ -110,6 +110,10 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
             Modify your goal settings and track your progress
           </DialogDescription>
         </DialogHeader>
+
+        <div id="edit-goal-description" className="sr-only">
+          Edit your goal settings and track your progress
+        </div>
 
         <div className="space-y-6">
           {error && (

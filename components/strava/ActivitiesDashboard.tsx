@@ -60,9 +60,9 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
     const kmh = metersPerSecond * 3.6
     if (preferences.distance === 'miles') {
       const mph = kmh * 0.621371
-      return `${mph.toFixed(1)} mph`
+      return `${mph % 1 === 0 ? mph.toFixed(0) : mph.toFixed(1)} mph`
     }
-    return `${kmh.toFixed(1)} km/h`
+    return `${kmh % 1 === 0 ? kmh.toFixed(0) : kmh.toFixed(1)} km/h`
   }
 
   // Format date to readable format using proper timezone handling

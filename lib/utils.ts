@@ -17,10 +17,12 @@ export const CONVERSION_CONSTANTS = {
 export function formatDistance(meters: number, unit: DistanceUnit = 'km'): string {
   if (unit === 'miles') {
     const miles = (meters / 1000) * CONVERSION_CONSTANTS.KM_TO_MILES
-    return `${miles.toFixed(1)} mi`
+    // Show clean values: 3.1 mi instead of 3.1 mi, 5 mi instead of 5.0 mi
+    return `${miles % 1 === 0 ? miles.toFixed(0) : miles.toFixed(1)} mi`
   }
   const km = meters / 1000
-  return `${km.toFixed(1)} km`
+  // Show clean values: 5 km instead of 5.0 km, 3.2 km instead of 3.2 km
+  return `${km % 1 === 0 ? km.toFixed(0) : km.toFixed(1)} km`
 }
 
 export function formatPace(secondsPerKm: number, unit: PaceUnit = 'min/km'): string {

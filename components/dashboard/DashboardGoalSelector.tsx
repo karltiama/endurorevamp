@@ -74,9 +74,10 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
   if (isLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby="loading-goals-description">
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
+              <div id="loading-goals-description" className="sr-only">Loading your goals</div>
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p className="text-muted-foreground">Loading your goals...</p>
             </div>
@@ -89,7 +90,7 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
   return (
     <>
       <Dialog open={open && !showAddModal} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="dashboard-goals-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Target className="h-5 w-5" />
@@ -99,6 +100,10 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
               Select up to 3 goals to track as key metrics on your dashboard. These will help you stay focused on your most important objectives.
             </DialogDescription>
           </DialogHeader>
+
+          <div id="dashboard-goals-description" className="sr-only">
+            Select up to 3 goals to track as key metrics on your dashboard
+          </div>
 
           <div className="space-y-6">
             {error && (

@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useUserActivities } from '@/hooks/use-user-activities'
 import { usePersonalizedTSSTarget } from '@/hooks/useTrainingProfile'
 import { useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { 
   Battery, 
   Heart, 
@@ -146,6 +147,7 @@ const getReadinessColor = (level: string) => {
 export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
   const { data: activities, isLoading, error } = useUserActivities(userId)
   const { data: personalizedTSSTarget } = usePersonalizedTSSTarget(userId)
+  const router = useRouter()
 
   const trainingReadiness = useMemo((): TrainingReadiness | null => {
     if (!activities || activities.length === 0) return null
@@ -392,8 +394,7 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
             size="sm" 
             className="w-full"
             onClick={() => {
-              // This would open workout planning when the feature is implemented
-              alert('Workout planning feature coming soon! For now, check your Activity Feed for workout ideas.')
+              router.push('/dashboard/planning')
             }}
           >
             Plan Workout

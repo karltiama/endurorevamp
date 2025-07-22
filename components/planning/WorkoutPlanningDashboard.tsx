@@ -169,8 +169,14 @@ function TodaysWorkoutCard({ workout }: { workout: WorkoutRecommendation }) {
               <p className="text-sm text-muted-foreground">Distance</p>
               <p className="font-semibold">
                 {unitPreferences.distance === 'miles' 
-                  ? `${(workout.distance * 0.621371).toFixed(1)} mi`
-                  : `${workout.distance.toFixed(1)} km`
+                                  ? (() => {
+                    const miles = workout.distance * 0.621371
+                    return `${miles % 1 === 0 ? miles.toFixed(0) : miles.toFixed(1)} mi`
+                  })()
+                : (() => {
+                    const km = workout.distance
+                    return `${km % 1 === 0 ? km.toFixed(0) : km.toFixed(1)} km`
+                  })()
                 }
               </p>
             </div>

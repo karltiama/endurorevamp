@@ -105,7 +105,8 @@ export function CoreDataValidator() {
 
   const formatSpeed = (mps: number | null) => {
     if (!mps) return 'N/A'
-    return (mps * 3.6).toFixed(1) + ' km/h'
+    const kmh = mps * 3.6
+    return `${kmh % 1 === 0 ? kmh.toFixed(0) : kmh.toFixed(1)} km/h`
   }
 
   return (

@@ -121,7 +121,7 @@ export function AddGoalModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="add-goal-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-purple-500" />
@@ -129,6 +129,10 @@ export function AddGoalModal({
           </DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+
+        <div id="add-goal-description" className="sr-only">
+          AI-powered goal recommendations based on your running data
+        </div>
 
         <div className="space-y-6">
           {!selectedSuggestion ? (
