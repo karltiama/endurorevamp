@@ -132,64 +132,41 @@ export function AutomaticGoalTracker() {
 
   return (
     <div className="space-y-6">
-      {/* Overview Stats */}
+      {/* Overview Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-primary" />
-            Automatic Goal Tracking
+            <Zap className="h-5 w-5 text-blue-500" />
+            Goal Tracking Overview
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {error && (
-            <Alert className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          {stats && (
-            <div className="grid gap-4 md:grid-cols-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold">{stats.total}</div>
-                <div className="text-sm text-muted-foreground">Total Goals</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{stats.autoTracked}</div>
-                <div className="text-sm text-muted-foreground">Auto-Tracked</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">{stats.manualTracked}</div>
-                <div className="text-sm text-muted-foreground">Manual</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{stats.autoTrackingPercentage}%</div>
-                <div className="text-sm text-muted-foreground">Automated</div>
-              </div>
+          <div className="space-y-4">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-medium text-blue-900 mb-2">How Goal Tracking Works</h4>
+              <p className="text-sm text-blue-800">
+                Your goals use a smart hybrid system: <strong>automatic tracking</strong> for standard metrics 
+                (distance, pace, frequency) and <strong>manual updates</strong> for special cases 
+                (races, heart rate zones, corrections). This gives you the best of both worlds!
+              </p>
             </div>
-          )}
-          
-          <div className="mt-4 pt-4 border-t">
-            <Button 
-              onClick={handleRecalculateProgress}
-              disabled={isRecalculating}
-              className="w-full sm:w-auto"
-            >
-              {isRecalculating ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Recalculating...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Recalculate All Progress
-                </>
-              )}
-            </Button>
-            <p className="text-sm text-muted-foreground mt-2">
-              This will rebuild progress from all your activities. Use if goal progress seems incorrect.
-            </p>
+            
+            {stats && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-3 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">{stats.autoTrackingPercentage}%</div>
+                  <div className="text-sm text-green-700">Auto-Tracked</div>
+                </div>
+                <div className="text-center p-3 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
+                  <div className="text-sm text-blue-700">Total Goals</div>
+                </div>
+                <div className="text-center p-3 bg-orange-50 rounded-lg">
+                  <div className="text-2xl font-bold text-orange-600">{stats.manualTracked}</div>
+                  <div className="text-sm text-orange-700">Manual Goals</div>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

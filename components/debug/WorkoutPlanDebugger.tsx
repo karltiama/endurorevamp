@@ -55,7 +55,7 @@ export function WorkoutPlanDebugger({ userId }: WorkoutPlanDebuggerProps) {
             {weeklyPlan?.workouts && Object.entries(weeklyPlan.workouts).map(([day, workout]) => (
               <div key={day} className="flex justify-between">
                 <span>Day {day}:</span>
-                <span>{workout ? `${(workout as any).type} ${(workout as any).sport} (${(workout as any).duration}min)` : 'Rest'}</span>
+                <span>{workout ? `${(workout as { type?: string; sport?: string; duration?: number }).type} ${(workout as { type?: string; sport?: string; duration?: number }).sport} (${(workout as { type?: string; sport?: string; duration?: number }).duration}min)` : 'Rest'}</span>
               </div>
             ))}
           </div>

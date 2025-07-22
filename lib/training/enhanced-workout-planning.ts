@@ -76,8 +76,6 @@ export class EnhancedWorkoutPlanner {
    * Generate today's workout with enhanced reasoning
    */
   generateTodaysWorkout(): EnhancedWorkoutRecommendation | null {
-    const { currentTrainingLoad, recentActivities, userGoals } = this.context
-
     // Check recovery needs first
     if (this.shouldRecommendRecovery()) {
       return this.createRecoveryWorkout()
@@ -239,7 +237,7 @@ export class EnhancedWorkoutPlanner {
    * Create goal-specific workouts
    */
   private createGoalSpecificWorkout(): EnhancedWorkoutRecommendation | null {
-    const { userGoals, recentActivities } = this.context
+    const { userGoals } = this.context
     
     // Find active goals
     const activeGoals = userGoals.filter(g => g.is_active && !g.is_completed)
@@ -257,11 +255,11 @@ export class EnhancedWorkoutPlanner {
     }
 
     if (paceGoals.length > 0) {
-      return this.createPaceGoalWorkout(paceGoals[0])
+      return this.createPaceGoalWorkout()
     }
 
     if (frequencyGoals.length > 0) {
-      return this.createFrequencyGoalWorkout(frequencyGoals[0])
+      return this.createFrequencyGoalWorkout()
     }
 
     return null
@@ -316,7 +314,7 @@ export class EnhancedWorkoutPlanner {
   /**
    * Create workout for pace goals
    */
-  private createPaceGoalWorkout(goal: UserGoal): EnhancedWorkoutRecommendation {
+  private createPaceGoalWorkout(): EnhancedWorkoutRecommendation {
     return {
       id: `pace-interval-${Date.now()}`,
       type: 'interval',
@@ -366,7 +364,7 @@ export class EnhancedWorkoutPlanner {
   /**
    * Create workout for frequency goals
    */
-  private createFrequencyGoalWorkout(goal: UserGoal): EnhancedWorkoutRecommendation {
+  private createFrequencyGoalWorkout(): EnhancedWorkoutRecommendation {
     return {
       id: `frequency-easy-${Date.now()}`,
       type: 'easy',
@@ -878,8 +876,7 @@ export function generateEnhancedWorkoutRecommendations(
   userId: string,
   activities: Activity[],
   trainingLoadMetrics: TrainingLoadMetrics,
-  userGoals: UserGoal[],
-  userPreferences: any
+  userGoals: UserGoal[]
 ): {
   todaysWorkout: EnhancedWorkoutRecommendation | null
   weeklyPlan: WeeklyWorkoutPlan | null
@@ -892,8 +889,7 @@ export function generateEnhancedWorkoutRecommendations(
     userPreferences: {
       preferredSports: ['Run', 'Ride', 'Swim'],
       availableTime: 60,
-      experienceLevel: 'intermediate',
-      ...userPreferences
+      experienceLevel: 'intermediate'
     }
   }
 

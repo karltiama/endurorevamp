@@ -194,7 +194,9 @@ describe('DashboardGoalSelector', () => {
     );
 
     expect(screen.getByText('Choose Dashboard Goals')).toBeInTheDocument();
-    expect(screen.getByText(/Select up to 3 goals to track as key metrics on your dashboard/)).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    // Check for the dialog description specifically
+    expect(screen.getByText('Select up to 3 goals to track as key metrics on your dashboard. These will help you stay focused on your most important objectives.')).toBeInTheDocument();
   });
 
   it('shows loading state', () => {

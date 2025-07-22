@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useUpdateGoal, useDeleteGoal } from '@/hooks/useGoals';
 import { UserGoal } from '@/types/goals';
 import { Edit, Trash2 } from 'lucide-react';
+import { CheckCircle, User, AlertCircle } from 'lucide-react';
 
 interface EditGoalModalProps {
   goal: UserGoal;
@@ -100,27 +101,44 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" aria-describedby="edit-goal-description">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Edit className="h-5 w-5" />
-            Edit Goal
-          </DialogTitle>
+          <DialogTitle>Edit Goal</DialogTitle>
           <DialogDescription>
-            Modify your goal settings and track your progress
+            Update your goal details. Most goals update automatically from your activities.
           </DialogDescription>
         </DialogHeader>
 
-        <div id="edit-goal-description" className="sr-only">
-          Edit your goal settings and track your progress
-        </div>
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-        <div className="space-y-6">
-          {error && (
-            <Alert>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+        <div className="space-y-4">
+          {/* Progress Type Indicator */}
+          <div className="bg-blue-50 p-3 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              {goal.goal_type?.metric_type && ['total_distance', 'average_pace', 'run_count', 'total_time'].includes(goal.goal_type.metric_type) ? (
+                <>
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-800">Auto-Tracked Goal</span>
+                </>
+              ) : (
+                <>
+                  <User className="h-4 w-4 text-orange-600" />
+                  <span className="text-sm font-medium text-orange-800">Manual Goal</span>
+                </>
+              )}
+            </div>
+            <p className="text-xs text-blue-700">
+              {goal.goal_type?.metric_type && ['total_distance', 'average_pace', 'run_count', 'total_time'].includes(goal.goal_type.metric_type) 
+                ? "This goal updates automatically from your Strava activities. Manual updates are for corrections only."
+                : "This goal type requires manual updates (e.g., race results, heart rate zones, weight tracking)."
+              }
+            </p>
+          </div>
 
           {/* Goal Info */}
           <div className="space-y-2">

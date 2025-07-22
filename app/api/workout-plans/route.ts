@@ -2,7 +2,32 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth/server'
 
-export async function GET(request: NextRequest) {
+interface WorkoutPlanRow {
+  plan_id: string
+  week_start: string
+  day_of_week: number | null
+  workout_type?: string
+  sport?: string
+  duration?: number
+  intensity?: number
+  distance?: number
+  difficulty?: string
+  energy_cost?: number
+  recovery_time?: number
+  reasoning?: string
+  goal_alignment?: string
+  weather_consideration?: string
+  instructions?: string[]
+  tips?: string[]
+  modifications?: Record<string, unknown>
+  alternatives?: string[]
+  total_tss?: number
+  total_distance?: string
+  total_time?: number
+  periodization_phase?: string
+}
+
+export async function GET() {
   try {
     const user = await requireAuth()
     const supabase = await createClient()
@@ -20,7 +45,7 @@ export async function GET(request: NextRequest) {
     // Transform the data into the expected format
     if (planData && planData.length > 0) {
       const firstRow = planData[0]
-      const workouts: { [dayOfWeek: number]: any } = {}
+      const workouts: { [dayOfWeek: number]: unknown } = {}
       
       // Initialize all days as null
       for (let i = 0; i < 7; i++) {
@@ -28,7 +53,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Fill in the workouts from the database
-      planData.forEach((row: any) => {
+      planData.forEach((row: WorkoutPlanRow) => {
         if (row.day_of_week !== null) {
           workouts[row.day_of_week] = {
             id: row.plan_id + '-' + row.day_of_week,
@@ -165,7 +190,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE() {
   try {
     console.log('DELETE /api/workout-plans: Starting request')
     

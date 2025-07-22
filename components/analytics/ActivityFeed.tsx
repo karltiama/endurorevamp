@@ -26,7 +26,7 @@ export function ActivityFeed({ userId }: ActivityFeedProps) {
   ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
 
   // Filter activities to last 90 days and paginate
-  const filteredActivities = allActivities?.filter(activity => 
+  const filteredActivities = allActivities?.filter((activity: ActivityFeedActivity) => 
     new Date(activity.start_date) >= ninetyDaysAgo
   ) || []
 

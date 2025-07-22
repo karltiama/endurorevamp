@@ -20,7 +20,7 @@ export class DynamicWorkoutContent {
    * Generate dynamic instructions based on workout characteristics
    */
   static generateInstructions(context: DynamicContentContext): string[] {
-    const { workoutType, sport, intensity, duration, distance, difficulty, timeOfDay, weatherConditions } = context
+    const { workoutType, sport, intensity, difficulty, timeOfDay, weatherConditions } = context
 
     const instructions: string[] = []
 
@@ -28,18 +28,18 @@ export class DynamicWorkoutContent {
     instructions.push(...this.getWarmupInstructions(sport, intensity, timeOfDay))
 
     // Main workout instructions
-    instructions.push(...this.getMainWorkoutInstructions(workoutType, sport, intensity, duration, distance))
+          instructions.push(...this.getMainWorkoutInstructions(workoutType, sport))
 
     // Cool-down instructions
     instructions.push(...this.getCooldownInstructions(sport, intensity))
 
     // Weather-specific adjustments
     if (weatherConditions) {
-      instructions.push(...this.getWeatherAdjustments(weatherConditions, sport))
+      instructions.push(...this.getWeatherAdjustments(weatherConditions))
     }
 
     // Difficulty-specific modifications
-    instructions.push(...this.getDifficultyModifications(difficulty, sport))
+          instructions.push(...this.getDifficultyModifications(difficulty))
 
     return instructions
   }
@@ -56,23 +56,23 @@ export class DynamicWorkoutContent {
     tips.push(...this.getWorkoutTypeTips(workoutType, sport))
 
     // Intensity-specific tips
-    tips.push(...this.getIntensityTips(intensity, sport))
+    tips.push(...this.getIntensityTips(intensity))
 
     // Duration-specific tips
-    tips.push(...this.getDurationTips(duration, sport))
+    tips.push(...this.getDurationTips(duration))
 
     // Time of day tips
     if (timeOfDay) {
-      tips.push(...this.getTimeOfDayTips(timeOfDay, sport))
+              tips.push(...this.getTimeOfDayTips(timeOfDay))
     }
 
     // Weather-specific tips
     if (weatherConditions) {
-      tips.push(...this.getWeatherTips(weatherConditions, sport))
+      tips.push(...this.getWeatherTips(weatherConditions))
     }
 
     // Difficulty-specific tips
-    tips.push(...this.getDifficultyTips(difficulty, sport))
+            tips.push(...this.getDifficultyTips(difficulty))
 
     return tips
   }
@@ -99,7 +99,7 @@ export class DynamicWorkoutContent {
     return instructions
   }
 
-  private static getMainWorkoutInstructions(workoutType: string, sport: string, intensity: number, duration: number, distance?: number): string[] {
+  private static getMainWorkoutInstructions(workoutType: string, sport: string): string[] {
     const instructions: string[] = []
 
     if (sport === 'Run') {
@@ -180,7 +180,7 @@ export class DynamicWorkoutContent {
     return instructions
   }
 
-  private static getWeatherAdjustments(weather: any, sport: string): string[] {
+  private static getWeatherAdjustments(weather: { temperature: number; precipitation: number; windSpeed: number }): string[] {
     const instructions: string[] = []
 
     if (weather.temperature < 10) {
@@ -200,7 +200,7 @@ export class DynamicWorkoutContent {
     return instructions
   }
 
-  private static getDifficultyModifications(difficulty: string, sport: string): string[] {
+  private static getDifficultyModifications(difficulty: string): string[] {
     const instructions: string[] = []
 
     if (difficulty === 'beginner') {
@@ -276,7 +276,7 @@ export class DynamicWorkoutContent {
     return tips
   }
 
-  private static getIntensityTips(intensity: number, sport: string): string[] {
+  private static getIntensityTips(intensity: number): string[] {
     const tips: string[] = []
 
     if (intensity <= 3) {
@@ -294,7 +294,7 @@ export class DynamicWorkoutContent {
     return tips
   }
 
-  private static getDurationTips(duration: number, sport: string): string[] {
+  private static getDurationTips(duration: number): string[] {
     const tips: string[] = []
 
     if (duration <= 30) {
@@ -310,7 +310,7 @@ export class DynamicWorkoutContent {
     return tips
   }
 
-  private static getTimeOfDayTips(timeOfDay: string, sport: string): string[] {
+  private static getTimeOfDayTips(timeOfDay: string): string[] {
     const tips: string[] = []
 
     if (timeOfDay === 'morning') {
@@ -327,7 +327,7 @@ export class DynamicWorkoutContent {
     return tips
   }
 
-  private static getWeatherTips(weather: any, sport: string): string[] {
+  private static getWeatherTips(weather: { temperature: number; precipitation: number; windSpeed: number }): string[] {
     const tips: string[] = []
 
     if (weather.temperature < 10) {
@@ -349,7 +349,7 @@ export class DynamicWorkoutContent {
     return tips
   }
 
-  private static getDifficultyTips(difficulty: string, sport: string): string[] {
+  private static getDifficultyTips(difficulty: string): string[] {
     const tips: string[] = []
 
     if (difficulty === 'beginner') {
@@ -375,33 +375,33 @@ export class DynamicWorkoutContent {
     shorter?: string
     longer?: string
   } {
-    const { workoutType, sport, intensity, duration, difficulty } = context
+    const { workoutType, sport, intensity, duration } = context
     const modifications: { easier?: string; harder?: string; shorter?: string; longer?: string } = {}
 
     // Easier modifications
     if (intensity > 4) {
-      modifications.easier = this.getEasierModification(workoutType, sport, intensity)
+      modifications.easier = this.getEasierModification(workoutType, sport)
     }
 
     // Harder modifications
     if (intensity < 8) {
-      modifications.harder = this.getHarderModification(workoutType, sport, intensity)
+      modifications.harder = this.getHarderModification(workoutType, sport)
     }
 
     // Shorter modifications
     if (duration > 45) {
-      modifications.shorter = this.getShorterModification(workoutType, sport, duration)
+      modifications.shorter = this.getShorterModification(workoutType, sport)
     }
 
     // Longer modifications
     if (duration < 90) {
-      modifications.longer = this.getLongerModification(workoutType, sport, duration)
+      modifications.longer = this.getLongerModification(workoutType, sport)
     }
 
     return modifications
   }
 
-  private static getEasierModification(workoutType: string, sport: string, intensity: number): string {
+  private static getEasierModification(workoutType: string, sport: string): string {
     if (sport === 'Run') {
       switch (workoutType) {
         case 'tempo':
@@ -421,7 +421,7 @@ export class DynamicWorkoutContent {
     return 'Reduce intensity by 1-2 levels'
   }
 
-  private static getHarderModification(workoutType: string, sport: string, intensity: number): string {
+  private static getHarderModification(workoutType: string, sport: string): string {
     if (sport === 'Run') {
       switch (workoutType) {
         case 'easy':
@@ -439,7 +439,7 @@ export class DynamicWorkoutContent {
     return 'Increase intensity by 1-2 levels'
   }
 
-  private static getShorterModification(workoutType: string, sport: string, duration: number): string {
+  private static getShorterModification(workoutType: string, sport: string): string {
     if (sport === 'Run') {
       switch (workoutType) {
         case 'long':
@@ -457,7 +457,7 @@ export class DynamicWorkoutContent {
     return 'Reduce duration by 25-30%'
   }
 
-  private static getLongerModification(workoutType: string, sport: string, duration: number): string {
+  private static getLongerModification(workoutType: string, sport: string): string {
     if (sport === 'Run') {
       switch (workoutType) {
         case 'easy':

@@ -1,7 +1,6 @@
 // Types for the user goals and onboarding system
 export interface GoalType {
-  id: string;
-  name: string;
+  name: string; // Primary key (was 'id' before migration)
   display_name: string;
   description: string;
   category: 'distance' | 'pace' | 'frequency' | 'duration' | 'elevation' | 'heart_rate' | 'event';

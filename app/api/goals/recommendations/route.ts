@@ -78,16 +78,32 @@ export async function GET(request: NextRequest) {
   }
 }
 
+interface Activity {
+  distance?: number
+  average_speed?: number
+  moving_time?: number
+  start_date?: string
+}
+
+interface Goal {
+  goal_type?: {
+    metric_type?: string
+  }
+}
+
+interface GoalType {
+  metric_type?: string
+}
+
 function generateGoalRecommendations(
-  activities: any[],
-  currentGoals: any[],
-  goalTypes: any[]
-): any[] {
+  activities: Activity[],
+  currentGoals: Goal[],
+  goalTypes: GoalType[]
+): unknown[] {
   const recommendations = []
 
   // Analyze activity patterns
   const totalDistance = activities.reduce((sum, activity) => sum + (activity.distance || 0), 0)
-  const totalTime = activities.reduce((sum, activity) => sum + (activity.moving_time || 0), 0)
   const averagePace = activities.length > 0 
     ? activities.reduce((sum, activity) => sum + (activity.average_speed || 0), 0) / activities.length
     : 0
@@ -131,6 +147,7 @@ function generateGoalRecommendations(
     const frequencyGoalType = goalTypes.find(gt => gt.metric_type === 'run_count')
     if (frequencyGoalType) {
       const weeklyAverage = activities.filter(a => {
+        if (!a.start_date) return false
         const activityDate = new Date(a.start_date)
         const weekAgo = new Date()
         weekAgo.setDate(weekAgo.getDate() - 7)

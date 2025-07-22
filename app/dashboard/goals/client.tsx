@@ -29,6 +29,7 @@ import {
 import { GoalCard } from '@/components/goals/GoalCard';
 import { AddGoalModal } from '@/components/goals/AddGoalModal';
 import { EditGoalModal } from '@/components/goals/EditGoalModal';
+import { GoalCardSkeletonGrid } from '@/components/goals/GoalCardSkeleton';
 
 import { AutomaticGoalTracker } from '@/components/goals/AutomaticGoalTracker';
 import { SmartGoalCard, SmartGoalCardCompact, SmartGoalCardSkeleton } from '@/components/goals/SmartGoalCard';
@@ -37,7 +38,7 @@ import { toast } from 'sonner';
 
 export function GoalsPageClient() {
   const { user } = useAuth();
-  const { activeGoals, completedGoals } = useGoalsContext();
+  const { activeGoals, completedGoals, isLoading, refreshGoals } = useGoalsContext();
 
   const { suggestions, isLoading: isLoadingSuggestions, refetch: refetchSuggestions } = useDynamicGoals(user?.id || '', { maxSuggestions: 6 });
   
@@ -65,6 +66,8 @@ export function GoalsPageClient() {
       const data = await res.json();
       if (res.ok) {
         toast.success(`Goals refreshed! ${data.goalsUpdated} updated.`);
+        // Invalidate the React Query cache to refresh the UI
+        refreshGoals();
       } else {
         toast.error(data.error || 'Failed to refresh goals');
       }
@@ -80,33 +83,29 @@ export function GoalsPageClient() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">My Goals</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Goals</h1>
           <p className="text-muted-foreground">
-            Track your progress and achieve your running ambitions
+            Track your running progress and achieve your targets
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <Button
+            variant="outline"
+            size="sm"
             onClick={handleRefreshGoals}
             disabled={refreshing}
-            variant="outline"
             className="flex items-center gap-2"
-            title="Refresh goal progress"
           >
-            <RefreshCw className={refreshing ? 'animate-spin h-4 w-4' : 'h-4 w-4'} />
-            {refreshing ? 'Refreshing...' : 'Refresh Goals'}
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
           </Button>
-          <Button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2"
-          >
+          <Button onClick={() => setShowAddModal(true)} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Add Goal
           </Button>
         </div>
       </div>
 
-      {/* Main Content with Tabs */}
       <Tabs defaultValue="goals" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="goals" className="flex items-center gap-2">
@@ -154,17 +153,17 @@ export function GoalsPageClient() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">This Week</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {activeGoals.filter(goal => 
-                    goal.goal_type?.name === 'weekly_distance'
-                  ).length}
+                  {activeGoals.length + completedGoals.length > 0 
+                    ? Math.round((completedGoals.length / (activeGoals.length + completedGoals.length)) * 100)
+                    : 0}%
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Weekly goals
+                  Completion rate
                 </p>
               </CardContent>
             </Card>
@@ -172,30 +171,33 @@ export function GoalsPageClient() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Avg Progress</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {activeGoals.length > 0 
-                    ? Math.round(
-                        activeGoals.reduce((acc, goal) => {
-                          const progress = goal.target_value 
-                            ? (goal.current_progress / goal.target_value) * 100 
-                            : 0;
-                          return acc + Math.min(100, progress);
-                        }, 0) / activeGoals.length
-                      )
+                    ? Math.round(activeGoals.reduce((sum, goal) => {
+                        const progress = goal.target_value ? (goal.current_progress / goal.target_value) * 100 : 0;
+                        return sum + progress;
+                      }, 0) / activeGoals.length)
                     : 0}%
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Across all goals
+                  Across active goals
                 </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Active Goals */}
-          {activeGoals.length > 0 ? (
+          {/* Active Goals Section */}
+          {isLoading ? (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-4">Active Goals</h2>
+                <GoalCardSkeletonGrid count={3} />
+              </div>
+            </div>
+          ) : activeGoals.length > 0 ? (
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-semibold mb-4">Active Goals</h2>
@@ -273,77 +275,22 @@ export function GoalsPageClient() {
 
           {/* AI Suggestions Content */}
           {isLoadingSuggestions ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <SmartGoalCardSkeleton key={i} />
               ))}
             </div>
           ) : suggestions.length > 0 ? (
-            <div className="space-y-6">
-              {/* High Priority Suggestions */}
-              {suggestions.filter(s => s.priority === 'high').length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Badge variant="destructive">High Priority</Badge>
-                    <span className="text-sm text-muted-foreground">
-                      Recommended for immediate attention
-                    </span>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {suggestions.filter(s => s.priority === 'high').map((suggestion) => (
-                      <SmartGoalCard
-                        key={suggestion.id}
-                        suggestion={suggestion}
-                        onSelect={handleCreateGoalFromSuggestion}
-                        showFullDetails={true}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Medium Priority Suggestions */}
-              {suggestions.filter(s => s.priority === 'medium').length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Badge variant="secondary">Medium Priority</Badge>
-                    <span className="text-sm text-muted-foreground">
-                      Good opportunities for growth
-                    </span>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {suggestions.filter(s => s.priority === 'medium').map((suggestion) => (
-                      <SmartGoalCard
-                        key={suggestion.id}
-                        suggestion={suggestion}
-                        onSelect={handleCreateGoalFromSuggestion}
-                        showFullDetails={false}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Low Priority Suggestions */}
-              {suggestions.filter(s => s.priority === 'low').length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Badge variant="outline">Low Priority</Badge>
-                    <span className="text-sm text-muted-foreground">
-                      Future considerations
-                    </span>
-                  </div>
-                  <div className="grid gap-3">
-                    {suggestions.filter(s => s.priority === 'low').map((suggestion) => (
-                      <SmartGoalCardCompact
-                        key={suggestion.id}
-                        suggestion={suggestion}
-                        onSelect={handleCreateGoalFromSuggestion}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+            <div className="grid gap-4 md:grid-cols-2">
+              {suggestions.map((suggestion) => (
+                <SmartGoalCard
+                  key={suggestion.id}
+                  suggestion={suggestion}
+                  onSelect={handleCreateGoalFromSuggestion}
+                  isSelected={false}
+                  showFullDetails={true}
+                />
+              ))}
             </div>
           ) : (
             <Card>

@@ -198,11 +198,7 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
     const weeklyTrend = currentTSS > previousTSS * 1.1 ? 'up' : 
                       currentTSS < previousTSS * 0.9 ? 'down' : 'stable'
 
-    // Debug information
-    const activitiesWithTSS = thisWeekActivities.filter(activity => 
-      (activity as ActivityWithTrainingData).training_stress_score !== null && 
-      (activity as ActivityWithTrainingData).training_stress_score !== undefined
-    ).length
+    // Debug information - removed unused variable
 
     return {
       currentTSS: Math.round(currentTSS),
@@ -294,7 +290,10 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
   }
 
   // Show warning if no activities have TSS calculated
-  const needsTSSUpdate = false // Removed debug info check
+  const needsTSSUpdate = activities?.some(activity => {
+    const activityWithTraining = activity as ActivityWithTrainingData
+    return activityWithTraining.training_stress_score === null || activityWithTraining.training_stress_score === undefined
+  }) || false
 
   return (
     <Card>

@@ -3,15 +3,13 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
-  Calendar, 
   Clock, 
   TrendingUp, 
   Zap, 
@@ -20,8 +18,6 @@ import {
   Dumbbell,
   Edit3,
   Save,
-  X,
-  Plus,
   Trash2,
   Loader2,
   RotateCcw,
@@ -87,7 +83,7 @@ interface WorkoutPlanEditorModalProps {
   isOpen: boolean
   onClose: () => void
   onSave: (updatedPlan: WeeklyWorkoutPlan) => void
-  onResetToRecommended?: () => Promise<{ success: boolean; result?: any; newPlan?: WeeklyWorkoutPlan | null; error?: any }>
+  onResetToRecommended?: () => Promise<{ success: boolean; result?: unknown; newPlan?: WeeklyWorkoutPlan | null; error?: unknown }>
 }
 
 const WORKOUT_TYPES = [
@@ -124,7 +120,7 @@ function shouldShowIntensityField(workoutType: string, sport: string): boolean {
   return sport === 'Run'
 }
 
-function shouldShowEnergyCostField(workoutType: string, sport: string): boolean {
+function shouldShowEnergyCostField(): boolean {
   return true // Always show for now
 }
 
@@ -270,32 +266,6 @@ export function WorkoutPlanEditorModal({
     }
   }, [onResetToRecommended])
 
-  const createDefaultWorkout = useCallback((type: string, sport: string): EnhancedWorkoutRecommendation => {
-    return {
-      id: `workout-${Date.now()}`,
-      type: type as any,
-      sport: sport as any,
-      duration: getDefaultDuration(type, sport),
-      intensity: getDefaultIntensity(type, sport),
-      distance: getDefaultDistance(type, sport),
-      difficulty: 'intermediate',
-      energyCost: 5,
-      recoveryTime: 24,
-      reasoning: `A ${type} ${sport.toLowerCase()} session to improve your fitness.`,
-      alternatives: [],
-      instructions: [
-        'Warm up with 5-10 minutes of easy activity',
-        'Perform the main workout',
-        'Cool down with 5-10 minutes of easy activity'
-      ],
-      tips: [
-        'Listen to your body and adjust intensity as needed',
-        'Stay hydrated throughout the session',
-        'Focus on good form and technique'
-      ]
-    }
-  }, [])
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" aria-describedby="workout-editor-description">
@@ -313,7 +283,7 @@ export function WorkoutPlanEditorModal({
         <div className="space-y-4">
           {/* Week Overview */}
           <div className="grid grid-cols-7 gap-2">
-            {DAY_NAMES.map((dayName, index) => (
+            {DAY_NAMES.map((dayName) => (
               <div key={dayName} className="text-center font-medium text-sm">
                 {dayName}
               </div>
@@ -442,8 +412,9 @@ export function WorkoutPlanEditorModal({
                     variant="default" 
                     onClick={handleResetToRecommended}
                     disabled={isResetting || editingDay !== null}
+                    data-testid="confirm-reset-to-recommended"
                   >
-                    {isResetting ? 'Resetting...' : 'Reset to Recommended'}
+                    {isResetting ? 'Resetting...' : 'Confirm Reset'}
                   </Button>
                 </div>
               </div>
@@ -454,12 +425,10 @@ export function WorkoutPlanEditorModal({
         {/* Workout Editor Modal */}
         {editingDay !== null && (
           <WorkoutEditorModal
-            dayIndex={editingDay}
             dayName={DAY_NAMES[editingDay]}
             workout={plan.workouts[editingDay]}
             onSave={(workout) => handleWorkoutUpdate(editingDay, workout)}
             onCancel={() => setEditingDay(null)}
-            createDefaultWorkout={createDefaultWorkout}
           />
         )}
       </DialogContent>
@@ -468,21 +437,17 @@ export function WorkoutPlanEditorModal({
 }
 
 interface WorkoutEditorModalProps {
-  dayIndex: number
   dayName: string
   workout: EnhancedWorkoutRecommendation | null
   onSave: (workout: EnhancedWorkoutRecommendation | null) => void
   onCancel: () => void
-  createDefaultWorkout: (type: string, sport: string) => EnhancedWorkoutRecommendation
 }
 
 function WorkoutEditorModal({
-  dayIndex,
   dayName,
   workout,
   onSave,
-  onCancel,
-  createDefaultWorkout
+  onCancel
 }: WorkoutEditorModalProps) {
   const [editingWorkout, setEditingWorkout] = useState<EnhancedWorkoutRecommendation | null>(workout)
   const [isCreating, setIsCreating] = useState(!workout)
@@ -496,13 +461,7 @@ function WorkoutEditorModal({
     onSave(null)
   }, [onSave])
 
-  const handleCreate = useCallback((type: string, sport: string) => {
-    const newWorkout = createDefaultWorkout(type, sport)
-    setEditingWorkout(newWorkout)
-    setIsCreating(false)
-  }, [createDefaultWorkout])
-
-  const handleUpdateField = useCallback((field: keyof EnhancedWorkoutRecommendation, value: any) => {
+  const handleUpdateField = useCallback((field: keyof EnhancedWorkoutRecommendation, value: unknown) => {
     if (!editingWorkout) return
     setEditingWorkout({ ...editingWorkout, [field]: value })
   }, [editingWorkout])
@@ -537,7 +496,7 @@ function WorkoutEditorModal({
                         setEditingWorkout({
                           id: `temp-${Date.now()}`,
                           type: 'easy',
-                          sport: sport.value as any,
+                          sport: sport.value as "Run" | "WeightTraining",
                           duration: getDefaultDuration('easy', sport.value),
                           intensity: getDefaultIntensity('easy', sport.value),
                           distance: getDefaultDistance('easy', sport.value),
@@ -578,7 +537,7 @@ function WorkoutEditorModal({
                       
                       setEditingWorkout(prev => prev ? {
                         ...prev,
-                        type: value as any,
+                        type: value as "easy" | "tempo" | "threshold" | "long" | "recovery" | "strength" | "cross-training" | "interval" | "fartlek" | "hill",
                         duration: newDuration,
                         intensity: newIntensity,
                         distance: newDistance
@@ -610,7 +569,7 @@ function WorkoutEditorModal({
                       
                       setEditingWorkout(prev => prev ? {
                         ...prev,
-                        sport: value as any,
+                        sport: value as "Run" | "WeightTraining",
                         duration: newDuration,
                         intensity: newIntensity,
                         distance: newDistance
@@ -733,7 +692,7 @@ function WorkoutEditorModal({
                     />
                   </div>
                 )}
-                {shouldShowEnergyCostField(editingWorkout.type, editingWorkout.sport) && (
+                {shouldShowEnergyCostField() && (
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <Label>Energy Cost (1-10)</Label>
@@ -806,10 +765,6 @@ function WorkoutEditorModal({
 }
 
 // Utility functions
-function getWorkoutTypeColor(type: string) {
-  const workoutType = WORKOUT_TYPES.find(t => t.value === type)
-  return workoutType?.color || 'text-gray-600 bg-gray-50 border-gray-200'
-}
 
 function calculateWeeklyTSS(workouts: { [dayOfWeek: number]: EnhancedWorkoutRecommendation | null }): number {
   return Math.round(Object.values(workouts)

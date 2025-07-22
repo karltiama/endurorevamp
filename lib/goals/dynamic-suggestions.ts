@@ -36,7 +36,7 @@ export interface DynamicGoalSuggestion {
   description: string
   reasoning: string
   priority: 'high' | 'medium' | 'low'
-  category: 'distance' | 'pace' | 'frequency' | 'duration' | 'challenge'
+  category: 'distance' | 'pace' | 'frequency' | 'duration'
   
   // Goal details
   goalType: GoalType
@@ -194,7 +194,7 @@ export class DynamicGoalEngine {
     
     // 1. Performance Improvement Suggestions
     if (profile.distanceTrend === 'improving' && !activeGoalCategories.includes('distance')) {
-      suggestions.push(this.suggestDistanceGoal(profile))
+      suggestions.push(this.suggestDistanceGoal(profile, unitPreferences))
     }
     
     if (profile.paceTrend === 'improving' && !activeGoalCategories.includes('pace')) {
@@ -203,25 +203,56 @@ export class DynamicGoalEngine {
     
     // 2. Consistency Improvement Suggestions
     if (profile.consistencyScore < 70 && !activeGoalCategories.includes('frequency')) {
-      suggestions.push(this.suggestConsistencyGoal(profile))
+      suggestions.push(this.suggestConsistencyGoal(profile, unitPreferences))
     }
     
     // 3. Challenge Progression Suggestions
     if (profile.goalCompletionRate > 80) {
-      suggestions.push(...this.suggestChallengeGoals(profile, activeGoalCategories))
+      suggestions.push(...this.suggestChallengeGoals(profile, activeGoalCategories, unitPreferences))
     }
     
     // 4. Weakness Addressing Suggestions
     if (profile.frequencyTrend === 'declining') {
-      suggestions.push(this.suggestFrequencyRecoveryGoal(profile))
+      suggestions.push(this.suggestFrequencyRecoveryGoal(profile, unitPreferences))
     }
     
     if (profile.paceTrend === 'declining') {
-      suggestions.push(this.suggestSpeedWorkGoal(profile))
+      suggestions.push(this.suggestSpeedWorkGoal(profile, unitPreferences))
     }
     
     // 5. Experience-Based Suggestions
-    suggestions.push(...this.suggestExperienceBasedGoals(profile))
+    suggestions.push(...this.suggestExperienceBasedGoals(profile, unitPreferences))
+    
+    // 6. Additional suggestions for beginners with some progress
+    if (profile.runningExperience === 'beginner' && profile.weeklyDistance >= 10) {
+      suggestions.push({
+        id: 'dynamic-beginner-progression',
+        title: 'Take the Next Step',
+        description: 'Add variety to your training with different types of runs',
+        reasoning: 'You\'ve built a solid foundation. Now let\'s add some variety to keep things interesting.',
+        priority: 'medium',
+        category: 'frequency',
+        goalType: this.mapCategoryToGoalType('frequency'),
+        suggestedTarget: 4,
+        targetUnit: 'different run types',
+        timeframe: '4 weeks',
+        difficulty: 'moderate',
+        benefits: [
+          'Prevents training boredom',
+          'Builds different fitness aspects',
+          'Reduces injury risk',
+          'Keeps motivation high'
+        ],
+        strategies: [
+          'Try one longer run per week',
+          'Include one slightly faster run',
+          'Add a recovery run',
+          'Keep most runs easy'
+        ],
+        successProbability: 85,
+        requiredCommitment: 'medium'
+      })
+    }
     
     // Sort by priority and return top 5
     return suggestions
@@ -229,7 +260,7 @@ export class DynamicGoalEngine {
         const priorityOrder = { high: 3, medium: 2, low: 1 }
         return priorityOrder[b.priority] - priorityOrder[a.priority]
       })
-      .slice(0, 5)
+      .slice(0, 6) // Increased from 5 to 6 for more variety
   }
   
   private static calculateTrend(historical: number, recent: number, reverse = false): 'improving' | 'stable' | 'declining' {
@@ -279,25 +310,40 @@ export class DynamicGoalEngine {
   }
   
   private static determineExperienceLevel(totalActivities: number, weeklyDistance: number): 'beginner' | 'intermediate' | 'advanced' {
-    if (totalActivities < 20 || weeklyDistance < 15) return 'beginner'
-    if (totalActivities < 100 || weeklyDistance < 40) return 'intermediate'
+    // EXPERIENCE LEVEL THRESHOLDS - Adjust these to change classification
+    const BEGINNER_ACTIVITY_THRESHOLD = 20    // Total activities needed for intermediate
+    const BEGINNER_DISTANCE_THRESHOLD = 15    // Weekly km needed for intermediate
+    const INTERMEDIATE_ACTIVITY_THRESHOLD = 100 // Total activities needed for advanced
+    const INTERMEDIATE_DISTANCE_THRESHOLD = 40 // Weekly km needed for advanced
+    
+    if (totalActivities < BEGINNER_ACTIVITY_THRESHOLD || weeklyDistance < BEGINNER_DISTANCE_THRESHOLD) return 'beginner'
+    if (totalActivities < INTERMEDIATE_ACTIVITY_THRESHOLD || weeklyDistance < INTERMEDIATE_DISTANCE_THRESHOLD) return 'intermediate'
     return 'advanced'
   }
   
-  private static suggestDistanceGoal(profile: UserPerformanceProfile): DynamicGoalSuggestion {
+  private static suggestDistanceGoal(profile: UserPerformanceProfile, unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }): DynamicGoalSuggestion {
     const currentWeekly = profile.weeklyDistance
-    const suggestedTarget = Math.round(currentWeekly * 1.25) // 25% increase
+    let suggestedTarget = Math.round(currentWeekly * 1.25) // 25% increase
+    let targetUnit = 'km'
+    
+    // Convert to user's preferred distance unit
+    if (unitPreferences?.distance === 'miles') {
+      // Convert km to miles (1 km = 0.621371 miles)
+      suggestedTarget = Math.round(suggestedTarget * 0.621371 * 10) / 10
+      targetUnit = 'miles'
+    }
     
     return {
       id: 'dynamic-distance-improvement',
       title: 'Build Your Running Volume',
-      description: `Increase your weekly running distance to ${suggestedTarget}km`,
-      reasoning: `You've been consistently improving your distance. Your current average of ${currentWeekly.toFixed(1)}km/week shows you're ready for the next challenge.`,
+      description: `Increase your weekly running distance to ${suggestedTarget}${targetUnit === 'miles' ? 'mi' : 'km'}`,
+      reasoning: `You've been consistently improving your distance. Your current average of ${unitPreferences?.distance === 'miles' ? 
+        (currentWeekly * 0.621371).toFixed(1) : currentWeekly.toFixed(1)}${unitPreferences?.distance === 'miles' ? 'mi' : 'km'}/week shows you're ready for the next challenge.`,
       priority: 'high',
       category: 'distance',
-      goalType: {} as GoalType, // Would be populated from availableGoalTypes
+      goalType: this.mapCategoryToGoalType('distance'),
       suggestedTarget,
-      targetUnit: 'km',
+      targetUnit,
       timeframe: '4 weeks',
       difficulty: 'moderate',
       benefits: [
@@ -321,20 +367,24 @@ export class DynamicGoalEngine {
     const currentPace = profile.averagePace
     const targetImprovement = profile.runningExperience === 'beginner' ? 30 : 
                              profile.runningExperience === 'intermediate' ? 20 : 15
-    const suggestedTarget = currentPace - targetImprovement
+    let suggestedTarget = currentPace - targetImprovement
+    let targetUnit = 'min/km'
+    
+    // Convert to user's preferred pace unit
+    if (unitPreferences?.pace === 'min/mile') {
+      // Convert seconds per km to seconds per mile (1 mile = 1.60934 km)
+      suggestedTarget = suggestedTarget * 1.60934
+      targetUnit = 'min/mile'
+    }
     
     // Format pace based on user preferences
-    const formatPaceWithUnits = (secondsPerKm: number) => {
-      const minutes = Math.floor(secondsPerKm / 60);
-      const seconds = Math.floor(secondsPerKm % 60);
+    const formatPaceWithUnits = (secondsPerUnit: number) => {
+      const minutes = Math.floor(secondsPerUnit / 60);
+      const seconds = Math.floor(secondsPerUnit % 60);
       const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
       
       if (unitPreferences?.pace === 'min/mile') {
-        // Convert to min/mile
-        const pacePerMile = secondsPerKm * 1.60934;
-        const mileMinutes = Math.floor(pacePerMile / 60);
-        const mileSeconds = Math.floor(pacePerMile % 60);
-        return `${mileMinutes}:${mileSeconds.toString().padStart(2, '0')}/mi`;
+        return `${timeStr}/mi`;
       } else {
         return `${timeStr}/km`;
       }
@@ -349,9 +399,9 @@ export class DynamicGoalEngine {
       reasoning: `Your pace has been improving, indicating you're ready for focused speed work.`,
       priority: 'medium',
       category: 'pace',
-      goalType: {} as GoalType,
+      goalType: this.mapCategoryToGoalType('pace'),
       suggestedTarget,
-      targetUnit: 'min/km',
+      targetUnit,
       timeframe: '8 weeks',
       difficulty: 'moderate',
       benefits: [
@@ -371,7 +421,7 @@ export class DynamicGoalEngine {
     }
   }
   
-  private static suggestConsistencyGoal(profile: UserPerformanceProfile): DynamicGoalSuggestion {
+  private static suggestConsistencyGoal(profile: UserPerformanceProfile, unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }): DynamicGoalSuggestion {
     const targetFrequency = Math.min(6, Math.ceil(profile.runFrequency * 1.5))
     
     return {
@@ -381,7 +431,7 @@ export class DynamicGoalEngine {
       reasoning: `Your consistency score of ${profile.consistencyScore}% suggests there's room to build a stronger routine.`,
       priority: 'high',
       category: 'frequency',
-      goalType: {} as GoalType,
+      goalType: this.mapCategoryToGoalType('frequency'),
       suggestedTarget: targetFrequency,
       targetUnit: 'runs/week',
       timeframe: '4 weeks',
@@ -403,21 +453,31 @@ export class DynamicGoalEngine {
     }
   }
   
-  private static suggestChallengeGoals(profile: UserPerformanceProfile, activeCategories: string[]): DynamicGoalSuggestion[] {
+  private static suggestChallengeGoals(profile: UserPerformanceProfile, activeCategories: string[], unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }): DynamicGoalSuggestion[] {
     const suggestions: DynamicGoalSuggestion[] = []
     
     // Suggest milestone challenges based on current performance
     if (profile.longestRun < 10 && !activeCategories.includes('challenge')) {
+      let challengeDistance = 10
+      let distanceUnit = 'km'
+      
+      // Convert to user's preferred distance unit
+      if (unitPreferences?.distance === 'miles') {
+        challengeDistance = Math.round(10 * 0.621371 * 10) / 10 // 10km to miles
+        distanceUnit = 'miles'
+      }
+      
       suggestions.push({
         id: 'dynamic-10k-challenge',
         title: 'Conquer Your First 10K',
-        description: 'Complete a 10km run in a single session',
-        reasoning: `Your longest run is ${profile.longestRun.toFixed(1)}km. A 10K is a perfect next milestone.`,
+        description: `Complete a ${challengeDistance}${distanceUnit === 'miles' ? 'mi' : 'km'} run in a single session`,
+        reasoning: `Your longest run is ${unitPreferences?.distance === 'miles' ? 
+          (profile.longestRun * 0.621371).toFixed(1) : profile.longestRun.toFixed(1)}${unitPreferences?.distance === 'miles' ? 'mi' : 'km'}. A ${challengeDistance}${distanceUnit === 'miles' ? 'mi' : 'km'} is a perfect next milestone.`,
         priority: 'medium',
-        category: 'challenge',
-        goalType: {} as GoalType,
-        suggestedTarget: 10,
-        targetUnit: 'km',
+        category: 'distance',
+        goalType: this.mapCategoryToGoalType('distance'),
+        suggestedTarget: challengeDistance,
+        targetUnit: distanceUnit,
         timeframe: '6 weeks',
         difficulty: 'moderate',
         benefits: [
@@ -440,7 +500,7 @@ export class DynamicGoalEngine {
     return suggestions
   }
   
-  private static suggestFrequencyRecoveryGoal(profile: UserPerformanceProfile): DynamicGoalSuggestion {
+  private static suggestFrequencyRecoveryGoal(profile: UserPerformanceProfile, unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }): DynamicGoalSuggestion {
     return {
       id: 'dynamic-frequency-recovery',
       title: 'Get Back on Track',
@@ -448,7 +508,7 @@ export class DynamicGoalEngine {
       reasoning: 'Your running frequency has decreased recently. Let\'s rebuild that habit.',
       priority: 'high',
       category: 'frequency',
-      goalType: {} as GoalType,
+      goalType: this.mapCategoryToGoalType('frequency'),
       suggestedTarget: Math.max(2, Math.floor(profile.runFrequency)),
       targetUnit: 'runs/week',
       timeframe: '3 weeks',
@@ -475,7 +535,16 @@ export class DynamicGoalEngine {
     }
   }
   
-  private static suggestSpeedWorkGoal(profile: UserPerformanceProfile): DynamicGoalSuggestion {
+  private static suggestSpeedWorkGoal(profile: UserPerformanceProfile, unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }): DynamicGoalSuggestion {
+    let suggestedPace = profile.averagePace - 15 // 15 seconds improvement
+    let paceUnit = 'min/km'
+    
+    // Convert to user's preferred pace unit
+    if (unitPreferences?.pace === 'min/mile') {
+      suggestedPace = suggestedPace * 1.60934
+      paceUnit = 'min/mile'
+    }
+    
     return {
       id: 'dynamic-speed-recovery',
       title: 'Rediscover Your Speed',
@@ -483,9 +552,9 @@ export class DynamicGoalEngine {
       reasoning: 'Your pace has been slowing. Strategic speed work can help reverse this trend.',
       priority: 'medium',
       category: 'pace',
-      goalType: {} as GoalType,
-      suggestedTarget: profile.averagePace - 15, // 15 seconds improvement
-      targetUnit: 'sec/km',
+      goalType: this.mapCategoryToGoalType('pace'),
+      suggestedTarget: suggestedPace,
+      targetUnit: paceUnit,
       timeframe: '6 weeks',
       difficulty: 'moderate',
       benefits: [
@@ -505,11 +574,12 @@ export class DynamicGoalEngine {
     }
   }
   
-  private static suggestExperienceBasedGoals(profile: UserPerformanceProfile): DynamicGoalSuggestion[] {
+  private static suggestExperienceBasedGoals(profile: UserPerformanceProfile, unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }): DynamicGoalSuggestion[] {
     const suggestions: DynamicGoalSuggestion[] = []
     
     // Beginner-specific suggestions
     if (profile.runningExperience === 'beginner') {
+      // Core foundation goal
       suggestions.push({
         id: 'dynamic-beginner-foundation',
         title: 'Build Your Running Foundation',
@@ -517,7 +587,7 @@ export class DynamicGoalEngine {
         reasoning: 'As a beginning runner, consistency is more important than intensity.',
         priority: 'high',
         category: 'frequency',
-        goalType: {} as GoalType,
+        goalType: this.mapCategoryToGoalType('frequency'),
         suggestedTarget: 3,
         targetUnit: 'runs/week',
         timeframe: '6 weeks',
@@ -537,8 +607,205 @@ export class DynamicGoalEngine {
         successProbability: 95,
         requiredCommitment: 'low'
       })
+
+      // Distance building goal (if they have some activity)
+      if (profile.weeklyDistance > 0) {
+        let suggestedDistance = Math.round(profile.weeklyDistance * 1.5)
+        let distanceUnit = 'km'
+        
+        // Convert to user's preferred distance unit
+        if (unitPreferences?.distance === 'miles') {
+          suggestedDistance = Math.round(suggestedDistance * 0.621371 * 10) / 10
+          distanceUnit = 'miles'
+        }
+        
+        suggestions.push({
+          id: 'dynamic-beginner-distance',
+          title: 'Gradually Increase Distance',
+          description: `Build your weekly distance to ${suggestedDistance}${distanceUnit === 'miles' ? 'mi' : 'km'}`,
+          reasoning: `You're currently running ${unitPreferences?.distance === 'miles' ? 
+            (profile.weeklyDistance * 0.621371).toFixed(1) : profile.weeklyDistance.toFixed(1)}${unitPreferences?.distance === 'miles' ? 'mi' : 'km'} per week. Let's build on that foundation.`,
+          priority: 'medium',
+          category: 'distance',
+          goalType: this.mapCategoryToGoalType('distance'),
+          suggestedTarget: suggestedDistance,
+          targetUnit: distanceUnit,
+          timeframe: '4 weeks',
+          difficulty: 'conservative',
+          benefits: [
+            'Improved endurance',
+            'Better cardiovascular fitness',
+            'Increased confidence',
+            'Preparation for longer runs'
+          ],
+          strategies: [
+            'Increase distance by 10% each week',
+            'Keep the same easy pace',
+            'Include one longer run per week',
+            'Listen to your body and rest when needed'
+          ],
+          successProbability: 85,
+          requiredCommitment: 'medium'
+        })
+      }
+
+      // Duration goal (if they have some activity)
+      if (profile.averageActivityDuration > 0) {
+        let suggestedDuration = Math.round(profile.averageActivityDuration * 1.3)
+        let durationUnit = 'minutes'
+        
+        suggestions.push({
+          id: 'dynamic-beginner-duration',
+          title: 'Extend Your Workout Time',
+          description: `Build up to ${suggestedDuration} ${durationUnit} per run`,
+          reasoning: `Your current average run is ${Math.round(profile.averageActivityDuration)} ${durationUnit}. Let's gradually increase that.`,
+          priority: 'medium',
+          category: 'duration',
+          goalType: this.mapCategoryToGoalType('duration'),
+          suggestedTarget: suggestedDuration,
+          targetUnit: durationUnit,
+          timeframe: '6 weeks',
+          difficulty: 'conservative',
+          benefits: [
+            'Better aerobic fitness',
+            'Improved endurance',
+            'More time for mental benefits',
+            'Foundation for longer distances'
+          ],
+          strategies: [
+            'Add 5 minutes to one run per week',
+            'Keep the same easy pace',
+            'Focus on enjoyment over speed',
+            'Include walk breaks if needed'
+          ],
+          successProbability: 90,
+          requiredCommitment: 'low'
+        })
+      }
+
+      // If they show some consistency, suggest a pace goal
+      if (profile.runFrequency >= 2 && profile.weeklyDistance >= 5) {
+        let suggestedPace = profile.averagePace - 10 // Small improvement
+        let paceUnit = 'min/km'
+        
+        // Convert to user's preferred pace unit
+        if (unitPreferences?.pace === 'min/mile') {
+          suggestedPace = suggestedPace * 1.60934
+          paceUnit = 'min/mile'
+        }
+        
+        suggestions.push({
+          id: 'dynamic-beginner-pace',
+          title: 'Improve Your Running Efficiency',
+          description: 'Focus on maintaining a steady, comfortable pace',
+          reasoning: 'You\'ve built good consistency. Now let\'s work on maintaining a steady pace.',
+          priority: 'low',
+          category: 'pace',
+          goalType: this.mapCategoryToGoalType('pace'),
+          suggestedTarget: suggestedPace,
+          targetUnit: paceUnit,
+          timeframe: '8 weeks',
+          difficulty: 'conservative',
+          benefits: [
+            'Better running efficiency',
+            'Reduced effort for same distance',
+            'Improved confidence',
+            'Foundation for future speed work'
+          ],
+          strategies: [
+            'Focus on steady breathing',
+            'Maintain conversational pace',
+            'Include one slightly faster run per week',
+            'Don\'t worry about speed initially'
+          ],
+          successProbability: 80,
+          requiredCommitment: 'medium'
+        })
+      }
     }
     
     return suggestions
+  }
+
+  /**
+   * Map goal categories to actual goal type IDs from the database
+   * This ensures suggestions reference valid goal types
+   */
+  private static mapCategoryToGoalType(category: string, metricType?: string): GoalType {
+    // These should match the goal_types table in the database using names as IDs
+    const goalTypeMap: Record<string, GoalType> = {
+      'distance': {
+        id: 'weekly_distance',
+        name: 'weekly_distance',
+        display_name: 'Weekly Distance Target',
+        description: 'Run a specific total distance each week',
+        category: 'distance',
+        metric_type: 'total_distance',
+        unit: 'km',
+        target_guidance: 'Beginners: 15-25km, Intermediate: 30-50km, Advanced: 60km+',
+        calculation_method: 'Sum of all run distances in the week',
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      'pace': {
+        id: 'general_pace_improvement',
+        name: 'general_pace_improvement',
+        display_name: 'Overall Pace Improvement',
+        description: 'Improve your general running pace across all distances',
+        category: 'pace',
+        metric_type: 'average_pace',
+        unit: 'min/km',
+        target_guidance: 'Aim to improve by 10-20 seconds per km over 2-3 months',
+        calculation_method: 'Average pace across all runs weighted by distance',
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      'frequency': {
+        id: 'weekly_run_frequency',
+        name: 'weekly_run_frequency',
+        display_name: 'Weekly Running Consistency',
+        description: 'Run a specific number of times per week',
+        category: 'frequency',
+        metric_type: 'run_count',
+        unit: 'runs',
+        target_guidance: 'Beginners: 3 runs, Intermediate: 4-5 runs, Advanced: 6+ runs',
+        calculation_method: 'Count of running activities per week',
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      'duration': {
+        id: 'weekly_time_target',
+        name: 'weekly_time_target',
+        display_name: 'Weekly Time on Feet',
+        description: 'Spend a target amount of time running each week',
+        category: 'duration',
+        metric_type: 'total_time',
+        unit: 'hours',
+        target_guidance: 'Beginners: 2-4 hours, Intermediate: 5-8 hours, Advanced: 10+ hours',
+        calculation_method: 'Sum of all running activity durations in the week',
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      'elevation': {
+        id: 'weekly_elevation_gain',
+        name: 'weekly_elevation_gain',
+        display_name: 'Weekly Elevation Challenge',
+        description: 'Climb a target amount of elevation each week',
+        category: 'elevation',
+        metric_type: 'total_elevation',
+        unit: 'm',
+        target_guidance: 'Varies by location: 200-1000m per week',
+        calculation_method: 'Sum of elevation gain from all runs in the week',
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    };
+    
+    return goalTypeMap[category] || goalTypeMap['distance'];
   }
 } 

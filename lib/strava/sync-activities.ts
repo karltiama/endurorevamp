@@ -126,6 +126,9 @@ export async function syncStravaActivities(options: SyncOptions): Promise<SyncRe
         last_error_message: null,
         last_error_at: null,
         updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id',
+        ignoreDuplicates: false
       })
 
     if (syncStateError) {
@@ -191,6 +194,8 @@ async function refreshStravaToken(userId: string, refreshToken: string): Promise
 
 async function fetchStravaActivities(accessToken: string, maxActivities: number): Promise<StravaActivity[] | null> {
   try {
+    console.log(`🔍 Fetching activities from Strava API (max: ${maxActivities})`);
+    
     const response = await fetch(
       `https://www.strava.com/api/v3/athlete/activities?per_page=${maxActivities}`,
       {
@@ -201,10 +206,26 @@ async function fetchStravaActivities(accessToken: string, maxActivities: number)
     );
 
     if (!response.ok) {
+      console.error(`❌ Strava API error: ${response.status} ${response.statusText}`);
       throw new Error(`Failed to fetch activities: ${response.statusText}`);
     }
 
     const activities: StravaActivity[] = await response.json();
+    
+    console.log(`✅ Fetched ${activities.length} activities from Strava`);
+    console.log('📅 Activity date range:', {
+      newest: activities[0]?.start_date,
+      oldest: activities[activities.length - 1]?.start_date,
+      total: activities.length
+    });
+    
+    // Log specific activities for debugging
+    activities.forEach((activity, index) => {
+      if (index < 5 || activity.start_date?.includes('2024-07-22')) {
+        console.log(`  ${index + 1}. ID: ${activity.id}, Date: ${activity.start_date}, Name: ${activity.name}`);
+      }
+    });
+    
     return activities;
   } catch (error) {
     console.error('Error fetching Strava activities:', error);
@@ -233,6 +254,13 @@ export async function syncActivitiesToDatabase(userId: string, activities: Strav
     return isNaN(num) ? defaultValue : num;
   };
 
+  // Helper function to safely convert values to integers (for database INTEGER fields)
+  const safeInteger = (value: unknown, defaultValue: number = 0): number => {
+    if (value === null || value === undefined) return defaultValue;
+    const num = Number(value);
+    return isNaN(num) ? defaultValue : Math.round(num);
+  };
+
   // Helper function to get week number
   const getWeekNumber = (date: Date): number => {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -246,6 +274,8 @@ export async function syncActivitiesToDatabase(userId: string, activities: Strav
 
   for (const activity of activities) {
     try {
+      console.log(`\n🔍 Processing activity: ID ${activity.id}, Date: ${activity.start_date}, Name: "${activity.name}"`);
+      
       // Check if activity already exists
       const { data: existingActivity } = await supabase
         .from('activities')
@@ -253,6 +283,12 @@ export async function syncActivitiesToDatabase(userId: string, activities: Strav
         .eq('user_id', userId)
         .eq('strava_activity_id', activity.id)
         .maybeSingle();
+
+      if (existingActivity) {
+        console.log(`  ⚠️ Activity ${activity.id} already exists in database`);
+      } else {
+        console.log(`  ➕ Activity ${activity.id} is new - will insert`);
+      }
 
       // Calculate TSS for this activity
       const tss = trainingLoadCalculator.calculateTSS(activity as unknown as Activity);
@@ -275,28 +311,28 @@ export async function syncActivitiesToDatabase(userId: string, activities: Strav
         trainer: activity.trainer || false,
         commute: activity.commute || false,
         manual: activity.manual || false,
-        average_speed: activity.average_speed,
-        max_speed: activity.max_speed,
+        average_speed: safeNumber(activity.average_speed, 0),
+        max_speed: safeNumber(activity.max_speed, 0),
         has_heartrate: activity.has_heartrate || false,
-        average_heartrate: activity.average_heartrate,
-        max_heartrate: activity.max_heartrate,
+        average_heartrate: safeInteger(activity.average_heartrate, 0),
+        max_heartrate: safeInteger(activity.max_heartrate, 0),
         // Power fields that exist in database
-        average_watts: activity.average_watts,
-        max_watts: activity.max_watts,
-        weighted_average_watts: activity.weighted_average_watts,
-        kilojoules: activity.kilojoules,
+        average_watts: safeInteger(activity.average_watts, 0),
+        max_watts: safeInteger(activity.max_watts, 0),
+        weighted_average_watts: safeInteger(activity.weighted_average_watts, 0),
+        kilojoules: safeInteger(activity.kilojoules, 0),
         // Description field for Hevy workout data
         description: activity.description || null,
         // Training metrics
-        training_stress_score: tss,
+        training_stress_score: safeInteger(tss, 0),
         // Computed fields
-        week_number: getWeekNumber(new Date(activity.start_date)),
-        month_number: new Date(activity.start_date).getMonth() + 1,
-        year_number: new Date(activity.start_date).getFullYear(),
-        day_of_week: new Date(activity.start_date).getDay(),
-        average_pace: activity.moving_time && activity.distance ? (activity.moving_time / (activity.distance / 1000)) : null,
-        elevation_per_km: activity.total_elevation_gain && activity.distance ? (activity.total_elevation_gain / (activity.distance / 1000)) : null,
-        efficiency_score: activity.average_speed || null,
+        week_number: safeInteger(getWeekNumber(new Date(activity.start_date)), 0),
+        month_number: safeInteger(new Date(activity.start_date).getMonth() + 1, 0),
+        year_number: safeInteger(new Date(activity.start_date).getFullYear(), 0),
+        day_of_week: safeInteger(new Date(activity.start_date).getDay(), 0),
+        average_pace: activity.moving_time && activity.distance ? safeNumber(activity.moving_time / (activity.distance / 1000), 0) : null,
+        elevation_per_km: activity.total_elevation_gain && activity.distance ? safeNumber(activity.total_elevation_gain / (activity.distance / 1000), 0) : null,
+        efficiency_score: safeNumber(activity.average_speed, 0),
         updated_at: new Date().toISOString(),
       };
 
@@ -308,7 +344,8 @@ export async function syncActivitiesToDatabase(userId: string, activities: Strav
           .eq('id', existingActivity.id);
 
         if (error) {
-          console.error(`Error updating activity ${activity.id}:`, error);
+          console.error(`❌ Error updating activity ${activity.id}:`, error);
+          console.error(`  Error details:`, error);
         } else {
           updatedActivities++;
           console.log(`✅ Updated activity ${activity.id} (TSS: ${tss})`);
@@ -323,15 +360,17 @@ export async function syncActivitiesToDatabase(userId: string, activities: Strav
           });
 
         if (error) {
-          console.error(`Error inserting activity ${activity.id}:`, error);
-          console.error(`Activity data:`, activityData);
+          console.error(`❌ Error inserting activity ${activity.id}:`, error);
+          console.error(`  Error details:`, error);
+          console.error(`  Activity data:`, activityData);
         } else {
           newActivities++;
           console.log(`✅ Inserted new activity ${activity.id} (TSS: ${tss})`);
         }
       }
     } catch (error) {
-      console.error(`Error syncing activity ${activity.id}:`, error);
+      console.error(`❌ Error syncing activity ${activity.id}:`, error);
+      console.error(`  Activity details:`, { id: activity.id, name: activity.name, date: activity.start_date });
     }
   }
 

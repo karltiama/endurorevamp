@@ -52,7 +52,7 @@ describe('/api/workout-plans', () => {
         method: 'DELETE'
       })
 
-      const response = await DELETE(request)
+      const response = await DELETE()
       const result = await response.json()
 
       expect(response.status).toBe(200)
@@ -80,7 +80,7 @@ describe('/api/workout-plans', () => {
         method: 'DELETE'
       })
 
-      const response = await DELETE(request)
+      const response = await DELETE()
       const result = await response.json()
 
       expect(response.status).toBe(500)
@@ -94,7 +94,7 @@ describe('/api/workout-plans', () => {
         method: 'DELETE'
       })
 
-      const response = await DELETE(request)
+      const response = await DELETE()
       const result = await response.json()
 
       expect(response.status).toBe(500)
@@ -138,7 +138,7 @@ describe('/api/workout-plans', () => {
       })
 
       const request = new NextRequest('http://localhost:3000/api/workout-plans')
-      const response = await GET(request)
+      const response = await GET()
       const result = await response.json()
 
       expect(response.status).toBe(200)

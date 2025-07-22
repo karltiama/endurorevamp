@@ -334,6 +334,180 @@ export function SyncProcessDebugger() {
     }
   }
 
+  const checkTokenStatus = async () => {
+    addStep({
+      id: 'token-status',
+      name: 'Check Token Status',
+      status: 'running',
+      details: 'Checking if Strava tokens are valid'
+    })
+
+    try {
+      const supabase = createClient()
+      const { data: tokens, error: tokenError } = await supabase
+        .from('strava_tokens')
+        .select('*')
+        .single()
+
+      if (tokenError) {
+        updateStep('token-status', {
+          status: 'error',
+          details: `No tokens found: ${tokenError.message}`,
+          error: 'No Strava tokens in database'
+        })
+        return
+      }
+
+      const now = Math.floor(Date.now() / 1000)
+      const isExpired = tokens.expires_at <= now
+      const timeUntilExpiry = tokens.expires_at - now
+
+      console.log('🔑 Token status:', {
+        hasTokens: !!tokens,
+        expiresAt: new Date(tokens.expires_at * 1000).toISOString(),
+        isExpired,
+        timeUntilExpiry: Math.floor(timeUntilExpiry / 60) + ' minutes'
+      })
+
+      if (isExpired) {
+        updateStep('token-status', {
+          status: 'error',
+          details: `Tokens expired ${Math.abs(Math.floor(timeUntilExpiry / 60))} minutes ago. Need to re-authenticate.`,
+          error: 'Tokens expired'
+        })
+      } else {
+        updateStep('token-status', {
+          status: 'success',
+          details: `Tokens valid for ${Math.floor(timeUntilExpiry / 60)} more minutes`
+        })
+      }
+
+    } catch (error) {
+      updateStep('token-status', {
+        status: 'error',
+        details: `Token check error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
+  const debugMissingActivity = async () => {
+    addStep({
+      id: 'missing-activity-debug',
+      name: 'Debug Missing 7/22 Activity',
+      status: 'running',
+      details: 'Checking specifically for missing 7/22 workout'
+    })
+
+    try {
+      // Step 1: Check if activity exists in database
+      const supabase = createClient()
+      const { data: dbActivities, error: dbError } = await supabase
+        .from('activities')
+        .select('id, name, sport_type, start_date_local, strava_activity_id')
+        .gte('start_date_local', '2024-07-22')
+        .lte('start_date_local', '2024-07-22T23:59:59')
+        .order('start_date_local', { ascending: false })
+
+      if (dbError) {
+        updateStep('missing-activity-debug', {
+          status: 'error',
+          details: `Database error: ${dbError.message}`,
+          error: dbError.message
+        })
+        return
+      }
+
+      console.log('🔍 Database activities on 7/22:', dbActivities)
+
+      if (dbActivities && dbActivities.length > 0) {
+        updateStep('missing-activity-debug', {
+          status: 'success',
+          details: `Found ${dbActivities.length} activities on 7/22 in database. Activity is already synced!`
+        })
+        return
+      }
+
+      updateStep('missing-activity-debug', {
+        status: 'running',
+        details: 'No 7/22 activities in database. Checking Strava API...'
+      })
+
+      // Step 2: Check Strava API directly
+      try {
+        const apiResponse = await fetch('/api/strava/sync', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            maxActivities: 200,
+            forceRefresh: true
+          })
+        })
+
+        if (!apiResponse.ok) {
+          const apiError = await apiResponse.json()
+          updateStep('missing-activity-debug', {
+            status: 'error',
+            details: `API sync failed: ${apiError.message || 'Unknown error'}`,
+            error: apiError.message || 'Unknown error'
+          })
+          return
+        }
+
+        const apiResult = await apiResponse.json()
+        console.log('🔄 API sync result:', apiResult)
+
+        // Step 3: Check database again after sync
+        await new Promise(resolve => setTimeout(resolve, 2000))
+
+        const { data: updatedDbActivities, error: updatedDbError } = await supabase
+          .from('activities')
+          .select('id, name, sport_type, start_date_local, strava_activity_id')
+          .gte('start_date_local', '2024-07-22')
+          .lte('start_date_local', '2024-07-22T23:59:59')
+          .order('start_date_local', { ascending: false })
+
+        if (updatedDbError) {
+          updateStep('missing-activity-debug', {
+            status: 'error',
+            details: `Database error after sync: ${updatedDbError.message}`,
+            error: updatedDbError.message
+          })
+          return
+        }
+
+        if (updatedDbActivities && updatedDbActivities.length > 0) {
+          updateStep('missing-activity-debug', {
+            status: 'success',
+            details: `✅ Found ${updatedDbActivities.length} activities on 7/22 after sync! Activities: ${updatedDbActivities.map(a => a.name).join(', ')}`
+          })
+        } else {
+          updateStep('missing-activity-debug', {
+            status: 'error',
+            details: '❌ Still no 7/22 activities found. The activity may not exist in Strava or there\'s an API issue.',
+            error: 'Activity not found in Strava API response'
+          })
+        }
+
+      } catch (apiError) {
+        updateStep('missing-activity-debug', {
+          status: 'error',
+          details: `API error: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`,
+          error: apiError instanceof Error ? apiError.message : 'Unknown error'
+        })
+      }
+
+    } catch (error) {
+      updateStep('missing-activity-debug', {
+        status: 'error',
+        details: `Debug error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-6">
@@ -357,6 +531,18 @@ export function SyncProcessDebugger() {
             className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
           >
             Check Activities
+          </button>
+          <button
+            onClick={checkTokenStatus}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+          >
+            Check Token Status
+          </button>
+          <button
+            onClick={debugMissingActivity}
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+          >
+            Debug 7/22 Activity
           </button>
         </div>
       </div>

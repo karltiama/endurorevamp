@@ -77,11 +77,7 @@ export function useEnhancedWorkoutPlanning({ userId, includeWeather = false }: U
         userId, 
         planningActivities, 
         trainingLoadData.metrics, 
-        goals, 
-        { 
-          unitPreferences,
-          includeWeather 
-        }
+        goals
       )
     },
     enabled: !!userId && planningActivities.length > 0 && !!trainingLoadData?.metrics,
@@ -115,11 +111,7 @@ export function useEnhancedWorkoutPlanning({ userId, includeWeather = false }: U
         userId, 
         planningActivities, 
         trainingLoadData.metrics, 
-        goals, 
-        { 
-          unitPreferences,
-          includeWeather 
-        }
+        goals
       )
       console.log('useEnhancedWorkoutPlanning: Generated plan result:', result.weeklyPlan?.id)
       return result

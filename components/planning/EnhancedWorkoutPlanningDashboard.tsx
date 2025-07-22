@@ -14,10 +14,8 @@ import {
   Heart, 
   Target, 
   Calendar,
-  AlertTriangle,
   Info,
   Edit3,
-  Save,
   RotateCcw,
   Moon
 } from 'lucide-react'
@@ -45,7 +43,7 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
   const { saveWorkoutPlan, resetToRecommended } = useWorkoutPlanManager(userId)
   const analytics = useWorkoutPlanAnalytics(weeklyPlan)
   const [isEditorOpen, setIsEditorOpen] = useState(false)
-  const [isResetting, setIsResetting] = useState(false)
+  const [, setIsResetting] = useState(false)
 
   // Debug logging for weekly plan changes
   console.log('EnhancedWorkoutPlanningDashboard: weeklyPlan updated:', weeklyPlan?.id, weeklyPlan?.weekStart)
@@ -126,7 +124,7 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5" />
-              Today's Workout
+              Today&apos;s Workout
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -332,8 +330,6 @@ function WeeklyPlanGrid({ workouts }: { workouts: { [dayOfWeek: number]: Enhance
 }
 
 function RecoveryDayCard() {
-  const { preferences: unitPreferences } = useUnitPreferences()
-  
   // Get current time to suggest appropriate activities
   const now = new Date()
   const hour = now.getHours()
@@ -448,7 +444,7 @@ function RecoveryDayCard() {
           </div>
           <div className="flex items-start gap-2">
             <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-2 flex-shrink-0"></div>
-            <span>Plan tomorrow's workout in advance</span>
+            <span>Plan tomorrow&apos;s workout in advance</span>
           </div>
         </div>
       </div>

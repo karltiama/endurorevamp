@@ -180,7 +180,7 @@ export default function SyncDashboard() {
           </div>
           <p className="text-yellow-700 text-sm mt-1">
             {syncDisabledReason.includes('Daily sync limit') 
-              ? 'You\'ve reached your daily sync limit. Please try again tomorrow to sync more activities.'
+              ? 'You&apos;ve reached your daily sync limit. Please try again tomorrow to sync more activities.'
               : syncDisabledReason
             }
           </p>

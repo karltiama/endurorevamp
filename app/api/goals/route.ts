@@ -134,7 +134,7 @@ export async function POST(request: Request) {
     const { data: goalType, error: goalTypeError } = await supabase
       .from('goal_types')
       .select('*')
-      .eq('id', body.goal_type_id)
+      .eq('name', body.goal_type_id)
       .eq('is_active', true)
       .single();
 

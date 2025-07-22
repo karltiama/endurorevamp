@@ -271,7 +271,7 @@ export class GoalOrchestrator {
 
   static async createGoalFromSuggestion(suggestion: DynamicGoalSuggestion, customizations?: Partial<CreateGoalRequest>): Promise<UserGoal> {
     const goalData: CreateGoalRequest = {
-      goal_type_id: suggestion.goalType.id,
+              goal_type_id: suggestion.goalType.name,
       target_value: suggestion.suggestedTarget,
       target_unit: suggestion.targetUnit,
       time_period: 'ongoing',

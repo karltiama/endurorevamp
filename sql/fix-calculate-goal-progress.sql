@@ -1,6 +1,5 @@
--- Calculates and updates progress for all active goals for a user
--- Updates user_goals.current_progress, is_completed, last_progress_update
--- Returns a summary of updated goals
+-- Fix calculate_goal_progress function to use gt.name instead of gt.id
+-- After the goal_types migration from UUID to name as primary key
 
 CREATE OR REPLACE FUNCTION calculate_goal_progress(
   p_user_id UUID
@@ -75,14 +74,14 @@ BEGIN
         AND sport_type = 'Run'
         AND start_date >= date_trunc('month', now())
         AND start_date < date_trunc('month', now()) + INTERVAL '1 month';
-    ELSIF goal_rec.goal_type = 'weekly_elevation' THEN
+    ELSIF goal_rec.goal_type = 'weekly_elevation_gain' THEN
       SELECT COALESCE(SUM(total_elevation_gain),0) INTO progress_value
       FROM activities
       WHERE user_id = p_user_id
         AND sport_type = 'Run'
         AND start_date >= date_trunc('week', now())
         AND start_date < date_trunc('week', now()) + INTERVAL '1 week';
-    ELSIF goal_rec.goal_type = 'monthly_elevation' THEN
+    ELSIF goal_rec.goal_type = 'monthly_elevation_gain' THEN
       SELECT COALESCE(SUM(total_elevation_gain),0) INTO progress_value
       FROM activities
       WHERE user_id = p_user_id

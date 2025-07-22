@@ -251,6 +251,20 @@ const getTrendColor = (trend: string): string => {
   }
 }
 
+const getWeeklyLabel = () => {
+  const now = new Date()
+  const weekStart = new Date(now)
+  weekStart.setDate(now.getDate() - now.getDay()) // Sunday
+  
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  
+  // If our 7-day period starts within the current calendar week, show "This Week"
+  // Otherwise show "Last 7 Days"
+  const isCurrentWeek = sevenDaysAgo >= weekStart
+  
+  return isCurrentWeek ? "This Week" : "Last 7 Days"
+}
+
 export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps) {
   const { data: activities, isLoading, error } = useUserActivities(userId)
   const { preferences } = useUnitPreferences()
@@ -414,7 +428,7 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
               <div className="text-lg font-bold">
                 {formatDistance(performanceInsights.weeklyDistance.current * 1000, preferences.distance)}
               </div>
-              <div className="text-xs text-gray-500">This week</div>
+              <div className="text-xs text-gray-500">{getWeeklyLabel()}</div>
             </div>
             <div className="text-right">
               <div className={`text-sm font-medium ${performanceInsights.weeklyDistance.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>

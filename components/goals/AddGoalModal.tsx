@@ -104,7 +104,7 @@ export function AddGoalModal({
 
     try {
       await createGoalMutation.mutateAsync({
-        goalTypeId: selectedSuggestion.goalType.id,
+        goalTypeId: selectedSuggestion.goalType.name,
         targetValue: formData.targetValue || selectedSuggestion.suggestedTarget,
         targetUnit: formData.targetUnit || selectedSuggestion.targetUnit,
         targetDate: formData.targetDate,

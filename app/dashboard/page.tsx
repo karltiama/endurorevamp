@@ -22,7 +22,7 @@ import {
   GoalsErrorFallback
 } from '@/components/dashboard/DashboardErrorFallbacks'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { Suspense } from 'react'
+import { Suspense } from "react"
 
 export default async function DashboardPage() {
   const user = await requireAuth()

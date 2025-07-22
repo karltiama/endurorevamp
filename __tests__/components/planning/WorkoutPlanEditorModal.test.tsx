@@ -206,7 +206,7 @@ describe('WorkoutPlanEditorModal', () => {
     fireEvent.click(resetButton)
 
     expect(screen.getByText('Reset to Recommended Plan?')).toBeInTheDocument()
-    expect(screen.getByText(/This will delete your current saved plan/)).toBeInTheDocument()
+    expect(screen.getByText(/This will replace your current plan with AI-generated recommendations/)).toBeInTheDocument()
   })
 
   it('calls onResetToRecommended when confirmed in dialog', async () => {
@@ -225,12 +225,12 @@ describe('WorkoutPlanEditorModal', () => {
     const resetButton = screen.getByText('Reset to Recommended')
     fireEvent.click(resetButton)
 
-    // Wait for confirmation dialog to appear and click the destructive button
+    // Wait for confirmation dialog to appear and click the confirm button
     await waitFor(() => {
       expect(screen.getByText('Reset to Recommended Plan?')).toBeInTheDocument()
     })
     
-    const confirmButton = screen.getByRole('button', { name: 'Reset to Recommended' })
+    const confirmButton = screen.getByTestId('confirm-reset-to-recommended')
     fireEvent.click(confirmButton)
 
     await waitFor(() => {
@@ -254,12 +254,12 @@ describe('WorkoutPlanEditorModal', () => {
     const resetButton = screen.getByText('Reset to Recommended')
     fireEvent.click(resetButton)
 
-    // Wait for confirmation dialog to appear and click the destructive button
+    // Wait for confirmation dialog to appear and click the confirm button
     await waitFor(() => {
       expect(screen.getByText('Reset to Recommended Plan?')).toBeInTheDocument()
     })
     
-    const confirmButton = screen.getByRole('button', { name: 'Reset to Recommended' })
+    const confirmButton = screen.getByTestId('confirm-reset-to-recommended')
     fireEvent.click(confirmButton)
 
     await waitFor(() => {

@@ -55,7 +55,7 @@ describe('ActivityDetailModal', () => {
     
     expect(screen.getByText('Morning Run')).toBeInTheDocument()
     expect(screen.getAllByText('Run')).toHaveLength(2) // Badge and type
-    expect(screen.getByText('5.0 km')).toBeInTheDocument()
+    expect(screen.getByText('5 km')).toBeInTheDocument()
     expect(screen.getByText('30:00')).toBeInTheDocument()
   })
 
@@ -157,7 +157,7 @@ describe('ActivityDetailModal', () => {
     render(<ActivityDetailModal activity={minimalActivity} onClose={mockOnClose} />)
     
     expect(screen.getByText('Simple Activity')).toBeInTheDocument()
-    expect(screen.getByText('1.0 km')).toBeInTheDocument()
+    expect(screen.getByText('1 km')).toBeInTheDocument()
     expect(screen.getByText('10:00')).toBeInTheDocument()
     
     // Should not display optional metrics

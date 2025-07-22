@@ -54,7 +54,6 @@ describe('GoalCard', () => {
     created_at: '2024-01-01',
     updated_at: '2024-01-01',
     goal_type: {
-      id: 'type1',
       name: 'weekly_distance',
       display_name: 'Weekly Distance',
       description: 'Run a certain distance per week',
@@ -140,7 +139,6 @@ describe('GoalCard', () => {
 describe('AddGoalModal', () => {
   const mockGoalTypes: GoalType[] = [
     {
-      id: 'type1',
       name: 'weekly_distance',
       display_name: 'Weekly Distance',
       description: 'Run a certain distance per week',
@@ -153,7 +151,6 @@ describe('AddGoalModal', () => {
       updated_at: '2024-01-01'
     },
     {
-      id: 'type2',
       name: 'race_preparation',
       display_name: 'Race Preparation',
       description: 'Prepare for an upcoming race',
@@ -213,7 +210,7 @@ describe('AddGoalModal', () => {
       reasoning: 'Based on your recent activity',
       suggestedTarget: 25,
       targetUnit: 'km',
-      goalType: { id: 'type1', category: 'distance' },
+              goalType: { name: 'type1', category: 'distance' },
       strategies: ['Gradual increase', 'Consistent training']
     };
 

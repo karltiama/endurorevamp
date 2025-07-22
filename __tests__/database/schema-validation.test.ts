@@ -73,14 +73,14 @@ describe('Database Schema Validation', () => {
               display_name
             )
           `)
-          .eq('goal_type_id', goalTypes[0].id)
+          .eq('goal_type_id', goalTypes[0].name)
           .limit(1)
 
         expect(error).toBeNull()
         
         if (userGoals && userGoals.length > 0) {
           expect(userGoals[0].goal_types).toBeTruthy()
-          expect((userGoals[0].goal_types as any).id).toBe(goalTypes[0].id)
+          expect((userGoals[0].goal_types as any).name).toBe(goalTypes[0].name)
         }
       }
     })

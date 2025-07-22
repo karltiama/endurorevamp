@@ -13,6 +13,7 @@ import { useGoalManagement } from '@/hooks/useGoals';
 import { DashboardGoalSelector } from './DashboardGoalSelector';
 import { AddGoalModal } from '@/components/goals/AddGoalModal';
 import { DashboardGoalCard } from './DashboardGoalCard';
+import { GoalCardSkeletonGrid } from '@/components/goals/GoalCardSkeleton';
 
 export function DashboardGoalsSection() {
   const { isLoading } = useUserGoals();
@@ -25,17 +26,17 @@ export function DashboardGoalsSection() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-100 rounded-lg"></div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            Dashboard Goals
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <GoalCardSkeletonGrid count={3} />
+        </CardContent>
+      </Card>
     );
   }
 
@@ -44,21 +45,11 @@ export function DashboardGoalsSection() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-xl font-semibold">Training Goals</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Track your progress and stay motivated
-              </p>
-            </div>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Dashboard Goals
+            </CardTitle>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAddModal(true)}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Goal
-              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -66,6 +57,13 @@ export function DashboardGoalsSection() {
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Manage
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setShowAddModal(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Goal
               </Button>
             </div>
           </div>

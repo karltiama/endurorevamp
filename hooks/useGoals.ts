@@ -310,7 +310,7 @@ export const useCreateGoalFromSuggestion = () => {
   return useMutation({
     mutationFn: async (suggestion: DynamicGoalSuggestion): Promise<UserGoal> => {
       return unifiedCreation.mutateAsync({
-        goalTypeId: suggestion.goalType.id,
+        goalTypeId: suggestion.goalType.name,
         targetValue: suggestion.suggestedTarget,
         targetUnit: suggestion.targetUnit,
         context: 'suggestion',
