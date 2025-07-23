@@ -74,9 +74,8 @@ export default async function DashboardPage() {
             <Suspense fallback={<WeatherSkeleton />}>
               <WeatherWidgetEnhanced 
                 showImpact={true} 
-                showOptimalTime={true} 
                 showLocationPrompt={true}
-                compact={true}
+                showForecastTabs={true}
               />
             </Suspense>
           </ErrorBoundary>
