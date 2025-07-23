@@ -567,3 +567,96 @@ describe('WeatherWidgetEnhanced', () => {
     expect(screen.getByText(tomorrow.toLocaleDateString('en-US', { weekday: 'long' }))).toBeInTheDocument()
   })
 }) 
+
+  describe('Compact Mode', () => {
+    it('should render compact forecast tabs when compact mode is enabled', () => {
+      const mockWeather = {
+        current: {
+          temperature: 20,
+          feelsLike: 22,
+          humidity: 65,
+          windSpeed: 15,
+          precipitation: 0,
+          weatherCondition: 'clear'
+        },
+        location: {
+          name: 'Test Location',
+          country: 'US',
+          lat: 40.7128,
+          lon: -74.0060,
+          timezone: 'America/New_York'
+        }
+      }
+
+      const mockForecast = {
+        forecast: {
+          hourly: [
+            // Today's forecast
+            {
+              time: new Date().toISOString(),
+              temperature: 18,
+              humidity: 60,
+              windSpeed: 10,
+              precipitation: 0
+            },
+            // Tomorrow's forecast
+            {
+              time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              temperature: 22,
+              humidity: 55,
+              windSpeed: 8,
+              precipitation: 0
+            }
+          ]
+        }
+      }
+
+      render(
+        <WeatherWidgetEnhanced 
+          compact={true}
+          showForecastTabs={false}
+        />
+      )
+
+      // Should show compact forecast tabs
+      expect(screen.getByText('Today')).toBeInTheDocument()
+      expect(screen.getByText('Tomorrow')).toBeInTheDocument()
+    })
+
+    it('should switch between today and tomorrow views in compact mode', () => {
+      render(
+        <WeatherWidgetEnhanced 
+          compact={true}
+          showForecastTabs={false}
+        />
+      )
+
+      // Initially shows Today tab
+      expect(screen.getByText('Today')).toBeInTheDocument()
+      expect(screen.getByText('Tomorrow')).toBeInTheDocument()
+
+      // Click Tomorrow tab
+      const tomorrowTab = screen.getByText('Tomorrow')
+      fireEvent.click(tomorrowTab)
+
+      // Should show tomorrow's content
+      expect(screen.getByText(/Tomorrow's Running Conditions/)).toBeInTheDocument()
+    })
+
+    it('should not show full forecast tabs when compact mode is enabled', () => {
+      render(
+        <WeatherWidgetEnhanced 
+          compact={true}
+          showForecastTabs={true}
+        />
+      )
+
+      // Should show compact tabs, not full forecast tabs
+      expect(screen.getByText('Today')).toBeInTheDocument()
+      expect(screen.getByText('Tomorrow')).toBeInTheDocument()
+      
+      // Should not show the full forecast tabs with icons
+      expect(screen.queryByText(/Today/)).toBeInTheDocument()
+      expect(screen.queryByText(/Tomorrow/)).toBeInTheDocument()
+    })
+  }) 
