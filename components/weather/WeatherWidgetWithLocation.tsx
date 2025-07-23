@@ -204,7 +204,7 @@ export function WeatherWidgetWithLocation({
     )
   }
 
-  const { current, location } = weather
+  const { current } = weather
 
   return (
     <Card className={className}>

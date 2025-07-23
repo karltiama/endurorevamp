@@ -14,7 +14,7 @@ interface AnalyticsSyncPromptProps {
 
 export function AnalyticsSyncPrompt({ userId }: AnalyticsSyncPromptProps) {
   const { data: activities, isLoading } = useUserActivities(userId)
-  const { accessToken, error: tokenError, refreshToken } = useStravaToken()
+  const { refreshToken } = useStravaToken()
 
   // Don't show anything while loading or if there are activities
   if (isLoading || (activities && activities.length > 0)) {

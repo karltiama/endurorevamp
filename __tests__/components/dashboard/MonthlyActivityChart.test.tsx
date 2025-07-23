@@ -55,7 +55,9 @@ describe('MonthlyActivityChart', () => {
     mockUseUnitPreferences.mockReturnValue({
       preferences: {
         distance: 'km',
-        pace: 'min/km'
+        pace: 'min/km',
+        temperature: 'celsius',
+        windSpeed: 'km/h'
       },
       isLoading: false,
       updatePreferences: jest.fn(),
@@ -120,7 +122,9 @@ describe('MonthlyActivityChart', () => {
     mockUseUnitPreferences.mockReturnValue({
       preferences: {
         distance: 'miles',
-        pace: 'min/mile'
+        pace: 'min/mile',
+        temperature: 'fahrenheit',
+        windSpeed: 'mph'
       },
       isLoading: false,
       updatePreferences: jest.fn(),

@@ -248,6 +248,7 @@ export function WorkoutPlanEditorModal({
           setPlan(fallbackPlan)
         }
         setShowResetConfirmation(false)
+        onClose()
       } else {
         console.error('handleResetToRecommended: Reset failed:', resetResult?.error)
         // Use fallback plan on failure

@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useUpdateGoal, useDeleteGoal } from '@/hooks/useGoals';
 import { UserGoal } from '@/types/goals';
-import { Edit, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { CheckCircle, User, AlertCircle } from 'lucide-react';
 
 interface EditGoalModalProps {

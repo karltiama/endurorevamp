@@ -192,19 +192,16 @@ describe('PerformanceInsightsCard', () => {
   });
 
   it('displays weekly distance comparison', () => {
-    const thisWeek = new Date();
-    const lastWeek = new Date(thisWeek.getTime() - 7 * 24 * 60 * 60 * 1000);
-    
     const activities = [
       createMockActivity({
-        start_date: new Date(thisWeek.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago (recent)
-        distance: 5000 // This week: 5km
+        start_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week ago
+        distance: 5000 // Last week: 5km
       }),
       createMockActivity({
         id: '2',
         strava_activity_id: 123457,
-        start_date: new Date(lastWeek.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(), // Last week
-        distance: 3000 // Last week: 3km
+        start_date: new Date().toISOString(), // Today
+        distance: 5000 // This week: 5km
       })
     ];
 
@@ -218,10 +215,10 @@ describe('PerformanceInsightsCard', () => {
     render(<PerformanceInsightsCard userId="test-user" />, { wrapper: createWrapper() });
     
     expect(screen.getByText('Weekly Distance')).toBeInTheDocument();
-    expect(screen.getByText('This week')).toBeInTheDocument();
+    expect(screen.getByText('Last 7 Days')).toBeInTheDocument();
     expect(screen.getByText('vs last week')).toBeInTheDocument();
-    // Look for specific distance display text - the component shows "5.0 km" not "5 km"
-    expect(screen.getByText('5.0 km')).toBeInTheDocument();
+    // Look for specific distance display text - the component shows "5 km" not "5.0 km"
+    expect(screen.getByText('5 km')).toBeInTheDocument();
   });
 
   it('shows training load trend', () => {

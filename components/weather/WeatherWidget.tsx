@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Thermometer, Droplets, Wind, CloudRain, Sun, AlertTriangle } from 'lucide-react'
 import { useLocationWeather } from '@/hooks/useWeather'
-import type { WeatherImpact } from '@/lib/weather/types'
+
 
 interface WeatherWidgetProps {
   className?: string

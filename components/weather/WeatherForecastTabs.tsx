@@ -5,8 +5,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Thermometer, Droplets, Wind, CloudRain, Sun, AlertTriangle, Calendar, Clock } from 'lucide-react'
 import { useLocationWeather } from '@/hooks/useWeather'
-import type { WeatherImpact } from '@/lib/weather/types'
-
 interface WeatherForecastTabsProps {
   className?: string
   showImpact?: boolean
@@ -15,8 +13,7 @@ interface WeatherForecastTabsProps {
 
 export function WeatherForecastTabs({ 
   className = '', 
-  showImpact = true, 
-  showOptimalTime = true 
+  showImpact = true
 }: WeatherForecastTabsProps) {
   const { weather, forecast, impact, optimalTime, isLoading, error } = useLocationWeather()
 
@@ -140,7 +137,14 @@ export function WeatherForecastTabs({
     })
   }
 
-  const renderHourlyForecast = (forecast: any[], dayName: string) => {
+  const renderHourlyForecast = (forecast: Array<{
+    time: string;
+    temperature: number;
+    humidity: number;
+    windSpeed: number;
+    precipitation: number;
+    weatherCondition: string;
+  }>) => {
     // Group by 3-hour intervals for better readability
     const intervals = []
     for (let i = 0; i < forecast.length; i += 3) {
@@ -308,7 +312,7 @@ export function WeatherForecastTabs({
                 <Calendar className="h-4 w-4" />
                 {getDayName(today)} • {getDateString(today)}
               </div>
-              {renderHourlyForecast(todayForecast, 'Today')}
+                              {renderHourlyForecast(todayForecast)}
             </div>
           </TabsContent>
           
@@ -318,7 +322,7 @@ export function WeatherForecastTabs({
                 <Calendar className="h-4 w-4" />
                 {getDayName(tomorrow)} • {getDateString(tomorrow)}
               </div>
-              {renderHourlyForecast(tomorrowForecast, 'Tomorrow')}
+                              {renderHourlyForecast(tomorrowForecast)}
             </div>
           </TabsContent>
         </Tabs>

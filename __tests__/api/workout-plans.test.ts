@@ -42,9 +42,7 @@ describe('/api/workout-plans', () => {
       // Mock successful deletion
       mockSupabase.delete.mockReturnValue({
         eq: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({ error: null })
-          })
+          eq: jest.fn().mockResolvedValue({ error: null })
         })
       })
 
@@ -65,13 +63,12 @@ describe('/api/workout-plans', () => {
     })
 
     it('should handle database errors', async () => {
-      // Mock database error
-      mockSupabase.delete.mockReturnValue({
+      // Mock database error for the select query
+      mockSupabase.select.mockReturnValue({
         eq: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({ 
-              error: { message: 'Database error' } 
-            })
+          eq: jest.fn().mockResolvedValue({ 
+            data: [],
+            error: { message: 'Database error' } 
           })
         })
       })
@@ -84,7 +81,7 @@ describe('/api/workout-plans', () => {
       const result = await response.json()
 
       expect(response.status).toBe(500)
-      expect(result.error).toBe('Failed to delete workout plan')
+      expect(result.error).toBe('Failed to check existing plans')
     })
 
     it('should handle authentication errors', async () => {

@@ -39,7 +39,7 @@ export default function TestWeatherForecastPage() {
         <ul className="space-y-2 text-blue-800">
           <li className="flex items-start gap-2">
             <span className="text-blue-600 mt-1">•</span>
-            <span><strong>Today & Tomorrow Tabs:</strong> Switch between today's and tomorrow's forecast instantly</span>
+            <span><strong>Today & Tomorrow Tabs:</strong> Switch between today&apos;s and tomorrow&apos;s forecast instantly</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-blue-600 mt-1">•</span>
@@ -47,7 +47,7 @@ export default function TestWeatherForecastPage() {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-blue-600 mt-1">•</span>
-            <span><strong>Running Recommendations:</strong> Best times and tips for each day's conditions</span>
+            <span><strong>Running Recommendations:</strong> Best times and tips for each day&apos;s conditions</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-blue-600 mt-1">•</span>
@@ -71,7 +71,7 @@ export default function TestWeatherForecastPage() {
         <ul className="space-y-2 text-green-800">
           <li className="flex items-start gap-2">
             <span className="text-green-600 mt-1">•</span>
-            <span><strong>Switch Tabs:</strong> Click "Today" or "Tomorrow" to see forecast for each day</span>
+            <span><strong>Switch Tabs:</strong> Click &quot;Today&quot; or &quot;Tomorrow&quot; to see forecast for each day</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-green-600 mt-1">•</span>
@@ -83,7 +83,7 @@ export default function TestWeatherForecastPage() {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-green-600 mt-1">•</span>
-            <span><strong>Running Tips:</strong> Get specific recommendations for each day's conditions</span>
+            <span><strong>Running Tips:</strong> Get specific recommendations for each day&apos;s conditions</span>
           </li>
         </ul>
       </div>

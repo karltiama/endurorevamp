@@ -5,16 +5,13 @@ import { useAuth } from '@/providers/AuthProvider';
 import { AutomaticGoalProgress } from '@/lib/goals/automatic-progress';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Target, 
   TrendingUp, 
   RefreshCw, 
   Clock, 
   CheckCircle,
-  AlertCircle,
   Zap,
   User
 } from 'lucide-react';
@@ -45,16 +42,13 @@ export function AutomaticGoalTracker() {
   const [stats, setStats] = useState<GoalStats | null>(null);
   const [autoGoals, setAutoGoals] = useState<AutoTrackedGoal[]>([]);
   const [manualGoals, setManualGoals] = useState<AutoTrackedGoal[]>([]);
-  const [isRecalculating, setIsRecalculating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const loadGoalStats = useCallback(async () => {
     if (!user) return;
     
     try {
       setIsLoading(true);
-      setError(null);
       
       const result = await AutomaticGoalProgress.getQuantifiableGoals(user.id);
       
@@ -62,7 +56,7 @@ export function AutomaticGoalTracker() {
       setAutoGoals(result.quantifiable);
       setManualGoals(result.manual);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load goal stats');
+      console.error('Failed to load goal stats:', err);
     } finally {
       setIsLoading(false);
     }
@@ -74,25 +68,7 @@ export function AutomaticGoalTracker() {
     }
   }, [user, loadGoalStats]);
 
-  const handleRecalculateProgress = async () => {
-    if (!user) return;
-    
-    try {
-      setIsRecalculating(true);
-      setError(null);
-      
-      await AutomaticGoalProgress.recalculateAllProgress(user.id);
-      
-      // Reload stats after recalculation
-      await loadGoalStats();
-      
-      alert('✅ Goal progress recalculated successfully!');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to recalculate progress');
-    } finally {
-      setIsRecalculating(false);
-    }
-  };
+
 
   const formatLastUpdate = (dateString?: string) => {
     if (!dateString) return 'Never';

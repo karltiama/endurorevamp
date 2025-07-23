@@ -1,4 +1,4 @@
-import type { WeatherData, WeatherImpact, RunningWeatherConditions, WeatherPreferences } from './types'
+import type { WeatherData, WeatherImpact, RunningWeatherConditions } from './types'
 
 export class WeatherService {
   private apiKey: string
@@ -154,7 +154,13 @@ export class WeatherService {
   /**
    * Calculate running score for a specific hour
    */
-  private calculateRunningScore(hour: any): number {
+  private calculateRunningScore(hour: {
+    temperature: number;
+    humidity: number;
+    windSpeed: number;
+    precipitation: number;
+    uvIndex: number;
+  }): number {
     let score = 100
 
     // Temperature scoring (optimal: 10-15°C)
@@ -198,7 +204,14 @@ export class WeatherService {
   /**
    * Get reason for optimal running time
    */
-  private getOptimalTimeReason(hour: any, windowName: string): string {
+  private getOptimalTimeReason(hour: {
+    time: string;
+    temperature: number;
+    humidity: number;
+    windSpeed: number;
+    precipitation: number;
+    uvIndex: number;
+  }, windowName: string): string {
     const reasons = []
     const hourDate = new Date(hour.time)
     const hourOfDay = hourDate.getHours()
@@ -269,7 +282,7 @@ export class WeatherService {
    * Analyze temperature impact
    */
   private analyzeTemperature(weather: RunningWeatherConditions, impact: WeatherImpact): void {
-    const { temperature, feelsLike } = weather
+    const { temperature } = weather
 
     if (temperature < 0) {
       impact.performance = 'negative'
@@ -301,7 +314,7 @@ export class WeatherService {
    * Analyze humidity impact
    */
   private analyzeHumidity(weather: RunningWeatherConditions, impact: WeatherImpact): void {
-    const { humidity, dewPoint } = weather
+    const { humidity } = weather
 
     if (humidity > 80) {
       impact.performance = 'negative'
@@ -319,7 +332,7 @@ export class WeatherService {
    * Analyze wind impact
    */
   private analyzeWind(weather: RunningWeatherConditions, impact: WeatherImpact): void {
-    const { windSpeed, windDirection } = weather
+    const { windSpeed } = weather
 
     if (windSpeed > 25) {
       impact.performance = 'negative'
@@ -376,14 +389,30 @@ export class WeatherService {
   /**
    * Transform OpenWeatherMap data to our format
    */
-  private transformWeatherData(data: any): WeatherData {
+  private transformWeatherData(data: {
+    name: string;
+    sys: { country: string };
+    coord: { lat: number; lon: number };
+    timezone: number; // Will be converted to string
+    main: {
+      temp: number;
+      feels_like: number;
+      humidity: number;
+      dew_point: number;
+      pressure: number;
+    };
+    wind: { speed: number; deg: number };
+    rain?: { '1h': number };
+    visibility: number;
+    weather: Array<{ main: string; icon: string }>;
+  }): WeatherData {
     return {
       location: {
         name: data.name,
         country: data.sys.country,
         lat: data.coord.lat,
         lon: data.coord.lon,
-        timezone: data.timezone
+        timezone: data.timezone.toString()
       },
       current: {
         temperature: data.main.temp,
@@ -411,7 +440,25 @@ export class WeatherService {
   /**
    * Transform forecast data
    */
-  private transformForecastData(data: any): WeatherData {
+  private transformForecastData(data: {
+    city: {
+      name: string;
+      country: string;
+      coord: { lat: number; lon: number };
+      timezone: number;
+    };
+    list: Array<{
+      dt: number;
+      main: {
+        temp: number;
+        feels_like: number;
+        humidity: number;
+      };
+      wind: { speed: number; deg: number };
+      rain?: { '3h': number };
+      weather: Array<{ main: string; icon: string }>;
+    }>;
+  }): WeatherData {
     // This would need to be implemented based on the actual API response
     // For now, returning a basic structure
     return {
@@ -420,7 +467,7 @@ export class WeatherService {
         country: data.city.country,
         lat: data.city.coord.lat,
         lon: data.city.coord.lon,
-        timezone: data.city.timezone
+        timezone: data.city.timezone.toString()
       },
       current: {
         temperature: 0,
@@ -439,7 +486,17 @@ export class WeatherService {
         lastUpdated: new Date().toISOString()
       },
       forecast: {
-        hourly: data.list.map((item: any) => ({
+        hourly: data.list.map((item: {
+          dt: number;
+          main: {
+            temp: number;
+            feels_like: number;
+            humidity: number;
+          };
+          wind: { speed: number; deg: number };
+          rain?: { '3h': number };
+          weather: Array<{ main: string; icon: string }>;
+        }) => ({
           time: new Date(item.dt * 1000).toISOString(),
           temperature: item.main.temp,
           feelsLike: item.main.feels_like,
@@ -482,7 +539,14 @@ export class WeatherService {
   /**
    * Calculate realistic running score considering time windows and preferences
    */
-  private calculateRealisticRunningScore(hour: any, windowName: string, priority: number): number {
+  private calculateRealisticRunningScore(hour: {
+    time: string;
+    temperature: number;
+    humidity: number;
+    windSpeed: number;
+    precipitation: number;
+    uvIndex: number;
+  }, windowName: string, priority: number): number {
     let score = this.calculateRunningScore(hour)
     
     // Apply time window priority

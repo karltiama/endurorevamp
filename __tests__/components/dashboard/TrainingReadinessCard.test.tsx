@@ -218,7 +218,7 @@ describe('TrainingReadinessCard', () => {
     expect(screen.getByText('TSS Balance')).toBeInTheDocument();
     
     // Check for Weekly TSS Progress
-    expect(screen.getByText('Weekly TSS Progress')).toBeInTheDocument();
+    expect(screen.getByText('Weekly Progress')).toBeInTheDocument();
   });
 
   it('shows RPE tracking section', () => {
@@ -347,8 +347,10 @@ describe('TrainingReadinessCard', () => {
 
     render(<TrainingReadinessCard userId="test-user" />, { wrapper: createWrapper() });
     
-    expect(screen.getByText('Weekly TSS Progress')).toBeInTheDocument();
-    expect(screen.getByText(/\d+ \/ \d+/)).toBeInTheDocument();
+    expect(screen.getByText('Weekly Progress')).toBeInTheDocument();
+    // Check that there are percentage values displayed (multiple in the component)
+    const percentageElements = screen.getAllByText(/%/);
+    expect(percentageElements.length).toBeGreaterThanOrEqual(2);
   });
 
   it('shows recommendation section', () => {

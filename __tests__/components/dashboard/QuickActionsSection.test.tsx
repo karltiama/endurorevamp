@@ -294,9 +294,9 @@ describe('QuickActionsSection', () => {
 
     render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
     
-    expect(screen.getByText('This week')).toBeInTheDocument();
-    expect(screen.getByText('Days since')).toBeInTheDocument();
-    expect(screen.getByText('Avg RPE')).toBeInTheDocument();
+    expect(screen.getByText('Workouts this week')).toBeInTheDocument();
+    expect(screen.getByText('Days since last workout')).toBeInTheDocument();
+    expect(screen.getByText('Avg RPE (last 5)')).toBeInTheDocument();
   });
 
   it('limits number of displayed actions', () => {

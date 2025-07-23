@@ -193,10 +193,11 @@ describe('DashboardGoalSelector', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('Choose Dashboard Goals')).toBeInTheDocument();
+    expect(screen.getByText('Manage Dashboard Goals')).toBeInTheDocument();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     // Check for the dialog description specifically
-    expect(screen.getByText('Select up to 3 goals to track as key metrics on your dashboard. These will help you stay focused on your most important objectives.')).toBeInTheDocument();
+    expect(screen.getByText('Select Goals for Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('Choose up to 3 goals to display on your dashboard. Goals will be shown in order of selection.')).toBeInTheDocument();
   });
 
   it('shows loading state', () => {
@@ -216,7 +217,7 @@ describe('DashboardGoalSelector', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('Loading your goals...')).toBeInTheDocument();
+    expect(screen.getByText('Loading Goals...')).toBeInTheDocument();
   });
 
   it('displays active goals', () => {
@@ -239,7 +240,7 @@ describe('DashboardGoalSelector', () => {
     );
 
     // Monthly Runs should be selected as it has show_on_dashboard: true
-    expect(screen.getByText('#1 on Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('#1')).toBeInTheDocument();
   });
 
   it('allows selecting goals up to limit of 3', async () => {
@@ -257,7 +258,7 @@ describe('DashboardGoalSelector', () => {
     }
 
     await waitFor(() => {
-      expect(screen.getByText('2/3 goals selected for your dashboard')).toBeInTheDocument();
+      expect(screen.getByText('#2')).toBeInTheDocument();
     });
   });
 
@@ -333,7 +334,7 @@ describe('DashboardGoalSelector', () => {
     }
 
     await waitFor(() => {
-      expect(screen.getByText('3/3 goals selected for your dashboard')).toBeInTheDocument();
+      expect(screen.getByText('#3')).toBeInTheDocument();
     });
 
     // Fourth goal should be disabled
@@ -359,7 +360,7 @@ describe('DashboardGoalSelector', () => {
     }
 
     // Click save button
-    const saveButton = screen.getByRole('button', { name: /Save Dashboard Goals/ });
+    const saveButton = screen.getByRole('button', { name: /Save Changes/ });
     fireEvent.click(saveButton);
 
     await waitFor(() => {
@@ -404,7 +405,7 @@ describe('DashboardGoalSelector', () => {
       fireEvent.click(weeklyGoal);
     }
 
-    const saveButton = screen.getByRole('button', { name: /Save Dashboard Goals/ });
+    const saveButton = screen.getByRole('button', { name: /Save Changes/ });
     fireEvent.click(saveButton);
 
     await waitFor(() => {

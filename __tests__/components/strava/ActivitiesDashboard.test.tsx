@@ -301,8 +301,8 @@ describe('ActivitiesDashboard', () => {
         </TestWrapper>
       )
 
-      expect(screen.getByText('5.0 km')).toBeInTheDocument() // 5000m = 5.0km
-      expect(screen.getByText('25.0 km')).toBeInTheDocument() // 25000m = 25.0km
+      expect(screen.getByText('5 km')).toBeInTheDocument() // 5000m = 5 km
+      expect(screen.getByText('25 km')).toBeInTheDocument() // 25000m = 25 km
     })
 
     it('formats duration correctly', () => {

@@ -6,13 +6,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
 import { useUserGoals, useUpdateGoal, useGoalManagement } from '@/hooks/useGoals';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Target, Plus, Check, Settings } from 'lucide-react';
 import { AddGoalModal } from '@/components/goals/AddGoalModal';
 import { cn } from '@/lib/utils';

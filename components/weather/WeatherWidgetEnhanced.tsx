@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Thermometer, Droplets, Wind, CloudRain, Sun, AlertTriangle, MapPin, Settings, Navigation, Calendar, Clock, Zap } from 'lucide-react'
+import { Thermometer, Droplets, Wind, CloudRain, Sun, AlertTriangle, MapPin, Settings, Navigation, Clock, Zap } from 'lucide-react'
 import { useWeather } from '@/hooks/useWeather'
 import { useLocation } from '@/hooks/useLocation'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
@@ -18,19 +18,15 @@ import { LocationPermissionPrompt } from './LocationPermissionPrompt'
 interface WeatherWidgetEnhancedProps {
   className?: string
   showImpact?: boolean
-  showOptimalTime?: boolean
   showLocationPrompt?: boolean
   showForecastTabs?: boolean
-  compact?: boolean
 }
 
 export function WeatherWidgetEnhanced({ 
   className = '', 
-  showImpact = true, 
-  showOptimalTime = true,
+  showImpact = true,
   showLocationPrompt = true,
-  showForecastTabs = true,
-  compact = false
+  showForecastTabs = true
 }: WeatherWidgetEnhancedProps) {
   const [showLocationInput, setShowLocationInput] = useState(false)
   const [showPermissionPrompt, setShowPermissionPrompt] = useState(false)
@@ -44,7 +40,7 @@ export function WeatherWidgetEnhanced({
     setManualLocation 
   } = useLocation()
 
-  const { weather, impact, optimalTime, isLoading, error, forecast } = useWeather({ 
+  const { weather, impact, isLoading, error, forecast } = useWeather({ 
     lat: location.lat, 
     lon: location.lon,
     enabled: !locationLoading
@@ -138,25 +134,6 @@ export function WeatherWidgetEnhanced({
     }
   }
 
-  const formatTime = (timeString: string) => {
-    return new Date(timeString).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    })
-  }
-
-  const getDayName = (date: Date) => {
-    return date.toLocaleDateString('en-US', { weekday: 'long' })
-  }
-
-  const getDateString = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    })
-  }
-
   const getTodayAndTomorrowForecast = () => {
     if (!forecast?.forecast?.hourly) return { today: [], tomorrow: [] }
 
@@ -217,105 +194,8 @@ export function WeatherWidgetEnhanced({
     return 'Poor'
   }
 
-  const renderSimplifiedForecast = (forecast: any[], dayName: string) => {
-    if (forecast.length === 0) {
-      return (
-        <div className="text-sm text-gray-500 text-center py-4">
-          No forecast data available for {dayName.toLowerCase()}
-        </div>
-      )
-    }
-
-    // Find the best 3 running times
-    const runningHours = forecast.filter(hour => {
-      const hourDate = new Date(hour.time)
-      const hourOfDay = hourDate.getHours()
-      return hourOfDay >= 5 && hourOfDay <= 21 // 5 AM to 9 PM
-    })
-
-    const scoredHours = runningHours.map(hour => ({
-      ...hour,
-      score: calculateRunningScore(hour.temperature, hour.humidity, hour.windSpeed, hour.precipitation)
-    }))
-
-    const bestHours = scoredHours
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3)
-
-    return (
-      <div className="space-y-4">
-        {/* Best Running Times */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            Best Running Times
-          </h4>
-          
-          <div className="space-y-2">
-            {bestHours.map((hour, index) => {
-              const hourDate = new Date(hour.time)
-              const timeString = hourDate.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-              })
-
-              return (
-                <div key={hour.time} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="text-sm font-medium text-gray-600">#{index + 1}</div>
-                    <div>
-                      <div className="font-semibold">{timeString}</div>
-                      <div className="text-xs text-gray-500">
-                        {formatTemperature(hour.temperature, preferences.temperature)} • {hour.humidity}% humidity
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className={`font-semibold ${getScoreColor(hour.score)}`}>
-                      {hour.score}%
-                    </div>
-                    <div className="text-xs text-gray-500">{getScoreText(hour.score)}</div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Weather Summary */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-blue-800">Today's Conditions</span>
-            <div className="flex items-center gap-2">
-              <span className="text-red-600 font-medium">High:</span>
-              <span className="font-semibold">
-                {formatTemperature(Math.max(...forecast.map(h => h.temperature)), preferences.temperature)}
-              </span>
-              <span className="text-blue-600 font-medium">Low:</span>
-              <span className="font-semibold">
-                {formatTemperature(Math.min(...forecast.map(h => h.temperature)), preferences.temperature)}
-              </span>
-            </div>
-          </div>
-          
-          {/* Key weather factors */}
-          <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-            <div className="flex items-center gap-1">
-              <Droplets className="h-3 w-3" />
-              <span>Avg Humidity: {Math.round(forecast.reduce((sum, h) => sum + h.humidity, 0) / forecast.length)}%</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Wind className="h-3 w-3" />
-              <span>Avg Wind: {formatWindSpeed(forecast.reduce((sum, h) => sum + h.windSpeed, 0) / forecast.length, preferences.windSpeed)}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const renderCompactTodayForecast = () => {
+  const renderTodayForecast = () => {
+    const { today: todayForecast } = getTodayAndTomorrowForecast()
     if (!todayForecast || todayForecast.length === 0) return null
 
     // Get today's best running time
@@ -332,14 +212,15 @@ export function WeatherWidgetEnhanced({
 
     const bestHour = scoredHours.sort((a, b) => b.score - a.score)[0]
     
-    if (!bestHour) return null
+    if (!bestHour || !weather) return null
 
-    const hourDate = new Date(bestHour.time)
-    const timeString = hourDate.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    })
+    const { current } = weather
+    const currentRunningScore = calculateRunningScore(
+      current.temperature, 
+      current.humidity, 
+      current.windSpeed, 
+      current.precipitation
+    )
 
     return (
       <div className="space-y-3">
@@ -397,7 +278,7 @@ export function WeatherWidgetEnhanced({
           </div>
         </div>
 
-        {/* Training Impact - Only show on today tab */}
+        {/* Training Impact */}
         {showImpact && impact && (
           <div className="pt-3 border-t">
             <div className="space-y-3">
@@ -435,14 +316,14 @@ export function WeatherWidgetEnhanced({
     )
   }
 
-  const renderCompactTomorrowForecast = () => {
+  const renderTomorrowForecast = () => {
+    const { tomorrow: tomorrowForecast } = getTodayAndTomorrowForecast()
     if (!tomorrowForecast || tomorrowForecast.length === 0) return null
 
     // Get tomorrow's forecast for specific times: 6am, 12pm, 6pm
-    // Find the closest available forecast times
     const getClosestHourForecast = (targetHour: number) => {
       // First try to find exact hour match
-      let exactMatch = tomorrowForecast.find(hour => {
+      const exactMatch = tomorrowForecast.find(hour => {
         const hourDate = new Date(hour.time)
         return hourDate.getHours() === targetHour
       })
@@ -471,7 +352,14 @@ export function WeatherWidgetEnhanced({
     const twelvePM = getClosestHourForecast(12)
     const sixPM = getClosestHourForecast(18)
 
-    const renderTimeSlot = (time: string, forecast: any, label: string) => {
+    const renderTimeSlot = (time: string, forecast: {
+      time: string;
+      temperature: number;
+      humidity: number;
+      windSpeed: number;
+      precipitation: number;
+      weatherCondition: string;
+    } | null, label: string) => {
       if (!forecast) {
         return (
           <div key={time} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg opacity-50">
@@ -552,7 +440,7 @@ export function WeatherWidgetEnhanced({
         {/* Tomorrow's Running Times */}
         <div className="bg-blue-50 rounded-lg p-3">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-blue-700">Tomorrow's Running Times</span>
+            <span className="text-sm font-medium text-blue-700">Tomorrow&apos;s Running Times</span>
             <Zap className="h-4 w-4 text-yellow-500" />
           </div>
           
@@ -703,23 +591,11 @@ export function WeatherWidgetEnhanced({
   }
 
   const { current } = weather
-  const { today: todayForecast, tomorrow: tomorrowForecast } = getTodayAndTomorrowForecast()
-  const today = new Date()
-  const tomorrow = new Date(today)
-  tomorrow.setDate(tomorrow.getDate() + 1)
-
-  // Calculate current running score
-  const currentRunningScore = calculateRunningScore(
-    current.temperature, 
-    current.humidity, 
-    current.windSpeed, 
-    current.precipitation
-  )
 
   return (
     <Card className={className}>
-      <CardHeader className={compact ? "pb-3" : ""}>
-        <CardTitle className={`flex items-center gap-2 ${compact ? "text-lg" : ""}`}>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
           {getWeatherIcon(current.weatherCondition)}
           Weather
           <div className="flex items-center gap-2 ml-auto">
@@ -741,122 +617,26 @@ export function WeatherWidgetEnhanced({
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className={compact ? "space-y-3" : "space-y-4"}>
-        {/* Current Conditions with Running Score - Only show when not compact */}
-        {!compact && (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2">
-              <Thermometer className="h-4 w-4 text-red-500" />
-              <span className="text-sm">
-                {formatTemperature(current.temperature, preferences.temperature)}
-                {current.feelsLike !== current.temperature && (
-                  <span className="text-gray-500 ml-1">
-                    (feels {formatTemperature(current.feelsLike, preferences.temperature)})
-                  </span>
-                )}
-              </span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Droplets className="h-4 w-4 text-blue-500" />
-              <span className="text-sm">{current.humidity}%</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Wind className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">{formatWindSpeed(current.windSpeed, preferences.windSpeed)}</span>
-            </div>
-            
-            {current.precipitation > 0 && (
-              <div className="flex items-center gap-2">
-                <CloudRain className="h-4 w-4 text-blue-500" />
-                <span className="text-sm">{current.precipitation}mm</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Current Running Conditions - Only show when not compact */}
-        {!compact && (
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Current Running Conditions</span>
-              <Badge 
-                variant="outline" 
-                className={getRiskColor(impact?.risk || 'medium')}
-              >
-                {impact?.risk || 'medium'} risk
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-sm text-gray-600">Running Score</span>
-              <div className="text-right">
-                <span className={`text-lg font-semibold ${getScoreColor(currentRunningScore)}`}>
-                  {currentRunningScore}%
-                </span>
-                <div className="text-xs text-gray-500">{getScoreText(currentRunningScore)}</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Compact Forecast Tabs - Show when compact mode is enabled */}
-        {compact && forecast?.forecast?.hourly && (
+      <CardContent className="space-y-3">
+        {/* Forecast Tabs */}
+        {showForecastTabs && forecast?.forecast?.hourly && (
           <div className="pt-3 border-t">
             <Tabs defaultValue="today" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 h-8">
-                <TabsTrigger value="today" className="text-xs">
+              <TabsList className="flex w-full h-8 bg-gray-100 rounded-md p-1">
+                <TabsTrigger value="today" className="text-xs flex-1">
                   Today
                 </TabsTrigger>
-                <TabsTrigger value="tomorrow" className="text-xs">
+                <TabsTrigger value="tomorrow" className="text-xs flex-1">
                   Tomorrow
                 </TabsTrigger>
               </TabsList>
               
               <TabsContent value="today" className="mt-3">
-                {renderCompactTodayForecast()}
+                {renderTodayForecast()}
               </TabsContent>
               
               <TabsContent value="tomorrow" className="mt-3">
-                {renderCompactTomorrowForecast()}
-              </TabsContent>
-            </Tabs>
-          </div>
-        )}
-
-        {/* Forecast Tabs - Only show if not compact */}
-        {showForecastTabs && forecast?.forecast?.hourly && !compact && (
-          <div className="pt-4 border-t">
-            <Tabs defaultValue="today" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="today" className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Today
-                </TabsTrigger>
-                <TabsTrigger value="tomorrow" className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Tomorrow
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="today" className="mt-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <Calendar className="h-4 w-4" />
-                    {getDayName(today)} • {getDateString(today)}
-                  </div>
-                  {renderSimplifiedForecast(todayForecast, 'Today')}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="tomorrow" className="mt-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <Calendar className="h-4 w-4" />
-                    {getDayName(tomorrow)} • {getDateString(tomorrow)}
-                  </div>
-                  {renderSimplifiedForecast(tomorrowForecast, 'Tomorrow')}
-                </div>
+                {renderTomorrowForecast()}
               </TabsContent>
             </Tabs>
           </div>
@@ -884,56 +664,6 @@ export function WeatherWidgetEnhanced({
                 Set Manually
               </Button>
             </div>
-          </div>
-        )}
-
-        {/* Training Impact - Only show when not compact (for full mode) */}
-        {showImpact && impact && !compact && (
-          <div className="pt-4 border-t">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Training Impact</span>
-                <span className={`text-sm font-medium ${getPerformanceColor(impact.performance)}`}>
-                  {impact.performance}
-                </span>
-              </div>
-              
-              {impact.adjustments.intensity !== 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Intensity Adjustment</span>
-                  <span className={`text-sm font-medium ${
-                    impact.adjustments.intensity > 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {impact.adjustments.intensity > 0 ? '+' : ''}{impact.adjustments.intensity}
-                  </span>
-                </div>
-              )}
-
-              {/* Single consolidated recommendation */}
-              {impact.recommendations.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="text-sm font-medium text-blue-800 mb-1">Key Recommendation:</div>
-                  <div className="text-sm text-blue-700">
-                    {impact.recommendations[0]}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Optimal Running Time - Only show when not compact (for full mode) */}
-        {showOptimalTime && optimalTime && !compact && (
-          <div className="pt-2 border-t">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Best Time to Run</span>
-              <span className="text-sm font-semibold text-blue-600">
-                {optimalTime.time}
-              </span>
-            </div>
-            <p className="text-xs text-gray-600 mt-1">
-              {optimalTime.reason}
-            </p>
           </div>
         )}
       </CardContent>

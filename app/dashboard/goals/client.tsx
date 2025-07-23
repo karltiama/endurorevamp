@@ -13,7 +13,6 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Target, 
@@ -32,7 +31,7 @@ import { EditGoalModal } from '@/components/goals/EditGoalModal';
 import { GoalCardSkeletonGrid } from '@/components/goals/GoalCardSkeleton';
 
 import { AutomaticGoalTracker } from '@/components/goals/AutomaticGoalTracker';
-import { SmartGoalCard, SmartGoalCardCompact, SmartGoalCardSkeleton } from '@/components/goals/SmartGoalCard';
+import { SmartGoalCard, SmartGoalCardSkeleton } from '@/components/goals/SmartGoalCard';
 import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
 import { toast } from 'sonner';
 

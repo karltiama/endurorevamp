@@ -306,7 +306,7 @@ describe('WeeklyTrainingLoadWidget', () => {
 
     await waitFor(() => {
       expect(screen.getByText('TSS Calculation Needed')).toBeInTheDocument();
-      expect(screen.getByText('Calculate TSS')).toBeInTheDocument();
+      expect(screen.getByText('Calculate')).toBeInTheDocument();
     });
   });
 
@@ -384,10 +384,10 @@ describe('WeeklyTrainingLoadWidget', () => {
 
     // Wait for the component to render and the button to appear
     await waitFor(() => {
-      expect(screen.getByText('Calculate TSS')).toBeInTheDocument();
+      expect(screen.getByText('Calculate')).toBeInTheDocument();
     });
 
-    const calculateButton = screen.getByText('Calculate TSS');
+    const calculateButton = screen.getByText('Calculate');
     fireEvent.click(calculateButton);
 
     await waitFor(() => {

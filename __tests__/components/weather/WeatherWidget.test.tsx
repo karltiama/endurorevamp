@@ -31,6 +31,7 @@ describe('WeatherWidget', () => {
   it('should render loading state', () => {
     mockUseLocationWeather.mockReturnValue({
       weather: null,
+      forecast: null,
       impact: null,
       optimalTime: null,
       isLoading: true,
@@ -47,6 +48,7 @@ describe('WeatherWidget', () => {
   it('should render error state', () => {
     mockUseLocationWeather.mockReturnValue({
       weather: null,
+      forecast: null,
       impact: null,
       optimalTime: null,
       isLoading: false,
@@ -97,6 +99,7 @@ describe('WeatherWidget', () => {
 
     mockUseLocationWeather.mockReturnValue({
       weather: mockWeather,
+      forecast: mockWeather,
       impact: mockImpact,
       optimalTime: { time: '6:00 AM', reason: 'Best conditions: comfortable temperature' },
       isLoading: false,
@@ -107,7 +110,7 @@ describe('WeatherWidget', () => {
     render(<WeatherWidget />, { wrapper })
 
     expect(screen.getByText('Weather')).toBeInTheDocument()
-    expect(screen.getByText('London')).toBeInTheDocument()
+    expect(screen.getByText('• London')).toBeInTheDocument()
     expect(screen.getByText('15°C')).toBeInTheDocument()
     expect(screen.getByText('60%')).toBeInTheDocument()
     expect(screen.getByText('10 km/h')).toBeInTheDocument()
@@ -142,6 +145,7 @@ describe('WeatherWidget', () => {
 
     mockUseLocationWeather.mockReturnValue({
       weather: mockWeather,
+      forecast: mockWeather,
       impact: null,
       optimalTime: null,
       isLoading: false,
@@ -198,6 +202,7 @@ describe('WeatherWidget', () => {
 
     mockUseLocationWeather.mockReturnValue({
       weather: mockWeather,
+      forecast: mockWeather,
       impact: mockImpact,
       optimalTime: null,
       isLoading: false,
@@ -251,6 +256,7 @@ describe('WeatherWidget', () => {
 
     mockUseLocationWeather.mockReturnValue({
       weather: mockWeather,
+      forecast: mockWeather,
       impact: mockImpact,
       optimalTime: null,
       isLoading: false,
@@ -288,6 +294,7 @@ describe('WeatherWidget', () => {
 
     mockUseLocationWeather.mockReturnValue({
       weather: mockWeather,
+      forecast: mockWeather,
       impact: null,
       optimalTime: { time: '6:00 AM', reason: 'Best conditions' },
       isLoading: false,

@@ -33,31 +33,40 @@ describe('WeatherService - Improvement Demo', () => {
           {
             time: '2024-01-01T02:00:00Z',
             temperature: 12,
+            feelsLike: 11,
             humidity: 50,
             windSpeed: 5,
+            windDirection: 180,
             precipitation: 0,
             uvIndex: 0,
-            weatherCondition: 'clear'
+            weatherCondition: 'clear',
+            weatherIcon: '01n'
           },
           // 7 AM - good weather and realistic time
           {
             time: '2024-01-01T07:00:00Z',
             temperature: 14,
+            feelsLike: 13,
             humidity: 55,
             windSpeed: 8,
+            windDirection: 180,
             precipitation: 0,
             uvIndex: 2,
-            weatherCondition: 'clear'
+            weatherCondition: 'clear',
+            weatherIcon: '01d'
           },
           // 6 PM - decent weather and realistic time
           {
             time: '2024-01-01T18:00:00Z',
             temperature: 16,
+            feelsLike: 15,
             humidity: 60,
             windSpeed: 12,
+            windDirection: 180,
             precipitation: 0,
             uvIndex: 4,
-            weatherCondition: 'clear'
+            weatherCondition: 'clear',
+            weatherIcon: '01d'
           }
         ],
         daily: []

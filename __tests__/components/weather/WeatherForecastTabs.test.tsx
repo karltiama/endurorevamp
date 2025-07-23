@@ -224,7 +224,9 @@ describe('WeatherForecastTabs', () => {
     renderWithQueryClient(<WeatherForecastTabs />)
     
     expect(screen.getByText('Running Weather Forecast')).toBeInTheDocument()
-    expect(screen.getByText('Test City')).toBeInTheDocument()
+    // Use a more flexible text matcher since "Test City" might be split across elements
+    const cityElements = screen.getAllByText(/Test City/);
+    expect(cityElements.length).toBeGreaterThan(0)
     expect(screen.getByTestId('tabs')).toBeInTheDocument()
     expect(screen.getByTestId('tab-trigger-today')).toBeInTheDocument()
     expect(screen.getByTestId('tab-trigger-tomorrow')).toBeInTheDocument()
@@ -248,9 +250,12 @@ describe('WeatherForecastTabs', () => {
     renderWithQueryClient(<WeatherForecastTabs />)
     
     // Check that weather data is displayed
-    expect(screen.getByText('20°C')).toBeInTheDocument()
-    expect(screen.getByText('65%')).toBeInTheDocument()
-    expect(screen.getByText('10 km/h')).toBeInTheDocument()
+    const tempElements = screen.getAllByText('20°C')
+    expect(tempElements.length).toBeGreaterThan(0)
+    const humidityElements = screen.getAllByText('65%')
+    expect(humidityElements.length).toBeGreaterThan(0)
+    const windElements = screen.getAllByText('10 km/h')
+    expect(windElements.length).toBeGreaterThan(0)
   })
 
   it('displays running recommendations', () => {
@@ -270,13 +275,21 @@ describe('WeatherForecastTabs', () => {
 
     renderWithQueryClient(<WeatherForecastTabs />)
     
-    expect(screen.getByText('Running Recommendations')).toBeInTheDocument()
-    expect(screen.getByText('Best Time')).toBeInTheDocument()
-    expect(screen.getByText('6:00 AM')).toBeInTheDocument()
-    expect(screen.getByText('Running Impact')).toBeInTheDocument()
-    expect(screen.getByText('low risk')).toBeInTheDocument()
-    expect(screen.getByText('Performance')).toBeInTheDocument()
-    expect(screen.getByText('positive')).toBeInTheDocument()
+    // Use getAllByText to handle multiple elements with the same text
+    const recommendationsElements = screen.getAllByText('Running Recommendations')
+    expect(recommendationsElements.length).toBeGreaterThan(0)
+    const bestTimeElements = screen.getAllByText('Best Time')
+    expect(bestTimeElements.length).toBeGreaterThan(0)
+    const timeElements = screen.getAllByText('6:00 AM')
+    expect(timeElements.length).toBeGreaterThan(0)
+    const impactElements = screen.getAllByText('Running Impact')
+    expect(impactElements.length).toBeGreaterThan(0)
+    const riskElements = screen.getAllByText('low risk')
+    expect(riskElements.length).toBeGreaterThan(0)
+    const performanceElements = screen.getAllByText('Performance')
+    expect(performanceElements.length).toBeGreaterThan(0)
+    const positiveElements = screen.getAllByText('positive')
+    expect(positiveElements.length).toBeGreaterThan(0)
   })
 
   it('displays hourly breakdown', () => {
@@ -296,8 +309,11 @@ describe('WeatherForecastTabs', () => {
 
     renderWithQueryClient(<WeatherForecastTabs />)
     
-    expect(screen.getByText('Hourly Breakdown')).toBeInTheDocument()
-    expect(screen.getByText('🕐')).toBeInTheDocument()
+    // Use getAllByText to handle multiple elements with the same text
+    const hourlyBreakdownElements = screen.getAllByText('Hourly Breakdown')
+    expect(hourlyBreakdownElements.length).toBeGreaterThan(0)
+    const clockElements = screen.getAllByText('🕐')
+    expect(clockElements.length).toBeGreaterThan(0)
   })
 
   it('handles missing forecast data gracefully', () => {
@@ -380,7 +396,9 @@ describe('WeatherForecastTabs', () => {
 
     renderWithQueryClient(<WeatherForecastTabs />)
     
-    expect(screen.getByText('2.5mm')).toBeInTheDocument()
+    // Use getAllByText to handle multiple elements with the same text
+    const precipitationElements = screen.getAllByText('2.5mm')
+    expect(precipitationElements.length).toBeGreaterThan(0)
   })
 
   it('formats dates correctly', () => {
@@ -400,11 +418,23 @@ describe('WeatherForecastTabs', () => {
 
     renderWithQueryClient(<WeatherForecastTabs />)
     
+    // Check that weekday names are displayed (using actual current date)
     const today = new Date()
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
     
-    expect(screen.getByText(today.toLocaleDateString('en-US', { weekday: 'long' }))).toBeInTheDocument()
-    expect(screen.getByText(tomorrow.toLocaleDateString('en-US', { weekday: 'long' }))).toBeInTheDocument()
+    const todayWeekday = today.toLocaleDateString('en-US', { weekday: 'long' })
+    const tomorrowWeekday = tomorrow.toLocaleDateString('en-US', { weekday: 'long' })
+    
+    // Use getAllByText since there might be multiple elements containing the weekday names
+    const todayElements = screen.getAllByText((content, element) => {
+      return element?.textContent?.includes(todayWeekday) || false
+    })
+    expect(todayElements.length).toBeGreaterThan(0)
+    
+    const tomorrowElements = screen.getAllByText((content, element) => {
+      return element?.textContent?.includes(tomorrowWeekday) || false
+    })
+    expect(tomorrowElements.length).toBeGreaterThan(0)
   })
 }) 

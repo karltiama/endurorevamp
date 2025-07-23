@@ -203,7 +203,7 @@ export class DynamicGoalEngine {
     
     // 2. Consistency Improvement Suggestions
     if (profile.consistencyScore < 70 && !activeGoalCategories.includes('frequency')) {
-      suggestions.push(this.suggestConsistencyGoal(profile, unitPreferences))
+              suggestions.push(this.suggestConsistencyGoal(profile))
     }
     
     // 3. Challenge Progression Suggestions
@@ -213,7 +213,7 @@ export class DynamicGoalEngine {
     
     // 4. Weakness Addressing Suggestions
     if (profile.frequencyTrend === 'declining') {
-      suggestions.push(this.suggestFrequencyRecoveryGoal(profile, unitPreferences))
+              suggestions.push(this.suggestFrequencyRecoveryGoal(profile))
     }
     
     if (profile.paceTrend === 'declining') {
@@ -421,7 +421,7 @@ export class DynamicGoalEngine {
     }
   }
   
-  private static suggestConsistencyGoal(profile: UserPerformanceProfile, unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }): DynamicGoalSuggestion {
+  private static suggestConsistencyGoal(profile: UserPerformanceProfile): DynamicGoalSuggestion {
     const targetFrequency = Math.min(6, Math.ceil(profile.runFrequency * 1.5))
     
     return {
@@ -500,7 +500,7 @@ export class DynamicGoalEngine {
     return suggestions
   }
   
-  private static suggestFrequencyRecoveryGoal(profile: UserPerformanceProfile, unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }): DynamicGoalSuggestion {
+  private static suggestFrequencyRecoveryGoal(profile: UserPerformanceProfile): DynamicGoalSuggestion {
     return {
       id: 'dynamic-frequency-recovery',
       title: 'Get Back on Track',
@@ -651,8 +651,8 @@ export class DynamicGoalEngine {
 
       // Duration goal (if they have some activity)
       if (profile.averageActivityDuration > 0) {
-        let suggestedDuration = Math.round(profile.averageActivityDuration * 1.3)
-        let durationUnit = 'minutes'
+        const suggestedDuration = Math.round(profile.averageActivityDuration * 1.3)
+        const durationUnit = 'minutes'
         
         suggestions.push({
           id: 'dynamic-beginner-duration',
@@ -731,11 +731,10 @@ export class DynamicGoalEngine {
    * Map goal categories to actual goal type IDs from the database
    * This ensures suggestions reference valid goal types
    */
-  private static mapCategoryToGoalType(category: string, metricType?: string): GoalType {
+  private static mapCategoryToGoalType(category: string): GoalType {
     // These should match the goal_types table in the database using names as IDs
     const goalTypeMap: Record<string, GoalType> = {
       'distance': {
-        id: 'weekly_distance',
         name: 'weekly_distance',
         display_name: 'Weekly Distance Target',
         description: 'Run a specific total distance each week',
@@ -749,7 +748,6 @@ export class DynamicGoalEngine {
         updated_at: new Date().toISOString()
       },
       'pace': {
-        id: 'general_pace_improvement',
         name: 'general_pace_improvement',
         display_name: 'Overall Pace Improvement',
         description: 'Improve your general running pace across all distances',
@@ -763,7 +761,6 @@ export class DynamicGoalEngine {
         updated_at: new Date().toISOString()
       },
       'frequency': {
-        id: 'weekly_run_frequency',
         name: 'weekly_run_frequency',
         display_name: 'Weekly Running Consistency',
         description: 'Run a specific number of times per week',
@@ -777,7 +774,6 @@ export class DynamicGoalEngine {
         updated_at: new Date().toISOString()
       },
       'duration': {
-        id: 'weekly_time_target',
         name: 'weekly_time_target',
         display_name: 'Weekly Time on Feet',
         description: 'Spend a target amount of time running each week',
@@ -791,7 +787,6 @@ export class DynamicGoalEngine {
         updated_at: new Date().toISOString()
       },
       'elevation': {
-        id: 'weekly_elevation_gain',
         name: 'weekly_elevation_gain',
         display_name: 'Weekly Elevation Challenge',
         description: 'Climb a target amount of elevation each week',

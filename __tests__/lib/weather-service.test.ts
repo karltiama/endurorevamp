@@ -242,31 +242,40 @@ describe('WeatherService', () => {
             {
               time: '2024-01-01T02:00:00Z',
               temperature: 12,
+              feelsLike: 11,
               humidity: 50,
               windSpeed: 5,
+              windDirection: 180,
               precipitation: 0,
               uvIndex: 0,
-              weatherCondition: 'clear'
+              weatherCondition: 'clear',
+              weatherIcon: '01n'
             },
             // 7 AM - good weather and realistic time
             {
               time: '2024-01-01T07:00:00Z',
               temperature: 14,
+              feelsLike: 13,
               humidity: 55,
               windSpeed: 8,
+              windDirection: 180,
               precipitation: 0,
               uvIndex: 2,
-              weatherCondition: 'clear'
+              weatherCondition: 'clear',
+              weatherIcon: '01d'
             },
             // 6 PM - decent weather and realistic time
             {
               time: '2024-01-01T18:00:00Z',
               temperature: 16,
+              feelsLike: 15,
               humidity: 60,
               windSpeed: 12,
+              windDirection: 180,
               precipitation: 0,
               uvIndex: 4,
-              weatherCondition: 'clear'
+              weatherCondition: 'clear',
+              weatherIcon: '01d'
             }
           ],
           daily: []
@@ -290,38 +299,62 @@ describe('WeatherService', () => {
     it('should prioritize morning and evening windows', () => {
       const mockForecast = {
         location: { name: 'Test City', country: 'US', lat: 40, lon: -74, timezone: 'America/New_York' },
-        current: { temperature: 15, humidity: 60, windSpeed: 10, precipitation: 0, uvIndex: 3 },
+        current: { 
+          temperature: 15, 
+          feelsLike: 14,
+          humidity: 60, 
+          windSpeed: 10, 
+          windDirection: 180,
+          precipitation: 0, 
+          uvIndex: 3,
+          airQuality: 30,
+          dewPoint: 7,
+          pressure: 1013,
+          visibility: 10,
+          weatherCondition: 'clear',
+          weatherIcon: '01d',
+          lastUpdated: '2024-01-01T12:00:00Z'
+        },
         forecast: {
           hourly: [
             // Morning window (6-8 AM) - high priority
             {
               time: '2024-01-01T07:00:00Z',
               temperature: 13,
+              feelsLike: 12,
               humidity: 55,
               windSpeed: 8,
+              windDirection: 180,
               precipitation: 0,
               uvIndex: 2,
-              weatherCondition: 'clear'
+              weatherCondition: 'clear',
+              weatherIcon: '01d'
             },
             // Afternoon window (12-2 PM) - lower priority
             {
               time: '2024-01-01T13:00:00Z',
               temperature: 20,
+              feelsLike: 22,
               humidity: 65,
               windSpeed: 10,
+              windDirection: 180,
               precipitation: 0,
               uvIndex: 7,
-              weatherCondition: 'clear'
+              weatherCondition: 'clear',
+              weatherIcon: '01d'
             },
             // Evening window (6-8 PM) - high priority
             {
               time: '2024-01-01T19:00:00Z',
               temperature: 15,
+              feelsLike: 14,
               humidity: 60,
               windSpeed: 12,
+              windDirection: 180,
               precipitation: 0,
               uvIndex: 3,
-              weatherCondition: 'clear'
+              weatherCondition: 'clear',
+              weatherIcon: '01d'
             }
           ],
           daily: []
@@ -337,29 +370,50 @@ describe('WeatherService', () => {
 
     it('should handle safety considerations for very early/late hours', () => {
       const mockForecast = {
-        location: { name: 'Test City', country: 'US', lat: 40, lon: -74, timezone: 0 },
-        current: { temperature: 15, humidity: 60, windSpeed: 10, precipitation: 0, uvIndex: 3 },
+        location: { name: 'Test City', country: 'US', lat: 40, lon: -74, timezone: 'America/New_York' },
+        current: { 
+          temperature: 15, 
+          feelsLike: 14,
+          humidity: 60, 
+          windSpeed: 10, 
+          windDirection: 180,
+          precipitation: 0, 
+          uvIndex: 3,
+          airQuality: 30,
+          dewPoint: 7,
+          pressure: 1013,
+          visibility: 10,
+          weatherCondition: 'clear',
+          weatherIcon: '01d',
+          lastUpdated: '2024-01-01T12:00:00Z'
+        },
         forecast: {
           hourly: [
             // 3 AM - unsafe hour
             {
               time: '2024-01-01T03:00:00Z',
               temperature: 10,
+              feelsLike: 9,
               humidity: 50,
               windSpeed: 5,
+              windDirection: 180,
               precipitation: 0,
               uvIndex: 0,
-              weatherCondition: 'clear'
+              weatherCondition: 'clear',
+              weatherIcon: '01n'
             },
             // 6 AM - safe hour
             {
               time: '2024-01-01T06:00:00Z',
               temperature: 12,
+              feelsLike: 11,
               humidity: 55,
               windSpeed: 8,
+              windDirection: 180,
               precipitation: 0,
               uvIndex: 1,
-              weatherCondition: 'clear'
+              weatherCondition: 'clear',
+              weatherIcon: '01d'
             }
           ],
           daily: []
@@ -375,18 +429,36 @@ describe('WeatherService', () => {
 
     it('should provide meaningful reasons for the chosen time', () => {
       const mockForecast = {
-        location: { name: 'Test City', country: 'US', lat: 40, lon: -74, timezone: 0 },
-        current: { temperature: 15, humidity: 60, windSpeed: 10, precipitation: 0, uvIndex: 3 },
+        location: { name: 'Test City', country: 'US', lat: 40, lon: -74, timezone: 'America/New_York' },
+        current: { 
+          temperature: 15, 
+          feelsLike: 14,
+          humidity: 60, 
+          windSpeed: 10, 
+          windDirection: 180,
+          precipitation: 0, 
+          uvIndex: 3,
+          airQuality: 30,
+          dewPoint: 7,
+          pressure: 1013,
+          visibility: 10,
+          weatherCondition: 'clear',
+          weatherIcon: '01d',
+          lastUpdated: '2024-01-01T12:00:00Z'
+        },
         forecast: {
           hourly: [
             {
               time: '2024-01-01T07:00:00Z',
               temperature: 14,
+              feelsLike: 13,
               humidity: 55,
               windSpeed: 8,
+              windDirection: 180,
               precipitation: 0,
               uvIndex: 2,
-              weatherCondition: 'clear'
+              weatherCondition: 'clear',
+              weatherIcon: '01d'
             }
           ],
           daily: []
@@ -402,28 +474,49 @@ describe('WeatherService', () => {
 
     it('should fallback to reasonable hours when no ideal times available', () => {
       const mockForecast = {
-        location: { name: 'Test City', country: 'US', lat: 40, lon: -74, timezone: 0 },
-        current: { temperature: 15, humidity: 60, windSpeed: 10, precipitation: 0, uvIndex: 3 },
+        location: { name: 'Test City', country: 'US', lat: 40, lon: -74, timezone: 'America/New_York' },
+        current: { 
+          temperature: 15, 
+          feelsLike: 14,
+          humidity: 60, 
+          windSpeed: 10, 
+          windDirection: 180,
+          precipitation: 0, 
+          uvIndex: 3,
+          airQuality: 30,
+          dewPoint: 7,
+          pressure: 1013,
+          visibility: 10,
+          weatherCondition: 'clear',
+          weatherIcon: '01d',
+          lastUpdated: '2024-01-01T12:00:00Z'
+        },
         forecast: {
           hourly: [
             // Only available times are outside preferred windows
             {
               time: '2024-01-01T10:00:00Z',
               temperature: 18,
+              feelsLike: 19,
               humidity: 70,
               windSpeed: 15,
+              windDirection: 180,
               precipitation: 1,
               uvIndex: 6,
-              weatherCondition: 'cloudy'
+              weatherCondition: 'cloudy',
+              weatherIcon: '02d'
             },
             {
               time: '2024-01-01T14:00:00Z',
               temperature: 22,
+              feelsLike: 24,
               humidity: 75,
               windSpeed: 18,
+              windDirection: 180,
               precipitation: 2,
               uvIndex: 8,
-              weatherCondition: 'rain'
+              weatherCondition: 'rain',
+              weatherIcon: '10d'
             }
           ],
           daily: []

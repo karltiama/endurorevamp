@@ -233,7 +233,8 @@ jest.mock('next/server', () => ({
       this.status = (init && init.status) || 200
       this.statusText = (init && init.statusText) || 'OK'
       this.headers = new Headers(init && init.headers)
-      this.ok = this.status >= 200 && this.status < 300   }
+      this.ok = this.status >= 200 && this.status < 300
+    }
     
     json() {
       return Promise.resolve(this.body)

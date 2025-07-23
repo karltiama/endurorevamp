@@ -108,7 +108,7 @@ describe('LastActivityDeepDive', () => {
     expect(screen.getByText('Run')).toBeInTheDocument();
     
     // Check key stats
-    expect(screen.getByText('5.0 km')).toBeInTheDocument(); // Distance
+    expect(screen.getByText('5 km')).toBeInTheDocument(); // Distance
     expect(screen.getByText('30m')).toBeInTheDocument(); // Duration
     expect(screen.getByText('100m')).toBeInTheDocument(); // Elevation
     
@@ -174,7 +174,7 @@ describe('LastActivityDeepDive', () => {
     
     // Should still render basic stats
     expect(screen.getByText('Morning Run')).toBeInTheDocument();
-    expect(screen.getByText('5.0 km')).toBeInTheDocument();
+    expect(screen.getByText('5 km')).toBeInTheDocument();
     
     // Should not show heart rate or power sections
     expect(screen.queryByText('Heart Rate')).not.toBeInTheDocument();

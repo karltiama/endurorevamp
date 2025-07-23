@@ -93,7 +93,7 @@ describe('DynamicGoalSuggestions Component', () => {
 
   it('displays performance profile with kilometers when set to km', async () => {
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'km', pace: 'min/km' },
+      preferences: { distance: 'km', pace: 'min/km', temperature: 'celsius', windSpeed: 'km/h' },
       isLoading: false,
       updatePreferences: jest.fn(),
       setDistanceUnit: jest.fn(),
@@ -112,7 +112,7 @@ describe('DynamicGoalSuggestions Component', () => {
 
   it('displays performance profile with miles when set to miles', async () => {
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'miles', pace: 'min/mile' },
+      preferences: { distance: 'miles', pace: 'min/mile', temperature: 'fahrenheit', windSpeed: 'mph' },
       isLoading: false,
       updatePreferences: jest.fn(),
       setDistanceUnit: jest.fn(),
@@ -137,7 +137,7 @@ describe('DynamicGoalSuggestions Component', () => {
     } as any);
 
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'km', pace: 'min/km' },
+      preferences: { distance: 'km', pace: 'min/km', temperature: 'celsius', windSpeed: 'km/h' },
       isLoading: false,
       updatePreferences: jest.fn(),
       setDistanceUnit: jest.fn(),
@@ -158,7 +158,7 @@ describe('DynamicGoalSuggestions Component', () => {
     } as any);
 
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'km', pace: 'min/km' },
+      preferences: { distance: 'km', pace: 'min/km', temperature: 'celsius', windSpeed: 'km/h' },
       isLoading: false,
       updatePreferences: jest.fn(),
       setDistanceUnit: jest.fn(),
@@ -177,7 +177,7 @@ describe('DynamicGoalSuggestions Component', () => {
     const mockOnGoalCreated = jest.fn();
     
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'km', pace: 'min/km' },
+      preferences: { distance: 'km', pace: 'min/km', temperature: 'celsius', windSpeed: 'km/h' },
       isLoading: false,
       updatePreferences: jest.fn(),
       setDistanceUnit: jest.fn(),
