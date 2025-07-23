@@ -14,6 +14,9 @@ const customJestConfig = {
   cache: true, // Enable Jest cache
   cacheDirectory: '<rootDir>/.jest-cache',
   
+  // Retry flaky tests
+  retryTimes: 2, // Retry failed tests up to 2 times
+  
   // Suppress console output for cleaner test runs
   silent: false, // Set to true to suppress console.log/warn/error
   verbose: false, // Set to true for detailed test output

@@ -17,7 +17,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '18'
         cache: 'npm'
         
     - name: Install dependencies
@@ -30,6 +30,9 @@ jobs:
       run: npm run lint:ci
       
     - name: Run tests
+      env:
+        NODE_ENV: test
+        CI: true
       run: npm test
       
     - name: Build verification
@@ -54,7 +57,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '18'
         cache: 'npm'
         
     - name: Install dependencies

@@ -9,9 +9,15 @@ jest.mock('@/hooks/use-user-activities', () => ({
   useUserActivities: jest.fn()
 }));
 
+jest.mock('@/hooks/useUnitPreferences', () => ({
+  useUnitPreferences: jest.fn()
+}));
+
 import { useUserActivities } from '@/hooks/use-user-activities';
+import { useUnitPreferences } from '@/hooks/useUnitPreferences';
 
 const mockUseUserActivities = useUserActivities as jest.MockedFunction<typeof useUserActivities>;
+const mockUseUnitPreferences = useUnitPreferences as jest.MockedFunction<typeof useUnitPreferences>;
 
 // Mock activity data factory
 const createMockActivity = (overrides: Partial<Activity> = {}): Activity => ({
@@ -49,6 +55,20 @@ const createWrapper = () => {
 describe('PerformanceInsightsCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Mock useUnitPreferences to return default preferences
+    mockUseUnitPreferences.mockReturnValue({
+      preferences: {
+        distance: 'km',
+        pace: 'min/km',
+        temperature: 'celsius',
+        windSpeed: 'km/h'
+      },
+      isLoading: false,
+      updatePreferences: jest.fn(),
+      setDistanceUnit: jest.fn(),
+      toggleUnits: jest.fn()
+    });
   });
 
   it('renders loading skeleton when data is loading', () => {
@@ -217,7 +237,7 @@ describe('PerformanceInsightsCard', () => {
     expect(screen.getByText('Weekly Distance')).toBeInTheDocument();
     expect(screen.getByText('Last 7 Days')).toBeInTheDocument();
     expect(screen.getByText('vs last week')).toBeInTheDocument();
-    // Look for specific distance display text - the component shows "5 km" not "5.0 km"
+    // The component shows distance for the current week only
     expect(screen.getByText('5 km')).toBeInTheDocument();
   });
 
