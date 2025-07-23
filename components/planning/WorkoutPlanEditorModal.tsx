@@ -265,7 +265,7 @@ export function WorkoutPlanEditorModal({
     } finally {
       setIsResetting(false)
     }
-  }, [onResetToRecommended])
+  }, [onResetToRecommended, onClose])
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
