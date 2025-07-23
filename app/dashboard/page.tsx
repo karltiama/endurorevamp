@@ -3,6 +3,7 @@ import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { TrainingReadinessCard } from '@/components/dashboard/TrainingReadinessCard'
 import { WeeklyTrainingLoadWidget } from '@/components/dashboard/WeeklyTrainingLoadWidget'
 import { PerformanceInsightsCard } from '@/components/dashboard/PerformanceInsightsCard'
+import { WeatherWidgetEnhanced } from '@/components/weather/WeatherWidgetEnhanced'
 import { QuickActionsSection } from '@/components/dashboard/QuickActionsSection'
 import { DashboardOnboardingHandler } from '@/components/dashboard/DashboardOnboardingHandler'
 import { DashboardGoalsSection } from '@/components/dashboard/DashboardGoalsSection'
@@ -21,6 +22,7 @@ import {
   QuickActionsErrorFallback,
   GoalsErrorFallback
 } from '@/components/dashboard/DashboardErrorFallbacks'
+import { WeatherSkeleton, WeatherErrorFallback } from '@/components/dashboard/WeatherFallbacks'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Suspense } from "react"
 
@@ -50,8 +52,8 @@ export default async function DashboardPage() {
           </Suspense>
         </ErrorBoundary>
 
-        {/* Two-column layout for secondary widgets */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Three-column layout for secondary widgets */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Weekly Training Load */}
           <ErrorBoundary fallback={TrainingLoadErrorFallback}>
             <Suspense fallback={<TrainingLoadSkeleton />}>
@@ -63,6 +65,13 @@ export default async function DashboardPage() {
           <ErrorBoundary fallback={PerformanceInsightsErrorFallback}>
             <Suspense fallback={<PerformanceInsightsSkeleton />}>
               <PerformanceInsightsCard userId={user.id} />
+            </Suspense>
+          </ErrorBoundary>
+
+          {/* Weather Widget */}
+          <ErrorBoundary fallback={WeatherErrorFallback}>
+            <Suspense fallback={<WeatherSkeleton />}>
+              <WeatherWidgetEnhanced showImpact={true} showOptimalTime={true} showLocationPrompt={true} />
             </Suspense>
           </ErrorBoundary>
         </div>

@@ -8,10 +8,13 @@ export function cn(...inputs: ClassValue[]) {
 // Unit conversion utilities
 export type DistanceUnit = 'km' | 'miles'
 export type PaceUnit = 'min/km' | 'min/mile'
+export type TemperatureUnit = 'celsius' | 'fahrenheit'
 
 export const CONVERSION_CONSTANTS = {
   KM_TO_MILES: 0.621371,
   MILES_TO_KM: 1.60934,
+  CELSIUS_TO_FAHRENHEIT: (celsius: number) => (celsius * 9/5) + 32,
+  FAHRENHEIT_TO_CELSIUS: (fahrenheit: number) => (fahrenheit - 32) * 5/9,
 } as const
 
 export function formatDistance(meters: number, unit: DistanceUnit = 'km'): string {
@@ -40,6 +43,14 @@ export function formatPace(secondsPerKm: number, unit: PaceUnit = 'min/km'): str
   return `${minutes}:${seconds.toString().padStart(2, '0')}${unitSuffix}`
 }
 
+export function formatWindSpeed(kmh: number, unit: 'km/h' | 'mph' = 'km/h'): string {
+  if (unit === 'mph') {
+    const mph = kmh * 0.621371
+    return `${mph % 1 === 0 ? mph.toFixed(0) : mph.toFixed(1)} mph`
+  }
+  return `${kmh % 1 === 0 ? kmh.toFixed(0) : kmh.toFixed(1)} km/h`
+}
+
 export function convertDistance(meters: number, toUnit: DistanceUnit): number {
   const km = meters / 1000
   return toUnit === 'miles' ? km * CONVERSION_CONSTANTS.KM_TO_MILES : km
@@ -55,6 +66,18 @@ export function getDistanceUnit(unit: DistanceUnit): string {
 
 export function getPaceUnit(unit: PaceUnit): string {
   return unit === 'min/mile' ? '/mi' : '/km'
+}
+
+export function formatTemperature(celsius: number, unit: TemperatureUnit = 'celsius'): string {
+  if (unit === 'fahrenheit') {
+    const fahrenheit = CONVERSION_CONSTANTS.CELSIUS_TO_FAHRENHEIT(celsius)
+    return `${Math.round(fahrenheit)}°F`
+  }
+  return `${Math.round(celsius)}°C`
+}
+
+export function convertTemperature(celsius: number, toUnit: TemperatureUnit): number {
+  return toUnit === 'fahrenheit' ? CONVERSION_CONSTANTS.CELSIUS_TO_FAHRENHEIT(celsius) : celsius
 }
 
 // ✨ NEW: Consolidated date formatting functions

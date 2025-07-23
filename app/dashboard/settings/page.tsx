@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { User, Settings2 } from 'lucide-react'
+import { User, Settings2, MapPin } from 'lucide-react'
 
 export default async function SettingsPage() {
   const user = await requireAuth()
@@ -95,6 +95,39 @@ export default async function SettingsPage() {
         <Suspense fallback={<UnitPreferencesSkeleton />}>
           <UnitPreferences />
         </Suspense>
+
+        {/* Location Settings Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Location Settings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Manage your location preferences for weather data and running recommendations. 
+              Set your preferred locations and control how location data is used.
+            </p>
+            <div className="space-y-3">
+              <div className="text-sm">
+                <strong>Features:</strong>
+                <ul className="mt-1 ml-4 list-disc text-muted-foreground">
+                  <li>Save multiple locations (Home, Work, Gym)</li>
+                  <li>GPS location with permission controls</li>
+                  <li>Manual location input</li>
+                  <li>Privacy-focused data handling</li>
+                </ul>
+              </div>
+              <Link href="/dashboard/settings/location">
+                <Button className="w-full sm:w-auto">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Manage Location Settings
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Strava Connection Section */}
         <Suspense fallback={<IntegrationSkeleton />}>

@@ -1,16 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { DistanceUnit, PaceUnit } from '@/lib/utils'
+import type { DistanceUnit, PaceUnit, TemperatureUnit } from '@/lib/utils'
 
 export interface UnitPreferences {
   distance: DistanceUnit
   pace: PaceUnit
+  temperature: TemperatureUnit
+  windSpeed: 'km/h' | 'mph'
 }
 
 const DEFAULT_PREFERENCES: UnitPreferences = {
   distance: 'km',
-  pace: 'min/km'
+  pace: 'min/km',
+  temperature: 'celsius',
+  windSpeed: 'km/h'
 }
 
 const STORAGE_KEY = 'enduro-unit-preferences'

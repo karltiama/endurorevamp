@@ -36,10 +36,11 @@ describe('UnitPreferences Component', () => {
 
   it('shows loading state when preferences are loading', () => {
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'km', pace: 'min/km' },
+      preferences: { distance: 'km', pace: 'min/km', temperature: 'celsius' },
       isLoading: true,
       setDistanceUnit: jest.fn(),
       toggleUnits: jest.fn(),
+      updatePreferences: jest.fn(),
     })
 
     render(<UnitPreferences />, { wrapper })
@@ -55,10 +56,11 @@ describe('UnitPreferences Component', () => {
     const mockToggleUnits = jest.fn().mockResolvedValue(undefined)
     
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'km', pace: 'min/km' },
+      preferences: { distance: 'km', pace: 'min/km', temperature: 'celsius' },
       isLoading: false,
       setDistanceUnit: jest.fn(),
       toggleUnits: mockToggleUnits,
+      updatePreferences: jest.fn(),
     })
 
     render(<UnitPreferences />, { wrapper })
@@ -71,11 +73,13 @@ describe('UnitPreferences Component', () => {
     expect(screen.getByText('Current Settings')).toBeInTheDocument()
     expect(screen.getByText('Distance: Kilometers (km)')).toBeInTheDocument()
     expect(screen.getByText('Pace: min/km')).toBeInTheDocument()
+    expect(screen.getByText('Temperature: Celsius (°C)')).toBeInTheDocument()
     
     // Should show examples
     expect(screen.getByText('Examples with current setting:')).toBeInTheDocument()
-    expect(screen.getByText('• Distance: 5.0 km')).toBeInTheDocument()
+    expect(screen.getByText('• Distance: 5 km')).toBeInTheDocument()
     expect(screen.getByText('• Pace: 5:00/km (5:00 per km converted)')).toBeInTheDocument()
+    expect(screen.getByText('• Temperature: 15°C')).toBeInTheDocument()
 
     // Click to switch to miles
     const milesButton = screen.getByRole('button', { name: /Miles \(mi\)/ })
@@ -88,10 +92,11 @@ describe('UnitPreferences Component', () => {
 
   it('shows miles preferences when set to miles', () => {
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'miles', pace: 'min/mile' },
+      preferences: { distance: 'miles', pace: 'min/mile', temperature: 'fahrenheit' },
       isLoading: false,
       setDistanceUnit: jest.fn(),
       toggleUnits: jest.fn(),
+      updatePreferences: jest.fn(),
     })
 
     render(<UnitPreferences />, { wrapper })
@@ -99,19 +104,22 @@ describe('UnitPreferences Component', () => {
     // Should show miles in current settings
     expect(screen.getByText('Distance: Miles (mi)')).toBeInTheDocument()
     expect(screen.getByText('Pace: min/mile')).toBeInTheDocument()
+    expect(screen.getByText('Temperature: Fahrenheit (°F)')).toBeInTheDocument()
     
     // Should show examples in miles
     expect(screen.getByText('• Distance: 3.1 mi')).toBeInTheDocument()
     expect(screen.getByText('• Pace: 8:02/mi (5:00 per km converted)')).toBeInTheDocument()
+    expect(screen.getByText('• Temperature: 59°F')).toBeInTheDocument()
     expect(screen.getByText('• Long run: 13.1 mi')).toBeInTheDocument()
   })
 
   it('shows correct active state for buttons', () => {
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'km', pace: 'min/km' },
+      preferences: { distance: 'km', pace: 'min/km', temperature: 'celsius' },
       isLoading: false,
       setDistanceUnit: jest.fn(),
       toggleUnits: jest.fn(),
+      updatePreferences: jest.fn(),
     })
 
     render(<UnitPreferences />, { wrapper })
@@ -128,10 +136,11 @@ describe('UnitPreferences Component', () => {
     const mockToggleUnits = jest.fn().mockResolvedValue(undefined)
     
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'km', pace: 'min/km' },
+      preferences: { distance: 'km', pace: 'min/km', temperature: 'celsius' },
       isLoading: false,
       setDistanceUnit: jest.fn(),
       toggleUnits: mockToggleUnits,
+      updatePreferences: jest.fn(),
     })
 
     render(<UnitPreferences />, { wrapper })
@@ -148,10 +157,11 @@ describe('UnitPreferences Component', () => {
     const mockToggleUnits = jest.fn().mockResolvedValue(undefined)
     
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'miles', pace: 'min/mile' },
+      preferences: { distance: 'miles', pace: 'min/mile', temperature: 'fahrenheit' },
       isLoading: false,
       setDistanceUnit: jest.fn(),
       toggleUnits: mockToggleUnits,
+      updatePreferences: jest.fn(),
     })
 
     render(<UnitPreferences />, { wrapper })
