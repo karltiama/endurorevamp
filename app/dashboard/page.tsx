@@ -37,58 +37,67 @@ export default async function DashboardPage() {
       {/* Onboarding Modal for new users */}
       <DashboardOnboardingHandler />
       
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Training Command Center</h1>
-          <p className="text-muted-foreground">
-            What should I do today? Your personalized training insights and recommendations.
+      <div className="space-y-4">
+        {/* Header - More compact */}
+        <div className="pb-2">
+          <h1 className="text-2xl font-bold tracking-tight">Training Command Center</h1>
+          <p className="text-sm text-muted-foreground">
+            Your personalized training insights and recommendations.
           </p>
         </div>
 
-        {/* Primary Training Readiness Widget */}
+        {/* Primary Training Readiness - Full width for emphasis */}
         <ErrorBoundary fallback={TrainingReadinessErrorFallback}>
           <Suspense fallback={<TrainingReadinessSkeleton />}>
             <TrainingReadinessCard userId={user.id} />
           </Suspense>
         </ErrorBoundary>
 
-        {/* Three-column layout for secondary widgets */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Weekly Training Load */}
+        {/* Compact three-column layout for secondary widgets */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Weekly Training Load - Condensed */}
           <ErrorBoundary fallback={TrainingLoadErrorFallback}>
             <Suspense fallback={<TrainingLoadSkeleton />}>
               <WeeklyTrainingLoadWidget userId={user.id} />
             </Suspense>
           </ErrorBoundary>
 
-          {/* Performance Insights */}
+          {/* Performance Insights - Condensed */}
           <ErrorBoundary fallback={PerformanceInsightsErrorFallback}>
             <Suspense fallback={<PerformanceInsightsSkeleton />}>
               <PerformanceInsightsCard userId={user.id} />
             </Suspense>
           </ErrorBoundary>
 
-          {/* Weather Widget */}
+          {/* Weather Widget - Condensed */}
           <ErrorBoundary fallback={WeatherErrorFallback}>
             <Suspense fallback={<WeatherSkeleton />}>
-              <WeatherWidgetEnhanced showImpact={true} showOptimalTime={true} showLocationPrompt={true} />
+              <WeatherWidgetEnhanced 
+                showImpact={true} 
+                showOptimalTime={true} 
+                showLocationPrompt={true}
+                compact={true}
+              />
             </Suspense>
           </ErrorBoundary>
         </div>
 
-        {/* Dynamic Goals Section */}
-        <ErrorBoundary fallback={GoalsErrorFallback}>
-          <Suspense fallback={<GoalsSkeleton />}>
-            <DashboardGoalsSection />
-          </Suspense>
-        </ErrorBoundary>
+        {/* Two-column layout for goals and actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Dynamic Goals Section - More compact */}
+          <ErrorBoundary fallback={GoalsErrorFallback}>
+            <Suspense fallback={<GoalsSkeleton />}>
+              <DashboardGoalsSection />
+            </Suspense>
+          </ErrorBoundary>
 
-        {/* Quick Actions */}
-        <ErrorBoundary fallback={QuickActionsErrorFallback}>
-          <Suspense fallback={<QuickActionsSkeleton />}>
-            <QuickActionsSection userId={user.id} />
-          </Suspense>
-        </ErrorBoundary>
+          {/* Quick Actions - More compact */}
+          <ErrorBoundary fallback={QuickActionsErrorFallback}>
+            <Suspense fallback={<QuickActionsSkeleton />}>
+              <QuickActionsSection userId={user.id} />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
       </div>
     </DashboardLayout>
   )

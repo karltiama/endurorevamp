@@ -318,16 +318,16 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <TrendingUp className="h-5 w-5" />
             Performance Insights
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse space-y-4">
-            <div className="h-20 bg-gray-100 rounded-lg"></div>
+          <div className="animate-pulse space-y-3">
             <div className="h-16 bg-gray-100 rounded-lg"></div>
+            <div className="h-12 bg-gray-100 rounded-lg"></div>
           </div>
         </CardContent>
       </Card>
@@ -337,15 +337,15 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
   if (error || !performanceInsights) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <TrendingUp className="h-5 w-5" />
             Performance Insights
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-gray-500">
-            <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <div className="text-center py-6 text-gray-500">
+            <Activity className="h-10 w-10 mx-auto mb-3 opacity-50" />
             <p>Not enough data for insights</p>
           </div>
         </CardContent>
@@ -355,24 +355,24 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <TrendingUp className="h-5 w-5" />
           Performance Insights
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Key Metrics Grid */}
-        <div className="grid grid-cols-2 gap-4">
+      <CardContent className="space-y-4">
+        {/* Key Metrics Grid - Compact */}
+        <div className="grid grid-cols-2 gap-3">
           {/* Pace Improvement */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Target className="h-4 w-4" />
+          <div className="text-center p-2 bg-blue-50 rounded-lg">
+            <div className="flex items-center justify-center gap-1 text-xs text-gray-600 mb-1">
+              <Target className="h-3 w-3" />
               Pace Trend
             </div>
-            <div className="flex items-center gap-2">
-              {getTrendIcon(performanceInsights.paceImprovement.trend)}
-              <span className={`font-bold ${getTrendColor(performanceInsights.paceImprovement.trend)}`}>
+            <div className="flex items-center justify-center gap-1">
+              {getTrendIcon(performanceInsights.paceImprovement.trend, 'h-3 w-3')}
+              <span className={`font-bold text-sm ${getTrendColor(performanceInsights.paceImprovement.trend)}`}>
                 {performanceInsights.paceImprovement.value.toFixed(1)}%
               </span>
             </div>
@@ -382,13 +382,13 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
           </div>
 
           {/* Consistency Streak */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Flame className="h-4 w-4" />
+          <div className="text-center p-2 bg-orange-50 rounded-lg">
+            <div className="flex items-center justify-center gap-1 text-xs text-gray-600 mb-1">
+              <Flame className="h-3 w-3" />
               Streak
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🔥</span>
+            <div className="flex items-center justify-center gap-1">
+              <span className="text-lg">🔥</span>
               <span className="text-lg font-bold text-orange-600">
                 {performanceInsights.consistencyStreak}
               </span>
@@ -399,28 +399,28 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
           </div>
         </div>
 
-        {/* Training Load Trend */}
-        <div className="p-3 bg-gray-50 rounded-lg">
+        {/* Training Load Trend - Compact */}
+        <div className="p-2 bg-gray-50 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-gray-600" />
-              <span className="text-sm font-medium">Training Load</span>
+              <Activity className="h-3 w-3 text-gray-600" />
+              <span className="text-xs font-medium">Training Load</span>
             </div>
             <div className="flex items-center gap-2">
-              {getTrendIcon(performanceInsights.trainingLoadTrend)}
-              <span className={`text-sm font-medium ${getTrendColor(performanceInsights.trainingLoadTrend)}`}>
+              {getTrendIcon(performanceInsights.trainingLoadTrend, 'h-3 w-3')}
+              <span className={`text-xs font-medium ${getTrendColor(performanceInsights.trainingLoadTrend)}`}>
                 {performanceInsights.trainingLoadTrend}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Weekly Distance Comparison */}
+        {/* Weekly Distance Comparison - Compact */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-gray-600">Weekly Distance</h4>
+            <h4 className="text-xs font-medium text-gray-600">Weekly Distance</h4>
             <Link href="/dashboard/analytics" className="text-xs text-blue-600 hover:text-blue-700 hover:underline">
-              View Details →
+              Details →
             </Link>
           </div>
           <div className="flex items-center justify-between">
@@ -439,19 +439,19 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
           </div>
         </div>
 
-        {/* Recent Achievements */}
+        {/* Recent Achievements - Compact */}
         {performanceInsights.achievements.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <Trophy className="h-4 w-4" />
+          <div className="space-y-2">
+            <h4 className="text-xs font-medium text-gray-600 flex items-center gap-2">
+              <Trophy className="h-3 w-3" />
               Recent Achievements
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {performanceInsights.achievements.map((achievement, index) => (
-                <div key={index} className="flex items-start gap-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <span className="text-lg">{achievement.icon}</span>
+                <div key={index} className="flex items-start gap-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <span className="text-sm">{achievement.icon}</span>
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-yellow-800">
+                    <div className="text-xs font-medium text-yellow-800">
                       {achievement.title}
                     </div>
                     <div className="text-xs text-yellow-600">
@@ -464,20 +464,20 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
           </div>
         )}
 
-        {/* Quick Stats */}
-        <div className="border-t pt-4">
-          <div className="grid grid-cols-2 gap-4 text-center">
+        {/* Quick Stats - Compact */}
+        <div className="border-t pt-3">
+          <div className="grid grid-cols-2 gap-3 text-center">
             <div>
-              <div className="text-sm text-gray-600">Avg Intensity</div>
+              <div className="text-xs text-gray-600">Avg Intensity</div>
               <div className="flex items-center justify-center gap-1">
-                <span className="font-medium">{performanceInsights.averageIntensity.current} BPM</span>
+                <span className="text-sm font-medium">{performanceInsights.averageIntensity.current} BPM</span>
                 {getTrendIcon(performanceInsights.averageIntensity.trend, 'h-3 w-3')}
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-600">Load Trend</div>
+              <div className="text-xs text-gray-600">Load Trend</div>
               <div className="flex items-center justify-center gap-1">
-                <span className="font-medium capitalize">{performanceInsights.trainingLoadTrend}</span>
+                <span className="text-sm font-medium capitalize">{performanceInsights.trainingLoadTrend}</span>
                 {getTrendIcon(performanceInsights.trainingLoadTrend, 'h-3 w-3')}
               </div>
             </div>

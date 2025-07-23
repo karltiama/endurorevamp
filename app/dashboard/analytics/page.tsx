@@ -4,6 +4,7 @@ import { ActivityChartsClient } from '@/components/dashboard/ActivityChartsClien
 import { ActivityFeedClient } from '../../../components/analytics/ActivityFeedClient'
 import { HashScrollHandler } from '@/components/HashScrollHandler'
 import { Suspense } from 'react'
+import { AnalyticsSyncPrompt } from '@/components/analytics/AnalyticsSyncPrompt'
 
 export default async function AnalyticsPage() {
   const user = await requireAuth()
@@ -18,6 +19,11 @@ export default async function AnalyticsPage() {
             Detailed insights and analytics about your training activities.
           </p>
         </div>
+
+        {/* Sync Prompt - Shows when no activities */}
+        <Suspense fallback={null}>
+          <AnalyticsSyncPrompt userId={user.id} />
+        </Suspense>
 
         {/* Activity Charts Section */}
         <Suspense fallback={<ActivityChartsSkeleton />}>

@@ -21,6 +21,7 @@ interface WeatherWidgetEnhancedProps {
   showOptimalTime?: boolean
   showLocationPrompt?: boolean
   showForecastTabs?: boolean
+  compact?: boolean
 }
 
 export function WeatherWidgetEnhanced({ 
@@ -28,7 +29,8 @@ export function WeatherWidgetEnhanced({
   showImpact = true, 
   showOptimalTime = true,
   showLocationPrompt = true,
-  showForecastTabs = true
+  showForecastTabs = true,
+  compact = false
 }: WeatherWidgetEnhancedProps) {
   const [showLocationInput, setShowLocationInput] = useState(false)
   const [showPermissionPrompt, setShowPermissionPrompt] = useState(false)
@@ -465,8 +467,8 @@ export function WeatherWidgetEnhanced({
 
   return (
     <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className={compact ? "pb-3" : ""}>
+        <CardTitle className={`flex items-center gap-2 ${compact ? "text-lg" : ""}`}>
           {getWeatherIcon(current.weatherCondition)}
           Weather
           <div className="flex items-center gap-2 ml-auto">
@@ -488,9 +490,9 @@ export function WeatherWidgetEnhanced({
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className={compact ? "space-y-3" : "space-y-4"}>
         {/* Current Conditions with Running Score */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <div className="flex items-center gap-2">
             <Thermometer className="h-4 w-4 text-red-500" />
             <span className="text-sm">
@@ -543,8 +545,8 @@ export function WeatherWidgetEnhanced({
           </div>
         </div>
 
-        {/* Forecast Tabs */}
-        {showForecastTabs && forecast?.forecast?.hourly && (
+        {/* Forecast Tabs - Only show if not compact */}
+        {showForecastTabs && forecast?.forecast?.hourly && !compact && (
           <div className="pt-4 border-t">
             <Tabs defaultValue="today" className="w-full">
               <TabsList className="grid w-full grid-cols-2">

@@ -43,12 +43,12 @@ export function StravaReconnectionPrompt({
   const isNetworkError = error?.includes('network') || error?.includes('fetch')
   
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg p-6 ${className}`}>
-      <div className="flex items-start space-x-4">
+    <div className={`bg-white border border-gray-200 rounded-lg p-6 text-center ${className}`}>
+      <div className="flex flex-col items-center space-y-4">
         <div className="flex-shrink-0">
           <AlertCircle className="h-6 w-6 text-orange-500" />
         </div>
-        <div className="flex-1 space-y-4">
+        <div className="space-y-4 max-w-md">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {isTokenExpired ? 'Strava Connection Expired' : title}
@@ -92,7 +92,7 @@ export function StravaReconnectionPrompt({
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             {onRefresh && (isNetworkError || !isTokenExpired) && (
               <Button
                 onClick={handleRefresh}

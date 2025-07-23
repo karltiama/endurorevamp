@@ -260,21 +260,19 @@ export function QuickActionsSection({ userId }: QuickActionsSectionProps) {
     return generateContextualActions(trainingState, recentActivity, recentActivities)
   }, [activities])
 
-
-
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <Clock className="h-5 w-5" />
             Quick Actions
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse grid grid-cols-2 gap-3">
+          <div className="animate-pulse grid grid-cols-2 gap-2">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-20 bg-gray-100 rounded-lg"></div>
+              <div key={i} className="h-16 bg-gray-100 rounded-lg"></div>
             ))}
           </div>
         </CardContent>
@@ -284,22 +282,22 @@ export function QuickActionsSection({ userId }: QuickActionsSectionProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <Clock className="h-5 w-5" />
           Quick Actions
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           {contextualActions.map((action) => (
             <div
               key={action.id}
-              className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${getPriorityColor(action.priority)}`}
+              className={`p-2 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${getPriorityColor(action.priority)}`}
               onClick={action.action}
             >
-              <div className="flex items-start justify-between mb-2">
-                <div className="p-2 bg-white rounded-lg shadow-sm">
+              <div className="flex items-start justify-between mb-1">
+                <div className="p-1 bg-white rounded-lg shadow-sm">
                   {action.icon}
                 </div>
                 {action.badge && (
@@ -309,32 +307,35 @@ export function QuickActionsSection({ userId }: QuickActionsSectionProps) {
                 )}
               </div>
               
-              <h4 className="font-medium text-sm mb-1">{action.title}</h4>
+              <h4 className="font-medium text-xs mb-1">{action.title}</h4>
               <p className="text-xs text-gray-600">{action.description}</p>
             </div>
           ))}
         </div>
 
-        {/* Quick Stats */}
-        <div className="mt-6 pt-4 border-t">
-          <div className="grid grid-cols-3 gap-4 text-center">
+        {/* Quick Stats - Compact */}
+        <div className="mt-4 pt-3 border-t">
+          <div className="grid grid-cols-3 gap-3 text-center">
             <div>
-              <div className="text-lg font-bold">
+              <div className="text-sm font-bold">
                 {activities?.filter(a => new Date(a.start_date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length || 0}
               </div>
-              <div className="text-xs text-gray-600">This week</div>
+              <div className="text-xs text-gray-600">Workouts this week</div>
             </div>
             <div>
-              <div className="text-lg font-bold">
-                {activities ? Math.floor((Date.now() - new Date(activities[0]?.start_date || Date.now()).getTime()) / (24 * 60 * 60 * 1000)) : 0}
+              <div className="text-sm font-bold">
+                {activities && activities.length > 0 
+                  ? Math.floor((Date.now() - new Date(activities[0].start_date).getTime()) / (24 * 60 * 60 * 1000))
+                  : 'N/A'
+                }
               </div>
-              <div className="text-xs text-gray-600">Days since</div>
+              <div className="text-xs text-gray-600">Days since last workout</div>
             </div>
             <div>
-                             <div className="text-lg font-bold">
-                 {activities?.length ? Math.round(activities.slice(0, 5).reduce((sum, a) => sum + ((a as ActivityWithTrainingData).perceived_exertion || 5), 0) / Math.min(5, activities.length)) : 5}
-               </div>
-              <div className="text-xs text-gray-600">Avg RPE</div>
+              <div className="text-sm font-bold">
+                {activities?.length ? Math.round(activities.slice(0, 5).reduce((sum, a) => sum + ((a as ActivityWithTrainingData).perceived_exertion || 5), 0) / Math.min(5, activities.length)) : 5}
+              </div>
+              <div className="text-xs text-gray-600">Avg RPE (last 5)</div>
             </div>
           </div>
         </div>

@@ -27,8 +27,8 @@ export function DashboardGoalsSection() {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <Target className="h-5 w-5" />
             Dashboard Goals
           </CardTitle>
@@ -43,9 +43,9 @@ export function DashboardGoalsSection() {
   return (
     <>
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Target className="h-5 w-5" />
               Dashboard Goals
             </CardTitle>
@@ -54,15 +54,17 @@ export function DashboardGoalsSection() {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowGoalSelector(true)}
+                className="text-xs"
               >
-                <Settings className="h-4 w-4 mr-2" />
+                <Settings className="h-3 w-3 mr-1" />
                 Manage
               </Button>
               <Button
                 size="sm"
                 onClick={() => setShowAddModal(true)}
+                className="text-xs"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-3 w-3 mr-1" />
                 Add Goal
               </Button>
             </div>
@@ -70,7 +72,7 @@ export function DashboardGoalsSection() {
         </CardHeader>
         <CardContent>
           {hasGoals ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-3">
               {dashboardGoals.map((goal, index) => (
                 <DashboardGoalCard
                   key={goal.id}
@@ -80,19 +82,19 @@ export function DashboardGoalsSection() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No Dashboard Goals</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            <div className="text-center py-6">
+              <Target className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+              <h3 className="text-base font-medium mb-2">No Dashboard Goals</h3>
+              <p className="text-muted-foreground mb-4 max-w-md mx-auto text-sm">
                 Set up goals to track your training progress. You can add up to 3 goals to your dashboard for quick access.
               </p>
-              <div className="flex justify-center gap-3">
-                <Button onClick={() => setShowAddModal(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
+              <div className="flex justify-center gap-2">
+                <Button onClick={() => setShowAddModal(true)} size="sm">
+                  <Plus className="h-3 w-3 mr-1" />
                   Create Your First Goal
                 </Button>
-                <Button variant="outline" onClick={() => setShowGoalSelector(true)}>
-                  <Settings className="h-4 w-4 mr-2" />
+                <Button variant="outline" onClick={() => setShowGoalSelector(true)} size="sm">
+                  <Settings className="h-3 w-3 mr-1" />
                   Manage Goals
                 </Button>
               </div>
@@ -101,17 +103,20 @@ export function DashboardGoalsSection() {
         </CardContent>
       </Card>
 
-      {/* Goal Management Modal */}
-      <DashboardGoalSelector
-        open={showGoalSelector}
-        onOpenChange={setShowGoalSelector}
-      />
+      {/* Modals */}
+      {showGoalSelector && (
+        <DashboardGoalSelector
+          open={showGoalSelector}
+          onOpenChange={setShowGoalSelector}
+        />
+      )}
 
-      {/* Add Goal Modal */}
-      <AddGoalModal
-        open={showAddModal}
-        onOpenChange={setShowAddModal}
-      />
+      {showAddModal && (
+        <AddGoalModal
+          open={showAddModal}
+          onOpenChange={setShowAddModal}
+        />
+      )}
     </>
   );
 } 

@@ -17,7 +17,8 @@ import {
   CheckCircle, 
   Clock,
   Activity,
-  Info
+  Info,
+  Target
 } from 'lucide-react'
 import { ActivityWithTrainingData } from '@/types'
 import { getCurrentWeekBoundaries } from '@/lib/utils'
@@ -128,10 +129,10 @@ const getReadinessAssessment = (factors: {
 
 const getReadinessIcon = (level: string) => {
   switch (level) {
-    case 'high': return <CheckCircle className="h-5 w-5 text-green-600" />
-    case 'medium': return <Clock className="h-5 w-5 text-yellow-600" />
-    case 'low': return <AlertTriangle className="h-5 w-5 text-red-600" />
-    default: return <Activity className="h-5 w-5 text-gray-600" />
+    case 'high': return <CheckCircle className="h-4 w-4 text-green-600" />
+    case 'medium': return <Clock className="h-4 w-4 text-yellow-600" />
+    case 'low': return <AlertTriangle className="h-4 w-4 text-red-600" />
+    default: return <Activity className="h-4 w-4 text-gray-600" />
   }
 }
 
@@ -212,23 +213,19 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
     }
   }, [activities, personalizedTSSTarget])
 
-
-
-
-
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <Battery className="h-5 w-5" />
             Training Readiness
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse space-y-4">
-            <div className="h-20 bg-gray-100 rounded-lg"></div>
+          <div className="animate-pulse space-y-3">
             <div className="h-16 bg-gray-100 rounded-lg"></div>
+            <div className="h-12 bg-gray-100 rounded-lg"></div>
           </div>
         </CardContent>
       </Card>
@@ -238,15 +235,15 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
   if (error || !trainingReadiness) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <Battery className="h-5 w-5" />
             Training Readiness
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-gray-500">
-            <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <div className="text-center py-6 text-gray-500">
+            <Activity className="h-10 w-10 mx-auto mb-3 opacity-50" />
             <p>No recent activity data available</p>
           </div>
         </CardContent>
@@ -256,8 +253,8 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <Battery className="h-5 w-5" />
           Training Readiness
           <Badge variant="outline" className="ml-auto">
@@ -265,50 +262,44 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Recovery Score */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {getReadinessIcon(trainingReadiness.readinessLevel)}
-              <span className="font-medium">Recovery Score</span>
+      <CardContent className="space-y-4">
+        {/* Main Readiness Display */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {getReadinessIcon(trainingReadiness.readinessLevel)}
+            <div>
+              <div className="font-semibold text-lg">
+                {trainingReadiness.recoveryScore}%
+              </div>
+              <div className="text-sm text-gray-600">Recovery Score</div>
             </div>
-            <span className="text-2xl font-bold">
-              {trainingReadiness.recoveryScore}%
-            </span>
           </div>
-          
-          <Progress 
-            value={trainingReadiness.recoveryScore} 
-            className="h-3"
-          />
-          
           <Badge 
             variant="outline" 
-            className={`w-fit ${getReadinessColor(trainingReadiness.readinessLevel)}`}
+            className={`${getReadinessColor(trainingReadiness.readinessLevel)}`}
           >
             {trainingReadiness.readinessLevel.toUpperCase()} READINESS
           </Badge>
         </div>
+        
+        <Progress 
+          value={trainingReadiness.recoveryScore} 
+          className="h-2"
+        />
 
-        {/* Key Metrics */}
+        {/* Compact Metrics Grid */}
         <TooltipProvider>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Heart className="h-4 w-4" />
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center p-2 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-center gap-1 text-sm text-gray-600 mb-1">
+                <Heart className="h-3 w-3" />
                 Last RPE
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Info className="h-3 w-3 text-gray-400 cursor-help" />
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-64">
-                    <div className="space-y-1">
-                      <p className="font-medium text-sm">Rate of Perceived Exertion</p>
-                      <p className="text-xs text-gray-600">
-                        How hard your last workout felt (1-10 scale). Higher = more recovery needed.
-                      </p>
-                    </div>
+                    <p className="text-xs">Rate of Perceived Exertion from your last workout</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -317,82 +308,69 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
               </div>
             </div>
             
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Zap className="h-4 w-4" />
+            <div className="text-center p-2 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-center gap-1 text-sm text-gray-600 mb-1">
+                <Zap className="h-3 w-3" />
                 TSS Balance
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Info className="h-3 w-3 text-gray-400 cursor-help" />
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-64">
-                    <div className="space-y-1">
-                      <p className="font-medium text-sm">TSS Balance</p>
-                      <p className="text-xs text-gray-600">
-                        {trainingReadiness.tssBalance > 0 
-                          ? `${Math.abs(trainingReadiness.tssBalance)} points under target - well rested` 
-                          : trainingReadiness.tssBalance < 0 
-                            ? `${Math.abs(trainingReadiness.tssBalance)} points over target - accumulating fatigue`
-                            : 'On target - balanced'
-                        }
-                      </p>
-                    </div>
+                    <p className="text-xs">
+                      {trainingReadiness.tssBalance > 0 
+                        ? 'Points under target - well rested' 
+                        : trainingReadiness.tssBalance < 0 
+                          ? 'Points over target - accumulating fatigue'
+                          : 'On target - balanced'
+                      }
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <div className={`text-lg font-semibold flex items-center gap-1 ${
+              <div className={`text-lg font-semibold flex items-center justify-center gap-1 ${
                 trainingReadiness.tssBalance > 0 ? 'text-green-600' : 'text-red-600'
               }`}>
                 {trainingReadiness.tssBalance > 0 ? (
-                  <CheckCircle className="h-4 w-4" />
+                  <CheckCircle className="h-3 w-3" />
                 ) : (
-                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTriangle className="h-3 w-3" />
                 )}
                 {Math.abs(trainingReadiness.tssBalance)}
+              </div>
+            </div>
+
+            <div className="text-center p-2 bg-purple-50 rounded-lg">
+              <div className="flex items-center justify-center gap-1 text-sm text-gray-600 mb-1">
+                <Target className="h-3 w-3" />
+                Weekly Progress
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-gray-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-64">
+                    <p className="text-xs">Your weekly TSS progress vs personalized target</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <div className="text-lg font-semibold">
+                {Math.round((trainingReadiness.weeklyTSSCurrent / trainingReadiness.weeklyTSSTarget) * 100)}%
               </div>
             </div>
           </div>
         </TooltipProvider>
 
-        {/* Weekly Progress */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Weekly TSS Progress</span>
-            <span>{trainingReadiness.weeklyTSSCurrent} / {trainingReadiness.weeklyTSSTarget}</span>
-          </div>
-          <Progress 
-            value={(trainingReadiness.weeklyTSSCurrent / trainingReadiness.weeklyTSSTarget) * 100} 
-            className="h-2"
-          />
-          <div className="text-xs text-gray-500 flex items-center gap-1">
-            Based on your personalized training target
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="h-3 w-3 text-gray-400 cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-64">
-                <div className="space-y-1">
-                  <p className="font-medium text-sm">Personalized TSS Target</p>
-                  <p className="text-xs text-gray-600">
-                    Your weekly target is calculated based on your experience level and training preferences from your profile.
-                  </p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-
-        {/* Recommendation & Workout Planning */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-2">Recommended Workout</h4>
-          <p className="text-sm text-blue-800 mb-3">
+        {/* Recommendation & Action */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <h4 className="font-medium text-blue-900 mb-1 text-sm">Recommended Workout</h4>
+          <p className="text-sm text-blue-800 mb-2">
             {trainingReadiness.recommendation}
           </p>
           
           <Button 
             variant="outline" 
             size="sm" 
-            className="w-full"
+            className="w-full text-xs"
             onClick={() => {
               router.push('/dashboard/planning')
             }}

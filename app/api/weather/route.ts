@@ -7,7 +7,7 @@ const weatherService = new WeatherService(process.env.OPENWEATHER_API_KEY || '')
 export async function GET(request: NextRequest) {
   try {
     // Require authentication
-    const user = await requireAuth()
+    await requireAuth()
     
     // Get query parameters
     const { searchParams } = new URL(request.url)

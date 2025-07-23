@@ -18,6 +18,9 @@ import {
   Line,
 } from 'recharts'
 import { ActivityContributionCalendar } from './ActivityContributionCalendar'
+import { Button } from '@/components/ui/button'
+import { Settings, Activity as ActivityIcon } from 'lucide-react'
+import Link from 'next/link'
 
 interface ActivityChartsProps {
   activities: Activity[]
@@ -36,6 +39,44 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
       start_date_local: a.start_date_local
     }))
   })
+
+  // Show empty state if no activities
+  if (!activities || activities.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Activity Analysis</CardTitle>
+          <CardDescription>View your activity data in different ways</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-8 text-center">
+            <div className="text-4xl mb-4">📊</div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">
+              No Activity Data
+            </h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              To see your activity charts and analytics, you need to sync your activities from Strava. 
+              Don&apos;t see your most recent activities? Make sure to sync in your settings.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/dashboard/settings">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Go to Settings to Sync
+                </Button>
+              </Link>
+            </div>
+            
+            <div className="mt-4 text-sm text-gray-500">
+              <ActivityIcon className="h-4 w-4 inline mr-1" />
+              Your activity charts will appear here once synced
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   const weeklyData = useMemo(() => {
     if (!activities) return []

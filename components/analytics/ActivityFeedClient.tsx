@@ -5,9 +5,10 @@ import { useStravaToken } from '@/hooks/strava/useStravaToken'
 import { ActivityFeed } from './ActivityFeed'
 import { StravaReconnectionPrompt } from '@/components/strava/StravaReconnectionPrompt'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Info, RefreshCw } from 'lucide-react'
+import { Info, RefreshCw, Settings, Activity } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getStravaAuthUrl } from '@/lib/strava'
+import Link from 'next/link'
 
 interface ActivityFeedClientProps {
   userId: string
@@ -80,14 +81,45 @@ export function ActivityFeedClient({ userId }: ActivityFeedClientProps) {
   // No activities in database - this is when we need Strava connection to sync data
   return (
     <div className="space-y-6">
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-        <div className="text-4xl mb-4">🏃‍♂️</div>
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-8 text-center">
+        <div className="text-4xl mb-4">📊</div>
+        <h3 className="text-xl font-semibold text-gray-800 mb-3">
           No Activities Found
         </h3>
-        <p className="text-gray-500 mb-6">
-          You don&apos;t have any activities in your database yet. Connect to Strava to sync your activities and start analyzing your training data.
+        <p className="text-gray-600 mb-6 max-w-md mx-auto">
+          To see your activity analytics, you need to sync your activities from Strava. 
+          Don&apos;t see your most recent activities? Make sure to sync in your settings.
         </p>
+        
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Link href="/dashboard/settings">
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Settings className="h-4 w-4 mr-2" />
+              Go to Settings to Sync
+            </Button>
+          </Link>
+          
+          <Button 
+            variant="outline" 
+            onClick={async () => {
+              try {
+                await refreshToken()
+              } catch (error) {
+                console.error('Failed to refresh token:', error)
+                const authUrl = getStravaAuthUrl(window.location.origin)
+                window.location.href = authUrl
+              }
+            }}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Reconnect Strava
+          </Button>
+        </div>
+        
+        <div className="mt-4 text-sm text-gray-500">
+          <Activity className="h-4 w-4 inline mr-1" />
+          Your activities will appear here once synced
+        </div>
       </div>
 
       {/* Show Strava connection prompt only when we need to sync data */}
