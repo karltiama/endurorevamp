@@ -353,12 +353,20 @@ describe('WeatherWidgetEnhanced', () => {
     it('shows training impact when enabled', () => {
       render(<WeatherWidgetEnhanced showImpact={true} showForecastTabs={true} />, { wrapper })
 
+      // Click on the "Today" button to show the training impact
+      const todayTab = screen.getByRole('button', { name: 'Today' })
+      fireEvent.click(todayTab)
+
       expect(screen.getByText('Training Impact')).toBeInTheDocument()
       expect(screen.getByText('positive')).toBeInTheDocument()
     })
 
     it('hides training impact when disabled', () => {
       render(<WeatherWidgetEnhanced showImpact={false} showForecastTabs={true} />, { wrapper })
+
+      // Click on the "Today" button to check if training impact is hidden
+      const todayTab = screen.getByRole('button', { name: 'Today' })
+      fireEvent.click(todayTab)
 
       expect(screen.queryByText('Training Impact')).not.toBeInTheDocument()
     })
