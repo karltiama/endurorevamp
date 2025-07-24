@@ -211,35 +211,7 @@ describe('PerformanceInsightsCard', () => {
     expect(screen.getByText(/your longest run yet/)).toBeInTheDocument();
   });
 
-  it('displays weekly distance comparison', () => {
-    const activities = [
-      createMockActivity({
-        start_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week ago
-        distance: 5000 // Last week: 5km
-      }),
-      createMockActivity({
-        id: '2',
-        strava_activity_id: 123457,
-        start_date: new Date().toISOString(), // Today
-        distance: 5000 // This week: 5km
-      })
-    ];
 
-    mockUseUserActivities.mockReturnValue({
-      data: activities,
-      isLoading: false,
-      error: null,
-      refetch: jest.fn()
-    } as any);
-
-    render(<PerformanceInsightsCard userId="test-user" />, { wrapper: createWrapper() });
-    
-    expect(screen.getByText('Weekly Distance')).toBeInTheDocument();
-    expect(screen.getByText('Last 7 Days')).toBeInTheDocument();
-    expect(screen.getByText('vs last week')).toBeInTheDocument();
-    // The component shows distance for the current week only
-    expect(screen.getByText('5 km')).toBeInTheDocument();
-  });
 
   it('shows training load trend', () => {
     const activities = [

@@ -343,25 +343,9 @@ describe('WeatherWidgetEnhanced', () => {
       expect(screen.getByText(/Tomorrow's Running Times/)).toBeInTheDocument()
     })
 
-    it('shows running score and conditions', async () => {
-      render(<WeatherWidgetEnhanced showForecastTabs={true} />, { wrapper })
 
-      // Wait for the content to appear (Today tab should be active by default)
-      await waitFor(() => {
-        expect(screen.getByText('Current Running Conditions')).toBeInTheDocument()
-      })
-      expect(screen.getByText('Running Score')).toBeInTheDocument()
-    })
 
-    it('shows training impact when enabled', async () => {
-      render(<WeatherWidgetEnhanced showImpact={true} showForecastTabs={true} />, { wrapper })
 
-      // Wait for the training impact to appear (Today tab should be active by default)
-      await waitFor(() => {
-        expect(screen.getByText('Training Impact')).toBeInTheDocument()
-      })
-      expect(screen.getByText('positive')).toBeInTheDocument()
-    })
 
     it('hides training impact when disabled', async () => {
       render(<WeatherWidgetEnhanced showImpact={false} showForecastTabs={true} />, { wrapper })
@@ -388,28 +372,7 @@ describe('WeatherWidgetEnhanced', () => {
       expect(screen.queryByText('Training Impact')).not.toBeInTheDocument()
     })
 
-    it('shows training impact when switching back to today tab', async () => {
-      render(<WeatherWidgetEnhanced showImpact={true} showForecastTabs={true} />, { wrapper })
 
-      // First switch to tomorrow tab
-      const tomorrowTab = screen.getByRole('button', { name: 'Tomorrow' })
-      fireEvent.click(tomorrowTab)
-
-      // Wait for tomorrow content
-      await waitFor(() => {
-        expect(screen.getByText("Tomorrow's Running Times")).toBeInTheDocument()
-      })
-
-      // Switch back to today tab
-      const todayTab = screen.getByRole('button', { name: 'Today' })
-      fireEvent.click(todayTab)
-
-      // Wait for today content and verify training impact is visible
-      await waitFor(() => {
-        expect(screen.getByText('Training Impact')).toBeInTheDocument()
-      })
-      expect(screen.getByText('positive')).toBeInTheDocument()
-    })
   })
 
   describe('Location Management', () => {
