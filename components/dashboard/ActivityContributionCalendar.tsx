@@ -8,12 +8,8 @@ interface ActivityContributionCalendarProps {
 }
 
 const CONTRIBUTION_COLORS = {
-  0: 'bg-gray-100',
-  1: 'bg-green-100',
-  2: 'bg-green-200',
-  3: 'bg-green-300',
-  4: 'bg-green-400',
-  5: 'bg-green-500',
+  active: 'bg-blue-400',
+  inactive: 'bg-gray-100',
 }
 
 export function ActivityContributionCalendar({ activities }: ActivityContributionCalendarProps) {
@@ -49,8 +45,8 @@ export function ActivityContributionCalendar({ activities }: ActivityContributio
       }))
     })
 
-    // Create a map of dates to activity counts
-    const activityCounts = new Map<string, number>()
+    // Create a set of dates with activities (binary approach)
+    const activeDates = new Set<string>()
     activities.forEach((activity, index) => {
       // Use start_date_local if available for better timezone handling
       const activityDateStr = activity.start_date_local || activity.start_date
@@ -77,14 +73,14 @@ export function ActivityContributionCalendar({ activities }: ActivityContributio
       if (date >= startDate && date <= today) {
         // Use consistent date key generation
         const dateKey = getDateKey(date)
-        activityCounts.set(dateKey, (activityCounts.get(dateKey) || 0) + 1)
+        activeDates.add(dateKey)
       }
     })
 
-    console.log('Activity counts by date:', Object.fromEntries(activityCounts))
+    console.log('Active dates:', Array.from(activeDates))
 
     // Generate calendar data as a flat array of weeks
-    const weeks: { date: string; count: number }[][] = []
+    const weeks: { date: string; hasActivity: boolean }[][] = []
     let currentDate = new Date(startDate)
     
     // Start from the beginning of the week that contains startDate
@@ -104,18 +100,18 @@ export function ActivityContributionCalendar({ activities }: ActivityContributio
     console.log('Calendar generating date keys (first 2 weeks):', calendarDebugDates)
     
     while (currentDate <= today) {
-      const week: { date: string; count: number }[] = []
+      const week: { date: string; hasActivity: boolean }[] = []
       
       for (let i = 0; i < 7; i++) {
         // Use the same date key generation method
         const dateKey = getDateKey(currentDate)
-        const count = currentDate >= startDate && currentDate <= today 
-          ? (activityCounts.get(dateKey) || 0)
-          : 0
+        const hasActivity = currentDate >= startDate && currentDate <= today 
+          ? activeDates.has(dateKey)
+          : false
         
         week.push({
           date: currentDate >= startDate && currentDate <= today ? dateKey : '',
-          count
+          hasActivity
         })
         
         currentDate.setDate(currentDate.getDate() + 1)
@@ -155,9 +151,8 @@ export function ActivityContributionCalendar({ activities }: ActivityContributio
     return months
   }, [contributionData])
 
-  const getContributionColor = (count: number) => {
-    if (count >= 5) return CONTRIBUTION_COLORS[5]
-    return CONTRIBUTION_COLORS[count as keyof typeof CONTRIBUTION_COLORS] || CONTRIBUTION_COLORS[0]
+  const getContributionColor = (hasActivity: boolean) => {
+    return hasActivity ? CONTRIBUTION_COLORS.active : CONTRIBUTION_COLORS.inactive
   }
 
   const formatDate = (dateString: string) => {
@@ -175,17 +170,16 @@ export function ActivityContributionCalendar({ activities }: ActivityContributio
     <Card>
       <CardHeader>
         <CardTitle>Activity Calendar</CardTitle>
-        <CardDescription>Your activity contributions over the past year</CardDescription>
+        <CardDescription>Your workout consistency over the past year</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col space-y-3">
           {/* Legend */}
           <div className="flex justify-end items-center space-x-2">
-            <span className="text-xs text-muted-foreground">Less</span>
-            {Object.values(CONTRIBUTION_COLORS).map((color, index) => (
-              <div key={index} className={`w-2.5 h-2.5 ${color} rounded-sm`} />
-            ))}
-            <span className="text-xs text-muted-foreground">More</span>
+            <span className="text-xs text-muted-foreground">No activity</span>
+            <div className={`w-2.5 h-2.5 ${CONTRIBUTION_COLORS.inactive} rounded-sm`} />
+            <div className={`w-2.5 h-2.5 ${CONTRIBUTION_COLORS.active} rounded-sm`} />
+            <span className="text-xs text-muted-foreground">Workout day</span>
           </div>
           
           {/* Calendar */}
@@ -250,7 +244,7 @@ export function ActivityContributionCalendar({ activities }: ActivityContributio
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div
-                            className={`${getContributionColor(day.count)} rounded-sm cursor-pointer hover:ring-1 hover:ring-gray-400 transition-all`}
+                            className={`${getContributionColor(day.hasActivity)} rounded-sm cursor-pointer hover:ring-1 hover:ring-gray-400 transition-all`}
                             style={{ 
                               gridColumn: weekIndex + 1,
                               gridRow: dayIndex + 1,
@@ -264,7 +258,7 @@ export function ActivityContributionCalendar({ activities }: ActivityContributio
                             {day.date ? (
                               <>
                                 <span className="font-medium">
-                                  {day.count === 0 ? 'No activities' : `${day.count} ${day.count === 1 ? 'activity' : 'activities'}`}
+                                  {day.hasActivity ? 'Workout day' : 'No activity'}
                                 </span>
                                 <br />
                                 {formatDate(day.date)}
