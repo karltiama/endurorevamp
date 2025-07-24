@@ -371,6 +371,45 @@ describe('WeatherWidgetEnhanced', () => {
         expect(screen.queryByText('Training Impact')).not.toBeInTheDocument()
       })
     })
+
+    it('does not show training impact in tomorrow tab', async () => {
+      render(<WeatherWidgetEnhanced showImpact={true} showForecastTabs={true} />, { wrapper })
+
+      // Click on the "Tomorrow" button to switch tabs
+      const tomorrowTab = screen.getByRole('button', { name: 'Tomorrow' })
+      fireEvent.click(tomorrowTab)
+
+      // Wait for the tomorrow content to appear
+      await waitFor(() => {
+        expect(screen.getByText("Tomorrow's Running Times")).toBeInTheDocument()
+      })
+
+      // Training Impact should NOT be visible in tomorrow tab
+      expect(screen.queryByText('Training Impact')).not.toBeInTheDocument()
+    })
+
+    it('shows training impact when switching back to today tab', async () => {
+      render(<WeatherWidgetEnhanced showImpact={true} showForecastTabs={true} />, { wrapper })
+
+      // First switch to tomorrow tab
+      const tomorrowTab = screen.getByRole('button', { name: 'Tomorrow' })
+      fireEvent.click(tomorrowTab)
+
+      // Wait for tomorrow content
+      await waitFor(() => {
+        expect(screen.getByText("Tomorrow's Running Times")).toBeInTheDocument()
+      })
+
+      // Switch back to today tab
+      const todayTab = screen.getByRole('button', { name: 'Today' })
+      fireEvent.click(todayTab)
+
+      // Wait for today content and verify training impact is visible
+      await waitFor(() => {
+        expect(screen.getByText('Training Impact')).toBeInTheDocument()
+      })
+      expect(screen.getByText('positive')).toBeInTheDocument()
+    })
   })
 
   describe('Location Management', () => {
