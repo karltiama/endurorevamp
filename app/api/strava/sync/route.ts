@@ -139,16 +139,17 @@ async function checkCanSync(userId: string, syncState: {
     console.log('📅 New day detected, resetting daily counter')
   }
 
+  // Removed 1-hour cooldown for development
   // Check minimum time between syncs (1 hour)
-  if (syncState.last_activity_sync) {
-    const lastSync = new Date(syncState.last_activity_sync)
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
-    
-    if (lastSync > oneHourAgo) {
-      console.log('❌ Too soon since last sync (1 hour cooldown)')
-      return false
-    }
-  }
+  // if (syncState.last_activity_sync) {
+  //   const lastSync = new Date(syncState.last_activity_sync)
+  //   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+  //   
+  //   if (lastSync > oneHourAgo) {
+  //     console.log('❌ Too soon since last sync (1 hour cooldown)')
+  //     return false
+  //   }
+  // }
 
   return true
 } 

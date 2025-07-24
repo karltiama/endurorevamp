@@ -323,6 +323,12 @@ export async function syncActivitiesToDatabase(userId: string, activities: Strav
         kilojoules: safeInteger(activity.kilojoules, 0),
         // Description field for Hevy workout data
         description: activity.description || null,
+        // Route data
+        summary_polyline: activity.map?.summary_polyline || null,
+        polyline: activity.map?.polyline || null,
+        map_id: activity.map?.id || null,
+        start_latlng: activity.start_latlng ? `${activity.start_latlng[0]},${activity.start_latlng[1]}` : null,
+        end_latlng: activity.end_latlng ? `${activity.end_latlng[0]},${activity.end_latlng[1]}` : null,
         // Training metrics
         training_stress_score: safeInteger(tss, 0),
         // Computed fields
@@ -349,6 +355,11 @@ export async function syncActivitiesToDatabase(userId: string, activities: Strav
         } else {
           updatedActivities++;
           console.log(`✅ Updated activity ${activity.id} (TSS: ${tss})`);
+        if (activity.map?.summary_polyline) {
+          console.log(`  📍 Route data: Map ID ${activity.map.id}, Polyline length: ${activity.map.summary_polyline.length}`);
+        } else {
+          console.log(`  📍 No route data for activity ${activity.id}`);
+        }
         }
       } else {
         // Insert new activity
@@ -366,6 +377,11 @@ export async function syncActivitiesToDatabase(userId: string, activities: Strav
         } else {
           newActivities++;
           console.log(`✅ Inserted new activity ${activity.id} (TSS: ${tss})`);
+      if (activity.map?.summary_polyline) {
+        console.log(`  📍 Route data: Map ID ${activity.map.id}, Polyline length: ${activity.map.summary_polyline.length}`);
+      } else {
+        console.log(`  📍 No route data for activity ${activity.id}`);
+      }
         }
       }
     } catch (error) {

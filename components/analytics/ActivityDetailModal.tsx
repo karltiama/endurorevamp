@@ -5,12 +5,13 @@ import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { formatDistance, getActivityIcon, formatStravaTime, formatPace, parseHevyWorkout, formatHevyWorkout } from '@/lib/utils'
-import type { StravaActivity } from '@/lib/strava/types'
+import type { StravaActivity, Activity } from '@/lib/strava/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Heart, Save, Edit, Zap, Gauge, TrendingUp } from 'lucide-react'
+import { Heart, Save, Edit, Zap, Gauge, TrendingUp, MapPin } from 'lucide-react'
 import { Label } from '@/components/ui/label'
+import { ActivityRouteMap } from '@/components/ui/ActivityRouteMap'
 
 // Type for activities with RPE data
 interface ActivityWithRPE {
@@ -18,7 +19,7 @@ interface ActivityWithRPE {
 }
 
 interface ActivityDetailModalProps {
-  activity: StravaActivity
+  activity: StravaActivity | Activity
   onClose: () => void
 }
 
@@ -37,6 +38,12 @@ const RPE_EMOJI_SCALE = [
 ]
 
 export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalProps) {
+  console.log('ActivityDetailModal: Modal opened for activity', {
+    id: activity.id,
+    name: activity.name,
+    sport_type: activity.sport_type
+  })
+
   const { preferences } = useUnitPreferences()
   const [selectedRPE, setSelectedRPE] = useState<number | null>(null)
   const [isEditingRPE, setIsEditingRPE] = useState(false)
@@ -469,6 +476,41 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
                         </p>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Route Map - Show for activities with route data */}
+                {(() => {
+                  const hasPolyline = !!(activity as any).summary_polyline || !!(activity as any).map?.summary_polyline
+                  const hasCoordinates = !!(activity as any).start_latlng
+                  const shouldShowMap = hasPolyline || hasCoordinates
+                  
+                  console.log('ActivityDetailModal: Route data check', {
+                    activityName: activity.name,
+                    hasPolyline,
+                    hasCoordinates,
+                    shouldShowMap,
+                    summary_polyline: (activity as any).summary_polyline ? `${(activity as any).summary_polyline.length} chars` : 'none',
+                    map_summary_polyline: (activity as any).map?.summary_polyline ? `${(activity as any).map.summary_polyline.length} chars` : 'none',
+                    start_latlng: (activity as any).start_latlng,
+                    end_latlng: (activity as any).end_latlng
+                  })
+                  
+                  console.log('ActivityDetailModal: Will render route section?', shouldShowMap)
+                  
+                  return shouldShowMap
+                })() && (
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <MapPin className="h-5 w-5 text-gray-600" />
+                      <h4 className="text-sm font-medium text-gray-600">Route</h4>
+                    </div>
+                    <ActivityRouteMap
+                      polyline={(activity as any).summary_polyline || (activity as any).map?.summary_polyline}
+                      startLatLng={(activity as any).start_latlng}
+                      endLatLng={(activity as any).end_latlng}
+                      className="h-64 w-full"
+                    />
                   </div>
                 )}
 

@@ -89,6 +89,7 @@ export interface StravaActivity {
   map?: {
     id: string;
     summary_polyline?: string;
+    polyline?: string;
     resource_state: number;
   };
 }
@@ -176,6 +177,11 @@ export interface Activity {
   calories?: number;
   description?: string;
   gear_id?: string;
+  
+  // Route data
+  summary_polyline?: string;
+  polyline?: string;
+  map_id?: string;
   
   last_synced_at?: string;
   created_at?: string;
