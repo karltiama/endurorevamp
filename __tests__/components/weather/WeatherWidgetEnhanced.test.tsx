@@ -346,11 +346,7 @@ describe('WeatherWidgetEnhanced', () => {
     it('shows running score and conditions', async () => {
       render(<WeatherWidgetEnhanced showForecastTabs={true} />, { wrapper })
 
-      // Click on the "Today" button to show the running conditions
-      const todayTab = screen.getByRole('button', { name: 'Today' })
-      fireEvent.click(todayTab)
-
-      // Wait for the content to appear
+      // Wait for the content to appear (Today tab should be active by default)
       await waitFor(() => {
         expect(screen.getByText('Current Running Conditions')).toBeInTheDocument()
       })
@@ -360,11 +356,7 @@ describe('WeatherWidgetEnhanced', () => {
     it('shows training impact when enabled', async () => {
       render(<WeatherWidgetEnhanced showImpact={true} showForecastTabs={true} />, { wrapper })
 
-      // Click on the "Today" button to show the training impact
-      const todayTab = screen.getByRole('button', { name: 'Today' })
-      fireEvent.click(todayTab)
-
-      // Wait for the training impact to appear
+      // Wait for the training impact to appear (Today tab should be active by default)
       await waitFor(() => {
         expect(screen.getByText('Training Impact')).toBeInTheDocument()
       })
@@ -374,11 +366,7 @@ describe('WeatherWidgetEnhanced', () => {
     it('hides training impact when disabled', async () => {
       render(<WeatherWidgetEnhanced showImpact={false} showForecastTabs={true} />, { wrapper })
 
-      // Click on the "Today" button to check if training impact is hidden
-      const todayTab = screen.getByRole('button', { name: 'Today' })
-      fireEvent.click(todayTab)
-
-      // Wait a moment for any potential rendering
+      // Wait a moment for any potential rendering (Today tab should be active by default)
       await waitFor(() => {
         expect(screen.queryByText('Training Impact')).not.toBeInTheDocument()
       })
