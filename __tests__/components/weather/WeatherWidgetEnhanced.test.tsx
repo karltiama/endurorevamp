@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WeatherWidgetEnhanced } from '@/components/weather/WeatherWidgetEnhanced'
 import { useWeather } from '@/hooks/useWeather'
@@ -343,36 +343,45 @@ describe('WeatherWidgetEnhanced', () => {
       expect(screen.getByText(/Tomorrow's Running Times/)).toBeInTheDocument()
     })
 
-    it('shows running score and conditions', () => {
+    it('shows running score and conditions', async () => {
       render(<WeatherWidgetEnhanced showForecastTabs={true} />, { wrapper })
 
       // Click on the "Today" button to show the running conditions
       const todayTab = screen.getByRole('button', { name: 'Today' })
       fireEvent.click(todayTab)
 
-      expect(screen.getByText('Current Running Conditions')).toBeInTheDocument()
+      // Wait for the content to appear
+      await waitFor(() => {
+        expect(screen.getByText('Current Running Conditions')).toBeInTheDocument()
+      })
       expect(screen.getByText('Running Score')).toBeInTheDocument()
     })
 
-    it('shows training impact when enabled', () => {
+    it('shows training impact when enabled', async () => {
       render(<WeatherWidgetEnhanced showImpact={true} showForecastTabs={true} />, { wrapper })
 
       // Click on the "Today" button to show the training impact
       const todayTab = screen.getByRole('button', { name: 'Today' })
       fireEvent.click(todayTab)
 
-      expect(screen.getByText('Training Impact')).toBeInTheDocument()
+      // Wait for the training impact to appear
+      await waitFor(() => {
+        expect(screen.getByText('Training Impact')).toBeInTheDocument()
+      })
       expect(screen.getByText('positive')).toBeInTheDocument()
     })
 
-    it('hides training impact when disabled', () => {
+    it('hides training impact when disabled', async () => {
       render(<WeatherWidgetEnhanced showImpact={false} showForecastTabs={true} />, { wrapper })
 
       // Click on the "Today" button to check if training impact is hidden
       const todayTab = screen.getByRole('button', { name: 'Today' })
       fireEvent.click(todayTab)
 
-      expect(screen.queryByText('Training Impact')).not.toBeInTheDocument()
+      // Wait a moment for any potential rendering
+      await waitFor(() => {
+        expect(screen.queryByText('Training Impact')).not.toBeInTheDocument()
+      })
     })
   })
 

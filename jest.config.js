@@ -10,16 +10,13 @@ const customJestConfig = {
   
   // Performance optimizations
   maxWorkers: '50%', // Use 50% of CPU cores for parallel execution
-  testTimeout: 10000, // 10 second timeout per test
+  testTimeout: process.env.CI ? 15000 : 10000, // Longer timeout in CI
   cache: true, // Enable Jest cache
   cacheDirectory: '<rootDir>/.jest-cache',
   
-  // Retry flaky tests
-  retryTimes: 2, // Retry failed tests up to 2 times
-  
   // Suppress console output for cleaner test runs
   silent: false, // Set to true to suppress console.log/warn/error
-  verbose: false, // Set to true for detailed test output
+  verbose: process.env.CI ? true : false, // More verbose output in CI
   
   // Faster test discovery
   testMatch: [
