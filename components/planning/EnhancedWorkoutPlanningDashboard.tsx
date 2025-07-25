@@ -17,18 +17,33 @@ import {
   Info,
   Edit3,
   RotateCcw,
-  Moon
+  Moon,
+  Thermometer,
+  CloudRain,
+  Wind,
+  Sun
 } from 'lucide-react'
 import { useEnhancedWorkoutPlanning, useWorkoutPlanManager, useWorkoutPlanAnalytics } from '@/hooks/useEnhancedWorkoutPlanning'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
+import { useWeather } from '@/hooks/useWeather'
+import { useLocation } from '@/hooks/useLocation'
 import { WorkoutPlanEditorModal } from './WorkoutPlanEditorModal'
 import { DynamicWorkoutContent } from '@/lib/training/dynamic-workout-content'
+import { formatTemperature, formatWindSpeed } from '@/lib/utils'
 
 import type { EnhancedWorkoutRecommendation, WeeklyWorkoutPlan } from '@/lib/training/enhanced-workout-planning'
+import type { WeatherData, WeatherImpact } from '@/lib/weather/types'
 
 interface EnhancedWorkoutPlanningDashboardProps {
   userId: string
   className?: string
+}
+
+interface WeatherWorkoutContextProps {
+  weather: WeatherData
+  impact: WeatherImpact | null
+  optimalTime: { time: string; reason: string } | null
+  workout: EnhancedWorkoutRecommendation
 }
 
 export function EnhancedWorkoutPlanningDashboard({ userId, className }: EnhancedWorkoutPlanningDashboardProps) {
@@ -44,6 +59,14 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
   const analytics = useWorkoutPlanAnalytics(weeklyPlan)
   const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [, setIsResetting] = useState(false)
+
+  // Weather integration
+  const { location, isLoading: locationLoading } = useLocation()
+  const { weather, impact, optimalTime, isLoading: weatherLoading } = useWeather({ 
+    lat: location.lat, 
+    lon: location.lon,
+    enabled: !locationLoading
+  })
 
   // Debug logging for weekly plan changes
   console.log('EnhancedWorkoutPlanningDashboard: weeklyPlan updated:', weeklyPlan?.id, weeklyPlan?.weekStart)
@@ -135,7 +158,19 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
                 <div className="h-4 bg-muted rounded w-1/2" />
               </div>
             ) : todaysWorkout ? (
-              <EnhancedTodaysWorkoutCard workout={todaysWorkout} />
+              <div className="space-y-4">
+                {/* Weather Context Section */}
+                {weather && !weatherLoading && (
+                  <WeatherWorkoutContext 
+                    weather={weather} 
+                    impact={impact} 
+                    optimalTime={optimalTime}
+                    workout={todaysWorkout}
+                  />
+                )}
+                
+                <EnhancedTodaysWorkoutCard workout={todaysWorkout} />
+              </div>
             ) : (
               <RecoveryDayCard />
             )}
@@ -324,7 +359,176 @@ function WeeklyPlanGrid({ workouts }: { workouts: { [dayOfWeek: number]: Enhance
             </div>
           </div>
         )
-      })}
+      }      )}
+    </div>
+  )
+}
+
+function WeatherWorkoutContext({ weather, impact, optimalTime, workout }: WeatherWorkoutContextProps) {
+  const { preferences } = useUnitPreferences()
+  const { current } = weather
+
+  const getWeatherIcon = (condition: string) => {
+    switch (condition.toLowerCase()) {
+      case 'clear':
+        return <Sun className="h-4 w-4 text-yellow-500" />
+      case 'rain':
+      case 'drizzle':
+        return <CloudRain className="h-4 w-4 text-blue-500" />
+      case 'snow':
+        return <CloudRain className="h-4 w-4 text-blue-300" />
+      case 'clouds':
+        return <CloudRain className="h-4 w-4 text-gray-500" />
+      default:
+        return <Thermometer className="h-4 w-4" />
+    }
+  }
+
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case 'high':
+        return 'bg-red-100 text-red-800 border-red-200'
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'low':
+        return 'bg-green-100 text-green-800 border-green-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+
+  const calculateRunningScore = (temp: number, humidity: number, wind: number, precip: number) => {
+    let score = 100
+
+    // Temperature scoring (optimal: 10-15°C)
+    if (temp < 5 || temp > 25) {
+      score -= 30
+    } else if (temp < 10 || temp > 20) {
+      score -= 15
+    }
+
+    // Humidity scoring (optimal: 40-60%)
+    if (humidity > 80) {
+      score -= 20
+    } else if (humidity > 70) {
+      score -= 10
+    }
+
+    // Wind scoring (optimal: < 15 km/h)
+    if (wind > 25) {
+      score -= 25
+    } else if (wind > 15) {
+      score -= 10
+    }
+
+    // Precipitation scoring
+    if (precip > 2) {
+      score -= 30
+    } else if (precip > 0.5) {
+      score -= 15
+    }
+
+    return Math.max(0, score)
+  }
+
+  const runningScore = calculateRunningScore(
+    current.temperature,
+    current.humidity,
+    current.windSpeed,
+    current.precipitation
+  )
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-600'
+    if (score >= 60) return 'text-yellow-600'
+    return 'text-red-600'
+  }
+
+  // const getScoreText = (score: number) => {
+  //   if (score >= 80) return 'Excellent'
+  //   if (score >= 60) return 'Good'
+  //   if (score >= 40) return 'Fair'
+  //   return 'Poor'
+  // }
+
+  return (
+    <div className="p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          {getWeatherIcon(current.weatherCondition)}
+          <div>
+            <h4 className="font-semibold text-blue-800">Weather Conditions</h4>
+            <p className="text-sm text-blue-600">{weather.location.name}</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className={`text-lg font-bold ${getScoreColor(runningScore)}`}>
+            {runningScore}%
+          </div>
+          <div className="text-xs text-blue-600">Running Score</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="flex items-center gap-2">
+          <Thermometer className="h-4 w-4 text-red-500" />
+          <span className="text-sm">
+            {formatTemperature(current.temperature, preferences.temperature)}
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <CloudRain className="h-4 w-4 text-blue-500" />
+          <span className="text-sm">{current.humidity}%</span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Wind className="h-4 w-4 text-gray-500" />
+          <span className="text-sm">{formatWindSpeed(current.windSpeed, preferences.windSpeed)}</span>
+        </div>
+        
+        {current.precipitation > 0 && (
+          <div className="flex items-center gap-2">
+            <CloudRain className="h-4 w-4 text-blue-500" />
+            <span className="text-sm">{current.precipitation}mm</span>
+          </div>
+        )}
+      </div>
+
+      {/* Weather Impact on Workout */}
+      {impact && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-blue-700">Impact on {workout.sport}</span>
+            <Badge variant="outline" className={getRiskColor(impact.risk)}>
+              {impact.risk} risk
+            </Badge>
+          </div>
+          
+          {impact.recommendations.length > 0 && (
+            <div className="space-y-1">
+              {impact.recommendations.slice(0, 2).map((rec, index) => (
+                <div key={index} className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 flex-shrink-0" />
+                  <span className="text-sm text-blue-700">{rec}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Optimal Time Suggestion */}
+      {optimalTime && (
+        <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-green-600" />
+            <span className="text-sm font-medium text-green-700">Best Time Today:</span>
+            <span className="text-sm text-green-600">{optimalTime.time}</span>
+          </div>
+          <p className="text-xs text-green-600 mt-1">{optimalTime.reason}</p>
+        </div>
+      )}
     </div>
   )
 }

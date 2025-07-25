@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Thermometer, Droplets, Wind, CloudRain, Sun, AlertTriangle, MapPin, Settings, Navigation, Clock, Zap } from 'lucide-react'
+import { Thermometer, Droplets, Wind, CloudRain, Sun, AlertTriangle, MapPin, Settings, Navigation, Clock, Zap, Calendar } from 'lucide-react'
 import { useWeather } from '@/hooks/useWeather'
 import { useLocation } from '@/hooks/useLocation'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
@@ -30,6 +30,21 @@ export function WeatherWidgetEnhanced({
 }: WeatherWidgetEnhancedProps) {
   const [showLocationInput, setShowLocationInput] = useState(false)
   const [showPermissionPrompt, setShowPermissionPrompt] = useState(false)
+  const [showDetailedForecast, setShowDetailedForecast] = useState(false)
+
+  // Handle escape key to close modal
+  React.useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showDetailedForecast) {
+        setShowDetailedForecast(false)
+      }
+    }
+
+    if (showDetailedForecast) {
+      document.addEventListener('keydown', handleEscape)
+      return () => document.removeEventListener('keydown', handleEscape)
+    }
+  }, [showDetailedForecast])
   const { preferences } = useUnitPreferences()
   const { 
     location, 
@@ -40,7 +55,7 @@ export function WeatherWidgetEnhanced({
     setManualLocation 
   } = useLocation()
 
-  const { weather, impact, isLoading, error, forecast } = useWeather({ 
+  const { weather, impact, optimalTime, isLoading, error, forecast } = useWeather({ 
     lat: location.lat, 
     lon: location.lon,
     enabled: !locationLoading
@@ -489,6 +504,8 @@ export function WeatherWidgetEnhanced({
             {renderTimeSlot('6:00 PM', sixPM, 'Evening')}
           </div>
         </div>
+
+
       </div>
     )
   }
@@ -632,144 +649,385 @@ export function WeatherWidgetEnhanced({
   const { current } = weather
 
   return (
-    <Card className={`h-full flex flex-col ${className}`}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          {getWeatherIcon(current.weatherCondition)}
-          Weather Conditions
-          <div className="flex items-center gap-2 ml-auto">
-            <div className="flex items-center gap-1 text-sm font-normal text-gray-500">
-              {getLocationSourceIcon()}
-              <span>{location.name}</span>
-              <Badge variant="outline" className="text-xs">
-                {getLocationSourceText()}
-              </Badge>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowLocationInput(true)}
-              className="h-6 w-6 p-0"
-            >
-              <Settings className="h-3 w-3" />
-            </Button>
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 space-y-3">
-        {/* Simplified Weather Display - Focus on Running Score */}
-        <div className="text-center space-y-3">
-          <div className="text-3xl font-bold text-green-600">
-            {calculateRunningScore(
-              current.temperature, 
-              current.humidity, 
-              current.windSpeed, 
-              current.precipitation
-            )}%
-          </div>
-          <div className="text-sm text-gray-600">
-            Running Score
-          </div>
-          <div className="text-xs text-gray-500">
-            {getScoreText(calculateRunningScore(
-              current.temperature, 
-              current.humidity, 
-              current.windSpeed, 
-              current.precipitation
-            ))} conditions
-          </div>
-        </div>
-
-        {/* Quick Weather Indicators */}
-        <div className="grid grid-cols-2 gap-2 text-center">
-          <div className="p-2 bg-red-50 rounded-lg">
-            <div className="text-lg font-bold text-red-600">
-              {formatTemperature(current.temperature, preferences.temperature)}
-            </div>
-            <div className="text-xs text-red-600">Temperature</div>
-          </div>
-          <div className="p-2 bg-blue-50 rounded-lg">
-            <div className="text-lg font-bold text-blue-600">
-              {current.humidity}%
-            </div>
-            <div className="text-xs text-blue-600">Humidity</div>
-          </div>
-        </div>
-
-        {/* Weather Impact - Simplified */}
-        {showImpact && impact && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-blue-800 font-medium">Training Impact:</span>
-              <span className={`text-xs font-medium ${getPerformanceColor(impact.performance)}`}>
-                {impact.performance}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Forecast Tabs - Only if enabled */}
-        {showForecastTabs && forecast?.forecast?.hourly && (
-          <div className="pt-3 border-t">
-            <Tabs defaultValue="today" className="w-full">
-              <TabsList className="flex w-full h-8 bg-gray-100 rounded-md p-1">
-                <TabsTrigger value="today" className="text-xs flex-1">
-                  Today
-                </TabsTrigger>
-                <TabsTrigger value="tomorrow" className="text-xs flex-1">
-                  Tomorrow
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="today" className="mt-3">
-                {renderTodayForecast()}
-              </TabsContent>
-              
-              <TabsContent value="tomorrow" className="mt-3">
-                {renderTomorrowForecast()}
-              </TabsContent>
-            </Tabs>
-          </div>
-        )}
-
-        {/* Location Permission Prompt */}
-        {showLocationPrompt && !hasLocationPermission && permissionStatus === 'prompt' && (
-          <div className="pt-2 border-t">
-            <div className="text-sm text-gray-600 mb-2">
-              Get weather for your location?
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                size="sm" 
-                onClick={handleRequestLocation}
-                className="flex-1"
-              >
-                Allow Location
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline"
+    <>
+      <Card className={`h-full flex flex-col ${className}`}>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            {getWeatherIcon(current.weatherCondition)}
+            Weather Conditions
+            <div className="flex items-center gap-2 ml-auto">
+              <div className="flex items-center gap-1 text-sm font-normal text-gray-500">
+                {getLocationSourceIcon()}
+                <span>{location.name}</span>
+                <Badge variant="outline" className="text-xs">
+                  {getLocationSourceText()}
+                </Badge>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setShowLocationInput(true)}
+                className="h-6 w-6 p-0"
               >
-                Set Manually
+                <Settings className="h-3 w-3" />
               </Button>
             </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 space-y-3">
+          {/* Simplified Weather Display - Focus on Running Score */}
+          <div className="text-center space-y-3">
+            <div className="text-3xl font-bold text-green-600">
+              {calculateRunningScore(
+                current.temperature, 
+                current.humidity, 
+                current.windSpeed, 
+                current.precipitation
+              )}%
+            </div>
+            <div className="text-sm text-gray-600">
+              Running Score
+            </div>
+            <div className="text-xs text-gray-500">
+              {getScoreText(calculateRunningScore(
+                current.temperature, 
+                current.humidity, 
+                current.windSpeed, 
+                current.precipitation
+              ))} conditions
+            </div>
           </div>
-        )}
 
-        {/* View Details Button */}
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full text-xs"
-          onClick={() => {
-            // Navigate to detailed weather page or enable forecast tabs
-            setShowLocationInput(true)
-          }}
+          {/* Quick Weather Indicators */}
+          <div className="grid grid-cols-2 gap-2 text-center">
+            <div className="p-2 bg-red-50 rounded-lg">
+              <div className="text-lg font-bold text-red-600">
+                {formatTemperature(current.temperature, preferences.temperature)}
+              </div>
+              <div className="text-xs text-red-600">Temperature</div>
+            </div>
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <div className="text-lg font-bold text-blue-600">
+                {current.humidity}%
+              </div>
+              <div className="text-xs text-blue-600">Humidity</div>
+            </div>
+          </div>
+
+          {/* Weather Impact - Simplified */}
+          {showImpact && impact && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-blue-800 font-medium">Training Impact:</span>
+                <span className={`text-xs font-medium ${getPerformanceColor(impact.performance)}`}>
+                  {impact.performance}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Forecast Tabs - Only if enabled */}
+          {showForecastTabs && forecast?.forecast?.hourly && (
+            <div className="pt-3 border-t">
+              <Tabs defaultValue="today" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 h-8 bg-gray-100 rounded-md p-0.5">
+                  <TabsTrigger value="today" className="text-xs data-[state=active]:bg-white rounded-sm mx-0.5">
+                    Today
+                  </TabsTrigger>
+                  <TabsTrigger value="tomorrow" className="text-xs data-[state=active]:bg-white rounded-sm mx-0.5">
+                    Tomorrow
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="today" className="mt-3">
+                  {renderTodayForecast()}
+                </TabsContent>
+                
+                <TabsContent value="tomorrow" className="mt-3">
+                  {renderTomorrowForecast()}
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+
+          {/* Location Permission Prompt */}
+          {showLocationPrompt && !hasLocationPermission && permissionStatus === 'prompt' && (
+            <div className="pt-2 border-t">
+              <div className="text-sm text-gray-600 mb-2">
+                Get weather for your location?
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  onClick={handleRequestLocation}
+                  className="flex-1"
+                >
+                  Allow Location
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => setShowLocationInput(true)}
+                >
+                  Set Manually
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* View Details Button */}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full text-xs"
+            onClick={() => {
+              // Show detailed weather modal instead of just location input
+              setShowDetailedForecast(true)
+            }}
+          >
+            View Detailed Forecast
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Detailed Forecast Modal */}
+      {showDetailedForecast && weather && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4"
+          onClick={() => setShowDetailedForecast(false)}
         >
-          View Detailed Forecast
-        </Button>
-      </CardContent>
-    </Card>
+          <div 
+            className="bg-white rounded-xl shadow-2xl w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl max-h-[90vh] sm:max-h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b">
+              <div className="flex items-center gap-2 sm:gap-3">
+                {getWeatherIcon(current.weatherCondition)}
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold">Weather Forecast</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">{weather.location.name}</p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDetailedForecast(false)}
+                className="h-8 w-8 sm:h-10 sm:w-10 p-0 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors"
+              >
+                <span className="text-base sm:text-lg font-bold">×</span>
+              </Button>
+            </div>
+            
+            {/* Content */}
+            <div className="flex-1 p-3 sm:p-4 overflow-y-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 h-full">
+                
+                {/* Left Column - Current Conditions */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 sm:p-4 border border-blue-100">
+                  <h4 className="font-semibold text-sm sm:text-base mb-3 flex items-center gap-2">
+                    <Thermometer className="h-4 w-4 text-blue-600" />
+                    Current Conditions
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2 p-2 bg-white rounded-lg">
+                      <Thermometer className="h-4 w-4 text-red-500" />
+                      <div>
+                        <p className="text-xs text-gray-600">Temperature</p>
+                        <p className="font-semibold text-sm">
+                          {formatTemperature(current.temperature, preferences.temperature)}
+                        </p>
+                        {current.feelsLike !== current.temperature && (
+                          <p className="text-xs text-gray-500">feels {formatTemperature(current.feelsLike, preferences.temperature)}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-white rounded-lg">
+                      <Droplets className="h-4 w-4 text-blue-500" />
+                      <div>
+                        <p className="text-xs text-gray-600">Humidity</p>
+                        <p className="font-semibold text-sm">{current.humidity}%</p>
+                        <p className="text-xs text-gray-500">Dew: {formatTemperature(current.dewPoint, preferences.temperature)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-white rounded-lg">
+                      <Wind className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <p className="text-xs text-gray-600">Wind</p>
+                        <p className="font-semibold text-sm">{formatWindSpeed(current.windSpeed, preferences.windSpeed)}</p>
+                        <p className="text-xs text-gray-500">{current.windDirection}°</p>
+                      </div>
+                    </div>
+                    {current.precipitation > 0 ? (
+                      <div className="flex items-center gap-2 p-2 bg-white rounded-lg">
+                        <CloudRain className="h-4 w-4 text-blue-500" />
+                        <div>
+                          <p className="text-xs text-gray-600">Precipitation</p>
+                          <p className="font-semibold text-sm">{current.precipitation}mm</p>
+                          <p className="text-xs text-gray-500">Last hour</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 p-2 bg-white rounded-lg">
+                        <Sun className="h-4 w-4 text-yellow-500" />
+                        <div>
+                          <p className="text-xs text-gray-600">Conditions</p>
+                          <p className="font-semibold text-sm capitalize">{current.weatherCondition}</p>
+                          <p className="text-xs text-gray-500">Clear skies</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Additional Weather Metrics */}
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2 p-2 bg-white rounded-lg">
+                      <div className="h-4 w-4 bg-purple-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">UV</span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600">UV Index</p>
+                        <p className="font-semibold text-sm">{current.uvIndex || 'N/A'}</p>
+                        <p className="text-xs text-gray-500">
+                          {current.uvIndex > 8 ? 'Very High' : 
+                           current.uvIndex > 6 ? 'High' : 
+                           current.uvIndex > 3 ? 'Moderate' : 'Low'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-white rounded-lg">
+                      <div className="h-4 w-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">AQ</span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600">Air Quality</p>
+                        <p className="font-semibold text-sm">{current.airQuality || 'N/A'}</p>
+                        <p className="text-xs text-gray-500">
+                          {current.airQuality > 150 ? 'Unhealthy' : 
+                           current.airQuality > 100 ? 'Moderate' : 
+                           current.airQuality > 50 ? 'Good' : 'Excellent'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-white rounded-lg">
+                      <div className="h-4 w-4 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">P</span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600">Pressure</p>
+                        <p className="font-semibold text-sm">{current.pressure || 'N/A'} hPa</p>
+                        <p className="text-xs text-gray-500">
+                          {current.pressure > 1013 ? 'High' : 
+                           current.pressure > 1000 ? 'Normal' : 'Low'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-white rounded-lg">
+                      <div className="h-4 w-4 bg-indigo-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">V</span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600">Visibility</p>
+                        <p className="font-semibold text-sm">{current.visibility || 'N/A'} km</p>
+                        <p className="text-xs text-gray-500">
+                          {current.visibility > 10 ? 'Excellent' : 
+                           current.visibility > 5 ? 'Good' : 
+                           current.visibility > 1 ? 'Poor' : 'Very Poor'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                                      {/* Middle Column - Weather Impact & Optimal Time */}
+                      <div className="space-y-3 sm:space-y-4">
+                        {/* Weather Impact */}
+                        {impact && (
+                          <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-3 sm:p-4 border border-orange-100">
+                            <h4 className="font-semibold text-sm sm:text-base mb-3 flex items-center gap-2">
+                              <Zap className="h-4 w-4 text-orange-600" />
+                              Training Impact
+                            </h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-2 bg-white rounded-lg">
+                          <span className="text-sm font-medium">Risk Level</span>
+                          <Badge variant="outline" className={`${getRiskColor(impact.risk)} text-xs font-medium`}>
+                            {impact.risk}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between p-2 bg-white rounded-lg">
+                          <span className="text-sm font-medium">Performance</span>
+                          <span className={`text-sm font-semibold ${getPerformanceColor(impact.performance)}`}>
+                            {impact.performance}
+                          </span>
+                        </div>
+                        {impact.recommendations.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="font-medium text-xs">Recommendations:</p>
+                            {impact.recommendations.slice(0, 2).map((rec, index) => (
+                              <div key={index} className="flex items-start gap-2 p-2 bg-white rounded-lg">
+                                <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 flex-shrink-0" />
+                                <span className="text-xs">{rec}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                                          {/* Optimal Time */}
+                        {optimalTime && (
+                          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 sm:p-4 border border-green-100">
+                            <h4 className="font-semibold text-sm sm:text-base mb-3 flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-green-600" />
+                              Best Running Time
+                            </h4>
+                      <div className="space-y-2">
+                        <div className="text-center p-3 bg-white rounded-lg">
+                          <p className="text-lg font-bold text-green-600">{optimalTime.time}</p>
+                          <p className="text-xs text-green-700">Today&apos;s Optimal Time</p>
+                        </div>
+                        <div className="p-2 bg-white rounded-lg">
+                          <p className="text-xs text-green-700">{optimalTime.reason}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                                      {/* Right Column - Forecast */}
+                      {forecast?.forecast?.hourly && (
+                        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-3 sm:p-4 border border-purple-100">
+                          <h4 className="font-semibold text-sm sm:text-base mb-3 flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-purple-600" />
+                            Hourly Forecast
+                          </h4>
+                                              <Tabs defaultValue="today" className="w-full">
+                            <TabsList className="grid w-full grid-cols-2 bg-white h-7 sm:h-8 rounded-md p-0.5">
+                              <TabsTrigger value="today" className="text-xs data-[state=active]:bg-purple-100 rounded-sm transition-colors mx-0.5">Today</TabsTrigger>
+                              <TabsTrigger value="tomorrow" className="text-xs data-[state=active]:bg-purple-100 rounded-sm transition-colors mx-0.5">Tomorrow</TabsTrigger>
+                            </TabsList>
+                      
+                      <TabsContent value="today" className="mt-3">
+                        <div className="bg-white rounded-lg p-3 min-h-[300px]">
+                          {renderTodayForecast()}
+                        </div>
+                      </TabsContent>
+                      
+                      <TabsContent value="tomorrow" className="mt-3">
+                        <div className="bg-white rounded-lg p-3 min-h-[300px]">
+                          {renderTomorrowForecast()}
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 } 
