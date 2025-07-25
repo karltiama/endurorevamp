@@ -8,7 +8,8 @@ import { useMemo } from 'react'
 import { 
   TrendingUp, 
   Trophy,
-  Activity
+  Activity,
+  Settings
 } from 'lucide-react'
 import { Activity as StravaActivity } from '@/lib/strava/types'
 import { ActivityWithTrainingData } from '@/types'
@@ -35,6 +36,12 @@ interface PerformanceInsights {
   averageIntensity: {
     current: number
     trend: 'up' | 'down' | 'stable'
+  }
+  streakData: {
+    current: number
+    streakType: 'active' | 'rest_day' | 'broken'
+    restDaysRemaining: number
+    canUseRestDay: boolean
   }
 }
 
@@ -92,6 +99,8 @@ const calculateConsistencyStreak = (activities: StravaActivity[]): number => {
 
   return streak
 }
+
+
 
 const calculatePaceImprovement = (recent: StravaActivity[], previous: StravaActivity[]) => {
   const getAveragePace = (activities: StravaActivity[]) => {
@@ -227,6 +236,8 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
   const { data: activities, isLoading, error } = useUserActivities(userId)
   const { preferences } = useUnitPreferences()
 
+
+
   const performanceInsights = useMemo((): PerformanceInsights | null => {
     if (!activities || activities.length === 0) return null
 
@@ -248,7 +259,7 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
     // Calculate pace improvement
     const paceImprovement = calculatePaceImprovement(recentActivities, previousActivities)
 
-    // Calculate consistency streak
+    // Calculate simple consistency streak (no rest days)
     const consistencyStreak = calculateConsistencyStreak(activities)
 
     // Calculate training load trend
@@ -269,7 +280,13 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
       trainingLoadTrend,
       achievements,
       weeklyDistance,
-      averageIntensity
+      averageIntensity,
+      streakData: {
+        current: consistencyStreak,
+        streakType: 'active' as const,
+        restDaysRemaining: 0,
+        canUseRestDay: false
+      }
     }
   }, [activities, preferences])
 
@@ -320,7 +337,7 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 flex-1 h-full flex flex-col justify-between">
-        {/* Simplified Performance Display - Focus on ONE key metric */}
+        {/* Enhanced Performance Display with Rest Day Support */}
         <div className="text-center space-y-3">
           <div className="flex items-center justify-center gap-2">
             <span className="text-3xl">🔥</span>
@@ -329,10 +346,7 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
             </div>
           </div>
           <div className="text-sm text-gray-600">
-            Day Training Streak
-          </div>
-          <div className="text-xs text-gray-500">
-            {performanceInsights.consistencyStreak === 1 ? 'day' : 'days'} of consistent training
+            Day{performanceInsights.consistencyStreak !== 1 ? 's' : ''} Training Streak
           </div>
         </div>
 
@@ -369,7 +383,9 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
                 : '0'
               }
             </div>
-            <div className="text-xs text-blue-600">This Week</div>
+            <div className="text-xs text-blue-600">
+              {preferences.distance === 'miles' ? 'mi' : 'km'} This Week
+            </div>
           </div>
         </div>
 

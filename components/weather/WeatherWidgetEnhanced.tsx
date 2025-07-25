@@ -1010,13 +1010,13 @@ export function WeatherWidgetEnhanced({
                             </TabsList>
                       
                       <TabsContent value="today" className="mt-3">
-                        <div className="bg-white rounded-lg p-3 min-h-[300px]">
+                        <div className="bg-white rounded-lg p-3 h-[500px] overflow-y-auto">
                           {renderTodayForecast()}
                         </div>
                       </TabsContent>
                       
                       <TabsContent value="tomorrow" className="mt-3">
-                        <div className="bg-white rounded-lg p-3 min-h-[300px]">
+                        <div className="bg-white rounded-lg p-3 h-[500px] overflow-y-auto">
                           {renderTomorrowForecast()}
                         </div>
                       </TabsContent>

@@ -116,6 +116,139 @@ export function calculateActivityStreak(activities: Activity[]): { current: numb
   }
 }
 
+export function calculateActivityStreakWithRestDays(
+  activities: Activity[], 
+  restDayCredits: number = 2, // Default 2 rest days per week
+  restDaysUsed: number = 0
+): { 
+  current: number; 
+  longest: number; 
+  consistency: number;
+  restDaysRemaining: number;
+  streakType: 'active' | 'rest_day' | 'broken';
+  nextRestDayAvailable: Date | null;
+} {
+  if (activities.length === 0) {
+    return { 
+      current: 0, 
+      longest: 0, 
+      consistency: 0, 
+      restDaysRemaining: restDayCredits,
+      streakType: 'broken',
+      nextRestDayAvailable: null
+    }
+  }
+
+  // Sort activities by start date (most recent first)
+  const sortedActivities = [...activities].sort((a, b) => 
+    new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+  )
+
+  // Get unique activity dates (ignore multiple activities on same day)
+  const activityDates = Array.from(new Set(
+    sortedActivities.map(activity => 
+      new Date(activity.start_date).toDateString()
+    )
+  )).map(dateString => new Date(dateString))
+
+  // Calculate current streak with rest day logic
+  let currentStreak = 0
+  let restDaysUsedInStreak = 0
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  // Calculate weekly rest day credits (resets weekly)
+  const weekStart = new Date(today)
+  weekStart.setDate(today.getDate() - today.getDay()) // Start of current week (Sunday)
+  const weekNumber = Math.floor(today.getTime() / (7 * 24 * 60 * 60 * 1000))
+  const weeklyRestDayCredits = restDayCredits
+  const weeklyRestDaysUsed = restDaysUsed // This would come from user preferences/storage
+
+  for (let i = 0; i < activityDates.length; i++) {
+    const expectedDate = new Date(today)
+    expectedDate.setDate(today.getDate() - i)
+    
+    const activityDate = new Date(activityDates[i])
+    activityDate.setHours(0, 0, 0, 0)
+
+    if (activityDate.getTime() === expectedDate.getTime()) {
+      currentStreak++
+    } else if (i === 0 && activityDate.getTime() === new Date(today.getTime() - 24 * 60 * 60 * 1000).getTime()) {
+      // Allow for yesterday if no activity today
+      currentStreak++
+    } else {
+      // Check if we can use a rest day
+      const daysSinceLastActivity = Math.floor((expectedDate.getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24))
+      
+      if (daysSinceLastActivity <= 1 && restDaysUsedInStreak < weeklyRestDayCredits) {
+        // Use a rest day to maintain streak
+        currentStreak++
+        restDaysUsedInStreak++
+      } else {
+        break
+      }
+    }
+  }
+
+  // Calculate longest streak with rest days
+  let longestStreak = 0
+  let tempStreak = 0
+  let tempRestDaysUsed = 0
+  let lastDate: Date | null = null
+
+  for (const currentDate of activityDates) {
+    if (lastDate === null) {
+      tempStreak = 1
+    } else {
+      const daysDiff = Math.floor((lastDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24))
+      if (daysDiff === 1) {
+        tempStreak++
+      } else if (daysDiff <= 2 && tempRestDaysUsed < weeklyRestDayCredits) {
+        // Allow rest day in longest streak calculation
+        tempStreak++
+        tempRestDaysUsed++
+      } else {
+        longestStreak = Math.max(longestStreak, tempStreak)
+        tempStreak = 1
+        tempRestDaysUsed = 0
+      }
+    }
+    lastDate = currentDate
+  }
+  longestStreak = Math.max(longestStreak, tempStreak)
+
+  // Calculate consistency (percentage of days with activities in last 30 days)
+  const thirtyDaysAgo = new Date(today)
+  thirtyDaysAgo.setDate(today.getDate() - 30)
+
+  const recentActivityDates = activityDates.filter(date => date >= thirtyDaysAgo)
+  const consistency = Math.round((recentActivityDates.length / 30) * 100)
+
+  // Determine streak type
+  let streakType: 'active' | 'rest_day' | 'broken' = 'broken'
+  if (currentStreak > 0) {
+    if (restDaysUsedInStreak > 0) {
+      streakType = 'rest_day'
+    } else {
+      streakType = 'active'
+    }
+  }
+
+  // Calculate next rest day availability
+  const nextRestDayAvailable = weeklyRestDaysUsed < weeklyRestDayCredits 
+    ? new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000) // Next week
+    : null
+
+  return {
+    current: currentStreak,
+    longest: longestStreak,
+    consistency: Math.min(consistency, 100),
+    restDaysRemaining: weeklyRestDayCredits - weeklyRestDaysUsed,
+    streakType,
+    nextRestDayAvailable
+  }
+}
+
 export function getLastActivity(activities: Activity[]): Activity | null {
   if (activities.length === 0) {
     return null
