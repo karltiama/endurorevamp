@@ -56,7 +56,7 @@ export default async function DashboardPage() {
         </ErrorBoundary>
 
         {/* Simplified three-column layout for quick status check */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Weekly Progress - Simplified */}
           <div className="flex flex-col h-full min-h-[200px]">
             <ErrorBoundary fallback={TrainingLoadErrorFallback}>
