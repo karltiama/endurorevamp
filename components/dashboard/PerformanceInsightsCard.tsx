@@ -381,11 +381,29 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
 
         {/* Quick Status Indicators */}
         <div className="grid grid-cols-2 gap-2 text-center">
-          <div className="p-2 bg-green-50 rounded-lg">
-            <div className="text-lg font-bold text-green-600">
-              {performanceInsights.paceImprovement.value > 0 ? '+' : ''}{performanceInsights.paceImprovement.value}%
+          <div className={`p-2 rounded-lg ${
+            performanceInsights.paceImprovement.trend === 'up' 
+              ? 'bg-green-50' 
+              : performanceInsights.paceImprovement.trend === 'down' 
+                ? 'bg-red-50' 
+                : 'bg-gray-50'
+          }`}>
+            <div className={`text-lg font-bold ${
+              performanceInsights.paceImprovement.trend === 'up' 
+                ? 'text-green-600' 
+                : performanceInsights.paceImprovement.trend === 'down' 
+                  ? 'text-red-600' 
+                  : 'text-gray-600'
+            }`}>
+              {performanceInsights.paceImprovement.trend === 'up' ? '+' : performanceInsights.paceImprovement.trend === 'down' ? '-' : ''}{performanceInsights.paceImprovement.value.toFixed(1)}%
             </div>
-            <div className="text-xs text-green-600">Pace</div>
+            <div className={`text-xs ${
+              performanceInsights.paceImprovement.trend === 'up' 
+                ? 'text-green-600' 
+                : performanceInsights.paceImprovement.trend === 'down' 
+                  ? 'text-red-600' 
+                  : 'text-gray-600'
+            }`}>Pace</div>
           </div>
           <div className="p-2 bg-blue-50 rounded-lg">
             <div className="text-lg font-bold text-blue-600">
