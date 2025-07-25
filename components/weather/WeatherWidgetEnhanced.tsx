@@ -593,7 +593,7 @@ export function WeatherWidgetEnhanced({
   const { current } = weather
 
   return (
-    <Card className={className}>
+    <Card className={`h-full flex flex-col ${className}`}>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           {getWeatherIcon(current.weatherCondition)}
@@ -617,7 +617,7 @@ export function WeatherWidgetEnhanced({
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="flex-1 space-y-3">
         {/* Forecast Tabs */}
         {showForecastTabs && forecast?.forecast?.hourly && (
           <div className="pt-3 border-t">

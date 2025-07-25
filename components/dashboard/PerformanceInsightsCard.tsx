@@ -317,14 +317,14 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="h-full flex flex-col">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <TrendingUp className="h-5 w-5" />
             Performance Insights
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 h-full flex flex-col justify-center">
           <div className="animate-pulse space-y-3">
             <div className="h-16 bg-gray-100 rounded-lg"></div>
             <div className="h-12 bg-gray-100 rounded-lg"></div>
@@ -336,14 +336,14 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
 
   if (error || !performanceInsights) {
     return (
-      <Card>
+      <Card className="h-full flex flex-col">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <TrendingUp className="h-5 w-5" />
             Performance Insights
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 h-full flex flex-col justify-center">
           <div className="text-center py-6 text-gray-500">
             <Activity className="h-10 w-10 mx-auto mb-3 opacity-50" />
             <p>Not enough data for insights</p>
@@ -354,14 +354,14 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
   }
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <TrendingUp className="h-5 w-5" />
           Performance Insights
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-1 h-full flex flex-col justify-between">
         {/* Key Metrics Grid - Compact */}
         <div className="grid grid-cols-2 gap-3">
           {/* Pace Improvement */}

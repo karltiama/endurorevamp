@@ -28,7 +28,8 @@ import {
   User,
   Home,
   TrendingUp,
-  Dumbbell,
+  Activity,
+  Calendar1
 } from "lucide-react"
 
 interface DashboardLayoutProps {
@@ -46,13 +47,19 @@ const navigation = [
         icon: Home,
         description: "Overview and key metrics"
       },
+      {
+        title: "Activities",
+        url: "/dashboard/activities",
+        icon: Activity,
+        description: "Browse all your activities"
+      },
     ]
   },
   {
     title: "Analytics",
     items: [
       {
-        title: "Activity Analysis",
+        title: "Analytics",
         url: "/dashboard/analytics",
         icon: BarChart3,
         description: "Detailed activity charts and insights"
@@ -77,7 +84,7 @@ const navigation = [
       {
         title: "Workout Planning",
         url: "/dashboard/planning",
-        icon: Dumbbell,
+        icon: Calendar1,
         description: "Smart workout recommendations and planning"
       },
     ]

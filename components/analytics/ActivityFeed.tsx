@@ -90,8 +90,8 @@ export function ActivityFeed({ userId }: ActivityFeedProps) {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      {/* Header - removed redundant heading */}
+      {/* <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Activity Feed</h2>
           <p className="text-gray-600">
@@ -104,7 +104,7 @@ export function ActivityFeed({ userId }: ActivityFeedProps) {
         <div className="text-sm text-gray-500">
           {filteredActivities.length} activities total • {currentActivities.length} shown
         </div>
-      </div>
+      </div> */}
 
       {/* Activity List */}
       <div className="space-y-2">
