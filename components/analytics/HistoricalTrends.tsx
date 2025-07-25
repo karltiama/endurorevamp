@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Activity } from '@/lib/strava/types'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { convertDistance, formatDuration, getDistanceUnit } from '@/lib/utils'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { TrendingUp, Calendar, Filter } from 'lucide-react'
 
 interface HistoricalTrendsProps {

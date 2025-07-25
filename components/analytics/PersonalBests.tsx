@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Activity } from '@/lib/strava/types'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { convertDistance, convertPace, formatDuration, getDistanceUnit } from '@/lib/utils'
+import { convertDistance, formatDuration, getDistanceUnit } from '@/lib/utils'
 import { Trophy, TrendingUp, Clock, Zap, Heart, Mountain } from 'lucide-react'
 
 interface PersonalBestsProps {
@@ -60,7 +60,7 @@ export function PersonalBests({ activities }: PersonalBestsProps) {
     }, {} as Record<string, PersonalBest[]>)
 
     // Get the longest distance for each sport type
-    Object.entries(distanceByType).forEach(([sportType, activities]) => {
+    Object.entries(distanceByType).forEach(([, activities]) => {
       const longest = activities.reduce((max, current) => 
         current.value > max.value ? current : max
       )
@@ -85,7 +85,7 @@ export function PersonalBests({ activities }: PersonalBestsProps) {
       return acc
     }, {} as Record<string, PersonalBest[]>)
 
-    Object.entries(paceByType).forEach(([sportType, activities]) => {
+    Object.entries(paceByType).forEach(([, activities]) => {
       if (activities.length > 0) {
         const fastest = activities.reduce((min, current) => 
           current.value < min.value ? current : min

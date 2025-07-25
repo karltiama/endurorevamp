@@ -6,7 +6,7 @@ import { Activity } from '@/lib/strava/types'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { convertDistance, getDistanceUnit } from '@/lib/utils'
 import { ActivityContributionCalendar } from './ActivityContributionCalendar'
-import { TrendingUp, Calendar, Activity as ActivityIcon } from 'lucide-react'
+import { TrendingUp, Calendar } from 'lucide-react'
 
 interface ActivityFrequencyWidgetProps {
   activities: Activity[]
@@ -57,6 +57,7 @@ const calculateCurrentStreak = (activities: Activity[]): number => {
   today.setHours(0, 0, 0, 0)
   
   let currentStreak = 0
+  // eslint-disable-next-line prefer-const
   let checkDate = new Date(today)
   
   for (let i = 0; i < 30; i++) { // Check last 30 days max
@@ -129,7 +130,7 @@ export function ActivityFrequencyWidget({ activities }: ActivityFrequencyWidgetP
       longestStreak,
       currentStreak
     }
-  }, [activities, preferences.distance])
+  }, [activities])
 
   if (!activities || activities.length === 0) {
     return (

@@ -7,16 +7,11 @@ import { formatDistance } from '@/lib/utils'
 import { useMemo } from 'react'
 import { 
   TrendingUp, 
-  TrendingDown, 
-  Flame,
   Trophy,
-  Target,
-  Activity,
-  Minus
+  Activity
 } from 'lucide-react'
 import { Activity as StravaActivity } from '@/lib/strava/types'
 import { ActivityWithTrainingData } from '@/types'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 interface PerformanceInsightsCardProps {
@@ -226,45 +221,7 @@ const calculateAverageIntensity = (recent: StravaActivity[], previous: StravaAct
   }
 }
 
-const getTrendIcon = (trend: string, size = 'h-4 w-4') => {
-  switch (trend) {
-    case 'up':
-    case 'increasing':
-      return <TrendingUp className={`${size} text-green-600`} />
-    case 'down':
-    case 'decreasing':
-      return <TrendingDown className={`${size} text-red-600`} />
-    default:
-      return <Minus className={`${size} text-gray-600`} />
-  }
-}
-
-const getTrendColor = (trend: string): string => {
-  switch (trend) {
-    case 'up':
-    case 'increasing':
-      return 'text-green-600'
-    case 'down':
-    case 'decreasing':
-      return 'text-red-600'
-    default:
-      return 'text-gray-600'
-  }
-}
-
-const getWeeklyLabel = () => {
-  const now = new Date()
-  const weekStart = new Date(now)
-  weekStart.setDate(now.getDate() - now.getDay()) // Sunday
-  
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-  
-  // If our 7-day period starts within the current calendar week, show "This Week"
-  // Otherwise show "Last 7 Days"
-  const isCurrentWeek = sevenDaysAgo >= weekStart
-  
-  return isCurrentWeek ? "This Week" : "Last 7 Days"
-}
+// Removed unused functions
 
 export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps) {
   const { data: activities, isLoading, error } = useUserActivities(userId)

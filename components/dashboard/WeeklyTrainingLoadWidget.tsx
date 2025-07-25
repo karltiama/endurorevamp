@@ -9,12 +9,8 @@ import { useUserActivities } from '@/hooks/use-user-activities'
 import { usePersonalizedTSSTarget } from '@/hooks/useTrainingProfile'
 import { useMemo, useEffect } from 'react'
 import { 
-  TrendingUp, 
-  Calendar, 
-  Target,
   Activity,
   BarChart3,
-  Clock,
   RefreshCw,
   AlertTriangle
 } from 'lucide-react'
@@ -118,27 +114,7 @@ const calculateDailyTSS = (activities: ActivityWithTrainingData[], weekStart: Da
   return dailyTSS
 }
 
-const getZoneColor = (zone: number): string => {
-  const colors = {
-    1: 'bg-blue-200',
-    2: 'bg-green-200', 
-    3: 'bg-yellow-200',
-    4: 'bg-orange-200',
-    5: 'bg-red-200'
-  }
-  return colors[zone as keyof typeof colors] || 'bg-gray-200'
-}
-
-const getTrendIcon = (trend: string) => {
-  switch (trend) {
-    case 'up':
-      return <TrendingUp className="h-4 w-4 text-green-600" />
-    case 'down':
-      return <TrendingUp className="h-4 w-4 text-red-600 rotate-180" />
-    default:
-      return <TrendingUp className="h-4 w-4 text-gray-400" />
-  }
-}
+// Removed unused functions
 
 export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetProps) {
   const queryClient = useQueryClient()
@@ -219,28 +195,7 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
     refetch()
   }
 
-  const handleUpdateTSS = async () => {
-    try {
-      const response = await fetch('/api/activities/update-tss', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to update TSS')
-      }
-
-      const result = await response.json()
-      console.log('TSS update result:', result)
-
-      // Refresh data after TSS update
-      handleRefresh()
-    } catch (error) {
-      console.error('Error updating TSS:', error)
-    }
-  }
+  // Removed unused function
 
   if (isLoading) {
     return (
@@ -301,7 +256,7 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
         <CardTitle className="flex items-center gap-2 text-lg">
           <BarChart3 className="h-5 w-5" />
           Weekly Progress
-          {getTrendIcon(weeklyTrainingLoad.weeklyTrend)}
+          {/* Removed trend icon */}
           <Button 
             onClick={handleRefresh} 
             variant="ghost" 
