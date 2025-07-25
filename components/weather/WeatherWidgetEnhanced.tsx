@@ -196,23 +196,8 @@ export function WeatherWidgetEnhanced({
 
   const renderTodayForecast = () => {
     const { today: todayForecast } = getTodayAndTomorrowForecast()
-    if (!todayForecast || todayForecast.length === 0) return null
-
-    // Get today's best running time
-    const runningHours = todayForecast.filter(hour => {
-      const hourDate = new Date(hour.time)
-      const hourOfDay = hourDate.getHours()
-      return hourOfDay >= 5 && hourOfDay <= 21
-    })
-
-    const scoredHours = runningHours.map(hour => ({
-      ...hour,
-      score: calculateRunningScore(hour.temperature, hour.humidity, hour.windSpeed, hour.precipitation)
-    }))
-
-    const bestHour = scoredHours.sort((a, b) => b.score - a.score)[0]
     
-    if (!bestHour || !weather) return null
+    if (!weather) return null
 
     const { current } = weather
     const currentRunningScore = calculateRunningScore(
@@ -221,6 +206,23 @@ export function WeatherWidgetEnhanced({
       current.windSpeed, 
       current.precipitation
     )
+
+    // Get today's best running time if forecast data is available
+    let bestHour = null
+    if (todayForecast && todayForecast.length > 0) {
+      const runningHours = todayForecast.filter(hour => {
+        const hourDate = new Date(hour.time)
+        const hourOfDay = hourDate.getHours()
+        return hourOfDay >= 5 && hourOfDay <= 21
+      })
+
+      const scoredHours = runningHours.map(hour => ({
+        ...hour,
+        score: calculateRunningScore(hour.temperature, hour.humidity, hour.windSpeed, hour.precipitation)
+      }))
+
+      bestHour = scoredHours.sort((a, b) => b.score - a.score)[0]
+    }
 
     return (
       <div className="space-y-3">
@@ -277,6 +279,43 @@ export function WeatherWidgetEnhanced({
             </div>
           </div>
         </div>
+
+        {/* Best Time Today - Only show if forecast data is available */}
+        {bestHour && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-green-800">Best Time Today</span>
+              <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                {bestHour.score}% score
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-sm text-green-700">
+                {new Date(bestHour.time).toLocaleTimeString('en-US', { 
+                  hour: 'numeric', 
+                  minute: '2-digit',
+                  hour12: true 
+                })}
+              </span>
+              <span className="text-sm text-green-600">
+                {formatTemperature(bestHour.temperature, preferences.temperature)}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Forecast Unavailable Message */}
+        {(!todayForecast || todayForecast.length === 0) && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="text-sm text-blue-800 mb-1">
+              <Clock className="h-4 w-4 inline mr-1" />
+              Forecast Update
+            </div>
+            <div className="text-sm text-blue-700">
+              Hourly forecast data is currently updating. Current conditions are shown above.
+            </div>
+          </div>
+        )}
 
         {/* Training Impact */}
         {showImpact && impact && (
@@ -597,7 +636,7 @@ export function WeatherWidgetEnhanced({
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           {getWeatherIcon(current.weatherCondition)}
-          Weather
+          Weather Conditions
           <div className="flex items-center gap-2 ml-auto">
             <div className="flex items-center gap-1 text-sm font-normal text-gray-500">
               {getLocationSourceIcon()}
@@ -618,7 +657,58 @@ export function WeatherWidgetEnhanced({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 space-y-3">
-        {/* Forecast Tabs */}
+        {/* Simplified Weather Display - Focus on Running Score */}
+        <div className="text-center space-y-3">
+          <div className="text-3xl font-bold text-green-600">
+            {calculateRunningScore(
+              current.temperature, 
+              current.humidity, 
+              current.windSpeed, 
+              current.precipitation
+            )}%
+          </div>
+          <div className="text-sm text-gray-600">
+            Running Score
+          </div>
+          <div className="text-xs text-gray-500">
+            {getScoreText(calculateRunningScore(
+              current.temperature, 
+              current.humidity, 
+              current.windSpeed, 
+              current.precipitation
+            ))} conditions
+          </div>
+        </div>
+
+        {/* Quick Weather Indicators */}
+        <div className="grid grid-cols-2 gap-2 text-center">
+          <div className="p-2 bg-red-50 rounded-lg">
+            <div className="text-lg font-bold text-red-600">
+              {formatTemperature(current.temperature, preferences.temperature)}
+            </div>
+            <div className="text-xs text-red-600">Temperature</div>
+          </div>
+          <div className="p-2 bg-blue-50 rounded-lg">
+            <div className="text-lg font-bold text-blue-600">
+              {current.humidity}%
+            </div>
+            <div className="text-xs text-blue-600">Humidity</div>
+          </div>
+        </div>
+
+        {/* Weather Impact - Simplified */}
+        {showImpact && impact && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-blue-800 font-medium">Training Impact:</span>
+              <span className={`text-xs font-medium ${getPerformanceColor(impact.performance)}`}>
+                {impact.performance}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Forecast Tabs - Only if enabled */}
         {showForecastTabs && forecast?.forecast?.hourly && (
           <div className="pt-3 border-t">
             <Tabs defaultValue="today" className="w-full">
@@ -666,6 +756,19 @@ export function WeatherWidgetEnhanced({
             </div>
           </div>
         )}
+
+        {/* View Details Button */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full text-xs"
+          onClick={() => {
+            // Navigate to detailed weather page or enable forecast tabs
+            setShowLocationInput(true)
+          }}
+        >
+          View Detailed Forecast
+        </Button>
       </CardContent>
     </Card>
   )

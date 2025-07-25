@@ -17,6 +17,7 @@ import {
 import { Activity as StravaActivity } from '@/lib/strava/types'
 import { ActivityWithTrainingData } from '@/types'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 interface PerformanceInsightsCardProps {
   userId: string
@@ -358,131 +359,67 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <TrendingUp className="h-5 w-5" />
-          Performance Insights
+          Performance Status
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 flex-1 h-full flex flex-col justify-between">
-        {/* Key Metrics Grid - Compact */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Pace Improvement */}
-          <div className="text-center p-2 bg-blue-50 rounded-lg">
-            <div className="flex items-center justify-center gap-1 text-xs text-gray-600 mb-1">
-              <Target className="h-3 w-3" />
-              Pace Trend
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              {getTrendIcon(performanceInsights.paceImprovement.trend, 'h-3 w-3')}
-              <span className={`font-bold text-sm ${getTrendColor(performanceInsights.paceImprovement.trend)}`}>
-                {performanceInsights.paceImprovement.value.toFixed(1)}%
-              </span>
-            </div>
-            <div className="text-xs text-gray-500">
-              {performanceInsights.paceImprovement.timeframe}
+        {/* Simplified Performance Display - Focus on ONE key metric */}
+        <div className="text-center space-y-3">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-3xl">🔥</span>
+            <div className="text-3xl font-bold text-orange-600">
+              {performanceInsights.consistencyStreak}
             </div>
           </div>
-
-          {/* Consistency Streak */}
-          <div className="text-center p-2 bg-orange-50 rounded-lg">
-            <div className="flex items-center justify-center gap-1 text-xs text-gray-600 mb-1">
-              <Flame className="h-3 w-3" />
-              Streak
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              <span className="text-lg">🔥</span>
-              <span className="text-lg font-bold text-orange-600">
-                {performanceInsights.consistencyStreak}
-              </span>
-            </div>
-            <div className="text-xs text-gray-500">
-              {performanceInsights.consistencyStreak === 1 ? 'day' : 'days'}
-            </div>
+          <div className="text-sm text-gray-600">
+            Day Training Streak
+          </div>
+          <div className="text-xs text-gray-500">
+            {performanceInsights.consistencyStreak === 1 ? 'day' : 'days'} of consistent training
           </div>
         </div>
 
-        {/* Training Load Trend - Compact */}
-        <div className="p-2 bg-gray-50 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Activity className="h-3 w-3 text-gray-600" />
-              <span className="text-xs font-medium">Training Load</span>
+        {/* Quick Status Indicators */}
+        <div className="grid grid-cols-2 gap-2 text-center">
+          <div className="p-2 bg-green-50 rounded-lg">
+            <div className="text-lg font-bold text-green-600">
+              {performanceInsights.paceImprovement.value > 0 ? '+' : ''}{performanceInsights.paceImprovement.value}%
             </div>
-            <div className="flex items-center gap-2">
-              {getTrendIcon(performanceInsights.trainingLoadTrend, 'h-3 w-3')}
-              <span className={`text-xs font-medium ${getTrendColor(performanceInsights.trainingLoadTrend)}`}>
-                {performanceInsights.trainingLoadTrend}
-              </span>
+            <div className="text-xs text-green-600">Pace</div>
+          </div>
+          <div className="p-2 bg-blue-50 rounded-lg">
+            <div className="text-lg font-bold text-blue-600">
+              {performanceInsights.weeklyDistance.current > 0 
+                ? parseFloat(formatDistance(performanceInsights.weeklyDistance.current * 1000, preferences.distance)).toFixed(1)
+                : '0'
+              }
             </div>
+            <div className="text-xs text-blue-600">This Week</div>
           </div>
         </div>
 
-        {/* Weekly Distance Comparison - Compact */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-medium text-gray-600">Weekly Distance</h4>
-            <Link href="/dashboard/analytics" className="text-xs text-blue-600 hover:text-blue-700 hover:underline">
-              Details →
-            </Link>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-lg font-bold">
-                {formatDistance(performanceInsights.weeklyDistance.current * 1000, preferences.distance)}
-              </div>
-              <div className="text-xs text-gray-500">{getWeeklyLabel()}</div>
-            </div>
-            <div className="text-right">
-              <div className={`text-sm font-medium ${performanceInsights.weeklyDistance.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {performanceInsights.weeklyDistance.change >= 0 ? '+' : ''}{performanceInsights.weeklyDistance.change}%
-              </div>
-              <div className="text-xs text-gray-500">vs last week</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Achievements - Compact */}
+        {/* Recent Achievement - If any */}
         {performanceInsights.achievements.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="text-xs font-medium text-gray-600 flex items-center gap-2">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2">
+            <div className="flex items-center gap-2 text-xs text-yellow-800">
               <Trophy className="h-3 w-3" />
-              Recent Achievements
-            </h4>
-            <div className="space-y-1">
-              {performanceInsights.achievements.map((achievement, index) => (
-                <div key={index} className="flex items-start gap-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <span className="text-sm">{achievement.icon}</span>
-                  <div className="flex-1">
-                    <div className="text-xs font-medium text-yellow-800">
-                      {achievement.title}
-                    </div>
-                    <div className="text-xs text-yellow-600">
-                      {achievement.description}
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <span>Recent: {performanceInsights.achievements[0].title}</span>
             </div>
           </div>
         )}
 
-        {/* Quick Stats - Compact */}
-        <div className="border-t pt-3">
-          <div className="grid grid-cols-2 gap-3 text-center">
-            <div>
-              <div className="text-xs text-gray-600">Avg Intensity</div>
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-sm font-medium">{performanceInsights.averageIntensity.current} BPM</span>
-                {getTrendIcon(performanceInsights.averageIntensity.trend, 'h-3 w-3')}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-600">Load Trend</div>
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-sm font-medium capitalize">{performanceInsights.trainingLoadTrend}</span>
-                {getTrendIcon(performanceInsights.trainingLoadTrend, 'h-3 w-3')}
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* View Details Button */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full text-xs"
+          onClick={() => {
+            // Navigate to detailed performance page
+            window.location.href = '/dashboard/analytics'
+          }}
+        >
+          View Detailed Insights
+        </Button>
       </CardContent>
     </Card>
   )

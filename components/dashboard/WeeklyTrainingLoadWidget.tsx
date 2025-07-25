@@ -300,7 +300,7 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <BarChart3 className="h-5 w-5" />
-          Weekly Training Load
+          Weekly Progress
           {getTrendIcon(weeklyTrainingLoad.weeklyTrend)}
           <Button 
             onClick={handleRefresh} 
@@ -313,118 +313,61 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 flex-1 h-full flex flex-col justify-between">
-        {/* TSS Progress - Compact */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-gray-600" />
-              <span className="font-medium text-sm">TSS Progress</span>
-            </div>
-            <div className="text-right">
-              <div className="text-lg font-bold">
-                {weeklyTrainingLoad.currentTSS}
-              </div>
-              <div className="text-xs text-gray-600">
-                / {weeklyTrainingLoad.targetTSS} target
-              </div>
-            </div>
+        {/* Simplified TSS Progress - Focus on ONE key metric */}
+        <div className="text-center space-y-3">
+          <div className="text-3xl font-bold text-blue-600">
+            {weeklyTrainingLoad.progressPercentage}%
           </div>
-          
+          <div className="text-sm text-gray-600">
+            Weekly TSS Progress
+          </div>
           <Progress 
             value={Math.min(100, weeklyTrainingLoad.progressPercentage)} 
-            className="h-2"
+            className="h-3"
           />
-          
-          <div className="flex justify-between text-xs text-gray-600">
-            <span>{weeklyTrainingLoad.progressPercentage}% complete</span>
-            <span>{weeklyTrainingLoad.targetTSS - weeklyTrainingLoad.currentTSS} TSS remaining</span>
+          <div className="text-xs text-gray-500">
+            {weeklyTrainingLoad.currentTSS} / {weeklyTrainingLoad.targetTSS} TSS
+          </div>
+        </div>
+
+        {/* Quick Status Indicators */}
+        <div className="grid grid-cols-2 gap-2 text-center">
+          <div className="p-2 bg-green-50 rounded-lg">
+            <div className="text-lg font-bold text-green-600">
+              {weeklyTrainingLoad.workoutsCompleted}
+            </div>
+            <div className="text-xs text-green-600">Workouts</div>
+          </div>
+          <div className="p-2 bg-blue-50 rounded-lg">
+            <div className="text-lg font-bold text-blue-600">
+              {weeklyTrainingLoad.zoneDistribution.zone2}%
+            </div>
+            <div className="text-xs text-blue-600">Zone 2</div>
           </div>
         </div>
 
         {/* Warning if TSS needs updating - Compact */}
         {needsTSSUpdate && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-yellow-800">
-                <AlertTriangle className="h-3 w-3" />
-                <span className="text-xs font-medium">TSS Calculation Needed</span>
-              </div>
-              <Button 
-                onClick={handleUpdateTSS} 
-                variant="outline" 
-                size="sm"
-                className="text-yellow-700 border-yellow-300 hover:bg-yellow-100 text-xs"
-              >
-                Calculate
-              </Button>
+            <div className="flex items-center gap-2 text-xs text-yellow-800">
+              <AlertTriangle className="h-3 w-3" />
+              <span>TSS data updating</span>
             </div>
           </div>
         )}
 
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="text-center p-2 bg-blue-50 rounded-lg">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Calendar className="h-3 w-3 text-blue-600" />
-              <span className="text-xs font-medium text-blue-800">Workouts</span>
-            </div>
-            <div className="text-lg font-bold text-blue-900">
-              {weeklyTrainingLoad.workoutsCompleted}
-            </div>
-            <div className="text-xs text-blue-600">This week</div>
-          </div>
-          
-          <div className="text-center p-2 bg-green-50 rounded-lg">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Clock className="h-3 w-3 text-green-600" />
-              <span className="text-xs font-medium text-green-800">Zone 2</span>
-            </div>
-            <div className="text-lg font-bold text-green-900">
-              {weeklyTrainingLoad.zoneDistribution.zone2}%
-            </div>
-            <div className="text-xs text-green-600">Aerobic base</div>
-          </div>
-        </div>
-
-        {/* Zone Distribution - Compact */}
-        <div className="space-y-2">
-          <h4 className="font-medium flex items-center gap-2 text-sm">
-            <Activity className="h-3 w-3" />
-            Training Zones
-          </h4>
-          
-          <div className="grid grid-cols-5 gap-1">
-            {Object.entries(weeklyTrainingLoad.zoneDistribution).map(([zone, percentage]) => {
-              const zoneNumber = parseInt(zone.replace('zone', ''))
-              return (
-                <div key={zone} className="text-center">
-                  <div className={`h-6 rounded-t ${getZoneColor(zoneNumber)} opacity-80`}
-                       style={{ height: `${Math.max(6, percentage * 0.6)}px` }}>
-                  </div>
-                  <div className="text-xs text-gray-600 mt-1">Z{zoneNumber}</div>
-                  <div className="text-xs font-medium">{percentage}%</div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Daily TSS Chart - Compact */}
-        <div className="space-y-2">
-          <h4 className="text-xs font-medium text-gray-600">Daily Distribution</h4>
-          <div className="flex justify-between items-end h-12 px-1">
-            {weeklyTrainingLoad.dailyTSS.map((day) => (
-              <div key={day.day} className="flex flex-col items-center flex-1">
-                <div 
-                  className="w-3 bg-blue-500 rounded-t opacity-70 min-h-1"
-                  style={{ height: `${Math.max(3, (day.tss / 150) * 36)}px` }}
-                ></div>
-                <div className="text-xs text-gray-600 mt-1">{day.day}</div>
-                <div className="text-xs font-medium">{day.tss}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* View Details Button */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full text-xs"
+          onClick={() => {
+            // Navigate to detailed training load page
+            window.location.href = '/dashboard/training'
+          }}
+        >
+          View Detailed Analysis
+        </Button>
       </CardContent>
     </Card>
   )

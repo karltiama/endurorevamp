@@ -185,73 +185,77 @@ export function ActivityFrequencyWidget({ activities }: ActivityFrequencyWidgetP
           Your training consistency over the last 4 weeks
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Key Metrics */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{totalActivities}</div>
-            <div className="text-sm text-blue-600">Total Activities</div>
-          </div>
-          <div className="text-center p-3 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{averagePerWeek.toFixed(1)}</div>
-            <div className="text-sm text-green-600">Avg/Week</div>
-          </div>
-        </div>
-
-        {/* Consistency Score */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Consistency Score</span>
-            <span className="text-sm font-bold">{Math.round(consistencyScore)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-green-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${consistencyScore}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Streaks */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-2 bg-orange-50 rounded-lg">
-            <div className="text-lg font-bold text-orange-600">{currentStreak}</div>
-            <div className="text-xs text-orange-600">Current Streak</div>
-          </div>
-          <div className="text-center p-2 bg-purple-50 rounded-lg">
-            <div className="text-lg font-bold text-purple-600">{longestStreak}</div>
-            <div className="text-xs text-purple-600">Longest Streak</div>
-          </div>
-        </div>
-
-        {/* Weekly Breakdown */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Weekly Breakdown</span>
-          </div>
-          <div className="space-y-1">
-            {weeklyCounts.map((week, index) => (
-              <div key={index} className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">{week.week}</span>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{week.count} activities</span>
-                  <span className="text-muted-foreground">
-                    ({convertDistance(week.distance, preferences.distance).toFixed(1)} {getDistanceUnit(preferences.distance)})
-                  </span>
-                </div>
+      <CardContent className="space-y-6">
+        {/* Simplified two-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column: Key Metrics + Consistency Score */}
+          <div className="space-y-4">
+            {/* Key Metrics - More compact */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center p-3 bg-blue-50 rounded-lg">
+                <div className="text-xl font-bold text-blue-600">{totalActivities}</div>
+                <div className="text-xs text-blue-600">Total Activities</div>
               </div>
-            ))}
+              <div className="text-center p-3 bg-green-50 rounded-lg">
+                <div className="text-xl font-bold text-green-600">{averagePerWeek.toFixed(1)}</div>
+                <div className="text-xs text-green-600">Avg/Week</div>
+              </div>
+            </div>
+
+            {/* Consistency Score - More compact */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Consistency Score</span>
+                <span className="text-sm font-bold">{Math.round(consistencyScore)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${consistencyScore}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Streaks - More compact */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center p-2 bg-orange-50 rounded-lg">
+                <div className="text-lg font-bold text-orange-600">{currentStreak}</div>
+                <div className="text-xs text-orange-600">Current Streak</div>
+              </div>
+              <div className="text-center p-2 bg-purple-50 rounded-lg">
+                <div className="text-lg font-bold text-purple-600">{longestStreak}</div>
+                <div className="text-xs text-purple-600">Longest Streak</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Weekly Breakdown - Simplified */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Weekly Summary</span>
+            </div>
+            <div className="space-y-2">
+              {weeklyCounts.map((week, index) => (
+                <div key={index} className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded-lg">
+                  <span className="text-muted-foreground font-medium">{week.week}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold">{week.count} activities</span>
+                    <span className="text-muted-foreground text-xs">
+                      {convertDistance(week.distance, preferences.distance).toFixed(1)} {getDistanceUnit(preferences.distance)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Mini Calendar */}
-        <div className="pt-2 border-t">
-          <div className="text-sm font-medium mb-2">Activity Calendar</div>
-          <div className="h-24 w-full overflow-x-auto max-w-full flex justify-center items-center">
-            <div className="min-w-[220px] max-w-full">
-              <ActivityContributionCalendar activities={activities} />
-            </div>
+        {/* Full Activity Calendar - No scrolling */}
+        <div className="border-t pt-4">
+          <div className="text-sm font-medium mb-3">Activity Calendar</div>
+          <div className="w-full">
+            <ActivityContributionCalendar activities={activities} />
           </div>
         </div>
       </CardContent>

@@ -39,12 +39,12 @@ export default async function DashboardPage() {
       {/* Onboarding Modal for new users */}
       <DashboardOnboardingHandler />
       
-      <div className="space-y-4">
+      <div className="space-y-6">
         {/* Header - More compact */}
         <div className="pb-2">
           <h1 className="text-2xl font-bold tracking-tight">Training Command Center</h1>
           <p className="text-sm text-muted-foreground">
-            Your personalized training insights and recommendations.
+            What should you do today? Your personalized training insights.
           </p>
         </div>
 
@@ -55,10 +55,10 @@ export default async function DashboardPage() {
           </Suspense>
         </ErrorBoundary>
 
-        {/* Compact three-column layout for secondary widgets */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-stretch">
-          {/* Weekly Training Load - Condensed */}
-          <div className="flex flex-col h-full min-h-[260px]">
+        {/* Simplified three-column layout for quick status check */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {/* Weekly Progress - Simplified */}
+          <div className="flex flex-col h-full min-h-[200px]">
             <ErrorBoundary fallback={TrainingLoadErrorFallback}>
               <Suspense fallback={<TrainingLoadSkeleton />}> 
                 <WeeklyTrainingLoadWidget userId={user.id} />
@@ -66,8 +66,8 @@ export default async function DashboardPage() {
             </ErrorBoundary>
           </div>
 
-          {/* Performance Insights - Condensed */}
-          <div className="flex flex-col h-full min-h-[260px]">
+          {/* Performance Status - Simplified */}
+          <div className="flex flex-col h-full min-h-[200px]">
             <ErrorBoundary fallback={PerformanceInsightsErrorFallback}>
               <Suspense fallback={<PerformanceInsightsSkeleton />}> 
                 <PerformanceInsightsCard userId={user.id} />
@@ -75,37 +75,37 @@ export default async function DashboardPage() {
             </ErrorBoundary>
           </div>
 
-          {/* Weather Widget - Condensed */}
-          <div className="flex flex-col h-full min-h-[260px]">
+          {/* Weather Conditions - Simplified */}
+          <div className="flex flex-col h-full min-h-[200px]">
             <ErrorBoundary fallback={WeatherErrorFallback}>
               <Suspense fallback={<WeatherSkeleton />}> 
                 <WeatherWidgetEnhanced 
                   showImpact={true} 
                   showLocationPrompt={true}
-                  showForecastTabs={true}
+                  showForecastTabs={false}
                 />
               </Suspense>
             </ErrorBoundary>
           </div>
         </div>
 
-        {/* Activity Frequency - now full width under Performance Insights */}
+        {/* Activity Frequency - Simplified and more scannable */}
         <ErrorBoundary fallback={ActivityFrequencyErrorFallback}>
           <Suspense fallback={<div className="animate-pulse bg-white rounded-lg shadow p-6"><div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div><div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div></div>}>
             <ActivityFrequencyWidgetClient userId={user.id} />
           </Suspense>
         </ErrorBoundary>
 
-        {/* Two-column layout for goals and actions */}
+        {/* Goals and Actions - Combined in single row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Dynamic Goals Section - More compact */}
+          {/* Dynamic Goals Section */}
           <ErrorBoundary fallback={GoalsErrorFallback}>
             <Suspense fallback={<GoalsSkeleton />}>
               <DashboardGoalsSection />
             </Suspense>
           </ErrorBoundary>
 
-          {/* Quick Actions - More compact */}
+          {/* Quick Actions */}
           <ErrorBoundary fallback={QuickActionsErrorFallback}>
             <Suspense fallback={<QuickActionsSkeleton />}>
               <QuickActionsSection userId={user.id} />
