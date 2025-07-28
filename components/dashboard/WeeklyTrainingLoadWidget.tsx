@@ -301,6 +301,19 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
           </div>
         </div>
 
+        {/* Daily TSS Distribution */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-gray-700">Daily Distribution</h4>
+          <div className="grid grid-cols-7 gap-1 text-xs">
+            {weeklyTrainingLoad.dailyTSS.map((day, index) => (
+              <div key={index} className="text-center">
+                <div className="text-gray-600">{day.day}</div>
+                <div className="text-gray-900 font-medium">{day.tss}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Warning if TSS needs updating - Compact */}
         {needsTSSUpdate && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2">

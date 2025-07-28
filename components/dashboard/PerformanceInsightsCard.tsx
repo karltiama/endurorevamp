@@ -9,7 +9,9 @@ import {
   TrendingUp, 
   Trophy,
   Activity,
-  Settings
+  Zap,
+  Target,
+  BarChart3
 } from 'lucide-react'
 import { Activity as StravaActivity } from '@/lib/strava/types'
 import { ActivityWithTrainingData } from '@/types'
@@ -25,8 +27,10 @@ interface PerformanceInsights {
     trend: 'up' | 'down' | 'stable'
     timeframe: string
   }
-  consistencyStreak: number
-  trainingLoadTrend: 'increasing' | 'decreasing' | 'stable'
+  trainingLoadTrend: {
+    trend: 'increasing' | 'decreasing' | 'stable'
+    value: number
+  }
   achievements: Achievement[]
   weeklyDistance: {
     current: number
@@ -37,11 +41,10 @@ interface PerformanceInsights {
     current: number
     trend: 'up' | 'down' | 'stable'
   }
-  streakData: {
-    current: number
-    streakType: 'active' | 'rest_day' | 'broken'
-    restDaysRemaining: number
-    canUseRestDay: boolean
+  recentPerformance: {
+    last7Days: number
+    previous7Days: number
+    improvement: number
   }
 }
 
@@ -65,42 +68,6 @@ const estimateTrainingLoad = (activity: StravaActivity): number => {
   
   return durationHours * baseLoad * intensityMultiplier
 }
-
-const calculateConsistencyStreak = (activities: StravaActivity[]): number => {
-  if (activities.length === 0) return 0
-
-  const sortedActivities = activities
-    .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime())
-
-  let streak = 0
-  const currentDate = new Date()
-  currentDate.setHours(0, 0, 0, 0)
-
-  for (let i = 0; i < 30; i++) { // Check last 30 days
-    const checkDate = new Date(currentDate)
-    checkDate.setDate(currentDate.getDate() - i)
-
-    const hasActivity = sortedActivities.some(activity => {
-      const activityDate = new Date(activity.start_date)
-      activityDate.setHours(0, 0, 0, 0)
-      return activityDate.getTime() === checkDate.getTime()
-    })
-
-    if (hasActivity) {
-      streak++
-    } else if (i === 0) {
-      // If no activity today, check if there was one yesterday to start counting
-      continue
-    } else {
-      // Break in streak
-      break
-    }
-  }
-
-  return streak
-}
-
-
 
 const calculatePaceImprovement = (recent: StravaActivity[], previous: StravaActivity[]) => {
   const getAveragePace = (activities: StravaActivity[]) => {
@@ -145,13 +112,13 @@ const calculateTrainingLoadTrend = (recent: StravaActivity[], previous: StravaAc
   const recentLoad = getAverageLoad(recent)
   const previousLoad = getAverageLoad(previous)
 
-  if (previousLoad === 0) return 'stable'
+  if (previousLoad === 0) return { trend: 'stable' as const, value: recentLoad }
 
   const change = ((recentLoad - previousLoad) / previousLoad) * 100
 
-  if (change > 10) return 'increasing'
-  if (change < -10) return 'decreasing'
-  return 'stable'
+  if (change > 10) return { trend: 'increasing' as const, value: recentLoad }
+  if (change < -10) return { trend: 'decreasing' as const, value: recentLoad }
+  return { trend: 'stable' as const, value: recentLoad }
 }
 
 const findRecentAchievements = (activities: StravaActivity[], preferences: { distance: 'km' | 'miles' }): Achievement[] => {
@@ -177,18 +144,6 @@ const findRecentAchievements = (activities: StravaActivity[], preferences: { dis
         icon: '🏆'
       })
     }
-  }
-
-  // Check for consistency achievement
-  const streak = calculateConsistencyStreak(activities)
-  if (streak >= 5) {
-    achievements.push({
-      type: 'consistency',
-      title: 'Consistency Champion!',
-      description: `${streak} day training streak - keep it up!`,
-      date: new Date().toISOString(),
-      icon: '🔥'
-    })
   }
 
   return achievements.slice(0, 2) // Limit to 2 achievements
@@ -230,13 +185,24 @@ const calculateAverageIntensity = (recent: StravaActivity[], previous: StravaAct
   }
 }
 
-// Removed unused functions
+const calculateRecentPerformance = (recent: StravaActivity[], previous: StravaActivity[]) => {
+  const getTotalDistance = (activities: StravaActivity[]) => 
+    activities.reduce((sum: number, activity: StravaActivity) => sum + activity.distance, 0) / 1000
+
+  const last7Days = getTotalDistance(recent)
+  const previous7Days = getTotalDistance(previous)
+  const improvement = previous7Days > 0 ? ((last7Days - previous7Days) / previous7Days) * 100 : 0
+
+  return {
+    last7Days: Math.round(last7Days * 10) / 10,
+    previous7Days: Math.round(previous7Days * 10) / 10,
+    improvement: Math.round(improvement)
+  }
+}
 
 export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps) {
   const { data: activities, isLoading, error } = useUserActivities(userId)
   const { preferences } = useUnitPreferences()
-
-
 
   const performanceInsights = useMemo((): PerformanceInsights | null => {
     if (!activities || activities.length === 0) return null
@@ -259,9 +225,6 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
     // Calculate pace improvement
     const paceImprovement = calculatePaceImprovement(recentActivities, previousActivities)
 
-    // Calculate simple consistency streak (no rest days)
-    const consistencyStreak = calculateConsistencyStreak(activities)
-
     // Calculate training load trend
     const trainingLoadTrend = calculateTrainingLoadTrend(recentActivities, previousActivities)
 
@@ -274,19 +237,16 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
     // Average intensity trend
     const averageIntensity = calculateAverageIntensity(recentActivities, previousActivities)
 
+    // Recent performance comparison
+    const recentPerformance = calculateRecentPerformance(recentActivities, previousActivities)
+
     return {
       paceImprovement,
-      consistencyStreak,
       trainingLoadTrend,
       achievements,
       weeklyDistance,
       averageIntensity,
-      streakData: {
-        current: consistencyStreak,
-        streakType: 'active' as const,
-        restDaysRemaining: 0,
-        canUseRestDay: false
-      }
+      recentPerformance
     }
   }, [activities, preferences])
 
@@ -337,29 +297,27 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 flex-1 h-full flex flex-col justify-between">
-        {/* Enhanced Performance Display with Rest Day Support */}
-        <div className="text-center space-y-3">
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-3xl">🔥</span>
-            <div className="text-3xl font-bold text-orange-600">
-              {performanceInsights.consistencyStreak}
-            </div>
-          </div>
-          <div className="text-sm text-gray-600">
-            Day{performanceInsights.consistencyStreak !== 1 ? 's' : ''} Training Streak
-          </div>
-        </div>
-
-        {/* Quick Status Indicators */}
-        <div className="grid grid-cols-2 gap-2 text-center">
-          <div className={`p-2 rounded-lg ${
+        {/* Quick Performance Stats Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Pace Improvement */}
+          <div className={`p-3 rounded-lg text-center ${
             performanceInsights.paceImprovement.trend === 'up' 
-              ? 'bg-green-50' 
+              ? 'bg-green-50 border border-green-200' 
               : performanceInsights.paceImprovement.trend === 'down' 
-                ? 'bg-red-50' 
-                : 'bg-gray-50'
+                ? 'bg-red-50 border border-red-200' 
+                : 'bg-gray-50 border border-gray-200'
           }`}>
-            <div className={`text-lg font-bold ${
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Target className={`h-4 w-4 ${
+                performanceInsights.paceImprovement.trend === 'up' 
+                  ? 'text-green-600' 
+                  : performanceInsights.paceImprovement.trend === 'down' 
+                    ? 'text-red-600' 
+                    : 'text-gray-600'
+              }`} />
+              <span className="text-sm font-medium">Pace</span>
+            </div>
+            <div className={`text-xl font-bold ${
               performanceInsights.paceImprovement.trend === 'up' 
                 ? 'text-green-600' 
                 : performanceInsights.paceImprovement.trend === 'down' 
@@ -368,32 +326,96 @@ export function PerformanceInsightsCard({ userId }: PerformanceInsightsCardProps
             }`}>
               {performanceInsights.paceImprovement.trend === 'up' ? '+' : performanceInsights.paceImprovement.trend === 'down' ? '-' : ''}{performanceInsights.paceImprovement.value.toFixed(1)}%
             </div>
-            <div className={`text-xs ${
-              performanceInsights.paceImprovement.trend === 'up' 
-                ? 'text-green-600' 
-                : performanceInsights.paceImprovement.trend === 'down' 
-                  ? 'text-red-600' 
-                  : 'text-gray-600'
-            }`}>Pace</div>
+            <div className="text-xs text-gray-500 mt-1">
+              {performanceInsights.paceImprovement.trend === 'up' ? 'Improving' : performanceInsights.paceImprovement.trend === 'down' ? 'Slower' : 'Stable'}
+            </div>
           </div>
-          <div className="p-2 bg-blue-50 rounded-lg">
-            <div className="text-lg font-bold text-blue-600">
+
+          {/* Weekly Distance */}
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <BarChart3 className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-medium">This Week</span>
+            </div>
+            <div className="text-xl font-bold text-blue-600">
               {performanceInsights.weeklyDistance.current > 0 
                 ? parseFloat(formatDistance(performanceInsights.weeklyDistance.current * 1000, preferences.distance)).toFixed(1)
                 : '0'
               }
             </div>
-            <div className="text-xs text-blue-600">
-              {preferences.distance === 'miles' ? 'mi' : 'km'} This Week
+            <div className="text-xs text-gray-500 mt-1">
+              {preferences.distance === 'miles' ? 'miles' : 'km'}
             </div>
+          </div>
+
+          {/* Training Load Trend */}
+          <div className={`p-3 rounded-lg text-center ${
+            performanceInsights.trainingLoadTrend.trend === 'increasing' 
+              ? 'bg-orange-50 border border-orange-200' 
+              : performanceInsights.trainingLoadTrend.trend === 'decreasing' 
+                ? 'bg-purple-50 border border-purple-200' 
+                : 'bg-gray-50 border border-gray-200'
+          }`}>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Zap className={`h-4 w-4 ${
+                performanceInsights.trainingLoadTrend.trend === 'increasing' 
+                  ? 'text-orange-600' 
+                  : performanceInsights.trainingLoadTrend.trend === 'decreasing' 
+                    ? 'text-purple-600' 
+                    : 'text-gray-600'
+              }`} />
+              <span className="text-sm font-medium">Load</span>
+            </div>
+            <div className={`text-xl font-bold ${
+              performanceInsights.trainingLoadTrend.trend === 'increasing' 
+                ? 'text-orange-600' 
+                : performanceInsights.trainingLoadTrend.trend === 'decreasing' 
+                  ? 'text-purple-600' 
+                  : 'text-gray-600'
+            }`}>
+              {Math.round(performanceInsights.trainingLoadTrend.value)}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {performanceInsights.trainingLoadTrend.trend === 'increasing' ? 'Building' : performanceInsights.trainingLoadTrend.trend === 'decreasing' ? 'Recovery' : 'Stable'}
+            </div>
+          </div>
+
+          {/* Average Intensity */}
+          <div className={`p-3 rounded-lg text-center ${
+            performanceInsights.averageIntensity.trend === 'up' 
+              ? 'bg-red-50 border border-red-200' 
+              : performanceInsights.averageIntensity.trend === 'down' 
+                ? 'bg-green-50 border border-green-200' 
+                : 'bg-gray-50 border border-gray-200'
+          }`}>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Activity className={`h-4 w-4 ${
+                performanceInsights.averageIntensity.trend === 'up' 
+                  ? 'text-red-600' 
+                  : performanceInsights.averageIntensity.trend === 'down' 
+                    ? 'text-green-600' 
+                    : 'text-gray-600'
+              }`} />
+              <span className="text-sm font-medium">Intensity</span>
+            </div>
+            <div className={`text-xl font-bold ${
+              performanceInsights.averageIntensity.trend === 'up' 
+                ? 'text-red-600' 
+                : performanceInsights.averageIntensity.trend === 'down' 
+                  ? 'text-green-600' 
+                  : 'text-gray-600'
+            }`}>
+              {performanceInsights.averageIntensity.current}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">BPM avg</div>
           </div>
         </div>
 
         {/* Recent Achievement - If any */}
         {performanceInsights.achievements.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2">
-            <div className="flex items-center gap-2 text-xs text-yellow-800">
-              <Trophy className="h-3 w-3" />
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-sm text-yellow-800">
+              <Trophy className="h-4 w-4" />
               <span>Recent: {performanceInsights.achievements[0].title}</span>
             </div>
           </div>

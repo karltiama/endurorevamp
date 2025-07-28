@@ -77,7 +77,7 @@ describe('DashboardLayout with Hover Sidebar', () => {
       
       // Check for navigation items
       expect(screen.getByText('Dashboard')).toBeInTheDocument()
-      expect(screen.getByText('Activity Analysis')).toBeInTheDocument()
+      expect(screen.getByText('Analytics')).toBeInTheDocument()
       expect(screen.getByText('Training Load')).toBeInTheDocument()
       expect(screen.getByText('Goals')).toBeInTheDocument()
       expect(screen.getByText('Workout Planning')).toBeInTheDocument()

@@ -3,7 +3,7 @@ import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { TrainingReadinessCard } from '@/components/dashboard/TrainingReadinessCard'
 import { WeeklyTrainingLoadWidget } from '@/components/dashboard/WeeklyTrainingLoadWidget'
 import { PerformanceInsightsCard } from '@/components/dashboard/PerformanceInsightsCard'
-import { ActivityFrequencyWidgetClient } from '@/components/dashboard/ActivityFrequencyWidgetClient'
+
 import { WeatherWidgetEnhanced } from '@/components/weather/WeatherWidgetEnhanced'
 import { QuickActionsSection } from '@/components/dashboard/QuickActionsSection'
 import { DashboardOnboardingHandler } from '@/components/dashboard/DashboardOnboardingHandler'
@@ -26,7 +26,7 @@ import {
 import { WeatherSkeleton, WeatherErrorFallback } from '@/components/dashboard/WeatherFallbacks'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Suspense } from "react"
-import ActivityFrequencyErrorFallback from '@/components/dashboard/ActivityFrequencyErrorFallback'
+
 
 export default async function DashboardPage() {
   const user = await requireAuth()
@@ -89,12 +89,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Activity Frequency - Simplified and more scannable */}
-        <ErrorBoundary fallback={ActivityFrequencyErrorFallback}>
-          <Suspense fallback={<div className="animate-pulse bg-white rounded-lg shadow p-6"><div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div><div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div></div>}>
-            <ActivityFrequencyWidgetClient userId={user.id} />
-          </Suspense>
-        </ErrorBoundary>
+
 
         {/* Goals and Actions - Combined in single row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

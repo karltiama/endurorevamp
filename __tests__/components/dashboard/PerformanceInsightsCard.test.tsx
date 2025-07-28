@@ -109,10 +109,10 @@ describe('PerformanceInsightsCard', () => {
 
     render(<PerformanceInsightsCard userId="test-user" />, { wrapper: createWrapper() });
     
-    expect(screen.getByText('Performance Insights')).toBeInTheDocument();
-    expect(screen.getByText('Pace Trend')).toBeInTheDocument();
+    expect(screen.getByText('Performance Status')).toBeInTheDocument();
+    expect(screen.getByText('Pace')).toBeInTheDocument();
     // Look for the specific section heading from the actual component
-    expect(screen.getByText('Weekly Distance')).toBeInTheDocument();
+    expect(screen.getByText('This Week')).toBeInTheDocument();
   });
 
   it('shows pace improvement trends', () => {
@@ -142,44 +142,12 @@ describe('PerformanceInsightsCard', () => {
 
     render(<PerformanceInsightsCard userId="test-user" />, { wrapper: createWrapper() });
     
-    expect(screen.getByText('Pace Trend')).toBeInTheDocument();
-    expect(screen.getByText('Last 7 days')).toBeInTheDocument();
+    expect(screen.getByText('Pace')).toBeInTheDocument();
     // Check for percentage text more specifically
     expect(screen.getByText(/\d+\.\d+%/)).toBeInTheDocument();
   });
 
-  it('displays consistency streak information', () => {
-    const today = new Date();
-    const activities = [
-      createMockActivity({
-        start_date: new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString() // Yesterday
-      }),
-      createMockActivity({
-        id: '2',
-        strava_activity_id: 123457,
-        start_date: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
-      }),
-      createMockActivity({
-        id: '3',
-        strava_activity_id: 123458,
-        start_date: new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString() // 3 days ago
-      })
-    ];
 
-    mockUseUserActivities.mockReturnValue({
-      data: activities,
-      isLoading: false,
-      error: null,
-      refetch: jest.fn()
-    } as any);
-
-    render(<PerformanceInsightsCard userId="test-user" />, { wrapper: createWrapper() });
-    
-    expect(screen.getByText('Streak')).toBeInTheDocument();
-    expect(screen.getByText('🔥')).toBeInTheDocument();
-    // Look for the specific "days" text instead of generic number
-    expect(screen.getByText('days')).toBeInTheDocument();
-  });
 
   it('shows recent achievements and PRs', () => {
     const activities = [
@@ -207,8 +175,7 @@ describe('PerformanceInsightsCard', () => {
     render(<PerformanceInsightsCard userId="test-user" />, { wrapper: createWrapper() });
     
     // Look for specific achievement text that actually exists in the component
-    expect(screen.getByText('New Distance PR!')).toBeInTheDocument();
-    expect(screen.getByText(/your longest run yet/)).toBeInTheDocument();
+    expect(screen.getByText(/New Distance PR!/)).toBeInTheDocument();
   });
 
 
@@ -238,9 +205,9 @@ describe('PerformanceInsightsCard', () => {
 
     render(<PerformanceInsightsCard userId="test-user" />, { wrapper: createWrapper() });
     
-    expect(screen.getByText('Training Load')).toBeInTheDocument();
+    expect(screen.getByText('Load')).toBeInTheDocument();
     // Look for specific trend indicators instead of broad regex (note lowercase)
-    const trendElements = screen.getAllByText(/increasing|decreasing|stable/i);
+    const trendElements = screen.getAllByText(/increasing|decreasing|stable|building|recovery/i);
     expect(trendElements.length).toBeGreaterThan(0);
   });
 
@@ -262,65 +229,14 @@ describe('PerformanceInsightsCard', () => {
 
     render(<PerformanceInsightsCard userId="test-user" />, { wrapper: createWrapper() });
     
-    expect(screen.getByText('Weekly Distance')).toBeInTheDocument();
-    expect(screen.getByText('Training Load')).toBeInTheDocument();
-    expect(screen.getByText('Avg Intensity')).toBeInTheDocument();
-    expect(screen.getByText('Load Trend')).toBeInTheDocument();
+    expect(screen.getByText('This Week')).toBeInTheDocument();
+    expect(screen.getByText('Load')).toBeInTheDocument();
+    expect(screen.getByText('Intensity')).toBeInTheDocument();
   });
 
-  it('calculates and displays workout streak correctly', () => {
-    const activities = [
-      createMockActivity({
-        start_date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() // Yesterday
-      }),
-      createMockActivity({
-        id: '2',
-        strava_activity_id: 123457,
-        start_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
-      })
-    ];
 
-    mockUseUserActivities.mockReturnValue({
-      data: activities,
-      isLoading: false,
-      error: null,
-      refetch: jest.fn()
-    } as any);
 
-    render(<PerformanceInsightsCard userId="test-user" />, { wrapper: createWrapper() });
 
-    expect(screen.getByText('Streak')).toBeInTheDocument();
-    // Look for days text that's specifically under the streak section
-    const streakSection = screen.getByText('Streak').closest('div')?.parentElement;
-    expect(streakSection).toBeInTheDocument();
-  });
-
-  it('shows consistency achievement when streak is high', () => {
-    const activities = Array.from({ length: 7 }, (_, i) => 
-      createMockActivity({
-        id: String(i + 1),
-        strava_activity_id: 123456 + i,
-        start_date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-        distance: 5000 + (i * 100) // Slight variation in distance
-      })
-    );
-
-    mockUseUserActivities.mockReturnValue({
-      data: activities,
-      isLoading: false,
-      error: null,
-      refetch: jest.fn()
-    } as any);
-
-    render(<PerformanceInsightsCard userId="test-user" />, { wrapper: createWrapper() });
-    
-    expect(screen.getByText('Streak')).toBeInTheDocument();
-    // Check for flame emoji - use getAllByText since there are multiple emoji elements
-    const flameElements = screen.getAllByText('🔥');
-    expect(flameElements.length).toBeGreaterThan(0);
-    // Just check that the component renders successfully with high streak
-    expect(screen.getByText('Performance Insights')).toBeInTheDocument();
-  });
 
   it('shows load trend in quick stats', () => {
     const activities = [
@@ -339,9 +255,9 @@ describe('PerformanceInsightsCard', () => {
 
     render(<PerformanceInsightsCard userId="test-user" />, { wrapper: createWrapper() });
 
-    expect(screen.getByText('Load Trend')).toBeInTheDocument();
+    expect(screen.getByText('Load')).toBeInTheDocument();
     // Check that stable text exists - use getAllByText since there are multiple "stable" elements
-    const stableElements = screen.getAllByText('stable');
+    const stableElements = screen.getAllByText(/stable/i);
     expect(stableElements.length).toBeGreaterThan(0);
   });
 }); 

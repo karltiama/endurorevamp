@@ -26,17 +26,17 @@ export default async function AnalyticsPage() {
           <AnalyticsSyncPrompt userId={user.id} />
         </Suspense>
 
-        {/* Personal Bests Section */}
-        <div id="personal-bests" className="scroll-mt-20">
-          <Suspense fallback={<PersonalBestsSkeleton />}>
-            <PersonalBestsClient userId={user.id} />
-          </Suspense>
-        </div>
-
         {/* Historical Trends Section */}
         <div id="historical-trends" className="scroll-mt-20">
           <Suspense fallback={<HistoricalTrendsSkeleton />}>
             <HistoricalTrendsClient userId={user.id} />
+          </Suspense>
+        </div>
+
+        {/* Personal Bests Section */}
+        <div id="personal-bests" className="scroll-mt-20">
+          <Suspense fallback={<PersonalBestsSkeleton />}>
+            <PersonalBestsClient userId={user.id} />
           </Suspense>
         </div>
 

@@ -244,7 +244,7 @@ describe('WeatherWidgetEnhanced', () => {
     it('renders weather widget with current conditions', () => {
       render(<WeatherWidgetEnhanced />, { wrapper })
 
-      expect(screen.getByText('Weather')).toBeInTheDocument()
+      expect(screen.getByText('Weather Conditions')).toBeInTheDocument()
       expect(screen.getByText('London')).toBeInTheDocument()
       // Temperature and humidity are shown in the Today tab, not in the main widget
       // The main widget only shows the weather icon and location
@@ -480,7 +480,7 @@ describe('WeatherWidgetEnhanced', () => {
       render(<WeatherWidgetEnhanced />, { wrapper })
 
       // Should show weather widget with clear conditions
-      expect(screen.getByText('Weather')).toBeInTheDocument()
+      expect(screen.getByText('Weather Conditions')).toBeInTheDocument()
       expect(screen.getByText('London')).toBeInTheDocument()
     })
   })

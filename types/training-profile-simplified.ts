@@ -64,10 +64,85 @@ export interface TrainingPreferences {
   updated_at: string
 }
 
-// Complete profile combining both
+// NEW: Analysis parameter preferences for dynamic training profile
+export interface AnalysisParameters {
+  // Distance thresholds (km/week)
+  distance_beginner_threshold: number // default: 15
+  distance_intermediate_threshold: number // default: 30
+  distance_advanced_threshold: number // default: 50
+  
+  // Pace thresholds (seconds/km)
+  pace_beginner_threshold: number // default: 360 (6:00 min/km)
+  pace_intermediate_threshold: number // default: 300 (5:00 min/km)
+  pace_advanced_threshold: number // default: 250 (4:10 min/km)
+  
+  // Frequency thresholds (runs/week)
+  frequency_beginner_threshold: number // default: 3
+  frequency_intermediate_threshold: number // default: 5
+  frequency_advanced_threshold: number // default: 6
+  
+  // TSS thresholds
+  tss_beginner_threshold: number // default: 300
+  tss_intermediate_threshold: number // default: 600
+  tss_advanced_threshold: number // default: 900
+  
+  // Target multipliers (how aggressive to be with targets)
+  distance_target_multiplier: number // default: 1.3 (30% increase)
+  pace_target_multiplier: number // default: 0.9 (10% improvement)
+  frequency_target_multiplier: number // default: 1.2 (20% increase)
+  tss_target_multiplier: number // default: 1.2 (20% increase)
+  
+  // Analysis sensitivity
+  strength_threshold_percent: number // default: 30 (within 30% of target)
+  improvement_threshold_percent: number // default: 20 (20% below target)
+  
+  // Age/fitness adjustments
+  age_adjustment_factor: number // default: 1.0 (no adjustment)
+  fitness_level_adjustment: number // default: 1.0 (no adjustment)
+}
+
+// Complete profile with analysis parameters
 export interface CompleteUserProfile {
   profile: UserProfile
   preferences: TrainingPreferences
+  analysis_parameters?: AnalysisParameters
+}
+
+// Form data for updating analysis parameters
+export interface AnalysisParametersFormData {
+  // Distance thresholds
+  distance_beginner_threshold?: number
+  distance_intermediate_threshold?: number
+  distance_advanced_threshold?: number
+  
+  // Pace thresholds
+  pace_beginner_threshold?: number
+  pace_intermediate_threshold?: number
+  pace_advanced_threshold?: number
+  
+  // Frequency thresholds
+  frequency_beginner_threshold?: number
+  frequency_intermediate_threshold?: number
+  frequency_advanced_threshold?: number
+  
+  // TSS thresholds
+  tss_beginner_threshold?: number
+  tss_intermediate_threshold?: number
+  tss_advanced_threshold?: number
+  
+  // Target multipliers
+  distance_target_multiplier?: number
+  pace_target_multiplier?: number
+  frequency_target_multiplier?: number
+  tss_target_multiplier?: number
+  
+  // Analysis sensitivity
+  strength_threshold_percent?: number
+  improvement_threshold_percent?: number
+  
+  // Age/fitness adjustments
+  age_adjustment_factor?: number
+  fitness_level_adjustment?: number
 }
 
 // Form data types for editing
