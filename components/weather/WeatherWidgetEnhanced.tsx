@@ -674,108 +674,111 @@ export function WeatherWidgetEnhanced({
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 space-y-3">
-          {/* Simplified Weather Display - Focus on Running Score */}
-          <div className="text-center space-y-3">
-            <div className="text-3xl font-bold text-green-600">
-              {calculateRunningScore(
-                current.temperature, 
-                current.humidity, 
-                current.windSpeed, 
-                current.precipitation
-              )}%
+        <CardContent className="flex-1 h-full flex flex-col justify-between space-y-3">
+          {/* Main Content Area */}
+          <div className="space-y-3">
+            {/* Simplified Weather Display - Focus on Running Score */}
+            <div className="text-center space-y-3">
+              <div className="text-3xl font-bold text-green-600">
+                {calculateRunningScore(
+                  current.temperature, 
+                  current.humidity, 
+                  current.windSpeed, 
+                  current.precipitation
+                )}%
+              </div>
+              <div className="text-sm text-gray-600">
+                Running Score
+              </div>
+              <div className="text-xs text-gray-500">
+                {getScoreText(calculateRunningScore(
+                  current.temperature, 
+                  current.humidity, 
+                  current.windSpeed, 
+                  current.precipitation
+                ))} conditions
+              </div>
             </div>
-            <div className="text-sm text-gray-600">
-              Running Score
+
+            {/* Quick Weather Indicators */}
+            <div className="grid grid-cols-2 gap-2 text-center">
+              <div className="p-2 bg-red-50 rounded-lg">
+                <div className="text-lg font-bold text-red-600">
+                  {formatTemperature(current.temperature, preferences.temperature)}
+                </div>
+                <div className="text-xs text-red-600">Temperature</div>
+              </div>
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <div className="text-lg font-bold text-blue-600">
+                  {current.humidity}%
+                </div>
+                <div className="text-xs text-blue-600">Humidity</div>
+              </div>
             </div>
-            <div className="text-xs text-gray-500">
-              {getScoreText(calculateRunningScore(
-                current.temperature, 
-                current.humidity, 
-                current.windSpeed, 
-                current.precipitation
-              ))} conditions
-            </div>
+
+            {/* Weather Impact - Simplified */}
+            {showImpact && impact && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-blue-800 font-medium">Training Impact:</span>
+                  <span className={`text-xs font-medium ${getPerformanceColor(impact.performance)}`}>
+                    {impact.performance}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Forecast Tabs - Only if enabled */}
+            {showForecastTabs && forecast?.forecast?.hourly && (
+              <div className="pt-3 border-t">
+                <Tabs defaultValue="today" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 h-8 bg-gray-100 rounded-md p-0.5">
+                    <TabsTrigger value="today" className="text-xs data-[state=active]:bg-white rounded-sm mx-0.5">
+                      Today
+                    </TabsTrigger>
+                    <TabsTrigger value="tomorrow" className="text-xs data-[state=active]:bg-white rounded-sm mx-0.5">
+                      Tomorrow
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="today" className="mt-3">
+                    {renderTodayForecast()}
+                  </TabsContent>
+                  
+                  <TabsContent value="tomorrow" className="mt-3">
+                    {renderTomorrowForecast()}
+                  </TabsContent>
+                </Tabs>
+              </div>
+            )}
+
+            {/* Location Permission Prompt */}
+            {showLocationPrompt && !hasLocationPermission && permissionStatus === 'prompt' && (
+              <div className="pt-2 border-t">
+                <div className="text-sm text-gray-600 mb-2">
+                  Get weather for your location?
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    onClick={handleRequestLocation}
+                    className="flex-1"
+                  >
+                    Allow Location
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setShowLocationInput(true)}
+                  >
+                    Set Manually
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Quick Weather Indicators */}
-          <div className="grid grid-cols-2 gap-2 text-center">
-            <div className="p-2 bg-red-50 rounded-lg">
-              <div className="text-lg font-bold text-red-600">
-                {formatTemperature(current.temperature, preferences.temperature)}
-              </div>
-              <div className="text-xs text-red-600">Temperature</div>
-            </div>
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <div className="text-lg font-bold text-blue-600">
-                {current.humidity}%
-              </div>
-              <div className="text-xs text-blue-600">Humidity</div>
-            </div>
-          </div>
-
-          {/* Weather Impact - Simplified */}
-          {showImpact && impact && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-blue-800 font-medium">Training Impact:</span>
-                <span className={`text-xs font-medium ${getPerformanceColor(impact.performance)}`}>
-                  {impact.performance}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Forecast Tabs - Only if enabled */}
-          {showForecastTabs && forecast?.forecast?.hourly && (
-            <div className="pt-3 border-t">
-              <Tabs defaultValue="today" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 h-8 bg-gray-100 rounded-md p-0.5">
-                  <TabsTrigger value="today" className="text-xs data-[state=active]:bg-white rounded-sm mx-0.5">
-                    Today
-                  </TabsTrigger>
-                  <TabsTrigger value="tomorrow" className="text-xs data-[state=active]:bg-white rounded-sm mx-0.5">
-                    Tomorrow
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="today" className="mt-3">
-                  {renderTodayForecast()}
-                </TabsContent>
-                
-                <TabsContent value="tomorrow" className="mt-3">
-                  {renderTomorrowForecast()}
-                </TabsContent>
-              </Tabs>
-            </div>
-          )}
-
-          {/* Location Permission Prompt */}
-          {showLocationPrompt && !hasLocationPermission && permissionStatus === 'prompt' && (
-            <div className="pt-2 border-t">
-              <div className="text-sm text-gray-600 mb-2">
-                Get weather for your location?
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  size="sm" 
-                  onClick={handleRequestLocation}
-                  className="flex-1"
-                >
-                  Allow Location
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => setShowLocationInput(true)}
-                >
-                  Set Manually
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* View Details Button */}
+          {/* Bottom Button - Pushed to bottom */}
           <Button 
             variant="outline" 
             size="sm" 

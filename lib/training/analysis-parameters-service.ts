@@ -1,68 +1,21 @@
-import { createClient } from '@/lib/supabase/client'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 import { 
   AnalysisParameters, 
-  AnalysisParametersFormData,
   ExperienceLevel 
 } from '@/types/training-profile-simplified'
 
 /**
  * Service for managing analysis parameters for dynamic training profile
+ * Simplified to use static defaults instead of database storage
  */
 export class AnalysisParametersService {
   
   /**
    * Get analysis parameters for a user
+   * Now returns default parameters based on experience level
    */
-  static async getAnalysisParameters(userId: string, useServerClient = false): Promise<AnalysisParameters | null> {
-    const supabase = useServerClient ? await createServerClient() : createClient()
-    
-    try {
-      const { data, error } = await supabase
-        .from('analysis_parameters')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
-
-      if (error && error.code === 'PGRST116') {
-        return null // No parameters set
-      }
-
-      if (error) throw error
-      return data as AnalysisParameters
-    } catch (error) {
-      console.error('Error fetching analysis parameters:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Create or update analysis parameters
-   */
-  static async upsertAnalysisParameters(
-    userId: string, 
-    data: AnalysisParametersFormData,
-    useServerClient = false
-  ): Promise<AnalysisParameters> {
-    const supabase = useServerClient ? await createServerClient() : createClient()
-    
-    try {
-      const { data: result, error } = await supabase
-        .from('analysis_parameters')
-        .upsert({
-          user_id: userId,
-          ...data,
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-      return result as AnalysisParameters
-    } catch (error) {
-      console.error('Error upserting analysis parameters:', error)
-      throw error
-    }
+  static async getAnalysisParameters(userId: string, experienceLevel: ExperienceLevel = 'intermediate'): Promise<AnalysisParameters> {
+    // Return default parameters based on experience level
+    return this.getDefaultParameters(experienceLevel)
   }
 
   /**
@@ -165,20 +118,12 @@ export class AnalysisParametersService {
 
   /**
    * Get personalized parameters for a user
+   * Simplified to just return default parameters based on experience level
    */
   static async getPersonalizedParameters(
     userId: string, 
-    experienceLevel: ExperienceLevel,
-    useServerClient = false
+    experienceLevel: ExperienceLevel
   ): Promise<AnalysisParameters> {
-    // Try to get user's custom parameters
-    const customParams = await this.getAnalysisParameters(userId, useServerClient)
-    
-    if (customParams) {
-      return customParams
-    }
-    
-    // Return default parameters based on experience level
     return this.getDefaultParameters(experienceLevel)
   }
 

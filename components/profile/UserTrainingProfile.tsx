@@ -80,6 +80,28 @@ const calculateAveragePace = (activities: StravaActivity[]): number => {
   return totalPace / runningActivities.length;
 };
 
+// Default parameters moved outside component to avoid dependency issues
+const defaultParams = {
+  distance_beginner_threshold: 15,
+  distance_intermediate_threshold: 30,
+  distance_advanced_threshold: 50,
+  pace_beginner_threshold: 360,
+  pace_intermediate_threshold: 300,
+  pace_advanced_threshold: 250,
+  frequency_beginner_threshold: 3,
+  frequency_intermediate_threshold: 5,
+  frequency_advanced_threshold: 6,
+  tss_beginner_threshold: 300,
+  tss_intermediate_threshold: 600,
+  tss_advanced_threshold: 900,
+  distance_target_multiplier: 1.3,
+  pace_target_multiplier: 0.9,
+  frequency_target_multiplier: 1.2,
+  tss_target_multiplier: 1.2,
+  strength_threshold_percent: 30,
+  improvement_threshold_percent: 20
+};
+
 const analyzeTrainingProfile = (
   activities: StravaActivity[], 
   analysisParams: Record<string, number>
@@ -356,34 +378,28 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
   useEffect(() => {
     const loadAnalysisParams = async () => {
       if (user?.id) {
-        const params = await AnalysisParametersService.getAnalysisParameters(user.id);
-        setAnalysisParams(params);
+        try {
+          // Get user's training profile from the actual database table
+          const response = await fetch(`/api/user-training-profile/${user.id}`);
+          if (response.ok) {
+            const profile = await response.json();
+            // Use the user's experience level to get appropriate analysis parameters
+            const experienceLevel = profile?.experience_level || 'intermediate';
+            const params = AnalysisParametersService.getDefaultParameters(experienceLevel);
+            setAnalysisParams(params);
+          } else {
+            // Fall back to default parameters
+            setAnalysisParams(defaultParams);
+          }
+        } catch (error) {
+          console.error('Error loading training profile:', error);
+          // Fall back to default parameters
+          setAnalysisParams(defaultParams);
+        }
       }
     };
     loadAnalysisParams();
   }, [user?.id]);
-
-  // Use default parameters if user's parameters aren't loaded yet
-  const defaultParams = {
-    distance_beginner_threshold: 15,
-    distance_intermediate_threshold: 30,
-    distance_advanced_threshold: 50,
-    pace_beginner_threshold: 360,
-    pace_intermediate_threshold: 300,
-    pace_advanced_threshold: 250,
-    frequency_beginner_threshold: 3,
-    frequency_intermediate_threshold: 5,
-    frequency_advanced_threshold: 6,
-    tss_beginner_threshold: 300,
-    tss_intermediate_threshold: 600,
-    tss_advanced_threshold: 900,
-    distance_target_multiplier: 1.3,
-    pace_target_multiplier: 0.9,
-    frequency_target_multiplier: 1.2,
-    tss_target_multiplier: 1.2,
-    strength_threshold_percent: 30,
-    improvement_threshold_percent: 20
-  };
 
   const profile = analyzeTrainingProfile(activities || [], analysisParams || defaultParams);
 
