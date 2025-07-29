@@ -236,7 +236,7 @@ export function ProfileDebugger({ userId }: ProfileDebuggerProps) {
             {activities && activities.length > 0 && debugInfo?.dbActivities?.length === 0 && (
               <div>• Activities in hook but not in database - check database connection</div>
             )}
-            {debugInfo?.dbActivities?.length > 0 && (!activities || activities.length === 0) && (
+            {debugInfo?.dbActivities && debugInfo.dbActivities.length > 0 && (!activities || activities.length === 0) && (
               <div>• Activities in database but not in hook - check React Query cache</div>
             )}
             {debugInfo?.syncState?.consecutive_errors > 0 && (
