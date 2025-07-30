@@ -45,6 +45,22 @@ export function SmartGoalCard({
       // Convert km to miles
       const miles = convertDistance(target * 1000, 'miles');
       return `${miles % 1 === 0 ? miles.toFixed(0) : miles.toFixed(1)} mi`;
+    } else if (unit === 'seconds/km' && preferences.pace === 'min/mile') {
+      // Convert pace from seconds/km to min/mile
+      const pacePerMile = convertPace(target, 'min/mile');
+      const minutes = Math.floor(pacePerMile / 60);
+      const seconds = Math.floor(pacePerMile % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}/mi`;
+    } else if (unit === 'seconds/km') {
+      // Format seconds/km as min:sec/km
+      const minutes = Math.floor(target / 60);
+      const seconds = Math.floor(target % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
+    } else if (unit === 'seconds/mile') {
+      // Format seconds/mile as min:sec/mi
+      const minutes = Math.floor(target / 60);
+      const seconds = Math.floor(target % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}/mi`;
     } else if (unit === 'min/km' && preferences.pace === 'min/mile') {
       // Convert pace from min/km to min/mile
       const pacePerMile = convertPace(target, 'min/mile');
@@ -57,8 +73,9 @@ export function SmartGoalCard({
       const seconds = Math.floor(target % 60);
       return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
     } else {
-      // For other units, just append the unit
-      return `${target}${unit}`;
+      // For other units, add proper spacing
+      const formattedTarget = target % 1 === 0 ? target.toFixed(0) : target.toFixed(1);
+      return `${formattedTarget} ${unit}`;
     }
   };
 

@@ -160,6 +160,7 @@ CREATE TABLE sync_state (
   total_activities_synced INTEGER,       -- Count of synced activities
   sync_requests_today INTEGER,           -- Daily sync request count
   consecutive_errors INTEGER,            -- Error tracking
+  last_sync_new_activities INTEGER,      -- New activities found in last sync (for smart cooldown)
   
   -- Sync state flags
   full_sync_completed BOOLEAN,           -- Has full sync been done

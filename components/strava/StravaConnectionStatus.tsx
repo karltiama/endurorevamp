@@ -118,9 +118,9 @@ export function StravaConnectionStatus() {
   if (isCheckingConnection || isAuthing) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Loader2 className="h-5 w-5 animate-spin" />
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
             Strava Connection
           </CardTitle>
         </CardHeader>
@@ -135,28 +135,28 @@ export function StravaConnectionStatus() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <div className="h-6 w-6 bg-orange-500 rounded flex items-center justify-center">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <div className="h-5 w-5 bg-orange-500 rounded flex items-center justify-center">
             <span className="text-white font-bold text-xs">S</span>
           </div>
           Strava Connection
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-sm">
           Connect your Strava account to sync activities and track your training progress.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {/* Connection Status */}
-        <div className="flex items-center justify-between p-4 rounded-lg border">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between p-3 rounded-lg border">
+          <div className="flex items-center gap-2">
             {connectionStatus?.connected ? (
               <>
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
                 <div>
-                  <p className="font-medium">Connected</p>
+                  <p className="text-sm font-medium">Connected</p>
                   {connectionStatus.athlete && (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {connectionStatus.athlete.firstname} {connectionStatus.athlete.lastname}
                     </p>
                   )}
@@ -164,34 +164,34 @@ export function StravaConnectionStatus() {
               </>
             ) : (
               <>
-                <AlertCircle className="h-5 w-5 text-orange-500" />
+                <AlertCircle className="h-4 w-4 text-orange-500" />
                 <div>
-                  <p className="font-medium">Not Connected</p>
-                  <p className="text-sm text-muted-foreground">Connect to start syncing your activities</p>
+                  <p className="text-sm font-medium">Not Connected</p>
+                  <p className="text-xs text-muted-foreground">Connect to start syncing</p>
                 </div>
               </>
             )}
           </div>
-          <Badge variant={connectionStatus?.connected ? "default" : "secondary"}>
+          <Badge variant={connectionStatus?.connected ? "default" : "secondary"} className="text-xs">
             {connectionStatus?.connected ? "Active" : "Disconnected"}
           </Badge>
         </div>
 
         {/* Success Message */}
         {authSuccess && (
-          <Alert>
-            <CheckCircle2 className="h-4 w-4" />
-            <AlertDescription>
-              Successfully connected to Strava! Your account is now linked.
+          <Alert className="py-2">
+            <CheckCircle2 className="h-3 w-3" />
+            <AlertDescription className="text-sm">
+              Successfully connected to Strava!
             </AlertDescription>
           </Alert>
         )}
 
         {/* Error Messages */}
         {(connectionError || authError) && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
+          <Alert className="py-2">
+            <AlertCircle className="h-3 w-3" />
+            <AlertDescription className="text-sm">
               {authError || connectionError}
             </AlertDescription>
           </Alert>
@@ -201,6 +201,7 @@ export function StravaConnectionStatus() {
         <div className="flex gap-2">
           {connectionStatus?.connected ? (
             <Button 
+              size="sm"
               variant="outline" 
               onClick={handleDisconnect} 
               disabled={isDisconnecting}
@@ -208,19 +209,19 @@ export function StravaConnectionStatus() {
             >
               {isDisconnecting ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
                   Disconnecting...
                 </>
               ) : (
                 <>
-                  <Unlink className="h-4 w-4 mr-2" />
+                  <Unlink className="h-3 w-3 mr-2" />
                   Disconnect
                 </>
               )}
             </Button>
           ) : (
-            <Button onClick={handleConnect} className="w-full">
-              <Link2 className="h-4 w-4 mr-2" />
+            <Button size="sm" onClick={handleConnect} className="w-full">
+              <Link2 className="h-3 w-3 mr-2" />
               Connect to Strava
             </Button>
           )}
@@ -231,25 +232,24 @@ export function StravaConnectionStatus() {
           <div className="text-xs text-muted-foreground space-y-1">
             <div className="flex items-center gap-2">
               <Calendar className="h-3 w-3" />
-              Token expires: {new Date(connectionStatus.expiresAt).toLocaleDateString()}
+              Expires: {new Date(connectionStatus.expiresAt).toLocaleDateString()}
             </div>
             <div className="flex items-center gap-2">
               <User className="h-3 w-3" />
-              Athlete ID: {connectionStatus.athlete?.id}
+              ID: {connectionStatus.athlete?.id}
             </div>
           </div>
         )}
 
         {/* Benefits */}
         {!connectionStatus?.connected && (
-          <div className="text-sm text-muted-foreground">
-            <p className="font-medium mb-2">Benefits of connecting:</p>
-            <ul className="space-y-1 text-xs">
-              <li>• Automatically sync your activities</li>
-              <li>• Track performance metrics over time</li>
-              <li>• Analyze training patterns and trends</li>
-              <li>• Get detailed insights on your progress</li>
-            </ul>
+          <div className="text-xs text-muted-foreground">
+            <p className="font-medium mb-1">Benefits:</p>
+            <div className="space-y-0.5">
+              <div>• Automatically sync activities</div>
+              <div>• Track performance metrics</div>
+              <div>• Analyze training patterns</div>
+            </div>
           </div>
         )}
       </CardContent>

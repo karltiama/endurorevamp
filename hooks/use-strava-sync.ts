@@ -19,9 +19,18 @@ interface SyncResult {
 }
 
 interface SyncStatus {
-  syncState: any
-  activityCount: number
-  canSync: boolean
+  syncState: {
+    sync_enabled?: boolean;
+    last_sync_date?: string;
+    sync_requests_today?: number;
+    last_activity_sync?: string;
+    last_sync_new_activities?: number;
+    consecutive_errors?: number;
+    last_error_message?: string;
+  } | null;
+  activityCount: number;
+  canSync: boolean;
+  syncDisabledReason?: string;
 }
 
 // Helper function to format sync status info
@@ -37,7 +46,7 @@ function formatSyncStatusInfo(syncStatus: SyncStatus | undefined) {
     }
   }
 
-  const { syncState, activityCount, canSync } = syncStatus
+  const { syncState, activityCount, canSync, syncDisabledReason } = syncStatus
 
   // Format last sync time
   let lastSyncText = 'Never synced'
@@ -62,39 +71,10 @@ function formatSyncStatusInfo(syncStatus: SyncStatus | undefined) {
     }
   }
 
-  // Determine why sync might be disabled
-  let syncDisabledReason = null
-  if (!canSync) {
-    if (!syncState?.sync_enabled) {
-      syncDisabledReason = 'Sync is disabled for your account'
-    } else if (syncState?.sync_requests_today >= 5) {
-      syncDisabledReason = 'Daily sync limit reached (5/day)'
-    } else if (syncState?.last_activity_sync) {
-      const lastSync = new Date(syncState.last_activity_sync)
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
-      if (lastSync > oneHourAgo) {
-        syncDisabledReason = 'Please wait 1 hour between syncs'
-      }
-    }
-  }
-
-  // Debug logging
-  // console.log('useSyncStatusInfo Debug:', {
-  //   syncState: {
-  //     sync_enabled: syncState?.sync_enabled,
-  //     sync_requests_today: syncState?.sync_requests_today,
-  //     last_activity_sync: syncState?.last_activity_sync
-  //   },
-  //   canSync,
-  //   syncDisabledReason,
-  //   todaySyncs: syncState?.sync_requests_today || 0,
-  //   maxSyncs: 5
-  // })
-
   return {
     lastSyncText,
     canSync,
-    syncDisabledReason,
+    syncDisabledReason: syncDisabledReason || null,
     activityCount,
     todaySyncs: syncState?.sync_requests_today || 0,
     maxSyncs: 5,

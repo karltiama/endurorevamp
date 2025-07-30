@@ -26,12 +26,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Default action: sync activities
+    const syncStartTime = Date.now()
     const result = await syncStravaActivities({
       userId: user.id,
       ...options
     })
+    const syncDuration = Date.now() - syncStartTime
 
-    return NextResponse.json(result)
+    // Transform the result to match the expected UI format
+    return NextResponse.json({
+      success: result.success,
+      message: result.success ? 'Sync completed successfully' : 'Sync failed',
+      data: result.success ? {
+        activitiesProcessed: result.activitiesSynced,
+        newActivities: result.newActivities,
+        updatedActivities: result.updatedActivities,
+        syncDuration: syncDuration
+      } : undefined,
+      errors: result.errors
+    })
   } catch (error) {
     console.error('Sync API error:', error)
     return NextResponse.json(
@@ -70,9 +83,9 @@ export async function GET() {
 
     // Reset daily counter if it's a new day
     if (syncState) {
-      const today = new Date().toDateString()
+      const today = new Date().toISOString().split('T')[0] // Format: "2025-07-29"
       if (syncState.last_sync_date !== today) {
-        console.log('📅 Resetting daily sync counter for new day')
+        console.log('📅 GET: Resetting daily sync counter for new day')
         await supabase
           .from('sync_state')
           .update({ 
@@ -93,10 +106,14 @@ export async function GET() {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
 
+    // Check sync permissions
+    const canSyncResult = await checkCanSync(userId, syncState)
+
     return NextResponse.json({
       syncState: syncState || null,
       activityCount: activityCount || 0,
-      canSync: await checkCanSync(userId, syncState)
+      canSync: canSyncResult.canSync,
+      syncDisabledReason: canSyncResult.reason
     })
 
   } catch (error) {
@@ -117,38 +134,49 @@ async function checkCanSync(userId: string, syncState: {
   last_sync_date?: string;
   sync_requests_today?: number;
   last_activity_sync?: string;
-} | null): Promise<boolean> {
+  last_sync_new_activities?: number; // Track if last sync had new activities
+} | null): Promise<{ canSync: boolean; reason?: string }> {
   if (!syncState) {
-    return true // First time sync
+    return { canSync: true } // First time sync
   }
 
   if (!syncState.sync_enabled) {
-    return false
+    return { canSync: false, reason: 'Sync is disabled for your account' }
   }
 
   // Check daily rate limit first (regardless of date)
   if ((syncState.sync_requests_today || 0) >= 5) {
     console.log('❌ Daily rate limit exceeded:', syncState.sync_requests_today)
-    return false
+    return { canSync: false, reason: 'Daily sync limit reached (5/day)' }
   }
 
   // Reset daily counter if it's a new day
-  const today = new Date().toDateString()
+  const today = new Date().toISOString().split('T')[0] // Format: "2025-07-29"
   if (syncState.last_sync_date !== today) {
     // It's a new day, but we still need to check other conditions
     console.log('📅 New day detected, resetting daily counter')
   }
 
-  // Check minimum time between syncs (1 hour)
+  // Smart 1-hour cooldown: Only apply if last sync had no new activities
   if (syncState.last_activity_sync) {
     const lastSync = new Date(syncState.last_activity_sync)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
     
     if (lastSync > oneHourAgo) {
-      console.log('❌ Too soon since last sync (1 hour cooldown)')
-      return false
+      const hadNewActivities = (syncState.last_sync_new_activities || 0) > 0
+      
+      if (!hadNewActivities) {
+        console.log('❌ Too soon since last sync with no new activities (1 hour cooldown)')
+        const minutesLeft = Math.ceil((lastSync.getTime() - oneHourAgo.getTime()) / (1000 * 60))
+        return { 
+          canSync: false, 
+          reason: `No new activities found in last sync. Please wait ${minutesLeft} minutes before trying again.` 
+        }
+      } else {
+        console.log('✅ Last sync had new activities, allowing immediate re-sync')
+      }
     }
   }
 
-  return true
+  return { canSync: true }
 } 

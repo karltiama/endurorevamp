@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Activity } from '@/lib/strava/types'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { convertDistance, formatDuration, getDistanceUnit } from '@/lib/utils'
+import { convertDistance, formatDuration, formatPace, getDistanceUnit } from '@/lib/utils'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { TrendingUp, Calendar, Filter } from 'lucide-react'
 
@@ -18,6 +18,7 @@ interface TrendData {
   distance: number
   duration: number
   pace: number
+  speed: number
   elevation: number
   heartRate: number
   power: number
@@ -109,6 +110,9 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
       // Calculate average pace (seconds per km)
       const averagePace = totalDistance > 0 ? (totalDuration / totalDistance) * 1000 : 0
       
+      // Calculate average speed (km/h)
+      const averageSpeed = totalDistance > 0 ? (totalDistance / 1000) / (totalDuration / 3600) : 0
+      
       // Calculate average heart rate
       const hrActivities = periodActivities.filter(activity => activity.average_heartrate)
       const averageHR = hrActivities.length > 0 
@@ -126,6 +130,7 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
         distance: totalDistance,
         duration: totalDuration,
         pace: averagePace,
+        speed: averageSpeed,
         elevation: totalElevation,
         heartRate: averageHR,
         power: averagePower,
@@ -144,7 +149,15 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
       case 'duration':
         return formatDuration(value)
       case 'pace':
-        return formatDuration(value)
+        return formatPace(value, preferences.pace)
+      case 'speed':
+        const speedKmh = value
+        if (preferences.distance === 'miles') {
+          const speedMph = speedKmh * 0.621371
+          return `${speedMph.toFixed(1)} mph`
+        } else {
+          return `${speedKmh.toFixed(1)} km/h`
+        }
       case 'elevation':
         return `${value.toFixed(0)} m`
       case 'heartRate':
@@ -166,6 +179,8 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
         return 'Duration'
       case 'pace':
         return 'Average Pace'
+      case 'speed':
+        return 'Average Speed'
       case 'elevation':
         return 'Elevation Gain'
       case 'heartRate':
@@ -187,6 +202,8 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
         return '#10b981'
       case 'pace':
         return '#f59e0b'
+      case 'speed':
+        return '#06b6d4'
       case 'elevation':
         return '#8b5cf6'
       case 'heartRate':
@@ -230,9 +247,9 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
           <TrendingUp className="h-5 w-5" />
           Historical Trends
         </CardTitle>
-        <CardDescription>
-          Track your performance over time with interactive charts
-        </CardDescription>
+                 <CardDescription>
+           Track your performance over time with interactive charts
+         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Controls */}
@@ -273,15 +290,16 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
               <SelectTrigger className="w-40">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="distance">Distance</SelectItem>
-                <SelectItem value="duration">Duration</SelectItem>
-                <SelectItem value="pace">Average Pace</SelectItem>
-                <SelectItem value="elevation">Elevation</SelectItem>
-                <SelectItem value="heartRate">Heart Rate</SelectItem>
-                <SelectItem value="power">Power</SelectItem>
-                <SelectItem value="count">Activity Count</SelectItem>
-              </SelectContent>
+                             <SelectContent>
+                 <SelectItem value="distance">Distance</SelectItem>
+                 <SelectItem value="duration">Duration</SelectItem>
+                 <SelectItem value="pace">Average Pace</SelectItem>
+                 <SelectItem value="speed">Average Speed</SelectItem>
+                 <SelectItem value="elevation">Elevation</SelectItem>
+                 <SelectItem value="heartRate">Heart Rate</SelectItem>
+                 <SelectItem value="power">Power</SelectItem>
+                 <SelectItem value="count">Activity Count</SelectItem>
+               </SelectContent>
             </Select>
           </div>
         </div>
@@ -303,9 +321,16 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
                   }
                 }}
               />
-              <YAxis 
-                tickFormatter={(value) => formatTooltipValue(value, metric)}
-              />
+                             <YAxis 
+                 tickFormatter={(value) => {
+                   // For pace, show only the numeric value without units to prevent cutoff
+                   if (metric === 'pace') {
+                     return formatPace(value, preferences.pace).replace(/[^\d:]/g, '')
+                   }
+                   return formatTooltipValue(value, metric)
+                 }}
+                 domain={metric === 'pace' ? ['dataMin', 'dataMax'] : [0, 'dataMax']}
+               />
               <Tooltip 
                 labelFormatter={(value) => {
                   if (groupBy === 'week') {

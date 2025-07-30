@@ -1,4 +1,4 @@
-import { DynamicGoalEngine } from '@/lib/goals/dynamic-suggestions'
+import { DynamicGoalEngine, UserPerformanceProfile } from '@/lib/goals/dynamic-suggestions'
 import { Activity } from '@/lib/strava/types'
 import { UserGoal } from '@/types/goals'
 
@@ -135,7 +135,7 @@ describe('DynamicGoalEngine', () => {
       const kmPaceSuggestions = DynamicGoalEngine.generateDynamicSuggestions(profile, mockGoals, { distance: 'km', pace: 'min/km' })
       const kmPaceGoals = kmPaceSuggestions.filter(s => s.category === 'pace')
       kmPaceGoals.forEach(suggestion => {
-        expect(suggestion.targetUnit).toBe('min/km')
+        expect(suggestion.targetUnit).toBe('seconds/km')
         expect(suggestion.description).toContain('/km')
       })
 
@@ -143,7 +143,7 @@ describe('DynamicGoalEngine', () => {
       const milePaceSuggestions = DynamicGoalEngine.generateDynamicSuggestions(profile, mockGoals, { distance: 'miles', pace: 'min/mile' })
       const milePaceGoals = milePaceSuggestions.filter(s => s.category === 'pace')
       milePaceGoals.forEach(suggestion => {
-        expect(suggestion.targetUnit).toBe('min/mile')
+        expect(suggestion.targetUnit).toBe('seconds/mile')
         expect(suggestion.description).toContain('/mi')
       })
     })
@@ -192,6 +192,68 @@ describe('DynamicGoalEngine', () => {
         expect(recoverySuggestion.goalType.category).toBe('frequency')
         expect(recoverySuggestion.goalType.name).toBe('weekly_run_frequency')
       }
+    })
+
+    it('should have correct targetUnit format for "Improve Your Running Efficiency" goal', () => {
+      // Create a profile that would trigger the "Improve Your Running Efficiency" goal
+      const beginnerProfile: UserPerformanceProfile = {
+        weeklyDistance: 15, // Enough to trigger the goal
+        monthlyDistance: 60,
+        averagePace: 300, // 5:00 min/km
+        runFrequency: 3, // Meets the >= 2 requirement
+        longestRun: 8,
+        averageHeartRate: 150,
+        distanceTrend: 'improving',
+        paceTrend: 'stable',
+        frequencyTrend: 'stable',
+        preferredSportTypes: ['Run'],
+        preferredDays: [1, 3, 5],
+        averageActivityDuration: 30,
+        goalCompletionRate: 70,
+        consistencyScore: 75,
+        totalActivities: 10,
+        runningExperience: 'beginner',
+        hasRecentInjuries: false
+      }
+
+      const suggestions = DynamicGoalEngine.generateDynamicSuggestions(beginnerProfile, [], { distance: 'km', pace: 'min/km' })
+      
+      // Find the "Improve Your Running Efficiency" goal
+      const efficiencyGoal = suggestions.find(s => s.id === 'dynamic-beginner-pace')
+      
+      if (efficiencyGoal) {
+        // Verify the targetUnit is correctly set to seconds/km
+        expect(efficiencyGoal.targetUnit).toBe('seconds/km')
+        expect(efficiencyGoal.title).toBe('Improve Your Running Efficiency')
+        expect(efficiencyGoal.category).toBe('pace')
+        
+        // Verify the suggestedTarget is in seconds (should be current pace - 10)
+        expect(efficiencyGoal.suggestedTarget).toBe(290) // 300 - 10
+      }
+    })
+
+    it('should have proper spacing in target unit formatting', () => {
+      // Test that the targetUnit values have proper spacing when formatted
+      const profile = DynamicGoalEngine.analyzeUserPerformance(mockActivities, mockGoals)
+      const suggestions = DynamicGoalEngine.generateDynamicSuggestions(profile, mockGoals)
+
+      // Check that all suggestions have properly formatted target units
+      suggestions.forEach(suggestion => {
+        // For pace goals, the targetUnit should be 'seconds/km' or 'seconds/mile'
+        if (suggestion.category === 'pace') {
+          expect(suggestion.targetUnit).toMatch(/^seconds\/(km|mile)$/)
+        }
+        
+        // For distance goals, the targetUnit should be 'km' or 'miles'
+        if (suggestion.category === 'distance') {
+          expect(suggestion.targetUnit).toMatch(/^(km|miles)$/)
+        }
+        
+        // For frequency goals, the targetUnit should be 'runs/week' or similar
+        if (suggestion.category === 'frequency') {
+          expect(suggestion.targetUnit).toMatch(/^(runs\/week|activities\/week)$/)
+        }
+      })
     })
   })
 }) 

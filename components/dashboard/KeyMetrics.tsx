@@ -190,7 +190,7 @@ function formatGoalValue(value: number, goal: UserGoal, unit: 'km' | 'miles'): s
       const mins = Math.round(value % 60)
       return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
     default:
-      return `${value.toFixed(1)}`
+      return `${value.toFixed(1)} ${goal.target_unit || ''}`
   }
 }
 

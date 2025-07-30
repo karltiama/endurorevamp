@@ -368,13 +368,13 @@ export class DynamicGoalEngine {
     const targetImprovement = profile.runningExperience === 'beginner' ? 30 : 
                              profile.runningExperience === 'intermediate' ? 20 : 15
     let suggestedTarget = currentPace - targetImprovement
-    let targetUnit = 'min/km'
+    let targetUnit = 'seconds/km'
     
     // Convert to user's preferred pace unit
     if (unitPreferences?.pace === 'min/mile') {
       // Convert seconds per km to seconds per mile (1 mile = 1.60934 km)
       suggestedTarget = suggestedTarget * 1.60934
-      targetUnit = 'min/mile'
+      targetUnit = 'seconds/mile'
     }
     
     // Format pace based on user preferences
@@ -537,12 +537,12 @@ export class DynamicGoalEngine {
   
   private static suggestSpeedWorkGoal(profile: UserPerformanceProfile, unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }): DynamicGoalSuggestion {
     let suggestedPace = profile.averagePace - 15 // 15 seconds improvement
-    let paceUnit = 'min/km'
+    let paceUnit = 'seconds/km'
     
     // Convert to user's preferred pace unit
     if (unitPreferences?.pace === 'min/mile') {
       suggestedPace = suggestedPace * 1.60934
-      paceUnit = 'min/mile'
+      paceUnit = 'seconds/mile'
     }
     
     return {
@@ -686,12 +686,12 @@ export class DynamicGoalEngine {
       // If they show some consistency, suggest a pace goal
       if (profile.runFrequency >= 2 && profile.weeklyDistance >= 5) {
         let suggestedPace = profile.averagePace - 10 // Small improvement
-        let paceUnit = 'min/km'
+        let paceUnit = 'seconds/km'
         
         // Convert to user's preferred pace unit
         if (unitPreferences?.pace === 'min/mile') {
           suggestedPace = suggestedPace * 1.60934
-          paceUnit = 'min/mile'
+          paceUnit = 'seconds/mile'
         }
         
         suggestions.push({

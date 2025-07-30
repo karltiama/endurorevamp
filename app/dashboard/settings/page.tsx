@@ -2,7 +2,6 @@ import { requireAuth } from '@/lib/auth/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { StravaConnectionStatus } from '@/components/strava/StravaConnectionStatus'
 import SyncDashboard from '@/components/dashboard/SyncDashboard'
-import LogoutButton from '@/components/LogoutButton'
 import UnitPreferences from '@/components/settings/UnitPreferences'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -15,129 +14,106 @@ export default async function SettingsPage() {
 
   return (
     <DashboardLayout user={user}>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">
-            Manage your account settings and integrations.
-          </p>
+      <div className="space-y-4">
+        {/* Header with User Info */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage your account settings and integrations.
+            </p>
+          </div>
+          
+          {/* User Info Section */}
+          <div className="text-right space-y-1">
+            <div className="text-sm">
+              <span className="font-medium">{user.email || 'No email'}</span>
+              <span className="text-muted-foreground ml-2">•</span>
+              <span className="text-muted-foreground ml-2 text-xs">
+                {user.app_metadata?.provider || 'email'}
+              </span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Member since {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
+            </div>
+          </div>
         </div>
 
-        {/* User Information Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>User Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">Email</dt>
-                <dd className="mt-1 text-sm">{user.email || 'No email'}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">User ID</dt>
-                <dd className="mt-1 text-sm font-mono text-xs">{user.id}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">Created At</dt>
-                <dd className="mt-1 text-sm">
-                  {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">Provider</dt>
-                <dd className="mt-1 text-sm">
-                  {user.app_metadata?.provider || 'email'}
-                </dd>
-              </div>
-            </dl>
-            
-            <div className="mt-6">
-              <LogoutButton />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Top Row - Activity Sync and Strava Connection */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Activity Sync Section */}
+          <Suspense fallback={<SyncSkeleton />}>
+            <SyncDashboard />
+          </Suspense>
 
-        {/* Training Profile Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Training Profile
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Manage your training thresholds, targets, and preferences. 
-              The system estimates your capabilities and you can override with custom values.
-            </p>
-            <div className="space-y-3">
-              <div className="text-sm">
-                <strong>Features:</strong>
-                <ul className="mt-1 ml-4 list-disc text-muted-foreground">
-                  <li>Personalized TSS targets based on your experience</li>
-                  <li>Heart rate and power threshold estimation</li>
-                  <li>Training zone generation</li>
-                  <li>Goal and preference management</li>
-                </ul>
+          {/* Strava Connection Section */}
+          <Suspense fallback={<IntegrationSkeleton />}>
+            <StravaConnectionStatus />
+          </Suspense>
+        </div>
+
+        {/* Middle Row - Training Profile and Location Settings */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Training Profile Section */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Training Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Manage your training thresholds, targets, and preferences.
+              </p>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <div>• Personalized TSS targets based on experience</div>
+                <div>• Heart rate and power threshold estimation</div>
+                <div>• Training zone generation</div>
               </div>
               <Link href="/dashboard/settings/profile">
-                <Button className="w-full sm:w-auto">
-                  <Settings2 className="h-4 w-4 mr-2" />
+                <Button size="sm" className="w-full">
+                  <Settings2 className="h-3 w-3 mr-2" />
                   Manage Training Profile
                 </Button>
               </Link>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Unit Preferences Section */}
-        <Suspense fallback={<UnitPreferencesSkeleton />}>
-          <UnitPreferences />
-        </Suspense>
-
-        {/* Location Settings Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              Location Settings
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Manage your location preferences for weather data and running recommendations. 
-              Set your preferred locations and control how location data is used.
-            </p>
-            <div className="space-y-3">
-              <div className="text-sm">
-                <strong>Features:</strong>
-                <ul className="mt-1 ml-4 list-disc text-muted-foreground">
-                  <li>Save multiple locations (Home, Work, Gym)</li>
-                  <li>GPS location with permission controls</li>
-                  <li>Manual location input</li>
-                  <li>Privacy-focused data handling</li>
-                </ul>
+          {/* Location Settings Section */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Location Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Manage location preferences for weather data and recommendations.
+              </p>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <div>• Save multiple locations (Home, Work, Gym)</div>
+                <div>• GPS location with permission controls</div>
+                <div>• Privacy-focused data handling</div>
               </div>
               <Link href="/dashboard/settings/location">
-                <Button className="w-full sm:w-auto">
-                  <MapPin className="h-4 w-4 mr-2" />
+                <Button size="sm" className="w-full">
+                  <MapPin className="h-3 w-3 mr-2" />
                   Manage Location Settings
                 </Button>
               </Link>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-        {/* Strava Connection Section */}
-        <Suspense fallback={<IntegrationSkeleton />}>
-          <StravaConnectionStatus />
-        </Suspense>
-
-        {/* Sync Dashboard Section */}
-        <Suspense fallback={<SyncSkeleton />}>
-          <SyncDashboard />
-        </Suspense>
+        {/* Bottom Row - Unit Preferences */}
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+          {/* Unit Preferences Section */}
+          <Suspense fallback={<UnitPreferencesSkeleton />}>
+            <UnitPreferences />
+          </Suspense>
+        </div>
       </div>
     </DashboardLayout>
   )
@@ -146,13 +122,13 @@ export default async function SettingsPage() {
 function IntegrationSkeleton() {
   return (
     <Card>
-      <CardContent className="p-6">
-        <div className="animate-pulse">
-          <div className="h-6 bg-muted rounded w-1/3 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-4 bg-muted rounded w-full"></div>
-            <div className="h-4 bg-muted rounded w-2/3"></div>
-          </div>
+      <CardHeader className="pb-3">
+        <div className="h-6 bg-muted rounded w-1/3"></div>
+      </CardHeader>
+      <CardContent>
+        <div className="animate-pulse space-y-3">
+          <div className="h-4 bg-muted rounded w-full"></div>
+          <div className="h-4 bg-muted rounded w-2/3"></div>
         </div>
       </CardContent>
     </Card>
@@ -162,13 +138,13 @@ function IntegrationSkeleton() {
 function UnitPreferencesSkeleton() {
   return (
     <Card>
-      <CardContent className="p-6">
-        <div className="animate-pulse">
-          <div className="h-6 bg-muted rounded w-1/3 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-4 bg-muted rounded w-full"></div>
-            <div className="h-4 bg-muted rounded w-2/3"></div>
-          </div>
+      <CardHeader className="pb-3">
+        <div className="h-6 bg-muted rounded w-1/3"></div>
+      </CardHeader>
+      <CardContent>
+        <div className="animate-pulse space-y-3">
+          <div className="h-4 bg-muted rounded w-full"></div>
+          <div className="h-4 bg-muted rounded w-2/3"></div>
         </div>
       </CardContent>
     </Card>
@@ -178,13 +154,13 @@ function UnitPreferencesSkeleton() {
 function SyncSkeleton() {
   return (
     <Card>
-      <CardContent className="p-6">
-        <div className="animate-pulse">
-          <div className="h-6 bg-muted rounded w-1/3 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-4 bg-muted rounded w-full"></div>
-            <div className="h-4 bg-muted rounded w-2/3"></div>
-          </div>
+      <CardHeader className="pb-3">
+        <div className="h-6 bg-muted rounded w-1/3"></div>
+      </CardHeader>
+      <CardContent>
+        <div className="animate-pulse space-y-3">
+          <div className="h-4 bg-muted rounded w-full"></div>
+          <div className="h-4 bg-muted rounded w-2/3"></div>
         </div>
       </CardContent>
     </Card>

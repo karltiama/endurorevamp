@@ -3,7 +3,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { formatDistance, formatPace, formatTemperature, formatWindSpeed } from '@/lib/utils'
 import { Check } from 'lucide-react'
 
 export default function UnitPreferences() {
@@ -12,14 +11,14 @@ export default function UnitPreferences() {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Units & Display</CardTitle>
-          <CardDescription>Choose your preferred units for distances and pace</CardDescription>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Units & Display</CardTitle>
+          <CardDescription className="text-sm">Choose your preferred units</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="animate-pulse">
-            <div className="h-10 bg-gray-200 rounded mb-4"></div>
-            <div className="h-16 bg-gray-100 rounded"></div>
+        <CardContent>
+          <div className="animate-pulse space-y-3">
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-100 rounded w-2/3"></div>
           </div>
         </CardContent>
       </Card>
@@ -28,98 +27,87 @@ export default function UnitPreferences() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Units & Display</CardTitle>
-        <CardDescription>Choose your preferred units for distances, pace, and temperature</CardDescription>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">Units & Display</CardTitle>
+        <CardDescription className="text-sm">Choose your preferred units for distances, pace, and temperature</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-4">
+      <CardContent className="space-y-3">
+        <div className="space-y-3">
           <div>
-            <h4 className="font-medium mb-2">Distance & Pace</h4>
+            <h4 className="text-sm font-medium mb-2">Distance & Pace</h4>
             <div className="flex gap-2">
               <Button
+                size="sm"
                 variant={preferences.distance === 'km' ? 'default' : 'outline'}
                 onClick={() => toggleUnits()}
                 disabled={preferences.distance === 'km'}
+                className="flex-1"
               >
-                {preferences.distance === 'km' && <Check className="w-4 h-4 mr-1" />}
-                Kilometers (km)
+                {preferences.distance === 'km' && <Check className="w-3 h-3 mr-1" />}
+                km
               </Button>
               <Button
+                size="sm"
                 variant={preferences.distance === 'miles' ? 'default' : 'outline'}
                 onClick={() => toggleUnits()}
                 disabled={preferences.distance === 'miles'}
+                className="flex-1"
               >
-                {preferences.distance === 'miles' && <Check className="w-4 h-4 mr-1" />}
-                Miles (mi)
+                {preferences.distance === 'miles' && <Check className="w-3 h-3 mr-1" />}
+                mi
               </Button>
             </div>
           </div>
 
           <div>
-            <h4 className="font-medium mb-2">Wind Speed</h4>
+            <h4 className="text-sm font-medium mb-2">Wind Speed</h4>
             <div className="flex gap-2">
               <Button
+                size="sm"
                 variant={preferences.windSpeed === 'km/h' ? 'default' : 'outline'}
                 onClick={() => updatePreferences({ windSpeed: 'km/h' })}
                 disabled={preferences.windSpeed === 'km/h'}
+                className="flex-1"
               >
-                {preferences.windSpeed === 'km/h' && <Check className="w-4 h-4 mr-1" />}
-                Kilometers per hour (km/h)
+                {preferences.windSpeed === 'km/h' && <Check className="w-3 h-3 mr-1" />}
+                km/h
               </Button>
               <Button
+                size="sm"
                 variant={preferences.windSpeed === 'mph' ? 'default' : 'outline'}
                 onClick={() => updatePreferences({ windSpeed: 'mph' })}
                 disabled={preferences.windSpeed === 'mph'}
+                className="flex-1"
               >
-                {preferences.windSpeed === 'mph' && <Check className="w-4 h-4 mr-1" />}
-                Miles per hour (mph)
+                {preferences.windSpeed === 'mph' && <Check className="w-3 h-3 mr-1" />}
+                mph
               </Button>
             </div>
           </div>
 
           <div>
-            <h4 className="font-medium mb-2">Temperature</h4>
+            <h4 className="text-sm font-medium mb-2">Temperature</h4>
             <div className="flex gap-2">
               <Button
+                size="sm"
                 variant={preferences.temperature === 'celsius' ? 'default' : 'outline'}
                 onClick={() => updatePreferences({ temperature: 'celsius' })}
                 disabled={preferences.temperature === 'celsius'}
+                className="flex-1"
               >
-                {preferences.temperature === 'celsius' && <Check className="w-4 h-4 mr-1" />}
-                Celsius (°C)
+                {preferences.temperature === 'celsius' && <Check className="w-3 h-3 mr-1" />}
+                °C
               </Button>
               <Button
+                size="sm"
                 variant={preferences.temperature === 'fahrenheit' ? 'default' : 'outline'}
                 onClick={() => updatePreferences({ temperature: 'fahrenheit' })}
                 disabled={preferences.temperature === 'fahrenheit'}
+                className="flex-1"
               >
-                {preferences.temperature === 'fahrenheit' && <Check className="w-4 h-4 mr-1" />}
-                Fahrenheit (°F)
+                {preferences.temperature === 'fahrenheit' && <Check className="w-3 h-3 mr-1" />}
+                °F
               </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <h4 className="font-medium mb-2">Current Settings</h4>
-            <div className="text-sm text-gray-600">
-              <div>Distance: {preferences.distance === 'km' ? 'Kilometers (km)' : 'Miles (mi)'}</div>
-              <div>Pace: {preferences.pace}</div>
-              <div>Temperature: {preferences.temperature === 'celsius' ? 'Celsius (°C)' : 'Fahrenheit (°F)'}</div>
-              <div>Wind Speed: {preferences.windSpeed === 'km/h' ? 'Kilometers per hour (km/h)' : 'Miles per hour (mph)'}</div>
-            </div>
-          </div>
-
-          <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-            <div className="font-medium mb-2">Examples with current setting:</div>
-            <div className="space-y-1">
-              <div>• Distance: {formatDistance(5000, preferences.distance)}</div>
-              <div>• Pace: {formatPace(300, preferences.pace)} (5:00 per km converted)</div>
-              <div>• Temperature: {formatTemperature(15, preferences.temperature)}</div>
-              <div>• Wind Speed: {formatWindSpeed(15, preferences.windSpeed)}</div>
-              <div>• Long run: {formatDistance(21097, preferences.distance)}</div>
             </div>
           </div>
         </div>

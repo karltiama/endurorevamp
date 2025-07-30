@@ -111,15 +111,43 @@ export async function syncStravaActivities(options: SyncOptions): Promise<SyncRe
     // Sync activities to database
     const syncResult = await syncActivitiesToDatabase(userId, activities);
     
+    console.log(`🔄 Sync completed: ${syncResult.newActivities} new, ${syncResult.updatedActivities} updated`)
+    
     // Update sync state after successful sync
-    const today = new Date().toDateString()
+    const today = new Date().toISOString().split('T')[0] // Format: "2025-07-29"
+    
+    // Get current sync state to properly increment the counter
+    const { data: currentSyncState } = await supabase
+      .from('sync_state')
+      .select('sync_requests_today, last_sync_date')
+      .eq('user_id', userId)
+      .single()
+    
+    // Calculate the new sync count
+    let newSyncCount = 1
+    if (currentSyncState) {
+      console.log(`🔍 Date comparison: stored="${currentSyncState.last_sync_date}" vs today="${today}"`)
+      // If it's the same day, increment the counter
+      if (currentSyncState.last_sync_date === today) {
+        newSyncCount = (currentSyncState.sync_requests_today || 0) + 1
+        console.log(`📊 Incrementing daily sync counter: ${currentSyncState.sync_requests_today || 0} -> ${newSyncCount}`)
+      } else {
+        console.log(`📅 SYNC: New day detected, resetting sync counter to 1`)
+        console.log(`   Current counter was: ${currentSyncState.sync_requests_today || 0}`)
+      }
+    } else {
+      console.log(`🆕 First sync for user, setting counter to 1`)
+    }
+    
+    console.log(`💾 Updating sync state with counter: ${newSyncCount}`)
     const { error: syncStateError } = await supabase
       .from('sync_state')
       .upsert({
         user_id: userId,
         last_activity_sync: new Date().toISOString(),
         last_sync_date: today,
-        sync_requests_today: 1, // Will be incremented by existing logic
+        sync_requests_today: newSyncCount,
+        last_sync_new_activities: syncResult.newActivities, // Track new activities for smart cooldown
         total_activities_synced: (syncResult.newActivities + syncResult.updatedActivities),
         sync_enabled: true,
         consecutive_errors: 0,
@@ -132,8 +160,11 @@ export async function syncStravaActivities(options: SyncOptions): Promise<SyncRe
       })
 
     if (syncStateError) {
-      console.error('Error updating sync state:', syncStateError)
+      console.error('❌ Error updating sync state:', syncStateError)
       // Don't fail the sync for sync state update errors
+    } else {
+      console.log(`✅ Sync state updated successfully with counter: ${newSyncCount}`)
+      console.log(`📊 Final sync result: ${result.activitiesSynced} processed, ${syncResult.newActivities} new, ${syncResult.updatedActivities} updated`)
     }
     
     result.success = true;
@@ -290,8 +321,38 @@ export async function syncActivitiesToDatabase(userId: string, activities: Strav
         console.log(`  ➕ Activity ${activity.id} is new - will insert`);
       }
 
-      // Calculate TSS for this activity
-      const tss = trainingLoadCalculator.calculateTSS(activity as unknown as Activity);
+      // Smart TSS calculation - only recalculate if needed
+      let tss = 0
+      let shouldRecalculateTSS = true
+      
+      if (existingActivity) {
+        // For existing activities, check if we need to recalculate TSS
+        // Only recalculate if heart rate or power data changed
+        const { data: currentActivity } = await supabase
+          .from('activities')
+          .select('average_heartrate, max_heartrate, average_watts, max_watts, training_stress_score')
+          .eq('id', existingActivity.id)
+          .single()
+        
+        if (currentActivity) {
+          const hrChanged = currentActivity.average_heartrate !== safeInteger(activity.average_heartrate, 0) ||
+                           currentActivity.max_heartrate !== safeInteger(activity.max_heartrate, 0)
+          const powerChanged = currentActivity.average_watts !== safeInteger(activity.average_watts, 0) ||
+                              currentActivity.max_watts !== safeInteger(activity.max_watts, 0)
+          
+          if (!hrChanged && !powerChanged) {
+            // Use existing TSS if heart rate and power haven't changed
+            tss = currentActivity.training_stress_score || 0
+            shouldRecalculateTSS = false
+            console.log(`  🔄 Skipping TSS recalculation for activity ${activity.id} (data unchanged)`)
+          }
+        }
+      }
+      
+      if (shouldRecalculateTSS) {
+        tss = trainingLoadCalculator.calculateTSS(activity as unknown as Activity)
+        console.log(`  🧮 Calculating TSS for activity ${activity.id}: ${tss}`)
+      }
 
       const activityData = {
         user_id: userId,
@@ -337,7 +398,37 @@ export async function syncActivitiesToDatabase(userId: string, activities: Strav
       };
 
       if (existingActivity) {
-        // Update existing activity
+        // For existing activities, check if we actually need to update anything
+        const { data: currentActivity } = await supabase
+          .from('activities')
+          .select('*')
+          .eq('id', existingActivity.id)
+          .single()
+        
+        if (currentActivity) {
+          // Check if any important fields have changed
+          const fieldsToCheck = [
+            'name', 'distance', 'moving_time', 'elapsed_time', 'total_elevation_gain',
+            'achievement_count', 'kudos_count', 'comment_count', 'average_speed', 'max_speed',
+            'average_heartrate', 'max_heartrate', 'average_watts', 'max_watts',
+            'weighted_average_watts', 'kilojoules', 'description'
+          ]
+          
+          let hasChanges = false
+          for (const field of fieldsToCheck) {
+            if (currentActivity[field] !== activityData[field]) {
+              hasChanges = true
+              break
+            }
+          }
+          
+          if (!hasChanges) {
+            console.log(`  ✅ Skipping database update for activity ${activity.id} (no changes detected)`)
+            continue // Skip to next activity
+          }
+        }
+        
+        // Update existing activity only if there are changes
         const { error } = await supabase
           .from('activities')
           .update(activityData)

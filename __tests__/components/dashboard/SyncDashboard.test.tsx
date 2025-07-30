@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import SyncDashboard from '@/components/dashboard/SyncDashboard'
 import { useStravaSync, useSyncStatusInfo } from '@/hooks/use-strava-sync'
@@ -9,203 +9,41 @@ jest.mock('@/hooks/use-strava-sync')
 const mockUseStravaSync = useStravaSync as jest.MockedFunction<typeof useStravaSync>
 const mockUseSyncStatusInfo = useSyncStatusInfo as jest.MockedFunction<typeof useSyncStatusInfo>
 
-describe('SyncDashboard', () => {
-  let queryClient: QueryClient
-
-  beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-        mutations: { retry: false }
-      }
-    })
-  })
-
-  const renderSyncDashboard = () => {
-    return render(
-      <QueryClientProvider client={queryClient}>
-        <SyncDashboard />
-      </QueryClientProvider>
-    )
+const createTestQueryClient = () => new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+    mutations: { retry: false }
   }
+})
 
-  it('shows "Limit reached" when daily sync limit is exceeded', () => {
+const renderWithQueryClient = (component: React.ReactElement) => {
+  const queryClient = createTestQueryClient()
+  return render(
+    <QueryClientProvider client={queryClient}>
+      {component}
+    </QueryClientProvider>
+  )
+}
+
+describe('SyncDashboard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('should display loading skeleton when status is loading', () => {
     mockUseStravaSync.mockReturnValue({
-      syncStatus: undefined,
-      isLoadingStatus: false,
-      statusError: null,
-      syncLatest: jest.fn(),
-      syncLastWeek: jest.fn(),
-      syncLastMonth: jest.fn(),
       forceFullSync: jest.fn(),
-      customSync: jest.fn(),
+      refreshStatus: jest.fn(),
       isSyncing: false,
       syncError: null,
-      syncResult: undefined,
-      refetchStatus: jest.fn(),
-      refreshStatus: jest.fn(),
-      syncStatusInfo: {
-        lastSyncText: '2 hours ago',
-        canSync: false,
-        syncDisabledReason: 'Daily sync limit reached (5/day)',
-        activityCount: 150,
-        todaySyncs: 15,
-        maxSyncs: 5,
-        consecutiveErrors: 0,
-        lastError: null
-      }
+      syncResult: null,
+      isLoadingStatus: true
     })
 
     mockUseSyncStatusInfo.mockReturnValue({
-      lastSyncText: '2 hours ago',
+      lastSyncText: '',
       canSync: false,
-      syncDisabledReason: 'Daily sync limit reached (5/day)',
-      activityCount: 150,
-      todaySyncs: 15, // Over the limit
-      maxSyncs: 5,
-      consecutiveErrors: 0,
-      lastError: null
-    })
-
-    renderSyncDashboard()
-
-    expect(screen.getByText('Limit reached')).toBeInTheDocument()
-    expect(screen.queryByText('15/5')).not.toBeInTheDocument()
-    expect(screen.getByText('Daily Sync Limit Reached')).toBeInTheDocument()
-  })
-
-  it('shows sync count when under daily limit', () => {
-    mockUseStravaSync.mockReturnValue({
-      syncStatus: undefined,
-      isLoadingStatus: false,
-      statusError: null,
-      syncLatest: jest.fn(),
-      syncLastWeek: jest.fn(),
-      syncLastMonth: jest.fn(),
-      forceFullSync: jest.fn(),
-      customSync: jest.fn(),
-      isSyncing: false,
-      syncError: null,
-      syncResult: undefined,
-      refetchStatus: jest.fn(),
-      refreshStatus: jest.fn(),
-      syncStatusInfo: {
-        lastSyncText: '2 hours ago',
-        canSync: true,
-        syncDisabledReason: null,
-        activityCount: 150,
-        todaySyncs: 3,
-        maxSyncs: 5,
-        consecutiveErrors: 0,
-        lastError: null
-      }
-    })
-
-    mockUseSyncStatusInfo.mockReturnValue({
-      lastSyncText: '2 hours ago',
-      canSync: true,
-      syncDisabledReason: null,
-      activityCount: 150,
-      todaySyncs: 3, // Under the limit
-      maxSyncs: 5,
-      consecutiveErrors: 0,
-      lastError: null
-    })
-
-    renderSyncDashboard()
-
-    expect(screen.getByText('3/5')).toBeInTheDocument()
-    expect(screen.queryByText('Limit reached')).not.toBeInTheDocument()
-    
-    // Verify button is enabled
-    const syncButton = screen.getByRole('button', { name: /Sync Activities/i })
-    expect(syncButton).not.toBeDisabled()
-  })
-
-  it('shows friendly message when daily limit is reached', () => {
-    mockUseStravaSync.mockReturnValue({
-      syncStatus: undefined,
-      isLoadingStatus: false,
-      statusError: null,
-      syncLatest: jest.fn(),
-      syncLastWeek: jest.fn(),
-      syncLastMonth: jest.fn(),
-      forceFullSync: jest.fn(),
-      customSync: jest.fn(),
-      isSyncing: false,
-      syncError: null,
-      syncResult: undefined,
-      refetchStatus: jest.fn(),
-      refreshStatus: jest.fn(),
-      syncStatusInfo: {
-        lastSyncText: '2 hours ago',
-        canSync: false,
-        syncDisabledReason: 'Daily sync limit reached (5/day)',
-        activityCount: 150,
-        todaySyncs: 15,
-        maxSyncs: 5,
-        consecutiveErrors: 0,
-        lastError: null
-      }
-    })
-
-    mockUseSyncStatusInfo.mockReturnValue({
-      lastSyncText: '2 hours ago',
-      canSync: false,
-      syncDisabledReason: 'Daily sync limit reached (5/day)',
-      activityCount: 150,
-      todaySyncs: 15,
-      maxSyncs: 5,
-      consecutiveErrors: 0,
-      lastError: null
-    })
-
-    renderSyncDashboard()
-
-    expect(screen.getByText('Daily Sync Limit Reached')).toBeInTheDocument()
-    
-    // Use getAllByText to get all instances and check the first one
-    const limitMessages = screen.getAllByText(/You've reached your daily sync limit. Please try again tomorrow/)
-    expect(limitMessages.length).toBeGreaterThan(0)
-    
-    expect(screen.getByText('Daily limit reached. Try again tomorrow!')).toBeInTheDocument()
-    
-    // Verify button is disabled and shows correct text
-    const syncButton = screen.getByRole('button', { name: /Daily Limit Reached/i })
-    expect(syncButton).toBeDisabled()
-  })
-
-  it('shows loading state correctly', () => {
-    mockUseStravaSync.mockReturnValue({
-      syncStatus: undefined,
-      isLoadingStatus: true,
-      statusError: null,
-      syncLatest: jest.fn(),
-      syncLastWeek: jest.fn(),
-      syncLastMonth: jest.fn(),
-      forceFullSync: jest.fn(),
-      customSync: jest.fn(),
-      isSyncing: false,
-      syncError: null,
-      syncResult: undefined,
-      refetchStatus: jest.fn(),
-      refreshStatus: jest.fn(),
-      syncStatusInfo: {
-        lastSyncText: 'Never synced',
-        canSync: true,
-        syncDisabledReason: null,
-        activityCount: 0,
-        todaySyncs: 0,
-        maxSyncs: 5,
-        consecutiveErrors: 0,
-        lastError: null
-      }
-    })
-
-    mockUseSyncStatusInfo.mockReturnValue({
-      lastSyncText: 'Never synced',
-      canSync: true,
-      syncDisabledReason: null,
+      syncDisabledReason: '',
       activityCount: 0,
       todaySyncs: 0,
       maxSyncs: 5,
@@ -213,9 +51,319 @@ describe('SyncDashboard', () => {
       lastError: null
     })
 
-    renderSyncDashboard()
-
-    // Should show loading skeleton
+    renderWithQueryClient(<SyncDashboard />)
+    
     expect(screen.getByTestId('loading-skeleton')).toBeInTheDocument()
+  })
+
+  it('should display sync status and daily counter', () => {
+    mockUseStravaSync.mockReturnValue({
+      forceFullSync: jest.fn(),
+      refreshStatus: jest.fn(),
+      isSyncing: false,
+      syncError: null,
+      syncResult: null,
+      isLoadingStatus: false
+    })
+
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: '2 hours ago',
+      canSync: true,
+      syncDisabledReason: '',
+      activityCount: 42,
+      todaySyncs: 2,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: null
+    })
+
+    renderWithQueryClient(<SyncDashboard />)
+    
+    expect(screen.getByText('Activity Sync')).toBeInTheDocument()
+    expect(screen.getByText('2 hours ago')).toBeInTheDocument()
+    expect(screen.getByText('42')).toBeInTheDocument()
+    expect(screen.getByText('Daily Sync Usage')).toBeInTheDocument()
+    expect(screen.getByText('3 syncs remaining today')).toBeInTheDocument()
+    
+    // Check for the daily sync counter in the dedicated card
+    expect(screen.getByText('2', { selector: '.text-lg.font-bold.text-blue-700' })).toBeInTheDocument()
+    // The "5" is in a div with text "/ 5" so we need to check for the full text
+    expect(screen.getByText('/ 5')).toBeInTheDocument()
+  })
+
+  it('should display detailed sync result with new activities', async () => {
+    const mockForceFullSync = jest.fn()
+    
+    mockUseStravaSync.mockReturnValue({
+      forceFullSync: mockForceFullSync,
+      refreshStatus: jest.fn(),
+      isSyncing: false,
+      syncError: null,
+      syncResult: {
+        success: true,
+        message: 'Sync completed successfully',
+        data: {
+          activitiesProcessed: 15,
+          newActivities: 8,
+          updatedActivities: 3,
+          syncDuration: 2500
+        }
+      },
+      isLoadingStatus: false
+    })
+
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: 'Just now',
+      canSync: true,
+      syncDisabledReason: '',
+      activityCount: 50,
+      todaySyncs: 3,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: null
+    })
+
+    renderWithQueryClient(<SyncDashboard />)
+    
+    // Check sync summary format
+    expect(screen.getByText('📊 Sync summary: 8 new, 3 updated')).toBeInTheDocument()
+    
+    // Check processing details
+    expect(screen.getByText('Processed 15 activities in 3s')).toBeInTheDocument()
+  })
+
+  it('should display sync result with no new activities', () => {
+    mockUseStravaSync.mockReturnValue({
+      forceFullSync: jest.fn(),
+      refreshStatus: jest.fn(),
+      isSyncing: false,
+      syncError: null,
+      syncResult: {
+        success: true,
+        message: 'Sync completed successfully',
+        data: {
+          activitiesProcessed: 10,
+          newActivities: 0,
+          updatedActivities: 0,
+          syncDuration: 1200
+        }
+      },
+      isLoadingStatus: false
+    })
+
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: 'Just now',
+      canSync: true,
+      syncDisabledReason: '',
+      activityCount: 50,
+      todaySyncs: 1,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: null
+    })
+
+    renderWithQueryClient(<SyncDashboard />)
+    
+    // Check sync summary format for zero activities
+    expect(screen.getByText('📊 Sync summary: 0 new, 0 updated')).toBeInTheDocument()
+    expect(screen.getByText('Processed 10 activities in 1s')).toBeInTheDocument()
+  })
+
+  it('should display daily limit reached state', () => {
+    mockUseStravaSync.mockReturnValue({
+      forceFullSync: jest.fn(),
+      refreshStatus: jest.fn(),
+      isSyncing: false,
+      syncError: null,
+      syncResult: null,
+      isLoadingStatus: false
+    })
+
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: '1 hour ago',
+      canSync: false,
+      syncDisabledReason: 'Daily sync limit reached (5/5)',
+      activityCount: 50,
+      todaySyncs: 5,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: null
+    })
+
+    renderWithQueryClient(<SyncDashboard />)
+    
+    // Check for the daily limit message in the dedicated card
+    expect(screen.getByText('Daily limit reached. Try again tomorrow.')).toBeInTheDocument()
+    
+    expect(screen.getByText('Daily Limit Reached')).toBeInTheDocument()
+    
+    const syncButton = screen.getByTestId('sync-button')
+    expect(syncButton).toBeDisabled()
+    expect(syncButton).toHaveAttribute('data-disabled', 'true')
+  })
+
+  it('should handle sync button click when available', async () => {
+    const mockForceFullSync = jest.fn()
+    
+    mockUseStravaSync.mockReturnValue({
+      forceFullSync: mockForceFullSync,
+      refreshStatus: jest.fn(),
+      isSyncing: false,
+      syncError: null,
+      syncResult: null,
+      isLoadingStatus: false
+    })
+
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: '2 hours ago',
+      canSync: true,
+      syncDisabledReason: '',
+      activityCount: 42,
+      todaySyncs: 2,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: null
+    })
+
+    renderWithQueryClient(<SyncDashboard />)
+    
+    const syncButton = screen.getByTestId('sync-button')
+    expect(syncButton).toBeEnabled()
+    expect(syncButton).toHaveAttribute('data-can-sync', 'true')
+    
+    fireEvent.click(syncButton)
+    
+    expect(mockForceFullSync).toHaveBeenCalledTimes(1)
+  })
+
+  it('should display sync progress when syncing', () => {
+    mockUseStravaSync.mockReturnValue({
+      forceFullSync: jest.fn(),
+      refreshStatus: jest.fn(),
+      isSyncing: true,
+      syncError: null,
+      syncResult: null,
+      isLoadingStatus: false
+    })
+
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: '2 hours ago',
+      canSync: true,
+      syncDisabledReason: '',
+      activityCount: 42,
+      todaySyncs: 2,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: null
+    })
+
+    renderWithQueryClient(<SyncDashboard />)
+    
+    // Check for syncing status in the status indicator
+    const syncingStatus = screen.getByText('Syncing...', { selector: '.text-xs.text-muted-foreground' })
+    expect(syncingStatus).toBeInTheDocument()
+    
+    // Check for syncing button text - there are multiple instances, so use getAllByText
+    const syncingElements = screen.getAllByText('Syncing...')
+    expect(syncingElements.length).toBeGreaterThan(0)
+    
+    const syncButton = screen.getByTestId('sync-button')
+    expect(syncButton).toBeDisabled()
+    expect(syncButton).toHaveAttribute('data-is-syncing', 'true')
+  })
+
+  it('should display sync errors', () => {
+    mockUseStravaSync.mockReturnValue({
+      forceFullSync: jest.fn(),
+      refreshStatus: jest.fn(),
+      isSyncing: false,
+      syncError: new Error('Network timeout'),
+      syncResult: null,
+      isLoadingStatus: false
+    })
+
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: '2 hours ago',
+      canSync: true,
+      syncDisabledReason: '',
+      activityCount: 42,
+      todaySyncs: 2,
+      maxSyncs: 5,
+      consecutiveErrors: 1,
+      lastError: 'Network timeout'
+    })
+
+    renderWithQueryClient(<SyncDashboard />)
+    
+    expect(screen.getByText('Sync Failed')).toBeInTheDocument()
+    
+    // Check for error messages (there might be multiple instances)
+    const errorMessages = screen.getAllByText('Network timeout')
+    expect(errorMessages.length).toBeGreaterThan(0)
+    
+    expect(screen.getByText('Last sync failed')).toBeInTheDocument()
+  })
+
+  it('should display consecutive errors', () => {
+    mockUseStravaSync.mockReturnValue({
+      forceFullSync: jest.fn(),
+      refreshStatus: jest.fn(),
+      isSyncing: false,
+      syncError: null,
+      syncResult: null,
+      isLoadingStatus: false
+    })
+
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: '2 hours ago',
+      canSync: true,
+      syncDisabledReason: '',
+      activityCount: 42,
+      todaySyncs: 2,
+      maxSyncs: 5,
+      consecutiveErrors: 3,
+      lastError: 'API rate limit exceeded'
+    })
+
+    renderWithQueryClient(<SyncDashboard />)
+    
+    expect(screen.getByText('3 failures')).toBeInTheDocument()
+    expect(screen.getByText('API rate limit exceeded')).toBeInTheDocument()
+  })
+
+  it('should display progress bar for daily sync usage', () => {
+    mockUseStravaSync.mockReturnValue({
+      forceFullSync: jest.fn(),
+      refreshStatus: jest.fn(),
+      isSyncing: false,
+      syncError: null,
+      syncResult: null,
+      isLoadingStatus: false
+    })
+
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: '2 hours ago',
+      canSync: true,
+      syncDisabledReason: '',
+      activityCount: 42,
+      todaySyncs: 3,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: null
+    })
+
+    renderWithQueryClient(<SyncDashboard />)
+    
+    // Check for the progress bar container - find the entire card
+    const dailySyncCard = screen.getByText('Daily Sync Usage').closest('.bg-blue-50')
+    expect(dailySyncCard).toBeInTheDocument()
+    
+    // Check that the progress bar container exists
+    const progressContainer = dailySyncCard?.querySelector('.w-full.bg-blue-200.rounded-full.h-2')
+    expect(progressContainer).toBeInTheDocument()
+    
+    // Check that there's a progress fill element with 60% width (3/5 = 60%)
+    const progressFill = progressContainer?.querySelector('div[style*="width: 60%"]')
+    expect(progressFill).toBeInTheDocument()
   })
 }) 
