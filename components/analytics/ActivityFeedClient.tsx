@@ -61,7 +61,7 @@ export function ActivityFeedClient({ userId, filter, sort }: ActivityFeedClientP
           </Alert>
         )}
         
-        <ActivityFeed userId={userId} activities={activities} isLoading={activitiesLoading} error={activitiesError} />
+        <ActivityFeed activities={activities} isLoading={activitiesLoading} error={activitiesError} />
       </div>
     )
   }

@@ -5,6 +5,40 @@ import { useUserActivities } from '@/hooks/use-user-activities'
 // Mock the useUserActivities hook
 jest.mock('@/hooks/use-user-activities')
 
+// Helper function to create proper UseQueryResult mock
+const createMockQueryResult = (data: any, isLoading = false, error: Error | null = null) => {
+  const hasError = !!error;
+  return {
+    data,
+    isLoading,
+    error,
+    isError: hasError,
+    isPending: isLoading,
+    isLoadingError: false,
+    isRefetchError: false,
+    isSuccess: !isLoading && !hasError,
+    isFetching: false,
+    isRefetching: false,
+    isStale: false,
+    isPlaceholderData: false,
+    isPreviousData: false,
+    isFetched: !isLoading,
+    isFetchedAfterMount: !isLoading,
+    dataUpdatedAt: Date.now(),
+    errorUpdatedAt: hasError ? Date.now() : 0,
+    failureCount: hasError ? 1 : 0,
+    failureReason: error,
+    refetch: jest.fn(),
+    remove: jest.fn(),
+    status: hasError ? 'error' : isLoading ? 'pending' : 'success',
+    fetchStatus: isLoading ? 'fetching' : 'idle',
+    errorUpdateCount: hasError ? 1 : 0,
+    isInitialLoading: isLoading,
+    isPaused: false,
+    promise: Promise.resolve(data)
+  } as any; // Use type assertion to bypass strict typing
+}
+
 const mockUseUserActivities = useUserActivities as jest.MockedFunction<typeof useUserActivities>
 
 describe('useFilteredActivities', () => {
@@ -58,11 +92,7 @@ describe('useFilteredActivities', () => {
   })
 
   it('should return all activities when filter is "all"', () => {
-    mockUseUserActivities.mockReturnValue({
-      data: mockActivities,
-      isLoading: false,
-      error: null,
-    })
+    mockUseUserActivities.mockReturnValue(createMockQueryResult(mockActivities))
 
     const { result } = renderHook(() => useFilteredActivities('user1', 'all', 'date-desc'))
 
@@ -72,11 +102,7 @@ describe('useFilteredActivities', () => {
   })
 
   it('should filter activities by type "run"', () => {
-    mockUseUserActivities.mockReturnValue({
-      data: mockActivities,
-      isLoading: false,
-      error: null,
-    })
+    mockUseUserActivities.mockReturnValue(createMockQueryResult(mockActivities))
 
     const { result } = renderHook(() => useFilteredActivities('user1', 'run', 'date-desc'))
 
@@ -87,11 +113,7 @@ describe('useFilteredActivities', () => {
   })
 
   it('should filter activities by type "ride"', () => {
-    mockUseUserActivities.mockReturnValue({
-      data: mockActivities,
-      isLoading: false,
-      error: null,
-    })
+    mockUseUserActivities.mockReturnValue(createMockQueryResult(mockActivities))
 
     const { result } = renderHook(() => useFilteredActivities('user1', 'ride', 'date-desc'))
 
@@ -102,11 +124,7 @@ describe('useFilteredActivities', () => {
   })
 
   it('should return empty array for favorite filter (not implemented yet)', () => {
-    mockUseUserActivities.mockReturnValue({
-      data: mockActivities,
-      isLoading: false,
-      error: null,
-    })
+    mockUseUserActivities.mockReturnValue(createMockQueryResult(mockActivities))
 
     const { result } = renderHook(() => useFilteredActivities('user1', 'favorite', 'date-desc'))
 
@@ -116,11 +134,7 @@ describe('useFilteredActivities', () => {
   })
 
   it('should return empty array for flagged filter (not implemented yet)', () => {
-    mockUseUserActivities.mockReturnValue({
-      data: mockActivities,
-      isLoading: false,
-      error: null,
-    })
+    mockUseUserActivities.mockReturnValue(createMockQueryResult(mockActivities))
 
     const { result } = renderHook(() => useFilteredActivities('user1', 'flagged', 'date-desc'))
 
@@ -130,11 +144,7 @@ describe('useFilteredActivities', () => {
   })
 
   it('should handle empty activities array', () => {
-    mockUseUserActivities.mockReturnValue({
-      data: [],
-      isLoading: false,
-      error: null,
-    })
+    mockUseUserActivities.mockReturnValue(createMockQueryResult([]))
 
     const { result } = renderHook(() => useFilteredActivities('user1', 'all', 'date-desc'))
 
@@ -144,11 +154,7 @@ describe('useFilteredActivities', () => {
   })
 
   it('should handle loading state', () => {
-    mockUseUserActivities.mockReturnValue({
-      data: undefined,
-      isLoading: true,
-      error: null,
-    })
+    mockUseUserActivities.mockReturnValue(createMockQueryResult(undefined, true))
 
     const { result } = renderHook(() => useFilteredActivities('user1', 'all', 'date-desc'))
 
@@ -158,11 +164,7 @@ describe('useFilteredActivities', () => {
 
   it('should handle error state', () => {
     const mockError = new Error('Failed to fetch activities')
-    mockUseUserActivities.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      error: mockError,
-    })
+    mockUseUserActivities.mockReturnValue(createMockQueryResult(undefined, false, mockError))
 
     const { result } = renderHook(() => useFilteredActivities('user1', 'all', 'date-desc'))
 
@@ -172,11 +174,7 @@ describe('useFilteredActivities', () => {
 
   describe('sorting functionality', () => {
     it('should sort activities by date descending (newest first)', () => {
-      mockUseUserActivities.mockReturnValue({
-        data: mockActivities,
-        isLoading: false,
-        error: null,
-      })
+      mockUseUserActivities.mockReturnValue(createMockQueryResult(mockActivities))
 
       const { result } = renderHook(() => useFilteredActivities('user1', 'all', 'date-desc'))
 
@@ -188,11 +186,7 @@ describe('useFilteredActivities', () => {
     })
 
     it('should sort activities by date ascending (oldest first)', () => {
-      mockUseUserActivities.mockReturnValue({
-        data: mockActivities,
-        isLoading: false,
-        error: null,
-      })
+      mockUseUserActivities.mockReturnValue(createMockQueryResult(mockActivities))
 
       const { result } = renderHook(() => useFilteredActivities('user1', 'all', 'date-asc'))
 
@@ -203,11 +197,7 @@ describe('useFilteredActivities', () => {
     })
 
     it('should sort activities by distance descending (longest first)', () => {
-      mockUseUserActivities.mockReturnValue({
-        data: mockActivities,
-        isLoading: false,
-        error: null,
-      })
+      mockUseUserActivities.mockReturnValue(createMockQueryResult(mockActivities))
 
       const { result } = renderHook(() => useFilteredActivities('user1', 'all', 'distance-desc'))
 
@@ -218,11 +208,7 @@ describe('useFilteredActivities', () => {
     })
 
     it('should sort activities by name ascending (A-Z)', () => {
-      mockUseUserActivities.mockReturnValue({
-        data: mockActivities,
-        isLoading: false,
-        error: null,
-      })
+      mockUseUserActivities.mockReturnValue(createMockQueryResult(mockActivities))
 
       const { result } = renderHook(() => useFilteredActivities('user1', 'all', 'name-asc'))
 

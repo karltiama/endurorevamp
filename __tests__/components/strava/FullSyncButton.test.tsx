@@ -25,16 +25,33 @@ const renderWithQueryClient = (component: React.ReactElement) => {
 
 describe('FullSyncButton', () => {
   const defaultMockReturn = {
-    fullSync: jest.fn(),
-    isSyncing: false,
-    syncError: null,
-    syncResult: null,
     syncStatus: {
       canSync: true,
       activityCount: 0,
       syncState: { sync_requests_today: 0 }
     },
-    isLoadingStatus: false
+    isLoadingStatus: false,
+    statusError: null,
+    quickSync: jest.fn(),
+    fullSync: jest.fn(),
+    customSync: jest.fn(),
+    isSyncing: false,
+    syncError: null,
+    syncResult: undefined,
+    refetchStatus: jest.fn(),
+    refreshStatus: jest.fn(),
+    syncStatusInfo: {
+      lastSyncText: 'Never synced',
+      canSync: true,
+      syncDisabledReason: null,
+      activityCount: 0,
+      todaySyncs: 0,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: undefined,
+      hasStravaTokens: true,
+      athlete: null
+    }
   };
 
   beforeEach(() => {
@@ -48,7 +65,7 @@ describe('FullSyncButton', () => {
       todaySyncs: 0,
       maxSyncs: 5,
       consecutiveErrors: 0,
-      lastError: null,
+      lastError: undefined,
       hasStravaTokens: true,
       athlete: null
     });
@@ -125,6 +142,7 @@ describe('FullSyncButton', () => {
       ...defaultMockReturn,
       syncResult: {
         success: true,
+        message: 'Sync completed successfully',
         data: {
           activitiesProcessed: 150,
           newActivities: 25,
@@ -159,7 +177,7 @@ describe('FullSyncButton', () => {
       todaySyncs: 5,
       maxSyncs: 5,
       consecutiveErrors: 0,
-      lastError: null,
+      lastError: undefined,
       hasStravaTokens: true,
       athlete: null
     });

@@ -28,17 +28,14 @@ const renderWithQueryClient = (component: React.ReactElement) => {
 describe('SyncDashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-  })
-
-  it('should display loading skeleton when status is loading', () => {
+    
+    // Default mock for useStravaSync
     mockUseStravaSync.mockReturnValue({
       syncStatus: undefined,
-      isLoadingStatus: true,
+      isLoadingStatus: false,
       statusError: null,
-      syncLatest: jest.fn(),
-      syncLastWeek: jest.fn(),
-      syncLastMonth: jest.fn(),
-      forceFullSync: jest.fn(),
+      quickSync: jest.fn(),
+      fullSync: jest.fn(),
       customSync: jest.fn(),
       isSyncing: false,
       syncError: null,
@@ -53,7 +50,51 @@ describe('SyncDashboard', () => {
         todaySyncs: 0,
         maxSyncs: 5,
         consecutiveErrors: 0,
-        lastError: undefined
+        lastError: undefined,
+        hasStravaTokens: false,
+        athlete: null
+      }
+    })
+
+    // Default mock for useSyncStatusInfo
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: '',
+      canSync: false,
+      syncDisabledReason: '',
+      activityCount: 0,
+      todaySyncs: 0,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: undefined,
+      hasStravaTokens: false,
+      athlete: null
+    })
+  })
+
+  it('should display loading skeleton when status is loading', () => {
+    mockUseStravaSync.mockReturnValue({
+      syncStatus: undefined,
+      isLoadingStatus: true,
+      statusError: null,
+      quickSync: jest.fn(),
+      fullSync: jest.fn(),
+      customSync: jest.fn(),
+      isSyncing: false,
+      syncError: null,
+      syncResult: undefined,
+      refetchStatus: jest.fn(),
+      refreshStatus: jest.fn(),
+      syncStatusInfo: {
+        lastSyncText: '',
+        canSync: false,
+        syncDisabledReason: null,
+        activityCount: 0,
+        todaySyncs: 0,
+        maxSyncs: 5,
+        consecutiveErrors: 0,
+        lastError: undefined,
+        hasStravaTokens: false,
+        athlete: null
       }
     })
 
@@ -80,10 +121,8 @@ describe('SyncDashboard', () => {
       syncStatus: undefined,
       isLoadingStatus: false,
       statusError: null,
-      syncLatest: jest.fn(),
-      syncLastWeek: jest.fn(),
-      syncLastMonth: jest.fn(),
-      forceFullSync: jest.fn(),
+      quickSync: jest.fn(),
+      fullSync: jest.fn(),
       customSync: jest.fn(),
       refetchStatus: jest.fn(),
       refreshStatus: jest.fn(),
@@ -98,7 +137,9 @@ describe('SyncDashboard', () => {
         todaySyncs: 2,
         maxSyncs: 5,
         consecutiveErrors: 0,
-        lastError: undefined
+        lastError: undefined,
+        hasStravaTokens: true,
+        athlete: { id: '123', name: 'Test Athlete' }
       }
     })
 
@@ -132,10 +173,8 @@ describe('SyncDashboard', () => {
       syncStatus: undefined,
       isLoadingStatus: false,
       statusError: null,
-      syncLatest: jest.fn(),
-      syncLastWeek: jest.fn(),
-      syncLastMonth: jest.fn(),
-      forceFullSync: mockForceFullSync,
+      quickSync: jest.fn(),
+      fullSync: mockForceFullSync,
       customSync: jest.fn(),
       isSyncing: false,
       syncError: null,
@@ -159,7 +198,9 @@ describe('SyncDashboard', () => {
         todaySyncs: 3,
         maxSyncs: 5,
         consecutiveErrors: 0,
-        lastError: undefined
+        lastError: undefined,
+        hasStravaTokens: true,
+        athlete: { id: '123', name: 'Test Athlete' }
       }
     })
 
@@ -171,7 +212,9 @@ describe('SyncDashboard', () => {
       todaySyncs: 3,
       maxSyncs: 5,
       consecutiveErrors: 0,
-      lastError: undefined
+      lastError: undefined,
+      hasStravaTokens: true,
+      athlete: { id: '123', name: 'Test Athlete' }
     })
 
     renderWithQueryClient(<SyncDashboard />)
@@ -188,10 +231,8 @@ describe('SyncDashboard', () => {
       syncStatus: undefined,
       isLoadingStatus: false,
       statusError: null,
-      syncLatest: jest.fn(),
-      syncLastWeek: jest.fn(),
-      syncLastMonth: jest.fn(),
-      forceFullSync: jest.fn(),
+      quickSync: jest.fn(),
+      fullSync: jest.fn(),
       customSync: jest.fn(),
       isSyncing: false,
       syncError: null,
@@ -215,7 +256,9 @@ describe('SyncDashboard', () => {
         todaySyncs: 1,
         maxSyncs: 5,
         consecutiveErrors: 0,
-        lastError: undefined
+        lastError: undefined,
+        hasStravaTokens: true,
+        athlete: { id: '123', name: 'Test Athlete' }
       }
     })
 
@@ -227,7 +270,9 @@ describe('SyncDashboard', () => {
       todaySyncs: 1,
       maxSyncs: 5,
       consecutiveErrors: 0,
-      lastError: undefined
+      lastError: undefined,
+      hasStravaTokens: true,
+      athlete: { id: '123', name: 'Test Athlete' }
     })
 
     renderWithQueryClient(<SyncDashboard />)
@@ -244,16 +289,14 @@ describe('SyncDashboard', () => {
       syncStatus: undefined,
       isLoadingStatus: false,
       statusError: null,
-      syncLatest: jest.fn(),
-      syncLastWeek: jest.fn(),
-      syncLastMonth: jest.fn(),
-      forceFullSync: jest.fn(),
+      quickSync: jest.fn(),
+      fullSync: jest.fn(),
       customSync: jest.fn(),
+      refetchStatus: jest.fn(),
+      refreshStatus: jest.fn(),
       isSyncing: false,
       syncError: null,
       syncResult: undefined,
-      refetchStatus: jest.fn(),
-      refreshStatus: jest.fn(),
       syncStatusInfo: {
         lastSyncText: '1 hour ago',
         canSync: false,
@@ -262,7 +305,9 @@ describe('SyncDashboard', () => {
         todaySyncs: 5,
         maxSyncs: 5,
         consecutiveErrors: 0,
-        lastError: undefined
+        lastError: undefined,
+        hasStravaTokens: true,
+        athlete: { id: '123', name: 'Test Athlete' }
       }
     })
 
@@ -313,7 +358,9 @@ describe('SyncDashboard', () => {
         todaySyncs: 2,
         maxSyncs: 5,
         consecutiveErrors: 0,
-        lastError: undefined
+        lastError: undefined,
+        hasStravaTokens: true,
+        athlete: { id: '123', name: 'Test Athlete' }
       }
     })
 
@@ -358,7 +405,9 @@ describe('SyncDashboard', () => {
         todaySyncs: 2,
         maxSyncs: 5,
         consecutiveErrors: 0,
-        lastError: undefined
+        lastError: undefined,
+        hasStravaTokens: true,
+        athlete: { id: '123', name: 'Test Athlete' }
       }
     })
 
@@ -391,10 +440,8 @@ describe('SyncDashboard', () => {
       syncStatus: undefined,
       isLoadingStatus: false,
       statusError: null,
-      syncLatest: jest.fn(),
-      syncLastWeek: jest.fn(),
-      syncLastMonth: jest.fn(),
-      forceFullSync: jest.fn(),
+      quickSync: jest.fn(),
+      fullSync: jest.fn(),
       customSync: jest.fn(),
       refetchStatus: jest.fn(),
       refreshStatus: jest.fn(),
@@ -409,7 +456,9 @@ describe('SyncDashboard', () => {
         todaySyncs: 2,
         maxSyncs: 5,
         consecutiveErrors: 1,
-        lastError: 'Network timeout'
+        lastError: 'Network timeout',
+        hasStravaTokens: true,
+        athlete: { id: '123', name: 'Test Athlete' }
       }
     })
 
@@ -421,7 +470,9 @@ describe('SyncDashboard', () => {
       todaySyncs: 2,
       maxSyncs: 5,
       consecutiveErrors: 1,
-      lastError: 'Network timeout'
+      lastError: 'Network timeout',
+      hasStravaTokens: true,
+      athlete: { id: '123', name: 'Test Athlete' }
     })
 
     renderWithQueryClient(<SyncDashboard />)
@@ -438,15 +489,13 @@ describe('SyncDashboard', () => {
       syncStatus: undefined,
       isLoadingStatus: false,
       statusError: null,
-      syncLatest: jest.fn(),
-      syncLastWeek: jest.fn(),
-      syncLastMonth: jest.fn(),
-      forceFullSync: jest.fn(),
+      quickSync: jest.fn(),
+      fullSync: jest.fn(),
       customSync: jest.fn(),
       refetchStatus: jest.fn(),
       refreshStatus: jest.fn(),
       isSyncing: false,
-      syncError: null,
+      syncError: new Error('API rate limit exceeded'),
       syncResult: undefined,
       syncStatusInfo: {
         lastSyncText: '2 hours ago',
@@ -456,7 +505,9 @@ describe('SyncDashboard', () => {
         todaySyncs: 2,
         maxSyncs: 5,
         consecutiveErrors: 3,
-        lastError: 'API rate limit exceeded'
+        lastError: 'API rate limit exceeded',
+        hasStravaTokens: true,
+        athlete: { id: '123', name: 'Test Athlete' }
       }
     })
 
@@ -468,7 +519,9 @@ describe('SyncDashboard', () => {
       todaySyncs: 2,
       maxSyncs: 5,
       consecutiveErrors: 3,
-      lastError: 'API rate limit exceeded'
+      lastError: 'API rate limit exceeded',
+      hasStravaTokens: true,
+      athlete: { id: '123', name: 'Test Athlete' }
     })
 
     renderWithQueryClient(<SyncDashboard />)
@@ -485,10 +538,8 @@ describe('SyncDashboard', () => {
       syncStatus: undefined,
       isLoadingStatus: false,
       statusError: null,
-      syncLatest: jest.fn(),
-      syncLastWeek: jest.fn(),
-      syncLastMonth: jest.fn(),
-      forceFullSync: jest.fn(),
+      quickSync: jest.fn(),
+      fullSync: jest.fn(),
       customSync: jest.fn(),
       refetchStatus: jest.fn(),
       refreshStatus: jest.fn(),
@@ -503,7 +554,9 @@ describe('SyncDashboard', () => {
         todaySyncs: 3,
         maxSyncs: 5,
         consecutiveErrors: 0,
-        lastError: undefined
+        lastError: undefined,
+        hasStravaTokens: true,
+        athlete: { id: '123', name: 'Test Athlete' }
       }
     })
 
@@ -515,7 +568,9 @@ describe('SyncDashboard', () => {
       todaySyncs: 3,
       maxSyncs: 5,
       consecutiveErrors: 0,
-      lastError: undefined
+      lastError: undefined,
+      hasStravaTokens: true,
+      athlete: { id: '123', name: 'Test Athlete' }
     })
 
     renderWithQueryClient(<SyncDashboard />)
