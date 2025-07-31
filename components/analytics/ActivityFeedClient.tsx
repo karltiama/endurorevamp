@@ -1,6 +1,6 @@
 'use client'
 
-import { useUserActivities } from '@/hooks/use-user-activities'
+import { useFilteredActivities } from '@/hooks/useFilteredActivities'
 import { useStravaToken } from '@/hooks/strava/useStravaToken'
 import { ActivityFeed } from './ActivityFeed'
 import { StravaReconnectionPrompt } from '@/components/strava/StravaReconnectionPrompt'
@@ -12,10 +12,12 @@ import Link from 'next/link'
 
 interface ActivityFeedClientProps {
   userId: string
+  filter: string
+  sort: string
 }
 
-export function ActivityFeedClient({ userId }: ActivityFeedClientProps) {
-  const { data: activities, isLoading: activitiesLoading, error: activitiesError } = useUserActivities(userId)
+export function ActivityFeedClient({ userId, filter, sort }: ActivityFeedClientProps ) {
+  const { activities, isLoading: activitiesLoading, error: activitiesError } = useFilteredActivities(userId, filter, sort)
   const { accessToken, error: tokenError, refreshToken } = useStravaToken()
 
   // Show loading while checking for activities
@@ -59,7 +61,7 @@ export function ActivityFeedClient({ userId }: ActivityFeedClientProps) {
           </Alert>
         )}
         
-        <ActivityFeed userId={userId} />
+        <ActivityFeed userId={userId} activities={activities} isLoading={activitiesLoading} error={activitiesError} />
       </div>
     )
   }

@@ -6,6 +6,8 @@ interface SyncOptions {
   userId: string;
   forceRefresh?: boolean;
   maxActivities?: number;
+  usePagination?: boolean; // New option for full sync
+  syncType?: 'incremental' | 'full' | 'latest'; // New sync type option
 }
 
 interface SyncResult {
@@ -14,6 +16,8 @@ interface SyncResult {
   newActivities: number;
   updatedActivities: number;
   errors: string[];
+  syncType?: string; // Track what type of sync was performed
+  totalPages?: number; // Track pagination info
 }
 
 interface StravaAuthResponse {
@@ -67,13 +71,15 @@ export class StravaActivitySync {
 }
 
 export async function syncStravaActivities(options: SyncOptions): Promise<SyncResult> {
-  const { userId, forceRefresh = false, maxActivities = 200 } = options;
+  const { userId, forceRefresh = false, maxActivities = 200, usePagination = false, syncType = 'latest' } = options;
   const result: SyncResult = {
     success: false,
     activitiesSynced: 0,
     newActivities: 0,
     updatedActivities: 0,
-    errors: []
+    errors: [],
+    syncType,
+    totalPages: 0
   };
 
   try {
@@ -101,8 +107,21 @@ export async function syncStravaActivities(options: SyncOptions): Promise<SyncRe
       }
     }
 
-    // Fetch activities from Strava
-    const activities = await fetchStravaActivities(tokens.access_token, maxActivities);
+    // Fetch activities from Strava based on sync type
+    let activities: StravaActivity[] | null;
+    
+    if (usePagination) {
+      console.log(`🔄 Starting full sync with pagination (sync type: ${syncType})`);
+      activities = await fetchStravaActivitiesWithPagination(tokens.access_token, maxActivities);
+      // Calculate total pages for full sync
+      if (activities) {
+        result.totalPages = Math.ceil(activities.length / maxActivities);
+      }
+    } else {
+      console.log(`🔄 Starting standard sync (sync type: ${syncType})`);
+      activities = await fetchStravaActivities(tokens.access_token, maxActivities);
+    }
+    
     if (!activities) {
       result.errors.push('Failed to fetch activities from Strava');
       return result;
@@ -171,12 +190,13 @@ export async function syncStravaActivities(options: SyncOptions): Promise<SyncRe
     result.activitiesSynced = activities.length;
     result.newActivities = syncResult.newActivities;
     result.updatedActivities = syncResult.updatedActivities;
-
+    
+    return result;
   } catch (error) {
-    result.errors.push(error instanceof Error ? error.message : 'Unknown error during sync');
+    console.error('❌ Sync failed:', error);
+    result.errors.push(error instanceof Error ? error.message : 'Unknown error occurred');
+    return result;
   }
-
-  return result;
 }
 
 async function refreshStravaToken(userId: string, refreshToken: string): Promise<{ success: boolean }> {
@@ -260,6 +280,71 @@ async function fetchStravaActivities(accessToken: string, maxActivities: number)
     return activities;
   } catch (error) {
     console.error('Error fetching Strava activities:', error);
+    return null;
+  }
+}
+
+async function fetchStravaActivitiesWithPagination(accessToken: string, maxActivitiesPerPage: number = 200): Promise<StravaActivity[] | null> {
+  try {
+    console.log(`🔍 Starting full sync with pagination (${maxActivitiesPerPage} activities per page)`);
+    
+    let allActivities: StravaActivity[] = [];
+    let page = 1;
+    let hasMore = true;
+    let totalFetched = 0;
+    
+    while (hasMore) {
+      console.log(`📄 Fetching page ${page}...`);
+      
+      const response = await fetch(
+        `https://www.strava.com/api/v3/athlete/activities?per_page=${maxActivitiesPerPage}&page=${page}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error(`❌ Strava API error on page ${page}: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch activities on page ${page}: ${response.statusText}`);
+      }
+
+      const activities: StravaActivity[] = await response.json();
+      
+      if (activities.length === 0) {
+        console.log(`✅ No more activities found on page ${page}`);
+        hasMore = false;
+      } else {
+        allActivities.push(...activities);
+        totalFetched += activities.length;
+        
+        console.log(`✅ Page ${page}: Fetched ${activities.length} activities (Total: ${totalFetched})`);
+        console.log(`📅 Page ${page} date range:`, {
+          newest: activities[0]?.start_date,
+          oldest: activities[activities.length - 1]?.start_date,
+        });
+        
+        page++;
+        
+        // Respect rate limits - pause between requests to avoid hitting limits
+        if (page > 1) {
+          console.log(`⏳ Waiting 1 second before next page to respect rate limits...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+    }
+    
+    console.log(`🎉 Full sync completed! Fetched ${allActivities.length} activities across ${page - 1} pages`);
+    console.log('📅 Overall activity date range:', {
+      newest: allActivities[0]?.start_date,
+      oldest: allActivities[allActivities.length - 1]?.start_date,
+      total: allActivities.length
+    });
+    
+    return allActivities;
+  } catch (error) {
+    console.error('Error fetching Strava activities with pagination:', error);
     return null;
   }
 }

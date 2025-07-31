@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useStravaSync } from '@/hooks/use-strava-sync'; // Use the working API version
+import { useStravaSync, useSyncStatusInfo } from '@/hooks/use-strava-sync'; // Use the working API version
 import { Loader2, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 
 export function SyncButton() {
@@ -13,6 +13,9 @@ export function SyncButton() {
     syncStatus,
     isLoadingStatus 
   } = useStravaSync();
+
+  // Get formatted status info
+  const statusInfo = useSyncStatusInfo();
 
   const handleSync = async () => {
     try {
@@ -39,6 +42,34 @@ export function SyncButton() {
     return <RefreshCw className="h-4 w-4" />;
   };
 
+  const getButtonText = () => {
+    if (isSyncing) {
+      return 'Syncing...';
+    }
+    
+    if (!statusInfo.hasStravaTokens) {
+      return 'Connect Strava First';
+    }
+    
+    if (!statusInfo.canSync) {
+      return 'Sync Unavailable';
+    }
+    
+    return 'Sync Strava Data';
+  };
+
+  const getButtonVariant = () => {
+    if (!statusInfo.hasStravaTokens) {
+      return 'outline' as const;
+    }
+    
+    if (!statusInfo.canSync) {
+      return 'secondary' as const;
+    }
+    
+    return 'default' as const;
+  };
+
   // Debug logging for hook state changes (commented out for production)
   // console.log('🔍 SyncButton state:', {
   //   isSyncing,
@@ -52,12 +83,13 @@ export function SyncButton() {
     <div className="space-y-4">
       <Button
         onClick={handleSync}
-        disabled={isSyncing || isLoadingStatus}
+        disabled={isSyncing || isLoadingStatus || !statusInfo.hasStravaTokens}
+        variant={getButtonVariant()}
         className="w-full"
       >
         {getStatusIcon()}
         <span className="ml-2">
-          {isSyncing ? 'Syncing...' : 'Sync Strava Data'}
+          {getButtonText()}
         </span>
       </Button>
 
@@ -98,6 +130,16 @@ export function SyncButton() {
         <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
           <div>Status: {syncStatus.canSync ? '✅ Ready to sync' : '⏳ Sync cooldown'}</div>
           <div>Activities: {syncStatus.activityCount}</div>
+          {!statusInfo.hasStravaTokens && (
+            <div className="text-amber-600 mt-1">
+              ⚠️ Strava account not connected. Please connect your Strava account first.
+            </div>
+          )}
+          {statusInfo.athlete && (
+            <div className="text-green-600 mt-1">
+              ✅ Connected to: {statusInfo.athlete.name}
+            </div>
+          )}
         </div>
       )}
     </div>

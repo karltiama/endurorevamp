@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useUserActivities } from '@/hooks/use-user-activities'
 import { ActivityCard } from './ActivityCard'
 import { ActivityDetailModal } from './ActivityDetailModal'
 import type { Activity, StravaActivity } from '@/lib/strava/types'
@@ -11,29 +10,22 @@ type ActivityFeedActivity = Activity | StravaActivity
 
 interface ActivityFeedProps {
   userId: string
+  activities: Activity[]
+  isLoading: boolean
+  error: Error | null
 }
 
-export function ActivityFeed({ userId }: ActivityFeedProps) {
+export function ActivityFeed({ userId, activities, isLoading, error }: ActivityFeedProps) {
   const [currentPage, setCurrentPage] = useState(1)
-    const [selectedActivity, setSelectedActivity] = useState<ActivityFeedActivity | null>(null)
+  const [selectedActivity, setSelectedActivity] = useState<ActivityFeedActivity | null>(null)
 
-  // Use database instead of direct API - much faster and no rate limits!
-  const { data: allActivities, isLoading, error } = useUserActivities(userId)
-
-  // Client-side pagination and filtering (since we have all data from DB)
+  // Client-side pagination (activities are already filtered)
   const ITEMS_PER_PAGE = 20
-  const ninetyDaysAgo = new Date()
-  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
 
-  // Filter activities to last 90 days and paginate
-  const filteredActivities = allActivities?.filter((activity: ActivityFeedActivity) => 
-    new Date(activity.start_date) >= ninetyDaysAgo
-  ) || []
-
-  const totalPages = Math.ceil(filteredActivities.length / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(activities.length / ITEMS_PER_PAGE)
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
   const endIndex = startIndex + ITEMS_PER_PAGE
-  const currentActivities = filteredActivities.slice(startIndex, endIndex)
+  const currentActivities = activities.slice(startIndex, endIndex)
 
   const handleViewDetails = (activity: ActivityFeedActivity) => {
     setSelectedActivity(activity)
@@ -71,7 +63,7 @@ export function ActivityFeed({ userId }: ActivityFeedProps) {
     )
   }
 
-  if (!filteredActivities?.length) {
+  if (!activities?.length) {
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
         <div className="text-4xl mb-4">🏃‍♂️</div>
@@ -90,21 +82,6 @@ export function ActivityFeed({ userId }: ActivityFeedProps) {
 
   return (
     <div className="space-y-4">
-      {/* Header - removed redundant heading */}
-      {/* <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Activity Feed</h2>
-          <p className="text-gray-600">
-            Your activities from the last 90 days • Page {currentPage} of {totalPages}
-          </p>
-          <p className="text-xs text-green-600 mt-1">
-            📊 Loading from database (fast & efficient)
-          </p>
-        </div>
-        <div className="text-sm text-gray-500">
-          {filteredActivities.length} activities total • {currentActivities.length} shown
-        </div>
-      </div> */}
 
       {/* Activity List */}
       <div className="space-y-2">

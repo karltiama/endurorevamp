@@ -13,6 +13,18 @@ jest.mock('@/hooks/use-strava-sync', () => ({
     syncStatus: { canSync: true, activityCount: 0 },
     isLoadingStatus: false,
   })),
+  useSyncStatusInfo: jest.fn(() => ({
+    lastSyncText: 'Never synced',
+    canSync: true,
+    syncDisabledReason: null,
+    activityCount: 0,
+    todaySyncs: 0,
+    maxSyncs: 5,
+    consecutiveErrors: 0,
+    lastError: null,
+    hasStravaTokens: true,
+    athlete: null
+  })),
 }));
 
 const renderWithQueryClient = (component: React.ReactElement) => {
@@ -38,6 +50,7 @@ describe('SyncButton (Fixed)', () => {
 
   it('shows syncing state', () => {
     const mockUseStravaSync = require('@/hooks/use-strava-sync').useStravaSync;
+    const mockUseSyncStatusInfo = require('@/hooks/use-strava-sync').useSyncStatusInfo;
     mockUseStravaSync.mockReturnValue({
       forceFullSync: jest.fn(),
       isSyncing: true,
@@ -46,6 +59,18 @@ describe('SyncButton (Fixed)', () => {
       syncStatus: { canSync: true, activityCount: 0 },
       isLoadingStatus: false,
     });
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: 'Never synced',
+      canSync: true,
+      syncDisabledReason: null,
+      activityCount: 0,
+      todaySyncs: 0,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: null,
+      hasStravaTokens: true,
+      athlete: null
+    });
 
     renderWithQueryClient(<SyncButton />);
     expect(screen.getByText('Syncing...')).toBeInTheDocument();
@@ -53,6 +78,7 @@ describe('SyncButton (Fixed)', () => {
 
   it('shows error state', () => {
     const mockUseStravaSync = require('@/hooks/use-strava-sync').useStravaSync;
+    const mockUseSyncStatusInfo = require('@/hooks/use-strava-sync').useSyncStatusInfo;
     mockUseStravaSync.mockReturnValue({
       forceFullSync: jest.fn(),
       isSyncing: false,
@@ -60,6 +86,18 @@ describe('SyncButton (Fixed)', () => {
       syncResult: null,
       syncStatus: { canSync: true, activityCount: 0 },
       isLoadingStatus: false,
+    });
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: 'Never synced',
+      canSync: true,
+      syncDisabledReason: null,
+      activityCount: 0,
+      todaySyncs: 0,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: null,
+      hasStravaTokens: true,
+      athlete: null
     });
 
     renderWithQueryClient(<SyncButton />);
@@ -69,6 +107,7 @@ describe('SyncButton (Fixed)', () => {
 
   it('shows success state', () => {
     const mockUseStravaSync = require('@/hooks/use-strava-sync').useStravaSync;
+    const mockUseSyncStatusInfo = require('@/hooks/use-strava-sync').useSyncStatusInfo;
     mockUseStravaSync.mockReturnValue({
       forceFullSync: jest.fn(),
       isSyncing: false,
@@ -85,6 +124,18 @@ describe('SyncButton (Fixed)', () => {
       syncStatus: { canSync: true, activityCount: 10 },
       isLoadingStatus: false,
     });
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: 'Never synced',
+      canSync: true,
+      syncDisabledReason: null,
+      activityCount: 10,
+      todaySyncs: 0,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: null,
+      hasStravaTokens: true,
+      athlete: null
+    });
 
     renderWithQueryClient(<SyncButton />);
     expect(screen.getByText('Last Sync Results:')).toBeInTheDocument();
@@ -95,6 +146,7 @@ describe('SyncButton (Fixed)', () => {
   it('calls forceFullSync when clicked', () => {
     const mockForceFullSync = jest.fn();
     const mockUseStravaSync = require('@/hooks/use-strava-sync').useStravaSync;
+    const mockUseSyncStatusInfo = require('@/hooks/use-strava-sync').useSyncStatusInfo;
     mockUseStravaSync.mockReturnValue({
       forceFullSync: mockForceFullSync,
       isSyncing: false,
@@ -103,6 +155,18 @@ describe('SyncButton (Fixed)', () => {
       syncStatus: { canSync: true, activityCount: 0 },
       isLoadingStatus: false,
     });
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: 'Never synced',
+      canSync: true,
+      syncDisabledReason: null,
+      activityCount: 0,
+      todaySyncs: 0,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: null,
+      hasStravaTokens: true,
+      athlete: null
+    });
 
     renderWithQueryClient(<SyncButton />);
     
@@ -110,5 +174,41 @@ describe('SyncButton (Fixed)', () => {
     fireEvent.click(button);
     
     expect(mockForceFullSync).toHaveBeenCalled();
+  });
+
+  it('shows correct state when no Strava tokens connected', () => {
+    const mockUseStravaSync = require('@/hooks/use-strava-sync').useStravaSync;
+    const mockUseSyncStatusInfo = require('@/hooks/use-strava-sync').useSyncStatusInfo;
+    mockUseStravaSync.mockReturnValue({
+      forceFullSync: jest.fn(),
+      isSyncing: false,
+      syncError: null,
+      syncResult: null,
+      syncStatus: { canSync: false, activityCount: 0 },
+      isLoadingStatus: false,
+    });
+    mockUseSyncStatusInfo.mockReturnValue({
+      lastSyncText: 'Never synced',
+      canSync: false,
+      syncDisabledReason: 'Strava account not connected. Please connect your Strava account first.',
+      activityCount: 0,
+      todaySyncs: 0,
+      maxSyncs: 5,
+      consecutiveErrors: 0,
+      lastError: null,
+      hasStravaTokens: false,
+      athlete: null
+    });
+
+    renderWithQueryClient(<SyncButton />);
+    
+    // Should show "Connect Strava First" button text
+    expect(screen.getByText('Connect Strava First')).toBeInTheDocument();
+    
+    // Button should be disabled
+    expect(screen.getByRole('button')).toBeDisabled();
+    
+    // Should show warning message about Strava connection
+    expect(screen.getByText(/Strava account not connected/)).toBeInTheDocument();
   });
 }); 

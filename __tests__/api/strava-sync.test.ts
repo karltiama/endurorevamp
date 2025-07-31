@@ -393,7 +393,8 @@ describe('Strava Sync API Routes', () => {
       expect(response.status).toBe(200)
       expect(data.syncState).toBe(null)
       expect(data.activityCount).toBe(0)
-      expect(data.canSync).toBe(true) // First time sync allowed
+      expect(data.canSync).toBe(false) // No Strava tokens found
+      expect(data.hasStravaTokens).toBe(false)
     })
 
     it('should handle database errors', async () => {

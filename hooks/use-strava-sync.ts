@@ -4,6 +4,8 @@ interface SyncOptions {
   maxActivities?: number
   sinceDays?: number
   forceRefresh?: boolean
+  usePagination?: boolean // New option for full sync
+  syncType?: 'incremental' | 'full' | 'latest' // New sync type option
 }
 
 interface SyncResult {
@@ -31,6 +33,11 @@ interface SyncStatus {
   activityCount: number;
   canSync: boolean;
   syncDisabledReason?: string;
+  hasStravaTokens?: boolean;
+  athlete?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 // Helper function to format sync status info
@@ -42,11 +49,13 @@ function formatSyncStatusInfo(syncStatus: SyncStatus | undefined) {
       syncDisabledReason: null,
       activityCount: 0,
       todaySyncs: 0,
-      maxSyncs: 5
+      maxSyncs: 5,
+      hasStravaTokens: false,
+      athlete: null
     }
   }
 
-  const { syncState, activityCount, canSync, syncDisabledReason } = syncStatus
+  const { syncState, activityCount, canSync, syncDisabledReason, hasStravaTokens, athlete } = syncStatus
 
   // Format last sync time
   let lastSyncText = 'Never synced'
@@ -79,7 +88,9 @@ function formatSyncStatusInfo(syncStatus: SyncStatus | undefined) {
     todaySyncs: syncState?.sync_requests_today || 0,
     maxSyncs: 5,
     consecutiveErrors: syncState?.consecutive_errors || 0,
-    lastError: syncState?.last_error_message
+    lastError: syncState?.last_error_message,
+    hasStravaTokens: hasStravaTokens || false,
+    athlete: athlete || null
   }
 }
 
@@ -179,6 +190,14 @@ export function useStravaSync() {
     })
   }
 
+  const fullSync = () => {
+    triggerSyncMutation({ 
+      usePagination: true, // Enable pagination
+      maxActivities: 200,
+      syncType: 'full' // Full historical sync
+    })
+  }
+
   const customSync = (options: SyncOptions) => {
     triggerSyncMutation(options)
   }
@@ -200,6 +219,7 @@ export function useStravaSync() {
     syncLastWeek,
     syncLastMonth,
     forceFullSync,
+    fullSync,
     customSync,
     
     // Sync state

@@ -2,6 +2,7 @@
 
 import { useStravaSync, useSyncStatusInfo } from '@/hooks/use-strava-sync'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { FullSyncButton } from '@/components/strava/FullSyncButton'
 
 export default function SyncDashboard() {
   const {
@@ -229,6 +230,18 @@ export default function SyncDashboard() {
           {!canSync && syncDisabledReason && !syncDisabledReason.includes('Daily sync limit') && (
             <p className="text-xs text-muted-foreground mt-2">{syncDisabledReason}</p>
           )}
+        </div>
+
+        {/* Full Sync Section */}
+        <div className="border-t pt-4">
+          <div className="text-center mb-3">
+            <h3 className="text-sm font-medium mb-1">Full Historical Sync</h3>
+            <p className="text-xs text-muted-foreground">
+              Import ALL your Strava activities (may take several minutes).
+            </p>
+          </div>
+          
+          <FullSyncButton />
         </div>
       </CardContent>
     </Card>

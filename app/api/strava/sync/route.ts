@@ -106,6 +106,15 @@ export async function GET() {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
 
+    // Check if user has Strava tokens
+    const { data: tokens, error: tokenError } = await supabase
+      .from('strava_tokens')
+      .select('strava_athlete_id, athlete_firstname, athlete_lastname')
+      .eq('user_id', userId)
+      .single()
+
+    const hasStravaTokens = !!tokens && !tokenError
+
     // Check sync permissions
     const canSyncResult = await checkCanSync(userId, syncState)
 
@@ -113,7 +122,12 @@ export async function GET() {
       syncState: syncState || null,
       activityCount: activityCount || 0,
       canSync: canSyncResult.canSync,
-      syncDisabledReason: canSyncResult.reason
+      syncDisabledReason: canSyncResult.reason,
+      hasStravaTokens,
+      athlete: tokens ? {
+        id: tokens.strava_athlete_id,
+        name: `${tokens.athlete_firstname} ${tokens.athlete_lastname}`
+      } : null
     })
 
   } catch (error) {
@@ -136,8 +150,23 @@ async function checkCanSync(userId: string, syncState: {
   last_activity_sync?: string;
   last_sync_new_activities?: number; // Track if last sync had new activities
 } | null): Promise<{ canSync: boolean; reason?: string }> {
+  const supabase = await createClient()
+
+  // First, check if user has Strava tokens (most important check)
+  const { data: tokens, error: tokenError } = await supabase
+    .from('strava_tokens')
+    .select('strava_athlete_id')
+    .eq('user_id', userId)
+    .single()
+
+  if (tokenError || !tokens) {
+    console.log('❌ No Strava tokens found for user:', userId)
+    return { canSync: false, reason: 'Strava account not connected. Please connect your Strava account first.' }
+  }
+
+  // If no sync state exists, user can sync (first time)
   if (!syncState) {
-    return { canSync: true } // First time sync
+    return { canSync: true }
   }
 
   if (!syncState.sync_enabled) {
