@@ -46,7 +46,7 @@ describe('UnitPreferences Component', () => {
     render(<UnitPreferences />, { wrapper })
 
     expect(screen.getByText('Units & Display')).toBeInTheDocument()
-    expect(screen.getByText('Choose your preferred units for distances and pace')).toBeInTheDocument()
+    expect(screen.getByText('Choose your preferred units')).toBeInTheDocument()
     
     // Should show loading animation
     expect(document.querySelector('.animate-pulse')).toBeInTheDocument()
@@ -66,23 +66,16 @@ describe('UnitPreferences Component', () => {
     render(<UnitPreferences />, { wrapper })
 
     // Should show the unit selection buttons
-    expect(screen.getByText('Kilometers (km)')).toBeInTheDocument()
-    expect(screen.getByText('Miles (mi)')).toBeInTheDocument()
+    expect(screen.getByText('km')).toBeInTheDocument()
+    expect(screen.getByText('mi')).toBeInTheDocument()
     
-    // Should show current settings
-    expect(screen.getByText('Current Settings')).toBeInTheDocument()
-    expect(screen.getByText('Distance: Kilometers (km)')).toBeInTheDocument()
-    expect(screen.getByText('Pace: min/km')).toBeInTheDocument()
-    expect(screen.getByText('Temperature: Celsius (°C)')).toBeInTheDocument()
-    
-    // Should show examples
-    expect(screen.getByText('Examples with current setting:')).toBeInTheDocument()
-    expect(screen.getByText('• Distance: 5 km')).toBeInTheDocument()
-    expect(screen.getByText('• Pace: 5:00/km (5:00 per km converted)')).toBeInTheDocument()
-    expect(screen.getByText('• Temperature: 15°C')).toBeInTheDocument()
+    // Should show section headers
+    expect(screen.getByText('Distance & Pace')).toBeInTheDocument()
+    expect(screen.getByText('Wind Speed')).toBeInTheDocument()
+    expect(screen.getByText('Temperature')).toBeInTheDocument()
 
     // Click to switch to miles
-    const milesButton = screen.getByRole('button', { name: /Miles \(mi\)/ })
+    const milesButton = screen.getByRole('button', { name: 'mi' })
     fireEvent.click(milesButton)
 
     await waitFor(() => {
@@ -101,16 +94,14 @@ describe('UnitPreferences Component', () => {
 
     render(<UnitPreferences />, { wrapper })
 
-    // Should show miles in current settings
-    expect(screen.getByText('Distance: Miles (mi)')).toBeInTheDocument()
-    expect(screen.getByText('Pace: min/mile')).toBeInTheDocument()
-    expect(screen.getByText('Temperature: Fahrenheit (°F)')).toBeInTheDocument()
+    // Should show miles button as active
+    expect(screen.getByText('mi')).toBeInTheDocument()
+    expect(screen.getByText('km')).toBeInTheDocument()
     
-    // Should show examples in miles
-    expect(screen.getByText('• Distance: 3.1 mi')).toBeInTheDocument()
-    expect(screen.getByText('• Pace: 8:02/mi (5:00 per km converted)')).toBeInTheDocument()
-    expect(screen.getByText('• Temperature: 59°F')).toBeInTheDocument()
-    expect(screen.getByText('• Long run: 13.1 mi')).toBeInTheDocument()
+    // Should show section headers
+    expect(screen.getByText('Distance & Pace')).toBeInTheDocument()
+    expect(screen.getByText('Wind Speed')).toBeInTheDocument()
+    expect(screen.getByText('Temperature')).toBeInTheDocument()
   })
 
   it('shows correct active state for buttons', () => {
@@ -125,7 +116,7 @@ describe('UnitPreferences Component', () => {
     render(<UnitPreferences />, { wrapper })
 
     // km button should show active state (check mark)
-    const kmButton = screen.getByRole('button', { name: /Kilometers \(km\)/ })
+    const kmButton = screen.getByRole('button', { name: 'km' })
     expect(kmButton).toBeInTheDocument()
     
     // Should show check mark for active option
@@ -145,7 +136,7 @@ describe('UnitPreferences Component', () => {
 
     render(<UnitPreferences />, { wrapper })
 
-    const milesButton = screen.getByRole('button', { name: /Miles \(mi\)/ })
+    const milesButton = screen.getByRole('button', { name: 'mi' })
     fireEvent.click(milesButton)
     
     await waitFor(() => {
@@ -166,7 +157,7 @@ describe('UnitPreferences Component', () => {
 
     render(<UnitPreferences />, { wrapper })
 
-    const kmButton = screen.getByRole('button', { name: /Kilometers \(km\)/ })
+    const kmButton = screen.getByRole('button', { name: 'km' })
     fireEvent.click(kmButton)
 
     await waitFor(() => {

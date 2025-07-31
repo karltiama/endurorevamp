@@ -47,7 +47,10 @@ describe('SmartGoalCard', () => {
         temperature: 'celsius',
         windSpeed: 'km/h'
       },
-      updatePreferences: jest.fn()
+      isLoading: false,
+      updatePreferences: jest.fn(),
+      setDistanceUnit: jest.fn(),
+      toggleUnits: jest.fn()
     });
   });
 

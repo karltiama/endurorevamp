@@ -91,17 +91,56 @@ describe('syncActivitiesToDatabase - Upsert Functionality', () => {
       // Mock an existing activity for the existence check
       const mockExistingActivity = { id: 'existing-id', strava_activity_id: 12345 }
       
-      // Override the select mock to return existing activity for the first call (existence check)
-      const mockSelectChain = jest.fn(() => ({
-        eq: jest.fn(() => ({
+      // Mock the current activity data for change detection - with different values to trigger update
+      const mockCurrentActivity = {
+        id: 'existing-id',
+        name: 'Old Test Run', // Different name to trigger update
+        distance: 4000, // Different distance to trigger update
+        moving_time: 1800,
+        elapsed_time: 1900,
+        total_elevation_gain: 100,
+        achievement_count: 0,
+        kudos_count: 0,
+        comment_count: 0,
+        average_speed: 2.78,
+        max_speed: 4.17,
+        average_heartrate: 0,
+        max_heartrate: 0,
+        average_watts: 0,
+        max_watts: 0,
+        weighted_average_watts: 0,
+        kilojoules: 0,
+        description: null
+      }
+      
+      // Mock the select chain to return different data for different calls
+      const mockSelectChain = jest.fn()
+        .mockReturnValueOnce({
           eq: jest.fn(() => ({
-            maybeSingle: jest.fn().mockResolvedValue({
-              data: mockExistingActivity, // Activity exists
+            eq: jest.fn(() => ({
+              maybeSingle: jest.fn().mockResolvedValue({
+                data: mockExistingActivity, // Activity exists
+                error: null
+              })
+            }))
+          }))
+        })
+        .mockReturnValueOnce({
+          eq: jest.fn(() => ({
+            single: jest.fn().mockResolvedValue({
+              data: mockCurrentActivity, // Current activity data for change detection
               error: null
             })
           }))
-        }))
-      }))
+        })
+        .mockReturnValueOnce({
+          eq: jest.fn(() => ({
+            single: jest.fn().mockResolvedValue({
+              data: mockCurrentActivity, // Current activity data for change detection
+              error: null
+            })
+          }))
+        })
       
       const mockUpdate = jest.fn().mockReturnValue({
         eq: jest.fn().mockResolvedValue({

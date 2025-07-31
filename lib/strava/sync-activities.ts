@@ -416,7 +416,9 @@ export async function syncActivitiesToDatabase(userId: string, activities: Strav
           
           let hasChanges = false
           for (const field of fieldsToCheck) {
-            if (currentActivity[field] !== activityData[field]) {
+            const currentValue = (currentActivity as Record<string, unknown>)[field]
+            const newValue = (activityData as Record<string, unknown>)[field]
+            if (currentValue !== newValue) {
               hasChanges = true
               break
             }

@@ -415,7 +415,8 @@ describe('useSyncStatusInfo', () => {
         last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
       },
       activityCount: 100,
-      canSync: false
+      canSync: false,
+      syncDisabledReason: 'Daily sync limit reached (5/day)'
     }
 
     mockFetch.mockResolvedValue({

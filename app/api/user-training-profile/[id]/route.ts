@@ -3,8 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const supabase = await createClient()
     
@@ -12,7 +13,7 @@ export async function GET(
     const { data: profile, error } = await supabase
       .from('user_training_profiles')
       .select('*')
-      .eq('user_id', params.id)
+      .eq('user_id', id)
       .single()
 
     if (error) {
