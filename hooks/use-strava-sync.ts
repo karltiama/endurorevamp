@@ -5,7 +5,7 @@ interface SyncOptions {
   sinceDays?: number
   forceRefresh?: boolean
   usePagination?: boolean // New option for full sync
-  syncType?: 'incremental' | 'full' | 'latest' // New sync type option
+  syncType?: 'quick' | 'full' // Simplified sync types: quick (50 recent) vs full (all)
 }
 
 interface SyncResult {
@@ -170,31 +170,15 @@ export function useStravaSync() {
   })
 
   // Helper functions with different sync strategies
-  const syncLatest = () => {
-    triggerSyncMutation({ maxActivities: 50 })
-  }
-
-  const syncLastWeek = () => {
-    triggerSyncMutation({ sinceDays: 7, maxActivities: 100 })
-  }
-
-  const syncLastMonth = () => {
-    triggerSyncMutation({ sinceDays: 30, maxActivities: 200 })
-  }
-
-  const forceFullSync = () => {
+  const quickSync = () => {
     triggerSyncMutation({ 
-      forceRefresh: false, // Don't bypass rate limits
-      maxActivities: 200,
-      sinceDays: 90 // Last 3 months
+      syncType: 'quick' // Fetch 50 most recent activities
     })
   }
 
   const fullSync = () => {
     triggerSyncMutation({ 
-      usePagination: true, // Enable pagination
-      maxActivities: 200,
-      syncType: 'full' // Full historical sync
+      syncType: 'full' // Full historical sync with pagination
     })
   }
 
@@ -215,10 +199,7 @@ export function useStravaSync() {
     statusError,
     
     // Sync controls
-    syncLatest,
-    syncLastWeek,
-    syncLastMonth,
-    forceFullSync,
+    quickSync,
     fullSync,
     customSync,
     

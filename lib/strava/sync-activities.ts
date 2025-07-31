@@ -7,7 +7,7 @@ interface SyncOptions {
   forceRefresh?: boolean;
   maxActivities?: number;
   usePagination?: boolean; // New option for full sync
-  syncType?: 'incremental' | 'full' | 'latest'; // New sync type option
+  syncType?: 'quick' | 'full'; // Simplified sync types: quick (50 recent) vs full (all)
 }
 
 interface SyncResult {
@@ -71,7 +71,7 @@ export class StravaActivitySync {
 }
 
 export async function syncStravaActivities(options: SyncOptions): Promise<SyncResult> {
-  const { userId, forceRefresh = false, maxActivities = 200, usePagination = false, syncType = 'latest' } = options;
+  const { userId, forceRefresh = false, syncType = 'quick' } = options;
   const result: SyncResult = {
     success: false,
     activitiesSynced: 0,
@@ -110,16 +110,17 @@ export async function syncStravaActivities(options: SyncOptions): Promise<SyncRe
     // Fetch activities from Strava based on sync type
     let activities: StravaActivity[] | null;
     
-    if (usePagination) {
-      console.log(`🔄 Starting full sync with pagination (sync type: ${syncType})`);
-      activities = await fetchStravaActivitiesWithPagination(tokens.access_token, maxActivities);
+    if (syncType === 'full') {
+      console.log(`🔄 Starting full sync with pagination (all activities)`);
+      activities = await fetchStravaActivitiesWithPagination(tokens.access_token, 200); // Use pagination for full sync
       // Calculate total pages for full sync
       if (activities) {
-        result.totalPages = Math.ceil(activities.length / maxActivities);
+        result.totalPages = Math.ceil(activities.length / 200);
       }
     } else {
-      console.log(`🔄 Starting standard sync (sync type: ${syncType})`);
-      activities = await fetchStravaActivities(tokens.access_token, maxActivities);
+      // Quick sync: fetch 50 most recent activities
+      console.log(`🔄 Starting quick sync (50 most recent activities)`);
+      activities = await fetchStravaActivities(tokens.access_token, 50);
     }
     
     if (!activities) {
@@ -288,7 +289,7 @@ async function fetchStravaActivitiesWithPagination(accessToken: string, maxActiv
   try {
     console.log(`🔍 Starting full sync with pagination (${maxActivitiesPerPage} activities per page)`);
     
-    let allActivities: StravaActivity[] = [];
+    const allActivities: StravaActivity[] = [];
     let page = 1;
     let hasMore = true;
     let totalFetched = 0;

@@ -14,7 +14,7 @@ export default async function SettingsPage() {
 
   return (
     <DashboardLayout user={user}>
-      <div className="space-y-4">
+      <div className="space-y-6">
         {/* Header with User Info */}
         <div className="flex items-start justify-between">
           <div>
@@ -39,80 +39,83 @@ export default async function SettingsPage() {
           </div>
         </div>
 
-        {/* Top Row - Activity Sync and Strava Connection */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Activity Sync Section */}
-          <Suspense fallback={<SyncSkeleton />}>
-            <SyncDashboard />
-          </Suspense>
+        {/* Main Content Grid - More compact layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Left Column - Strava Integration */}
+          <div className="xl:col-span-2 space-y-6">
+            {/* Strava Connection and Sync - Side by side on larger screens */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Suspense fallback={<IntegrationSkeleton />}>
+                <StravaConnectionStatus />
+              </Suspense>
 
-          {/* Strava Connection Section */}
-          <Suspense fallback={<IntegrationSkeleton />}>
-            <StravaConnectionStatus />
-          </Suspense>
-        </div>
+              <Suspense fallback={<SyncSkeleton />}>
+                <SyncDashboard />
+              </Suspense>
+            </div>
 
-        {/* Middle Row - Training Profile and Location Settings */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Training Profile Section */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Training Profile
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Manage your training thresholds, targets, and preferences.
-              </p>
-              <div className="text-xs text-muted-foreground space-y-1">
-                <div>• Personalized TSS targets based on experience</div>
-                <div>• Heart rate and power threshold estimation</div>
-                <div>• Training zone generation</div>
-              </div>
-              <Link href="/dashboard/settings/profile">
-                <Button size="sm" className="w-full">
-                  <Settings2 className="h-3 w-3 mr-2" />
-                  Manage Training Profile
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+            {/* Training Profile and Location Settings - Side by side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Training Profile Section */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Training Profile
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Manage your training thresholds, targets, and preferences.
+                  </p>
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <div>• Personalized TSS targets based on experience</div>
+                    <div>• Heart rate and power threshold estimation</div>
+                    <div>• Training zone generation</div>
+                  </div>
+                  <Link href="/dashboard/settings/profile">
+                    <Button size="sm" className="w-full">
+                      <Settings2 className="h-3 w-3 mr-2" />
+                      Manage Training Profile
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
 
-          {/* Location Settings Section */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Location Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Manage location preferences for weather data and recommendations.
-              </p>
-              <div className="text-xs text-muted-foreground space-y-1">
-                <div>• Save multiple locations (Home, Work, Gym)</div>
-                <div>• GPS location with permission controls</div>
-                <div>• Privacy-focused data handling</div>
-              </div>
-              <Link href="/dashboard/settings/location">
-                <Button size="sm" className="w-full">
-                  <MapPin className="h-3 w-3 mr-2" />
-                  Manage Location Settings
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
+              {/* Location Settings Section */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Location Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Manage location preferences for weather data and recommendations.
+                  </p>
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <div>• Save multiple locations (Home, Work, Gym)</div>
+                    <div>• GPS location with permission controls</div>
+                    <div>• Privacy-focused data handling</div>
+                  </div>
+                  <Link href="/dashboard/settings/location">
+                    <Button size="sm" className="w-full">
+                      <MapPin className="h-3 w-3 mr-2" />
+                      Manage Location Settings
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
-        {/* Bottom Row - Unit Preferences */}
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
-          {/* Unit Preferences Section */}
-          <Suspense fallback={<UnitPreferencesSkeleton />}>
-            <UnitPreferences />
-          </Suspense>
+          {/* Right Column - Unit Preferences */}
+          <div className="xl:col-span-1">
+            <Suspense fallback={<UnitPreferencesSkeleton />}>
+              <UnitPreferences />
+            </Suspense>
+          </div>
         </div>
       </div>
     </DashboardLayout>

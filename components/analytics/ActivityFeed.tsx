@@ -9,13 +9,12 @@ import type { Activity, StravaActivity } from '@/lib/strava/types'
 type ActivityFeedActivity = Activity | StravaActivity
 
 interface ActivityFeedProps {
-  userId: string
   activities: Activity[]
   isLoading: boolean
   error: Error | null
 }
 
-export function ActivityFeed({ userId, activities, isLoading, error }: ActivityFeedProps) {
+export function ActivityFeed({ activities, isLoading, error }: ActivityFeedProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedActivity, setSelectedActivity] = useState<ActivityFeedActivity | null>(null)
 

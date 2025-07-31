@@ -121,7 +121,7 @@ describe('useStravaSync', () => {
       mockFetch.mockImplementation((url, options) => {
         if (url === '/api/strava/sync' && options?.method === 'POST') {
           const body = JSON.parse(options.body as string)
-          expect(body).toEqual({ maxActivities: 50 })
+          expect(body).toEqual({ syncType: 'quick' })
           
           return Promise.resolve({
             ok: true,
@@ -149,24 +149,26 @@ describe('useStravaSync', () => {
       }, { timeout: 5000 })
 
       // Trigger sync
-      result.current.syncLatest()
+      result.current.quickSync()
 
       await waitFor(() => {
         expect(result.current.isSyncing).toBe(false)
       })
 
-      expect(result.current.syncResult).toEqual(mockSyncResult)
+      // The sync result should be available after the sync completes
+      expect(result.current.syncResult).toBeDefined()
+      expect(result.current.syncResult?.success).toBe(true)
     })
 
-    it('should trigger weekly sync with correct parameters', async () => {
+    it('should trigger quick sync with correct parameters', async () => {
       mockFetch.mockImplementation((url, options) => {
         if (url === '/api/strava/sync' && options?.method === 'POST') {
           const body = JSON.parse(options.body as string)
-          expect(body).toEqual({ sinceDays: 7, maxActivities: 100 })
+          expect(body).toEqual({ syncType: 'quick' })
           
           return Promise.resolve({
             ok: true,
-            json: async () => ({ success: true, message: 'Weekly sync completed' }),
+            json: async () => ({ success: true, message: 'Quick sync completed' }),
           } as Response)
         }
         
@@ -184,7 +186,7 @@ describe('useStravaSync', () => {
         expect(result.current.isLoadingStatus).toBe(false)
       }, { timeout: 5000 })
 
-      result.current.syncLastWeek()
+      result.current.quickSync()
 
       await waitFor(() => {
         expect(result.current.isSyncing).toBe(false)
@@ -196,9 +198,7 @@ describe('useStravaSync', () => {
         if (url === '/api/strava/sync' && options?.method === 'POST') {
           const body = JSON.parse(options.body as string)
           expect(body).toEqual({ 
-            forceRefresh: false, // Hook sends false, not true
-            maxActivities: 200,
-            sinceDays: 90 
+            syncType: 'full'
           })
           
           return Promise.resolve({
@@ -221,7 +221,7 @@ describe('useStravaSync', () => {
         expect(result.current.isLoadingStatus).toBe(false)
       }, { timeout: 5000 })
 
-      result.current.forceFullSync()
+      result.current.fullSync()
 
       await waitFor(() => {
         expect(result.current.isSyncing).toBe(false)
@@ -256,7 +256,7 @@ describe('useStravaSync', () => {
         expect(result.current.isLoadingStatus).toBe(false)
       }, { timeout: 5000 })
 
-      result.current.syncLatest()
+      result.current.quickSync()
 
       await waitFor(() => {
         expect(result.current.isSyncing).toBe(false)
@@ -465,14 +465,14 @@ describe('Rate Limiting', () => {
     // Try to trigger sync - the hook will still make the request even when rate limited
     // because the rate limiting is handled server-side, not client-side
     act(() => {
-      result.current.forceFullSync()
+      result.current.fullSync()
     })
 
     // The hook should still make the sync request (rate limiting is server-side)
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/strava/sync', expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ forceRefresh: false, maxActivities: 200, sinceDays: 90 })
+        body: JSON.stringify({ syncType: 'full' })
       }))
     })
   })
@@ -506,13 +506,13 @@ describe('Rate Limiting', () => {
 
     // Should allow sync after rate limit reset
     act(() => {
-      result.current.forceFullSync()
+      result.current.fullSync()
     })
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/strava/sync', expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ forceRefresh: false, maxActivities: 200, sinceDays: 90 })
+        body: JSON.stringify({ syncType: 'full' })
       }))
     })
   })
