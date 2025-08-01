@@ -1,4 +1,11 @@
 // Strava API response types
+// Zone data structure for power, heart rate, and pace zones
+export interface ZoneData {
+  min: number;
+  max: number;
+  time: number; // time spent in this zone in seconds
+}
+
 export interface StravaAuthResponse {
   token_type: string;
   expires_at: number;
@@ -112,9 +119,9 @@ export interface StravaActivity {
   training_stress_score?: number;
   
   // ZONE DATA
-  power_zones?: any;
-  heart_rate_zones?: any;
-  pace_zones?: any;
+  power_zones?: ZoneData[];
+  heart_rate_zones?: ZoneData[];
+  pace_zones?: ZoneData[];
 }
 
 // API request types
@@ -221,9 +228,9 @@ export interface Activity {
   training_stress_score?: number;
   
   // ZONE DATA
-  power_zones?: any;
-  heart_rate_zones?: any;
-  pace_zones?: any;
+  power_zones?: ZoneData[];
+  heart_rate_zones?: ZoneData[];
+  pace_zones?: ZoneData[];
   
   last_synced_at?: string;
   created_at?: string;
