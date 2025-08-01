@@ -24,18 +24,54 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh session if expired
+  // Get session
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  // Protect admin routes
+  if (request.nextUrl.pathname.startsWith('/dashboard/admin')) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/auth/login?message=Please log in to access admin features', request.url))
+    }
+
+    // Check if user is admin
+    const { data: profile } = await supabase
+      .from('user_training_profiles')
+      .select('is_admin')
+      .eq('user_id', session.user.id)
+      .single()
+
+    if (!profile?.is_admin) {
+      return NextResponse.redirect(new URL('/dashboard?message=Access denied. Admin privileges required.', request.url))
+    }
+  }
+
+  // Protect API admin routes
+  if (request.nextUrl.pathname.startsWith('/api/admin')) {
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check if user is admin
+    const { data: profile } = await supabase
+      .from('user_training_profiles')
+      .select('is_admin')
+      .eq('user_id', session.user.id)
+      .single()
+
+    if (!profile?.is_admin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  }
 
   // Protect routes that require authentication
-  if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
+  if (request.nextUrl.pathname.startsWith('/dashboard') && !session) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
   // Redirect authenticated users away from auth pages
-  if (request.nextUrl.pathname.startsWith('/auth') && user) {
+  if (request.nextUrl.pathname.startsWith('/auth') && session) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -59,13 +95,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes that handle their own protection)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/dashboard/admin/:path*',
+    '/api/admin/:path*',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
-} 
+}; 
