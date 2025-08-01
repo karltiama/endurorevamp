@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { ExternalLink, Mail, MessageSquare, Github, Globe, FileText, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
@@ -81,7 +82,7 @@ export function AppFooter() {
   return (
     <footer className="bg-gray-50 border-t border-gray-200 mt-auto">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           
           {/* Contact & Support */}
           <div className="space-y-4">
@@ -97,9 +98,9 @@ export function AppFooter() {
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>Contact Us</DialogTitle>
-                                         <p className="text-sm text-muted-foreground">
-                       Send us a message and we&apos;ll get back to you as soon as possible.
-                     </p>
+                    <DialogDescription>
+                      Send us a message and we&apos;ll get back to you as soon as possible.
+                    </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleContactSubmit} className="space-y-4">
                     <div>
@@ -148,9 +149,9 @@ export function AppFooter() {
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>Suggest a Feature</DialogTitle>
-                                         <p className="text-sm text-muted-foreground">
-                       Have an idea for a new feature? We&apos;d love to hear about it!
-                     </p>
+                    <DialogDescription>
+                      Have an idea for a new feature? We&apos;d love to hear about it!
+                    </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleSuggestionSubmit} className="space-y-4">
                     <div>
@@ -190,7 +191,7 @@ export function AppFooter() {
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start"
-                onClick={() => window.open('https://github.com/yourusername', '_blank')}
+                onClick={() => window.open('https://github.com/karltiama', '_blank')}
               >
                 <Github className="w-4 h-4 mr-2" />
                 GitHub
@@ -201,7 +202,7 @@ export function AppFooter() {
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start"
-                onClick={() => window.open('https://yourwebsite.com', '_blank')}
+                onClick={() => window.open('https://karltiama.dev', '_blank')}
               >
                 <Globe className="w-4 h-4 mr-2" />
                 Personal Website
@@ -225,43 +226,22 @@ export function AppFooter() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">App Info</h3>
             <div className="space-y-2 text-sm text-gray-600">
-              <p><strong>Version:</strong> 1.0.0</p>
-              <p><strong>Built with:</strong> Next.js, TypeScript, Strava API</p>
+              <p><strong>Version:</strong> 2.0.0</p>
+              {/* TODO: Add Icons of each technology */}
+              <p><strong>Built with:</strong> Next.js 15, TypeScript, React 19, Supabase, React Query, Tailwind</p>
               <p><strong>Last updated:</strong> {new Date().toLocaleDateString()}</p>
             </div>
             <div className="space-y-2">
-              <Button variant="link" size="sm" className="p-0 h-auto text-sm">
-                Privacy Policy
+              <Button variant="link" size="sm" className="h-auto text-sm" asChild>
+                <Link href="/privacy">Privacy Policy</Link>
               </Button>
-              <Button variant="link" size="sm" className="p-0 h-auto text-sm">
-                Terms of Service
+              <Button variant="link" size="sm" className="h-auto text-sm" asChild>
+                <Link href="/terms">Terms of Service</Link>
               </Button>
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Quick Stats</h3>
-            <Card>
-              <CardHeader className="pb-2">
-                <div className="text-sm font-semibold">Development Status</div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>Test Coverage</span>
-                  <span className="font-medium text-green-600">85%</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Performance</span>
-                  <span className="font-medium text-blue-600">A+</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Uptime</span>
-                  <span className="font-medium text-purple-600">99.9%</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          
         </div>
 
         <Separator className="my-6" />

@@ -20,7 +20,6 @@ describe('AppFooter', () => {
     expect(screen.getByText('Contact & Support')).toBeInTheDocument();
     expect(screen.getByText('Developer')).toBeInTheDocument();
     expect(screen.getByText('App Info')).toBeInTheDocument();
-    expect(screen.getByText('Quick Stats')).toBeInTheDocument();
   });
 
   it('renders contact and suggestion buttons', () => {
@@ -142,12 +141,12 @@ describe('AppFooter', () => {
     const githubButton = screen.getByText('GitHub');
     await user.click(githubButton);
     
-    expect(mockOpen).toHaveBeenCalledWith('https://github.com/yourusername', '_blank');
+    expect(mockOpen).toHaveBeenCalledWith('https://github.com/karltiama', '_blank');
     
     const websiteButton = screen.getByText('Personal Website');
     await user.click(websiteButton);
     
-    expect(mockOpen).toHaveBeenCalledWith('https://yourwebsite.com', '_blank');
+    expect(mockOpen).toHaveBeenCalledWith('https://karltiama.dev', '_blank');
     
     const articleButton = screen.getByText('How I Built This');
     await user.click(articleButton);
@@ -165,17 +164,7 @@ describe('AppFooter', () => {
     expect(screen.getByText('Last updated:')).toBeInTheDocument();
   });
 
-  it('displays development stats', () => {
-    render(<AppFooter />);
-    
-    expect(screen.getByText('Development Status')).toBeInTheDocument();
-    expect(screen.getByText('Test Coverage')).toBeInTheDocument();
-    expect(screen.getByText('85%')).toBeInTheDocument();
-    expect(screen.getByText('Performance')).toBeInTheDocument();
-    expect(screen.getByText('A+')).toBeInTheDocument();
-    expect(screen.getByText('Uptime')).toBeInTheDocument();
-    expect(screen.getByText('99.9%')).toBeInTheDocument();
-  });
+
 
   it('displays footer branding', () => {
     render(<AppFooter />);
@@ -225,6 +214,6 @@ describe('AppFooter', () => {
     
     // Check for proper heading structure
     const headings = screen.getAllByRole('heading');
-    expect(headings).toHaveLength(4); // 4 main sections
+    expect(headings).toHaveLength(3); // 3 main sections
   });
 }); 
