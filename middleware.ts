@@ -24,14 +24,14 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Get session
+  // Get user (more secure than getSession)
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
   // Protect admin routes
   if (request.nextUrl.pathname.startsWith('/dashboard/admin')) {
-    if (!session) {
+    if (!user) {
       return NextResponse.redirect(new URL('/auth/login?message=Please log in to access admin features', request.url))
     }
 
@@ -39,7 +39,7 @@ export async function middleware(request: NextRequest) {
     const { data: profile } = await supabase
       .from('user_training_profiles')
       .select('is_admin')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (!profile?.is_admin) {
@@ -49,7 +49,7 @@ export async function middleware(request: NextRequest) {
 
   // Protect API admin routes
   if (request.nextUrl.pathname.startsWith('/api/admin')) {
-    if (!session) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -57,7 +57,7 @@ export async function middleware(request: NextRequest) {
     const { data: profile } = await supabase
       .from('user_training_profiles')
       .select('is_admin')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (!profile?.is_admin) {
@@ -66,12 +66,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect routes that require authentication
-  if (request.nextUrl.pathname.startsWith('/dashboard') && !session) {
+  if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
   // Redirect authenticated users away from auth pages
-  if (request.nextUrl.pathname.startsWith('/auth') && session) {
+  if (request.nextUrl.pathname.startsWith('/auth') && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 

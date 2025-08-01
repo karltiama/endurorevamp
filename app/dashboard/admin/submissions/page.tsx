@@ -15,7 +15,7 @@ export default async function AdminSubmissionsPage() {
     redirect('/auth/login?message=Please log in to access admin features');
   }
 
-  // Check if user is admin (you'll need to add an admin field to your users table)
+  // Check if user is admin
   const { data: profile } = await supabase
     .from('user_training_profiles')
     .select('is_admin')

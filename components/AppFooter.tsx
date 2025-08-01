@@ -244,7 +244,7 @@ export function AppFooter() {
             <h3 className="text-lg font-semibold text-gray-900">Quick Stats</h3>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Development Status</CardTitle>
+                <div className="text-sm font-semibold">Development Status</div>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="flex items-center justify-between text-sm">

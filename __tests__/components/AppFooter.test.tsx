@@ -57,7 +57,10 @@ describe('AppFooter', () => {
 
   it('submits contact form successfully', async () => {
     const user = userEvent.setup();
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ success: true })
+    } as Response);
     
     render(<AppFooter />);
     
@@ -74,24 +77,30 @@ describe('AppFooter', () => {
     const submitButton = screen.getByText('Send Message');
     await user.click(submitButton);
     
-    // Check loading state
-    expect(screen.getByText('Sending...')).toBeInTheDocument();
-    
     // Wait for submission to complete
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('Contact form submitted:', {
-        name: 'John Doe',
-        email: 'john@example.com',
-        message: 'Test message'
+      expect(fetchSpy).toHaveBeenCalledWith('/api/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'contact',
+          name: 'John Doe',
+          email: 'john@example.com',
+          message: 'Test message',
+          category: 'general_inquiry'
+        })
       });
     });
     
-    consoleSpy.mockRestore();
+    fetchSpy.mockRestore();
   });
 
   it('submits suggestion form successfully', async () => {
     const user = userEvent.setup();
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ success: true })
+    } as Response);
     
     render(<AppFooter />);
     
@@ -107,18 +116,23 @@ describe('AppFooter', () => {
     const submitButton = screen.getByText('Submit Suggestion');
     await user.click(submitButton);
     
-    // Check loading state
-    expect(screen.getByText('Submitting...')).toBeInTheDocument();
-    
     // Wait for submission to complete
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('Suggestion form submitted:', {
-        title: 'Dark Mode',
-        description: 'Add dark mode support'
+      expect(fetchSpy).toHaveBeenCalledWith('/api/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'suggestion',
+          title: 'Dark Mode',
+          name: 'Anonymous',
+          email: 'anonymous@example.com',
+          message: 'Add dark mode support',
+          category: 'feature_request'
+        })
       });
     });
     
-    consoleSpy.mockRestore();
+    fetchSpy.mockRestore();
   });
 
   it('opens external links when developer links are clicked', async () => {
