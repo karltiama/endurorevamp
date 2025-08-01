@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { STRAVA_CONNECTION_QUERY_KEY } from '@/hooks/strava/useStravaConnection';
 import { STRAVA_TOKEN_QUERY_KEY } from '@/hooks/strava/useStravaToken';
 
-export default function OnboardingDemoPage() {
+function OnboardingDemoContent() {
   const [showModal, setShowModal] = useState(false);
   const { data: userGoalsData } = useUserGoals();
   const { onboarding, hasCompletedOnboarding, currentStep } = useOnboardingStatus();
@@ -345,5 +345,22 @@ export default function OnboardingDemoPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function OnboardingDemoPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-32">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading demo page...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <OnboardingDemoContent />
+    </Suspense>
   );
 } 
