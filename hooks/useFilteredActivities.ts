@@ -18,31 +18,48 @@ export function useFilteredActivities(userId: string, filter: string, sort: stri
       return []
     }
 
-    // Apply 90-day filter first (existing logic from ActivityFeed)
-    const ninetyDaysAgo = new Date()
-    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
-    
-    const recentActivities = allActivities.filter((activity: Activity) => 
-      new Date(activity.start_date) >= ninetyDaysAgo
-    )
-
-    // Apply the selected filter
+    // Apply the selected filter (removed 90-day filter to show all activities)
     let filteredActivities: Activity[]
     
     switch (filter) {
       case 'all':
-        filteredActivities = recentActivities
+        filteredActivities = allActivities
         break
       
       case 'run':
-        filteredActivities = recentActivities.filter((activity: Activity) => 
+        filteredActivities = allActivities.filter((activity: Activity) => 
           activity.sport_type === 'Run' || activity.sport_type === 'VirtualRun'
         )
         break
       
       case 'ride':
-        filteredActivities = recentActivities.filter((activity: Activity) => 
-          activity.sport_type === 'Ride' || activity.sport_type === 'VirtualRide'
+        filteredActivities = allActivities.filter((activity: Activity) => 
+          activity.sport_type === 'Ride' || 
+          activity.sport_type === 'VirtualRide' ||
+          activity.sport_type === 'EBikeRide' ||
+          activity.sport_type === 'MountainBikeRide' ||
+          activity.sport_type === 'GravelRide' ||
+          activity.sport_type === 'Handcycle' ||
+          activity.sport_type === 'Velomobile'
+        )
+        break
+      
+      case 'walk':
+        filteredActivities = allActivities.filter((activity: Activity) => 
+          activity.sport_type === 'Walk' || 
+          activity.sport_type === 'Hike'
+        )
+        break
+      
+      case 'workout':
+        filteredActivities = allActivities.filter((activity: Activity) => 
+          activity.sport_type === 'Workout' || 
+          activity.sport_type === 'WeightTraining' ||
+          activity.sport_type === 'Crossfit' ||
+          activity.sport_type === 'Yoga' ||
+          activity.sport_type === 'Pilates' ||
+          activity.sport_type === 'Stretching' ||
+          activity.sport_type === 'StrengthTraining'
         )
         break
       
@@ -59,7 +76,7 @@ export function useFilteredActivities(userId: string, filter: string, sort: stri
         break
       
       default:
-        filteredActivities = recentActivities
+        filteredActivities = allActivities
         break
     }
 

@@ -123,6 +123,12 @@ export default function TestTrainingProfilePage() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold tracking-tight">Training Profile Test</h1>
+        <p className="text-muted-foreground">
+          Test and validate your training profile service functionality.
+        </p>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Training Profile Service Test</CardTitle>

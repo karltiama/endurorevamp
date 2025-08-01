@@ -8,6 +8,8 @@ const FILTERS = [
   { label: 'All', value: 'all' },
   { label: 'Runs', value: 'run' },
   { label: 'Rides', value: 'ride' },
+  { label: 'Walks', value: 'walk' },
+  { label: 'Workouts', value: 'workout' },
   { label: 'Favorites', value: 'favorite', disabled: true },
   { label: 'Flagged', value: 'flagged', disabled: true },
 ];

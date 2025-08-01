@@ -114,7 +114,7 @@ function AppSidebar() {
   const { signOut, isLoading } = useAuth()
 
   return (
-    <Sidebar variant="inset" collapsible="hover">
+    <Sidebar variant="sidebar" collapsible="hover" className="h-screen top-0">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -130,7 +130,7 @@ function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       
-      <SidebarContent>
+      <SidebarContent className="flex-1 overflow-y-auto">
         {navigation.map((group) => (
           <SidebarGroup key={group.title}>
             <SidebarGroupContent>
@@ -157,7 +157,7 @@ function AppSidebar() {
         ))}
       </SidebarContent>
       
-      <SidebarFooter>
+      <SidebarFooter className="border-t">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -179,17 +179,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider defaultOpen={false}>
       <GoalsProvider>
-        <div className="flex min-h-screen w-full">
+        <div className="flex min-h-screen w-full relative">
           <AppSidebar />
-          <main className="flex-1">
+          <main className="flex-1 flex flex-col min-h-screen relative">
             {/* Header with sidebar trigger */}
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background z-20 relative">
               <SidebarTrigger className="-ml-1 md:hidden" />
               <div className="flex-1" />
             </header>
             
             {/* Main content */}
-            <div className="flex-1 space-y-4 p-4 md:p-6 lg:p-8">
+            <div className="flex-1 space-y-4 p-4 md:p-6 lg:p-8 bg-background relative z-10">
               {children}
             </div>
           </main>

@@ -70,20 +70,20 @@ export function ActivityFeed({ activities, isLoading, error }: ActivityFeedProps
           No Activities Found
         </h3>
         <p className="text-gray-500 mb-4">
-          No activities found in the last 90 days in your database.
+          No activities found in your database.
         </p>
         <p className="text-sm text-blue-600">
-          💡 Click &quot;Sync Strava Data&quot; to load your recent activities.
+          💡 Click &quot;Sync Strava Data&quot; to load your activities.
         </p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
 
       {/* Activity List */}
-      <div className="space-y-2">
+      <div className="space-y-4">
         {currentActivities.map((activity) => (
           <ActivityCard
             key={activity.strava_activity_id}
@@ -137,23 +137,52 @@ function ActivityFeedSkeleton() {
         </div>
       </div>
       
-      <div className="space-y-3">
+      <div className="space-y-4">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="border rounded-lg p-4">
+          <div key={i} className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="animate-pulse">
-              <div className="flex justify-between items-start">
-                <div className="flex space-x-4">
-                  <div className="w-12 h-12 bg-gray-200 rounded"></div>
-                  <div className="space-y-2">
-                    <div className="h-5 bg-gray-200 rounded w-48"></div>
-                    <div className="h-4 bg-gray-200 rounded w-32"></div>
-                    <div className="h-3 bg-gray-200 rounded w-24"></div>
+              {/* Header Row */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gray-200 rounded"></div>
+                  <div>
+                    <div className="h-5 bg-gray-200 rounded w-48 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-24"></div>
                   </div>
                 </div>
-                <div className="space-y-2 text-right">
-                  <div className="h-4 bg-gray-200 rounded w-20"></div>
-                  <div className="h-4 bg-gray-200 rounded w-16"></div>
+                <div className="text-right">
+                  <div className="h-4 bg-gray-200 rounded w-20 mb-1"></div>
+                  <div className="h-3 bg-gray-200 rounded w-16"></div>
                 </div>
+              </div>
+              
+              {/* Main Metrics Row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                {Array.from({ length: 4 }).map((_, j) => (
+                  <div key={j} className="text-center">
+                    <div className="h-8 bg-gray-200 rounded w-16 mx-auto mb-1"></div>
+                    <div className="h-3 bg-gray-200 rounded w-12 mx-auto"></div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Additional Metrics Row */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                {Array.from({ length: 3 }).map((_, k) => (
+                  <div key={k} className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gray-200 rounded"></div>
+                    <div>
+                      <div className="h-4 bg-gray-200 rounded w-16 mb-1"></div>
+                      <div className="h-3 bg-gray-200 rounded w-12"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Footer Row */}
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                <div className="h-6 bg-gray-200 rounded w-20"></div>
+                <div className="h-8 bg-gray-200 rounded w-24"></div>
               </div>
             </div>
           </div>

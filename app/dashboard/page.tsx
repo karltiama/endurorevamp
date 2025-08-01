@@ -38,7 +38,7 @@ export default async function DashboardPage() {
       <div className="space-y-6">
         {/* Header - More compact */}
         <div className="pb-2">
-          <h1 className="text-2xl font-bold tracking-tight">Training Command Center</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Training Command Center</h1>
           <p className="text-sm text-muted-foreground">
             What should you do today? Your personalized training insights.
           </p>

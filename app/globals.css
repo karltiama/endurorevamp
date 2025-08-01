@@ -76,6 +76,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
 }
 
 .dark {
@@ -110,6 +112,8 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
 }
 
 @layer base {
@@ -122,4 +126,17 @@
   html {
     scroll-behavior: smooth;
   }
+}
+
+/* Sidebar positioning fixes */
+[data-slot="sidebar-container"] {
+  top: 0 !important;
+  bottom: 0 !important;
+  height: 100vh !important;
+}
+
+[data-slot="sidebar-inner"] {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
 }

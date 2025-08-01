@@ -2,6 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { 
   TrendingUp, 
   Activity,
@@ -11,7 +13,10 @@ import {
   Sparkles,
   Trophy,
   Target as TargetIcon,
-  AlertTriangle
+  AlertTriangle,
+  Edit2,
+  Save,
+  X
 } from 'lucide-react';
 import { useUserActivities } from '@/hooks/use-user-activities';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
@@ -48,36 +53,6 @@ const estimateTSS = (activity: StravaActivity): number => {
   }
   
   return durationHours * baseIntensity * intensityMultiplier;
-};
-
-const calculateWeeklyDistance = (activities: StravaActivity[]): number => {
-  const now = new Date();
-  const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay() + 1);
-  weekStart.setHours(0, 0, 0, 0);
-  
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6);
-  weekEnd.setHours(23, 59, 59, 999);
-  
-  return activities
-    .filter(activity => {
-      const activityDate = new Date(activity.start_date);
-      return activityDate >= weekStart && activityDate <= weekEnd;
-    })
-    .reduce((sum, activity) => sum + activity.distance, 0) / 1000; // Convert to km
-};
-
-const calculateAveragePace = (activities: StravaActivity[]): number => {
-  const runningActivities = activities.filter(a => a.sport_type === 'Run');
-  if (runningActivities.length === 0) return 0;
-  
-  const totalPace = runningActivities.reduce((sum, activity) => {
-    const pace = activity.moving_time / (activity.distance / 1000); // seconds per km
-    return sum + pace;
-  }, 0);
-  
-  return totalPace / runningActivities.length;
 };
 
 // Default parameters moved outside component to avoid dependency issues
@@ -119,8 +94,12 @@ const analyzeTrainingProfile = (
     };
   }
 
-  const weeklyDistance = calculateWeeklyDistance(activities);
-  const averagePace = calculateAveragePace(activities);
+  const weeklyDistance = activities.reduce((sum, activity) => sum + activity.distance, 0) / 1000; // Convert to km
+  const runningActivities = activities.filter(a => a.sport_type === 'Run');
+  const averagePace = runningActivities.length > 0 ? runningActivities.reduce((sum, activity) => {
+    const pace = activity.moving_time / (activity.distance / 1000); // seconds per km
+    return sum + pace;
+  }, 0) / runningActivities.length : 0;
   const weeklyTSS = activities.slice(0, 10).reduce((sum, activity) => {
     const tss = (activity as ActivityWithTrainingData).training_stress_score || estimateTSS(activity);
     return sum + tss;
@@ -374,6 +353,11 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
   const { user } = useAuth();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [analysisParams, setAnalysisParams] = useState<any>(null);
+  
+  // Name editing state
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  const [isSavingName, setIsSavingName] = useState(false);
 
   useEffect(() => {
     const loadAnalysisParams = async () => {
@@ -401,48 +385,50 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
     loadAnalysisParams();
   }, [user?.id]);
 
-  const profile = analyzeTrainingProfile(activities || [], analysisParams || defaultParams);
-
-  // Calculate debug metrics
-  const debugMetrics = activities && activities.length > 0 ? {
-    weeklyDistance: calculateWeeklyDistance(activities),
-    averagePace: calculateAveragePace(activities),
-    weeklyTSS: activities.slice(0, 10).reduce((sum, activity) => {
-      const tss = (activity as ActivityWithTrainingData).training_stress_score || estimateTSS(activity);
-      return sum + tss;
-    }, 0),
-    trainingFrequency: activities.filter(a => {
-      const activityDate = new Date(a.start_date);
-      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      return activityDate >= weekAgo;
-    }).length,
-    totalActivities: activities.length,
-    runningActivities: activities.filter(a => a.sport_type === 'Run').length
-  } : null;
-
-  // Calculate dynamic analysis for debug display
-  const dynamicAnalysis = debugMetrics ? {
-    distance: {
-      value: debugMetrics.weeklyDistance,
-      level: debugMetrics.weeklyDistance < 15 ? 'beginner' : debugMetrics.weeklyDistance < 30 ? 'intermediate' : 'advanced',
-      target: debugMetrics.weeklyDistance < 15 ? 20 : debugMetrics.weeklyDistance < 30 ? 40 : 60
-    },
-    pace: {
-      value: debugMetrics.averagePace,
-      level: debugMetrics.averagePace > 360 ? 'beginner' : debugMetrics.averagePace > 300 ? 'intermediate' : 'advanced',
-      target: debugMetrics.averagePace > 360 ? 330 : debugMetrics.averagePace > 300 ? 280 : 250
-    },
-    frequency: {
-      value: debugMetrics.trainingFrequency,
-      level: debugMetrics.trainingFrequency < 3 ? 'beginner' : debugMetrics.trainingFrequency < 5 ? 'intermediate' : 'advanced',
-      target: debugMetrics.trainingFrequency < 3 ? 3 : debugMetrics.trainingFrequency < 5 ? 5 : 6
-    },
-    tss: {
-      value: debugMetrics.weeklyTSS,
-      level: debugMetrics.weeklyTSS < 300 ? 'beginner' : debugMetrics.weeklyTSS < 600 ? 'intermediate' : 'advanced',
-      target: debugMetrics.weeklyTSS < 300 ? 400 : debugMetrics.weeklyTSS < 600 ? 700 : 900
+  // Initialize name value when user data loads
+  useEffect(() => {
+    if (user) {
+      setNameValue(user.user_metadata?.full_name || user.email || '');
     }
-  } : null;
+  }, [user]);
+
+  const handleEditName = () => {
+    setIsEditingName(true);
+  };
+
+  const handleCancelEdit = () => {
+    setNameValue(user?.user_metadata?.full_name || user?.email || '');
+    setIsEditingName(false);
+  };
+
+  const handleSaveName = async () => {
+    if (!user) return;
+    
+    setIsSavingName(true);
+    try {
+      const response = await fetch('/api/user/update-name', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: nameValue }),
+      });
+
+      if (response.ok) {
+        setIsEditingName(false);
+        // Optionally refresh the page or update the user context
+        window.location.reload();
+      } else {
+        console.error('Failed to update name');
+      }
+    } catch (error) {
+      console.error('Error updating name:', error);
+    } finally {
+      setIsSavingName(false);
+    }
+  };
+
+  const profile = analyzeTrainingProfile(activities || [], analysisParams || defaultParams);
 
   if (isLoading || !profile) {
     return (
@@ -462,72 +448,55 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
 
   return (
     <div className="space-y-6">
-      {/* Debug Metrics - Only show if you have activities */}
-      {debugMetrics && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardHeader>
-            <CardTitle className="text-blue-800 text-sm">🔍 Dynamic Analysis Metrics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Basic Metrics */}
-              <div className="space-y-3">
-                <h4 className="font-medium text-blue-700 text-xs">📊 Current Metrics</h4>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <div className="font-medium text-blue-700">Weekly Distance</div>
-                    <div className="text-blue-600">{debugMetrics.weeklyDistance.toFixed(1)} km</div>
-                  </div>
-                  <div>
-                    <div className="font-medium text-blue-700">Average Pace</div>
-                    <div className="text-blue-600">{debugMetrics.averagePace.toFixed(0)} s/km</div>
-                  </div>
-                  <div>
-                    <div className="font-medium text-blue-700">Weekly TSS</div>
-                    <div className="text-blue-600">{debugMetrics.weeklyTSS.toFixed(0)}</div>
-                  </div>
-                  <div>
-                    <div className="font-medium text-blue-700">Training Frequency</div>
-                    <div className="text-blue-600">{debugMetrics.trainingFrequency} runs/week</div>
-                  </div>
-                </div>
-                <div className="text-xs text-blue-600">
-                  Based on {debugMetrics.totalActivities} total activities ({debugMetrics.runningActivities} runs)
-                </div>
-              </div>
-
-              {/* Dynamic Analysis */}
-              {dynamicAnalysis && (
-                <div className="space-y-3">
-                  <h4 className="font-medium text-blue-700 text-xs">🎯 Individual Metric Levels</h4>
-                  <div className="space-y-2 text-xs">
-                    {Object.entries(dynamicAnalysis).map(([metric, data]) => (
-                      <div key={metric} className="flex items-center justify-between p-2 bg-white rounded border">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium capitalize">{metric}</span>
-                          <Badge 
-                            variant={
-                              data.level === 'beginner' ? 'secondary' : 
-                              data.level === 'intermediate' ? 'default' : 'destructive'
-                            }
-                            className="text-xs"
-                          >
-                            {data.level}
-                          </Badge>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-blue-600">{data.value.toFixed(1)}</div>
-                          <div className="text-gray-500 text-xs">Target: {data.target}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+      {/* Header */}
+      <div className="pb-2">
+        <h1 className="text-3xl font-bold tracking-tight">Training Profile</h1>
+        <div className="flex items-center gap-3 mt-2">
+          {isEditingName ? (
+            <div className="flex items-center gap-2">
+              <Input
+                value={nameValue}
+                onChange={(e) => setNameValue(e.target.value)}
+                placeholder="Enter your name"
+                className="w-64"
+                disabled={isSavingName}
+              />
+              <Button
+                size="sm"
+                onClick={handleSaveName}
+                disabled={isSavingName || !nameValue.trim()}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Save className="h-3 w-3 mr-1" />
+                {isSavingName ? 'Saving...' : 'Save'}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleCancelEdit}
+                disabled={isSavingName}
+              >
+                <X className="h-3 w-3 mr-1" />
+                Cancel
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">
+                {user?.user_metadata?.full_name ? `${user.user_metadata.full_name}'s` : 'Your'} personalized training analysis and recommendations.
+              </p>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleEditName}
+                className="h-6 w-6 p-0"
+              >
+                <Edit2 className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Experience Level */}
         <Card>

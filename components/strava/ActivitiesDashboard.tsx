@@ -76,8 +76,14 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
     switch (type) {
       case 'ride':
       case 'virtualride':
+      case 'ebikeride':
+      case 'mountainbikeride':
+      case 'gravelride':
+      case 'handcycle':
+      case 'velomobile':
         return 'bg-blue-100 text-blue-800'
       case 'run':
+      case 'virtualrun':
         return 'bg-green-100 text-green-800'
       case 'swim':
         return 'bg-cyan-100 text-cyan-800'
@@ -85,6 +91,14 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
         return 'bg-orange-100 text-orange-800'
       case 'walk':
         return 'bg-yellow-100 text-yellow-800'
+      case 'workout':
+      case 'weighttraining':
+      case 'crossfit':
+      case 'yoga':
+      case 'pilates':
+      case 'stretching':
+      case 'strengthtraining':
+        return 'bg-purple-100 text-purple-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }

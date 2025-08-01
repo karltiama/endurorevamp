@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { User, Settings2, MapPin } from 'lucide-react'
+import { ProfileSettings } from '@/components/settings/ProfileSettings'
 
 export default async function SettingsPage() {
   const user = await requireAuth()
@@ -18,7 +19,7 @@ export default async function SettingsPage() {
         {/* Header with User Info */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
             <p className="text-sm text-muted-foreground">
               Manage your account settings and integrations.
             </p>
@@ -41,8 +42,13 @@ export default async function SettingsPage() {
 
         {/* Main Content Grid - More compact layout */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Left Column - Strava Integration */}
+          
           <div className="xl:col-span-2 space-y-6">
+            {/* Profile Settings - Full width */}
+            <Suspense fallback={<ProfileSkeleton />}>
+              <ProfileSettings />
+            </Suspense>
+
             {/* Strava Connection and Sync - Side by side on larger screens */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Suspense fallback={<IntegrationSkeleton />}>
@@ -125,13 +131,13 @@ export default async function SettingsPage() {
 function IntegrationSkeleton() {
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <div className="h-6 bg-muted rounded w-1/3"></div>
+      <CardHeader>
+        <CardTitle className="text-lg">Strava Connection</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="animate-pulse space-y-3">
-          <div className="h-4 bg-muted rounded w-full"></div>
-          <div className="h-4 bg-muted rounded w-2/3"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div className="h-8 bg-gray-200 rounded w-1/2"></div>
         </div>
       </CardContent>
     </Card>
@@ -157,13 +163,35 @@ function UnitPreferencesSkeleton() {
 function SyncSkeleton() {
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <div className="h-6 bg-muted rounded w-1/3"></div>
+      <CardHeader>
+        <CardTitle className="text-lg">Sync Status</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="animate-pulse space-y-3">
-          <div className="h-4 bg-muted rounded w-full"></div>
-          <div className="h-4 bg-muted rounded w-2/3"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+          <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+} 
+
+function ProfileSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">Profile Information</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="animate-pulse space-y-4">
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-200 rounded w-24"></div>
+            <div className="h-10 bg-gray-200 rounded"></div>
+          </div>
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-200 rounded w-28"></div>
+            <div className="h-10 bg-gray-200 rounded"></div>
+          </div>
         </div>
       </CardContent>
     </Card>
