@@ -213,7 +213,7 @@ export function AppFooter() {
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start"
-                onClick={() => window.open('https://yourwebsite.com/building-enduro-revamp', '_blank')}
+                onClick={() => window.open('https://www.karltiama.dev/blog/enduro-refactor', '_blank')}
               >
                 <FileText className="w-4 h-4 mr-2" />
                 How I Built This
