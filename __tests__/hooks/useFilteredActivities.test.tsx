@@ -123,24 +123,31 @@ describe('useFilteredActivities', () => {
     expect(result.current.filteredCount).toBe(1)
   })
 
-  it('should return empty array for favorite filter (not implemented yet)', () => {
-    mockUseUserActivities.mockReturnValue(createMockQueryResult(mockActivities))
-
+  it('should return empty array for favorite filter when no favorites exist', () => {
     const { result } = renderHook(() => useFilteredActivities('user1', 'favorite', 'date-desc'))
 
-    expect(result.current.activities).toHaveLength(0)
-    expect(result.current.totalCount).toBe(3)
+    expect(result.current.activities).toEqual([])
     expect(result.current.filteredCount).toBe(0)
   })
 
-  it('should return empty array for flagged filter (not implemented yet)', () => {
-    mockUseUserActivities.mockReturnValue(createMockQueryResult(mockActivities))
+  it('should return only favorite activities when favorite filter is applied', () => {
+    const mockActivitiesWithFavorites = [
+      { ...mockActivities[0], id: '1', is_favorite: true },
+      { ...mockActivities[1], id: '2', is_favorite: false },
+      { ...mockActivities[2], id: '3', is_favorite: true },
+    ]
 
-    const { result } = renderHook(() => useFilteredActivities('user1', 'flagged', 'date-desc'))
+    ;(useUserActivities as jest.Mock).mockReturnValue({
+      data: mockActivitiesWithFavorites,
+      isLoading: false,
+      error: null,
+    })
 
-    expect(result.current.activities).toHaveLength(0)
-    expect(result.current.totalCount).toBe(3)
-    expect(result.current.filteredCount).toBe(0)
+    const { result } = renderHook(() => useFilteredActivities('user1', 'favorite', 'date-desc'))
+
+    expect(result.current.activities).toHaveLength(2)
+    expect(result.current.activities.every(activity => activity.is_favorite)).toBe(true)
+    expect(result.current.filteredCount).toBe(2)
   })
 
   it('should handle empty activities array', () => {

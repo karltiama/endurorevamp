@@ -64,14 +64,14 @@ export function useFilteredActivities(userId: string, filter: string, sort: stri
         break
       
       case 'favorite':
-        // TODO: Implement favorite functionality when database field is added
-        // For now, return empty array since favorite field doesn't exist
-        filteredActivities = []
+        // Filter activities that are marked as favorites
+        filteredActivities = allActivities.filter((activity: Activity) => 
+          activity.is_favorite === true
+        )
         break
       
       case 'flagged':
-        // TODO: Implement flagged functionality when database field is added
-        // For now, return empty array since flagged field doesn't exist
+        // Remove flagged functionality - return empty array
         filteredActivities = []
         break
       

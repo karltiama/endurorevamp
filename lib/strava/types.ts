@@ -65,6 +65,7 @@ export interface StravaActivity {
   commute?: boolean;
   manual?: boolean;
   private?: boolean;
+  is_favorite?: boolean; // User can mark activities as favorites
   device_name?: string;
   device_watts?: boolean;
   has_heartrate?: boolean;
@@ -91,6 +92,29 @@ export interface StravaActivity {
     summary_polyline?: string;
     resource_state: number;
   };
+  
+  // COMPUTED FIELDS (calculated by our app)
+  week_number?: number;
+  month_number?: number;
+  year_number?: number;
+  day_of_week?: number;
+  average_pace?: number; // Seconds per km
+  elevation_per_km?: number;
+  efficiency_score?: number;
+  
+  // TRAINING METRICS
+  relative_effort?: number;
+  perceived_exertion?: number;
+  training_load_score?: number;
+  intensity_score?: number;
+  recovery_time?: number;
+  normalized_power?: number;
+  training_stress_score?: number;
+  
+  // ZONE DATA
+  power_zones?: any;
+  heart_rate_zones?: any;
+  pace_zones?: any;
 }
 
 // API request types
@@ -160,6 +184,7 @@ export interface Activity {
   commute?: boolean;
   manual?: boolean;
   private?: boolean;
+  is_favorite?: boolean; // User can mark activities as favorites
   device_name?: string;
   device_watts?: boolean;
   has_heartrate?: boolean;
@@ -176,6 +201,29 @@ export interface Activity {
   calories?: number;
   description?: string;
   gear_id?: string;
+  
+  // COMPUTED FIELDS (calculated by our app)
+  week_number?: number;
+  month_number?: number;
+  year_number?: number;
+  day_of_week?: number;
+  average_pace?: number; // Seconds per km
+  elevation_per_km?: number;
+  efficiency_score?: number;
+  
+  // TRAINING METRICS
+  relative_effort?: number;
+  perceived_exertion?: number;
+  training_load_score?: number;
+  intensity_score?: number;
+  recovery_time?: number;
+  normalized_power?: number;
+  training_stress_score?: number;
+  
+  // ZONE DATA
+  power_zones?: any;
+  heart_rate_zones?: any;
+  pace_zones?: any;
   
   last_synced_at?: string;
   created_at?: string;

@@ -75,9 +75,17 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
 
   // Calculate pace for running activities
   const calculatePace = () => {
-    if (activity.sport_type === 'Run' && activity.distance > 0 && activity.moving_time > 0) {
-      const secondsPerKm = activity.moving_time / (activity.distance / 1000)
-      return formatPace(secondsPerKm, preferences.pace)
+    if (activity.sport_type === 'Run' && activity.distance > 0) {
+      // Use pre-computed average_pace if available (more accurate)
+      if (activity.average_pace) {
+        return formatPace(activity.average_pace, preferences.pace)
+      }
+      
+      // Fallback to calculation if average_pace not available
+      if (activity.moving_time > 0) {
+        const secondsPerKm = activity.moving_time / (activity.distance / 1000)
+        return formatPace(secondsPerKm, preferences.pace)
+      }
     }
     return null
   }

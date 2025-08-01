@@ -10,8 +10,7 @@ const FILTERS = [
   { label: 'Rides', value: 'ride' },
   { label: 'Walks', value: 'walk' },
   { label: 'Workouts', value: 'workout' },
-  { label: 'Favorites', value: 'favorite', disabled: true },
-  { label: 'Flagged', value: 'flagged', disabled: true },
+  { label: 'Favorites', value: 'favorite' },
 ];
 
 const SORT_OPTIONS = [
@@ -37,20 +36,16 @@ export default function ActivitiesFeedWithFilters({ userId }: { userId: string }
           {FILTERS.map((f) => (
             <button
               key={f.value}
-              onClick={() => !f.disabled && setFilter(f.value)}
-              disabled={f.disabled}
+              onClick={() => setFilter(f.value)}
               className={
                 "inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium transition-colors " +
-                (f.disabled
-                  ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"
-                  : filter === f.value
+                (filter === f.value
                   ? "bg-blue-600 text-white border-blue-600"
                   : "bg-gray-100 text-gray-700 hover:bg-blue-100 border-gray-200")
               }
               type="button"
             >
               {f.label}
-              {f.disabled && <span className="ml-1 text-xs">(Coming Soon)</span>}
             </button>
           ))}
         </div>
