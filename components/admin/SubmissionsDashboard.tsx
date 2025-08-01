@@ -1,13 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SubmissionsList } from './SubmissionsList';
-import { MessageSquare, Lightbulb, Clock, CheckCircle } from 'lucide-react';
+import { MessageSquare, Lightbulb, Clock } from 'lucide-react';
 
 interface Submission {
   id: string;
@@ -36,11 +34,7 @@ export function SubmissionsDashboard() {
   const [activeTab, setActiveTab] = useState<'all' | 'contact' | 'suggestion'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'responded'>('all');
 
-  useEffect(() => {
-    fetchSubmissions();
-  }, [activeTab, statusFilter]);
-
-  const fetchSubmissions = async () => {
+  const fetchSubmissions = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -65,7 +59,11 @@ export function SubmissionsDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab, statusFilter]);
+
+  useEffect(() => {
+    fetchSubmissions();
+  }, [fetchSubmissions]);
 
   const updateSubmissionStatus = async (id: string, status: string) => {
     try {
@@ -137,7 +135,7 @@ export function SubmissionsDashboard() {
 
       {/* Filters and Tabs */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'all' | 'contact' | 'suggestion')}>
           <TabsList>
             <TabsTrigger value="all">All Submissions</TabsTrigger>
             <TabsTrigger value="contact">Contact Forms</TabsTrigger>
@@ -145,7 +143,7 @@ export function SubmissionsDashboard() {
           </TabsList>
         </Tabs>
 
-        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'all' | 'pending' | 'responded')}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>

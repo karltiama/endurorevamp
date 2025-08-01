@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageSquare, Lightbulb, Clock, CheckCircle, Mail, Eye } from 'lucide-react';
+import { MessageSquare, Lightbulb, Mail, Eye } from 'lucide-react';
 
 interface Submission {
   id: string;
@@ -31,7 +31,6 @@ interface SubmissionsListProps {
 }
 
 export function SubmissionsList({ submissions, loading, onStatusUpdate, onRefresh }: SubmissionsListProps) {
-  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [adminNotes, setAdminNotes] = useState('');
 
   const getTypeIcon = (type: string) => {

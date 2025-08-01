@@ -5,7 +5,7 @@ import { ExternalLink, Mail, MessageSquare, Github, Globe, FileText, Heart } fro
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -97,9 +97,9 @@ export function AppFooter() {
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>Contact Us</DialogTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Send us a message and we'll get back to you as soon as possible.
-                    </p>
+                                         <p className="text-sm text-muted-foreground">
+                       Send us a message and we&apos;ll get back to you as soon as possible.
+                     </p>
                   </DialogHeader>
                   <form onSubmit={handleContactSubmit} className="space-y-4">
                     <div>
@@ -148,9 +148,9 @@ export function AppFooter() {
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>Suggest a Feature</DialogTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Have an idea for a new feature? We'd love to hear about it!
-                    </p>
+                                         <p className="text-sm text-muted-foreground">
+                       Have an idea for a new feature? We&apos;d love to hear about it!
+                     </p>
                   </DialogHeader>
                   <form onSubmit={handleSuggestionSubmit} className="space-y-4">
                     <div>
