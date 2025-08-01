@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Shield, Eye, Lock, Users, MapPin, Activity } from 'lucide-react';
+import { ArrowLeft, Shield, Eye, Lock, Users, Activity } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
@@ -39,7 +39,7 @@ export default function PrivacyPolicyPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p>
-              EnduroRevamp ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our fitness application and related services.
+              EnduroRevamp (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our fitness application and related services.
             </p>
             <p>
               By using EnduroRevamp, you agree to the collection and use of information in accordance with this policy. If you do not agree with our policies and practices, please do not use our application.
@@ -145,7 +145,7 @@ export default function PrivacyPolicyPage() {
                 We integrate with Strava to access your fitness data. This integration is governed by:
               </p>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
-                <li>Strava's own privacy policy and terms of service</li>
+                <li>Strava&apos;s own privacy policy and terms of service</li>
                 <li>OAuth 2.0 authentication for secure access</li>
                 <li>Your explicit consent when connecting your Strava account</li>
                 <li>Ability to revoke access at any time</li>
@@ -165,7 +165,7 @@ export default function PrivacyPolicyPage() {
             </div>
 
             <div>
-              <h3 className="font-semibold mb-2">What We Don't Share</h3>
+              <h3 className="font-semibold mb-2">What We Don&apos;t Share</h3>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
                 <li>We do not sell your personal information</li>
                 <li>We do not share data with advertisers</li>
@@ -243,7 +243,7 @@ export default function PrivacyPolicyPage() {
         {/* Children's Privacy */}
         <Card>
           <CardHeader>
-            <CardTitle>Children's Privacy</CardTitle>
+            <CardTitle>Children&apos;s Privacy</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-gray-600">
@@ -259,7 +259,7 @@ export default function PrivacyPolicyPage() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-600">
-              We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date. You are advised to review this Privacy Policy periodically for any changes.
+              We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the &quot;Last updated&quot; date. You are advised to review this Privacy Policy periodically for any changes.
             </p>
           </CardContent>
         </Card>

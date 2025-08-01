@@ -151,16 +151,16 @@ describe('AppFooter', () => {
     const articleButton = screen.getByText('How I Built This');
     await user.click(articleButton);
     
-    expect(mockOpen).toHaveBeenCalledWith('https://yourwebsite.com/building-enduro-revamp', '_blank');
+    expect(mockOpen).toHaveBeenCalledWith('https://www.karltiama.dev/blog/enduro-refactor', '_blank');
   });
 
   it('displays app information correctly', () => {
     render(<AppFooter />);
     
     expect(screen.getByText('Version:')).toBeInTheDocument();
-    expect(screen.getByText('1.0.0')).toBeInTheDocument();
+    expect(screen.getByText('2.0.0')).toBeInTheDocument();
     expect(screen.getByText('Built with:')).toBeInTheDocument();
-    expect(screen.getByText('Next.js, TypeScript, Strava API')).toBeInTheDocument();
+    expect(screen.getByText('Next.js 15, TypeScript, React 19, Supabase, React Query, Tailwind')).toBeInTheDocument();
     expect(screen.getByText('Last updated:')).toBeInTheDocument();
   });
 

@@ -39,10 +39,10 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p>
-              By accessing and using EnduroRevamp ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+                             By accessing and using EnduroRevamp (&quot;the Service&quot;), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
             </p>
             <p>
-              These Terms of Service ("Terms") govern your use of our website and services. Please read these Terms carefully, and contact us if you have any questions.
+                             These Terms of Service (&quot;Terms&quot;) govern your use of our website and services. Please read these Terms carefully, and contact us if you have any questions.
             </p>
           </CardContent>
         </Card>
@@ -147,10 +147,10 @@ export default function TermsOfServicePage() {
                 Our Service integrates with Strava. By connecting your Strava account:
               </p>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
-                <li>You agree to Strava's Terms of Service and Privacy Policy</li>
+                <li>You agree to Strava&apos;s Terms of Service and Privacy Policy</li>
                 <li>You authorize us to access your Strava data</li>
                 <li>You can revoke access at any time through Strava settings</li>
-                <li>We are not responsible for Strava's services or data accuracy</li>
+                <li>We are not responsible for Strava&apos;s services or data accuracy</li>
               </ul>
             </div>
 
@@ -192,7 +192,7 @@ export default function TermsOfServicePage() {
                 We strive to provide reliable service, but:
               </p>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
-                <li>The Service is provided "as is" without warranties</li>
+                <li>The Service is provided &quot;as is&quot; without warranties</li>
                 <li>We may modify or discontinue features at any time</li>
                 <li>Service may be temporarily unavailable for maintenance</li>
                 <li>We are not responsible for data loss or service interruptions</li>
