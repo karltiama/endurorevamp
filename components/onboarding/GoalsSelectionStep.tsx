@@ -12,7 +12,8 @@ import {
   MapPin,
   Award,
   CheckCircle,
-  Sparkles
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import { UserGoal } from '@/types/goals';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
@@ -22,6 +23,7 @@ interface GoalsSelectionStepProps {
   onGoalsSelected: (goals: UserGoal[]) => void;
   selectedGoals: UserGoal[];
   onComplete?: () => void;
+  onError?: (errorMessage: string) => void;
 }
 
 interface GoalSuggestion {
@@ -140,10 +142,11 @@ const defaultSuggestions: GoalSuggestion[] = [
   }
 ];
 
-export function GoalsSelectionStep({ onGoalsSelected, onComplete }: GoalsSelectionStepProps) {
+export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: GoalsSelectionStepProps) {
   const { preferences } = useUnitPreferences();
   const [suggestions, setSuggestions] = useState<GoalSuggestion[]>(defaultSuggestions);
   const [selectedSuggestions, setSelectedSuggestions] = useState<GoalSuggestion[]>([]);
+  const [isCreatingGoals, setIsCreatingGoals] = useState(false);
 
   // Convert suggestions to user's preferred units
   useEffect(() => {
@@ -180,42 +183,80 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete }: GoalsSelecti
     }
   };
 
-  const handleContinue = () => {
-    // Convert suggestions to UserGoal format
-    const goals: UserGoal[] = selectedSuggestions.map(suggestion => ({
-      id: suggestion.id,
-      user_id: '', // Will be set when creating
-      goal_type_id: suggestion.id, // Use suggestion id as goal type id
-      target_value: suggestion.target,
-      target_unit: suggestion.unit,
-      time_period: 'weekly' as const,
-      current_progress: 0,
-      streak_count: 0,
-      is_active: true,
-      is_completed: false,
-      priority: suggestion.priority === 'high' ? 1 : suggestion.priority === 'medium' ? 2 : 3,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      goal_data: {
-        notes: suggestion.reasoning,
-        show_on_dashboard: true,
-        dashboard_priority: 1,
-        creation_context: 'onboarding' as const,
-        is_onboarding_goal: true,
-        from_suggestion: true,
-        suggestion_id: suggestion.id,
-        suggestion_title: suggestion.title,
-        suggestion_reasoning: suggestion.reasoning,
-        difficulty_level: suggestion.difficulty === 'conservative' ? 'beginner' as const : 
-                         suggestion.difficulty === 'moderate' ? 'intermediate' as const : 
-                         'advanced' as const,
-        success_probability: suggestion.successProbability,
-        warnings: suggestion.warnings
-      }
-    }));
+  const handleContinue = async () => {
+    if (selectedSuggestions.length === 0) return;
     
-    onGoalsSelected(goals);
-    onComplete?.();
+    setIsCreatingGoals(true);
+    
+    try {
+      // Convert suggestions to UserGoal format
+      const goals: UserGoal[] = selectedSuggestions.map(suggestion => ({
+        id: suggestion.id,
+        user_id: '', // Will be set when creating
+        goal_type_id: suggestion.id, // Use suggestion id as goal type id
+        target_value: suggestion.target,
+        target_unit: suggestion.unit,
+        time_period: 'weekly' as const,
+        current_progress: 0,
+        streak_count: 0,
+        is_active: true,
+        is_completed: false,
+        priority: suggestion.priority === 'high' ? 1 : suggestion.priority === 'medium' ? 2 : 3,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        goal_data: {
+          notes: suggestion.reasoning,
+          show_on_dashboard: true,
+          dashboard_priority: 1,
+          creation_context: 'onboarding' as const,
+          is_onboarding_goal: true,
+          from_suggestion: true,
+          suggestion_id: suggestion.id,
+          suggestion_title: suggestion.title,
+          suggestion_reasoning: suggestion.reasoning,
+          difficulty_level: suggestion.difficulty === 'conservative' ? 'beginner' as const : 
+                           suggestion.difficulty === 'moderate' ? 'intermediate' as const : 
+                           'advanced' as const,
+          success_probability: suggestion.successProbability,
+          warnings: suggestion.warnings
+        }
+      }));
+      
+      // Create the goals
+      const response = await fetch('/api/goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ goals })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create goals');
+      }
+      
+      // Update onboarding status to mark goals as completed
+      const onboardingResponse = await fetch('/api/onboarding', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          goals_completed: true,
+          current_step: 'strava'
+        })
+      });
+      
+      if (!onboardingResponse.ok) {
+        console.warn('Failed to update onboarding status, but goals were created');
+      }
+      
+      onGoalsSelected(goals);
+      onComplete?.();
+      
+    } catch (error) {
+      console.error('Error creating goals:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create goals';
+      onError?.(errorMessage);
+    } finally {
+      setIsCreatingGoals(false);
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -316,11 +357,20 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete }: GoalsSelecti
         </div>
         <Button 
           onClick={handleContinue}
-          disabled={selectedSuggestions.length === 0}
+          disabled={selectedSuggestions.length === 0 || isCreatingGoals}
           className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
         >
-          <Sparkles className="h-4 w-4 mr-2" />
-          Continue with Selected Goals
+          {isCreatingGoals ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Creating Goals...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Continue with Selected Goals
+            </>
+          )}
         </Button>
       </div>
     </div>

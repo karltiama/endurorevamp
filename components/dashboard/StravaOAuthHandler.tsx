@@ -86,6 +86,20 @@ export function StravaOAuthHandler() {
             }
           );
           
+          // Update onboarding status to mark Strava as connected
+          try {
+            await fetch('/api/onboarding', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                strava_connected: true,
+                current_step: 'complete'
+              })
+            });
+          } catch (error) {
+            console.warn('Failed to update onboarding status:', error);
+          }
+          
           // Invalidate queries to ensure fresh data
           await Promise.all([
             queryClient.invalidateQueries({ 
@@ -95,6 +109,15 @@ export function StravaOAuthHandler() {
               queryKey: [STRAVA_TOKEN_QUERY_KEY, user.id] 
             })
           ]);
+          
+          // Check if user came from onboarding demo and redirect back
+          const fromOnboardingDemo = sessionStorage.getItem('from_onboarding_demo');
+          if (fromOnboardingDemo === 'true') {
+            console.log('🔄 Redirecting back to onboarding demo...');
+            sessionStorage.removeItem('from_onboarding_demo');
+            router.push('/onboarding-demo?from_strava=true&code=' + code);
+            return;
+          }
           
           // Clear success message after delay
           setTimeout(() => {

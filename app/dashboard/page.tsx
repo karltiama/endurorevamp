@@ -6,7 +6,6 @@ import { PerformanceInsightsCard } from '@/components/dashboard/PerformanceInsig
 
 import { WeatherWidgetEnhanced } from '@/components/weather/WeatherWidgetEnhanced'
 import { QuickActionsSection } from '@/components/dashboard/QuickActionsSection'
-import { DashboardOnboardingHandler } from '@/components/dashboard/DashboardOnboardingHandler'
 import { DashboardGoalsSection } from '@/components/dashboard/DashboardGoalsSection'
 import { StravaOAuthHandler } from '@/components/dashboard/StravaOAuthHandler'
 import { 
@@ -35,9 +34,6 @@ export default async function DashboardPage() {
     <DashboardLayout user={user}>
       {/* Handle Strava OAuth callbacks */}
       <StravaOAuthHandler />
-      
-      {/* Onboarding Modal for new users */}
-      <DashboardOnboardingHandler />
       
       <div className="space-y-6">
         {/* Header - More compact */}

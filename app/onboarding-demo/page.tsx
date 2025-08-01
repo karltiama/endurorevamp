@@ -1,16 +1,177 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useOnboardingStatus, useUserGoals } from '@/hooks/useGoals';
 import { Badge } from '@/components/ui/badge';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/providers/AuthProvider';
+import { useStravaAuth } from '@/hooks/use-strava-auth';
+import { useQueryClient } from '@tanstack/react-query';
+import { STRAVA_CONNECTION_QUERY_KEY } from '@/hooks/strava/useStravaConnection';
+import { STRAVA_TOKEN_QUERY_KEY } from '@/hooks/strava/useStravaToken';
 
 export default function OnboardingDemoPage() {
   const [showModal, setShowModal] = useState(false);
   const { data: userGoalsData } = useUserGoals();
   const { onboarding, hasCompletedOnboarding, currentStep } = useOnboardingStatus();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { mutate: exchangeToken, isPending: isAuthing } = useStravaAuth();
+
+  // Check if we're returning from Strava OAuth (redirected from dashboard)
+  useEffect(() => {
+    const fromStrava = searchParams.get('from_strava');
+    const code = searchParams.get('code');
+    
+    if (fromStrava === 'true' && code) {
+      console.log('🔄 Processing OAuth code redirected from dashboard...');
+      
+      // Clean URL parameters
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('from_strava');
+      newUrl.searchParams.delete('code');
+      newUrl.searchParams.delete('error');
+      newUrl.searchParams.delete('error_description');
+      newUrl.searchParams.delete('state');
+      newUrl.searchParams.delete('scope');
+      router.replace(newUrl.pathname + newUrl.search, { scroll: false });
+      
+      // Process the OAuth code
+      if (user && !isAuthing) {
+        exchangeToken(code, {
+          onSuccess: async (data) => {
+            console.log('✅ Successfully connected to Strava on onboarding demo:', data);
+            
+            // Update onboarding status to mark Strava as connected
+            try {
+              await fetch('/api/onboarding', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  strava_connected: true,
+                  current_step: 'complete'
+                })
+              });
+            } catch (error) {
+              console.warn('Failed to update onboarding status:', error);
+            }
+            
+            // Update cache immediately
+            queryClient.setQueryData(
+              [STRAVA_CONNECTION_QUERY_KEY, user.id],
+              {
+                connected: true,
+                athlete: data.athlete ? {
+                  id: data.athlete.id,
+                  firstname: data.athlete.firstname,
+                  lastname: data.athlete.lastname,
+                  profile: data.athlete.profile,
+                } : undefined,
+              }
+            );
+            
+            // Invalidate queries to ensure fresh data
+            await Promise.all([
+              queryClient.invalidateQueries({ 
+                queryKey: [STRAVA_CONNECTION_QUERY_KEY, user.id] 
+              }),
+              queryClient.invalidateQueries({ 
+                queryKey: [STRAVA_TOKEN_QUERY_KEY, user.id] 
+              })
+            ]);
+            
+            // Show success message
+            alert('Successfully connected to Strava! Your onboarding is now complete.');
+          },
+          onError: (error) => {
+            console.error('❌ Failed to connect to Strava:', error);
+            alert('Failed to connect to Strava. Please try again.');
+          }
+        });
+      }
+    }
+  }, [searchParams, user, isAuthing, router, queryClient, exchangeToken]);
+
+  // Handle direct Strava OAuth callback (if somehow we get it directly)
+  useEffect(() => {
+    const code = searchParams.get('code');
+    const error = searchParams.get('error');
+
+    if (error) {
+      console.error('Strava OAuth error:', error);
+      return;
+    }
+
+    // Only process if we have a code and no from_strava parameter (direct callback)
+    if (code && !searchParams.get('from_strava') && user && !isAuthing) {
+      console.log('🔄 Processing direct OAuth code on onboarding demo...');
+      
+      // Clean URL parameters immediately to prevent re-processing
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('code');
+      newUrl.searchParams.delete('error');
+      newUrl.searchParams.delete('error_description');
+      newUrl.searchParams.delete('state');
+      newUrl.searchParams.delete('scope');
+      router.replace(newUrl.pathname + newUrl.search, { scroll: false });
+      
+      exchangeToken(code, {
+        onSuccess: async (data) => {
+          console.log('✅ Successfully connected to Strava on onboarding demo:', data);
+          
+          // Update onboarding status to mark Strava as connected
+          try {
+            await fetch('/api/onboarding', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                strava_connected: true,
+                current_step: 'complete'
+              })
+            });
+          } catch (error) {
+            console.warn('Failed to update onboarding status:', error);
+          }
+          
+          // Update cache immediately
+          queryClient.setQueryData(
+            [STRAVA_CONNECTION_QUERY_KEY, user.id],
+            {
+              connected: true,
+              athlete: data.athlete ? {
+                id: data.athlete.id,
+                firstname: data.athlete.firstname,
+                lastname: data.athlete.lastname,
+                profile: data.athlete.profile,
+              } : undefined,
+            }
+          );
+          
+          // Invalidate queries to ensure fresh data
+          await Promise.all([
+            queryClient.invalidateQueries({ 
+              queryKey: [STRAVA_CONNECTION_QUERY_KEY, user.id] 
+            }),
+            queryClient.invalidateQueries({ 
+              queryKey: [STRAVA_TOKEN_QUERY_KEY, user.id] 
+            })
+          ]);
+          
+          // Show success message
+          alert('Successfully connected to Strava! Your onboarding is now complete.');
+        },
+        onError: (error) => {
+          console.error('❌ Failed to connect to Strava:', error);
+          alert('Failed to connect to Strava. Please try again.');
+        }
+      });
+    }
+  }, [searchParams, user, isAuthing, router, queryClient, exchangeToken]);
 
   // Redirect to home in production
   if (process.env.NODE_ENV === 'production') {
@@ -145,15 +306,31 @@ export default function OnboardingDemoPage() {
             Open Onboarding Modal
           </Button>
           
+          {/* Debug Section */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <h4 className="font-medium text-sm mb-2">Debug Info:</h4>
+            <div className="text-xs space-y-1">
+              <div>Client ID: {process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID ? '✅ Set' : '❌ Missing'}</div>
+              <div>Redirect URI: {process.env.NEXT_PUBLIC_STRAVA_REDIRECT_URI || 'http://localhost:3000/dashboard (default)'}</div>
+              <div>Environment: {process.env.NODE_ENV}</div>
+            </div>
+          </div>
+          
           <div className="text-sm text-muted-foreground">
             <p><strong>Instructions:</strong></p>
             <ol className="list-decimal list-inside space-y-1 mt-2">
               <li>Click &quot;Open Onboarding Modal&quot; to start the flow</li>
               <li>Select one or more goals and configure them</li>
               <li>Complete the goals step to proceed</li>
-              <li>The modal will guide you through each step</li>
+              <li>When you reach the Strava step, click &quot;Connect with Strava&quot;</li>
+              <li>You&apos;ll be redirected to Strava for authorization</li>
+              <li>After authorizing, you&apos;ll be redirected to the dashboard briefly</li>
+              <li>The dashboard will automatically redirect you back to this demo page</li>
               <li>Check the status cards above to see your progress</li>
             </ol>
+            <p className="mt-2 text-xs text-orange-600">
+              <strong>Note:</strong> This uses the standard dashboard OAuth callback URL for security.
+            </p>
           </div>
         </CardContent>
       </Card>

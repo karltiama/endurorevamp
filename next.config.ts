@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
 
     return config;
   },
+  // Use the new turbopack configuration (stable)
+  turbopack: {
+    rules: {
+      // Add any Turbopack-specific rules here if needed
+    },
+  },
 };
 
 export default nextConfig;

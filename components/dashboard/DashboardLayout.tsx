@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode } from "react"
+import React, { ReactNode } from "react"
 import { User as SupabaseUser } from "@supabase/supabase-js"
 import { GoalsProvider } from "@/components/goals/GoalsProvider"
 import {
@@ -31,6 +31,7 @@ import {
   Activity,
   Calendar1
 } from "lucide-react"
+import { useAuth } from '@/providers/AuthProvider'
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -110,6 +111,7 @@ const navigation = [
 
 function AppSidebar() {
   const pathname = usePathname()
+  const { signOut, isLoading } = useAuth()
 
   return (
     <Sidebar variant="inset" collapsible="hover">
@@ -159,16 +161,11 @@ function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => {
-                const form = document.createElement('form')
-                form.method = 'post'
-                form.action = '/auth/logout'
-                document.body.appendChild(form)
-                form.submit()
-              }}
+              onClick={signOut}
+              disabled={isLoading}
             >
               <LogOut className="size-4" />
-              <span>Logout</span>
+              <span>{isLoading ? 'Signing out...' : 'Logout'}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
