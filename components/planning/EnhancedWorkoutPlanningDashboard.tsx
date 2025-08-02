@@ -23,8 +23,7 @@ import {
   Wind,
   Sun
 } from 'lucide-react'
-import { useEnhancedWorkoutPlanning, useWorkoutPlanManager, useWorkoutPlanAnalytics, useSynchronizedTodaysWorkout } from '@/hooks/useEnhancedWorkoutPlanning'
-import { useQueryClient } from '@tanstack/react-query'
+import { useWorkoutPlanManager, useWorkoutPlanAnalytics, useSynchronizedTodaysWorkout } from '@/hooks/useEnhancedWorkoutPlanning'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { useWeather } from '@/hooks/useWeather'
 import { useLocation } from '@/hooks/useLocation'
@@ -48,8 +47,6 @@ interface WeatherWorkoutContextProps {
 }
 
 export function EnhancedWorkoutPlanningDashboard({ userId, className }: EnhancedWorkoutPlanningDashboardProps) {
-  const queryClient = useQueryClient()
-  
   // Use the synchronized hook to ensure today's workout always matches the weekly plan
   const { 
     todaysWorkout, 
