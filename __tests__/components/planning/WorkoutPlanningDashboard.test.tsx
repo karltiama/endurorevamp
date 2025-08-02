@@ -3,12 +3,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { EnhancedWorkoutPlanningDashboard } from '@/components/planning/EnhancedWorkoutPlanningDashboard'
 
 // Mock the hooks
-const mockUseEnhancedWorkoutPlanning = jest.fn()
+const mockUseSynchronizedTodaysWorkout = jest.fn()
 const mockUseWorkoutPlanManager = jest.fn()
 const mockUseWorkoutPlanAnalytics = jest.fn()
 
 jest.mock('@/hooks/useEnhancedWorkoutPlanning', () => ({
-  useEnhancedWorkoutPlanning: () => mockUseEnhancedWorkoutPlanning(),
+  useSynchronizedTodaysWorkout: () => mockUseSynchronizedTodaysWorkout(),
   useWorkoutPlanManager: () => mockUseWorkoutPlanManager(),
   useWorkoutPlanAnalytics: () => mockUseWorkoutPlanAnalytics()
 }))
@@ -99,18 +99,11 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
   }
 
   it('renders edit plan button when plan exists', () => {
-    mockUseEnhancedWorkoutPlanning.mockReturnValue({
+    mockUseSynchronizedTodaysWorkout.mockReturnValue({
       todaysWorkout: null,
       weeklyPlan: mockWorkoutPlan,
-      isLoadingTodaysWorkout: false,
-      isLoadingWeeklyPlan: false,
       isLoading: false,
-      error: null,
-      hasData: true,
-      activities: [],
-      trainingLoadData: undefined,
-      goals: [],
-      unitPreferences: { distance: 'km', pace: 'min/km' }
+      hasData: true
     })
 
     mockUseWorkoutPlanManager.mockReturnValue({
@@ -130,18 +123,11 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
   })
 
   it('does not show edit button when no plan exists', () => {
-    mockUseEnhancedWorkoutPlanning.mockReturnValue({
+    mockUseSynchronizedTodaysWorkout.mockReturnValue({
       todaysWorkout: null,
       weeklyPlan: null,
-      isLoadingTodaysWorkout: false,
-      isLoadingWeeklyPlan: false,
       isLoading: false,
-      error: null,
-      hasData: true,
-      activities: [],
-      trainingLoadData: undefined,
-      goals: [],
-      unitPreferences: { distance: 'km', pace: 'min/km' }
+      hasData: true
     })
 
     mockUseWorkoutPlanManager.mockReturnValue({

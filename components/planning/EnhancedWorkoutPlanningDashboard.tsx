@@ -23,7 +23,8 @@ import {
   Wind,
   Sun
 } from 'lucide-react'
-import { useEnhancedWorkoutPlanning, useWorkoutPlanManager, useWorkoutPlanAnalytics } from '@/hooks/useEnhancedWorkoutPlanning'
+import { useEnhancedWorkoutPlanning, useWorkoutPlanManager, useWorkoutPlanAnalytics, useSynchronizedTodaysWorkout } from '@/hooks/useEnhancedWorkoutPlanning'
+import { useQueryClient } from '@tanstack/react-query'
 import { useUnitPreferences } from '@/hooks/useUnitPreferences'
 import { useWeather } from '@/hooks/useWeather'
 import { useLocation } from '@/hooks/useLocation'
@@ -47,13 +48,15 @@ interface WeatherWorkoutContextProps {
 }
 
 export function EnhancedWorkoutPlanningDashboard({ userId, className }: EnhancedWorkoutPlanningDashboardProps) {
+  const queryClient = useQueryClient()
+  
+  // Use the synchronized hook to ensure today's workout always matches the weekly plan
   const { 
     todaysWorkout, 
     weeklyPlan, 
-    isLoadingTodaysWorkout, 
-    isLoadingWeeklyPlan, 
+    isLoading: isLoadingTodaysWorkout, 
     hasData 
-  } = useEnhancedWorkoutPlanning({ userId })
+  } = useSynchronizedTodaysWorkout(userId)
 
   const { saveWorkoutPlan, resetToRecommended } = useWorkoutPlanManager(userId)
   const analytics = useWorkoutPlanAnalytics(weeklyPlan)
@@ -71,7 +74,18 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
   // Debug logging for weekly plan changes
   console.log('EnhancedWorkoutPlanningDashboard: weeklyPlan updated:', weeklyPlan?.id, weeklyPlan?.weekStart)
   console.log('EnhancedWorkoutPlanningDashboard: workouts count:', Object.values(weeklyPlan?.workouts || {}).filter(w => w !== null).length)
+  console.log('EnhancedWorkoutPlanningDashboard: todaysWorkout:', todaysWorkout?.type, todaysWorkout?.sport, todaysWorkout?.duration)
   console.log('EnhancedWorkoutPlanningDashboard: isEditorOpen:', isEditorOpen)
+  
+  // Ensure today's workout matches the weekly plan
+  const today = new Date().getDay()
+  const expectedTodaysWorkout = weeklyPlan?.workouts[today]
+  const todaysWorkoutMatchesPlan = todaysWorkout?.id === expectedTodaysWorkout?.id
+  
+  console.log('EnhancedWorkoutPlanningDashboard: Today is day', today, 'of week')
+  console.log('EnhancedWorkoutPlanningDashboard: Expected today\'s workout:', expectedTodaysWorkout?.type, expectedTodaysWorkout?.sport)
+  console.log('EnhancedWorkoutPlanningDashboard: Actual today\'s workout:', todaysWorkout?.type, todaysWorkout?.sport)
+  console.log('EnhancedWorkoutPlanningDashboard: Workouts match:', todaysWorkoutMatchesPlan)
 
   if (!hasData) {
     return (
@@ -145,10 +159,17 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
         {/* Today's Workout Recommendation */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5" />
-              Today&apos;s Workout
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5" />
+                Today&apos;s Workout
+              </CardTitle>
+              {weeklyPlan && todaysWorkout && !todaysWorkoutMatchesPlan && (
+                <Badge variant="destructive" className="text-xs">
+                  Plan Mismatch
+                </Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {isLoadingTodaysWorkout ? (
@@ -185,7 +206,7 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
                 <Calendar className="h-5 w-5" />
                 Weekly Plan
               </CardTitle>
-              {weeklyPlan && !isLoadingWeeklyPlan && (
+              {weeklyPlan && !isLoadingTodaysWorkout && (
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -204,7 +225,7 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
             </div>
           </CardHeader>
           <CardContent>
-            {isLoadingWeeklyPlan ? (
+            {isLoadingTodaysWorkout ? (
               <div className="animate-pulse space-y-4">
                 <div className="grid grid-cols-7 gap-2">
                   {Array.from({ length: 7 }).map((_, i) => (

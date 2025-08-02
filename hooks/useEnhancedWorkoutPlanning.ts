@@ -60,6 +60,9 @@ export function useEnhancedWorkoutPlanning({ userId, includeWeather = false }: U
   const { data: todaysWorkout, isLoading: todaysWorkoutLoading } = useQuery({
     queryKey: ['enhanced-workout-planning', 'todays-workout', userId, planningActivities.length, trainingLoadData?.metrics, goals.length, unitPreferences, savedPlanData?.weeklyPlan?.id || 'no-saved-plan'],
     queryFn: () => {
+      console.log('useEnhancedWorkoutPlanning: Today\'s workout queryFn called')
+      console.log('useEnhancedWorkoutPlanning: savedPlanData?.weeklyPlan exists:', !!savedPlanData?.weeklyPlan)
+      
       if (!trainingLoadData?.metrics) {
         // Create a fallback today's workout
         const fallbackWorkout = createFallbackTodaysWorkout()
@@ -68,11 +71,13 @@ export function useEnhancedWorkoutPlanning({ userId, includeWeather = false }: U
       
       // If we have a saved plan, derive today's workout from it
       if (savedPlanData?.weeklyPlan) {
+        console.log('useEnhancedWorkoutPlanning: Deriving today\'s workout from saved plan')
         const todaysWorkout = deriveTodaysWorkoutFromPlan(savedPlanData.weeklyPlan)
         return { todaysWorkout, weeklyPlan: savedPlanData.weeklyPlan }
       }
       
       // Otherwise generate both
+      console.log('useEnhancedWorkoutPlanning: Generating new workout recommendations')
       return generateEnhancedWorkoutRecommendations(
         userId, 
         planningActivities, 
@@ -151,12 +156,24 @@ function deriveTodaysWorkoutFromPlan(weeklyPlan: WeeklyWorkoutPlan): EnhancedWor
   // Get today's day of week (0 = Sunday, 1 = Monday, etc.)
   const today = new Date().getDay()
   
+  console.log('deriveTodaysWorkoutFromPlan: Today is day', today, 'of week')
+  console.log('deriveTodaysWorkoutFromPlan: Available workouts in plan:', Object.keys(weeklyPlan.workouts))
+  console.log('deriveTodaysWorkoutFromPlan: Today\'s workout:', weeklyPlan.workouts[today])
+  
   // Get today's workout from the plan
   const todaysWorkout = weeklyPlan.workouts[today]
   
   if (!todaysWorkout) {
+    console.log('deriveTodaysWorkoutFromPlan: No workout found for today (day', today, ')')
     return null
   }
+  
+  console.log('deriveTodaysWorkoutFromPlan: Found workout for today:', {
+    type: todaysWorkout.type,
+    sport: todaysWorkout.sport,
+    duration: todaysWorkout.duration,
+    intensity: todaysWorkout.intensity
+  })
   
   return todaysWorkout
 }
@@ -382,6 +399,7 @@ export function useWorkoutPlanManager(userId: string) {
 
   const saveWorkoutPlan = async (plan: WeeklyWorkoutPlan) => {
     try {
+      console.log('saveWorkoutPlan: Starting save operation')
       const result = await updateWeeklyPlan(plan)
       
       // Invalidate and refetch queries to ensure fresh data
@@ -401,7 +419,18 @@ export function useWorkoutPlanManager(userId: string) {
       await queryClient.refetchQueries({ queryKey: ['workout-plans', userId] })
       await queryClient.refetchQueries({ queryKey: ['enhanced-workout-planning'] })
       
-      console.log('saveWorkoutPlan: Queries invalidated and refetched')
+      // Update the cache directly to ensure immediate UI update
+      console.log('saveWorkoutPlan: Updating cache directly for immediate UI update')
+      queryClient.setQueryData(['workout-plans', userId], { weeklyPlan: plan })
+      
+      // Also update the today's workout cache
+      const todaysWorkout = deriveTodaysWorkoutFromPlan(plan)
+      queryClient.setQueryData(
+        ['enhanced-workout-planning', 'todays-workout', userId],
+        { todaysWorkout, weeklyPlan: plan }
+      )
+      
+      console.log('saveWorkoutPlan: Queries invalidated, refetched, and cache updated')
       
       return { success: true, plan: result }
     } catch (error) {
@@ -624,4 +653,21 @@ function generatePlanRecommendations(plan: WeeklyWorkoutPlan, workouts: Enhanced
   }
 
   return recommendations
+} 
+
+/**
+ * Hook that ensures today's workout is always synchronized with the weekly plan
+ */
+export function useSynchronizedTodaysWorkout(userId: string) {
+  const { weeklyPlan, isLoadingWeeklyPlan, hasData } = useEnhancedWorkoutPlanning({ userId })
+  
+  // Derive today's workout directly from the weekly plan
+  const todaysWorkout = weeklyPlan ? deriveTodaysWorkoutFromPlan(weeklyPlan) : null
+  
+  return {
+    todaysWorkout,
+    weeklyPlan,
+    isLoading: isLoadingWeeklyPlan,
+    hasData
+  }
 } 
