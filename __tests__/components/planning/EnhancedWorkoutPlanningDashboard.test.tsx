@@ -81,12 +81,12 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
         0: null, // Sunday
         1: { // Monday
           id: 'monday-workout',
-          type: 'tempo',
-          sport: 'Run',
+          type: 'tempo' as const,
+          sport: 'Run' as const,
           duration: 45,
           intensity: 7,
           distance: 8,
-          difficulty: 'intermediate',
+          difficulty: 'intermediate' as const,
           energyCost: 6,
           recoveryTime: 24,
           reasoning: 'Tempo run to build endurance',
@@ -103,7 +103,7 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
       totalTSS: 300,
       totalDistance: 8,
       totalTime: 45,
-      periodizationPhase: 'build',
+      periodizationPhase: 'build' as const,
       isEditable: true
     }
 
@@ -132,7 +132,7 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
 
     // Verify that today's workout matches the weekly plan
     const today = new Date().getDay()
-    const expectedWorkout = mockWeeklyPlan.workouts[today]
+    const expectedWorkout = mockWeeklyPlan.workouts[today as keyof typeof mockWeeklyPlan.workouts]
     expect(expectedWorkout).toBe(mockWeeklyPlan.workouts[1])
     expect(expectedWorkout?.type).toBe('tempo')
     expect(expectedWorkout?.sport).toBe('Run')
@@ -149,12 +149,12 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
         0: null, // Sunday
         1: { // Monday - different workout
           id: 'monday-workout',
-          type: 'easy',
-          sport: 'Run',
+          type: 'easy' as const,
+          sport: 'Run' as const,
           duration: 30,
           intensity: 4,
           distance: 5,
-          difficulty: 'beginner',
+          difficulty: 'beginner' as const,
           energyCost: 3,
           recoveryTime: 12,
           reasoning: 'Easy recovery run',
@@ -171,7 +171,7 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
       totalTSS: 200,
       totalDistance: 5,
       totalTime: 30,
-      periodizationPhase: 'base',
+      periodizationPhase: 'base' as const,
       isEditable: true
     }
 
@@ -182,12 +182,12 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
     // Mock a different today's workout than what's in the plan
     const differentTodaysWorkout = {
       id: 'different-workout',
-      type: 'tempo',
-      sport: 'Run',
+      type: 'tempo' as const,
+      sport: 'Run' as const,
       duration: 45,
       intensity: 7,
       distance: 8,
-      difficulty: 'intermediate',
+      difficulty: 'intermediate' as const,
       energyCost: 6,
       recoveryTime: 24,
       reasoning: 'Different workout',
@@ -225,12 +225,12 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
         0: null, // Sunday
         1: { // Monday
           id: 'monday-workout',
-          type: 'tempo',
-          sport: 'Run',
+          type: 'tempo' as const,
+          sport: 'Run' as const,
           duration: 45,
           intensity: 7,
           distance: 8,
-          difficulty: 'intermediate',
+          difficulty: 'intermediate' as const,
           energyCost: 6,
           recoveryTime: 24,
           reasoning: 'Tempo run to build endurance',
@@ -247,7 +247,7 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
       totalTSS: 300,
       totalDistance: 8,
       totalTime: 45,
-      periodizationPhase: 'build',
+      periodizationPhase: 'build' as const,
       isEditable: true
     }
 
