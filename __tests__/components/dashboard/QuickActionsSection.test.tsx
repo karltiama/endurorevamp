@@ -1,8 +1,33 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { QuickActionsSection } from '@/components/dashboard/QuickActionsSection';
 import { Activity } from '@/lib/strava/types';
+
+// Mock Next.js router
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
+// Mock Supabase client
+jest.mock('@/lib/supabase/client', () => ({
+  createClient: jest.fn(() => ({
+    auth: {
+      getUser: jest.fn().mockResolvedValue({
+        data: { user: { id: 'test-user-id' } }
+      })
+    },
+    from: jest.fn(() => ({
+      insert: jest.fn().mockResolvedValue({ error: null }),
+      update: jest.fn(() => ({
+        eq: jest.fn().mockResolvedValue({ error: null })
+      }))
+    }))
+  }))
+}));
 
 // Mock the hooks
 jest.mock('@/hooks/use-user-activities', () => ({
@@ -97,13 +122,61 @@ describe('QuickActionsSection', () => {
     render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
     
     expect(screen.getByText('Quick Actions')).toBeInTheDocument();
-    // Check for actions that actually exist in the component
-    const quickActivityAction = screen.queryByText('Quick Activity Log') || 
-                               screen.queryByText('Training Calendar') ||
-                               screen.queryByText('Share Progress');
-    if (quickActivityAction) {
-      expect(quickActivityAction).toBeInTheDocument();
-    }
+    // Check for default actions for new users
+    expect(screen.getByText('Connect Strava')).toBeInTheDocument();
+    expect(screen.getByText('Set Your First Goal')).toBeInTheDocument();
+    expect(screen.getByText('Log Workout')).toBeInTheDocument();
+  });
+
+  it('navigates to goals page when goal action is clicked', () => {
+    mockUseUserActivities.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn()
+    } as any);
+
+    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
+    
+    const goalAction = screen.getByText('Set Your First Goal');
+    fireEvent.click(goalAction);
+    
+    expect(mockPush).toHaveBeenCalledWith('/dashboard/goals');
+  });
+
+  it('navigates to settings page when Strava action is clicked', () => {
+    mockUseUserActivities.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn()
+    } as any);
+
+    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
+    
+    const stravaAction = screen.getByText('Connect Strava');
+    fireEvent.click(stravaAction);
+    
+    expect(mockPush).toHaveBeenCalledWith('/dashboard/settings');
+  });
+
+  it('opens quick log modal when manual entry is clicked', async () => {
+    mockUseUserActivities.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn()
+    } as any);
+
+    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
+    
+    const manualEntryAction = screen.getByText('Log Workout');
+    fireEvent.click(manualEntryAction);
+    
+    // Modal should appear
+    await waitFor(() => {
+      expect(screen.getByText('Quick Activity Log')).toBeInTheDocument();
+    });
   });
 
   it('shows contextual actions based on training state', () => {
@@ -183,9 +256,10 @@ describe('QuickActionsSection', () => {
     expect(coloredElements.length).toBeGreaterThan(0);
   });
 
-  it('handles action clicks', () => {
+  it('opens RPE modal when RPE action is clicked', async () => {
     const activities = [
       createMockActivity({
+        start_date: new Date().toISOString(), // Recent activity without RPE
         kilojoules: 300
       })
     ];
@@ -199,14 +273,40 @@ describe('QuickActionsSection', () => {
 
     render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
     
-    // Test clicking on an action - check for buttons that actually exist
-    const logRpeButton = screen.queryByText('Log RPE');
-    if (logRpeButton) {
-      expect(logRpeButton).toBeInTheDocument();
-    } else {
-      // If specific button doesn't exist, check that section renders
-      expect(screen.getByText('Quick Actions')).toBeInTheDocument();
+    // Look for RPE action
+    const rpeAction = screen.queryByText('Log RPE');
+    if (rpeAction) {
+      fireEvent.click(rpeAction);
+      
+      // Modal should appear
+      await waitFor(() => {
+        expect(screen.getByText('Rate Your Workout')).toBeInTheDocument();
+      });
     }
+  });
+
+  it('navigates to planning page when planning action is clicked', () => {
+    const activities = [
+      createMockActivity({
+        start_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+        kilojoules: 200,
+        average_heartrate: 140
+      })
+    ];
+
+    mockUseUserActivities.mockReturnValue({
+      data: activities,
+      isLoading: false,
+      error: null,
+      refetch: jest.fn()
+    } as any);
+
+    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
+    
+    const planningAction = screen.getByText('Training Calendar');
+    fireEvent.click(planningAction);
+    
+    expect(mockPush).toHaveBeenCalledWith('/dashboard/planning');
   });
 
   it('shows active recovery actions when needed', () => {
@@ -229,7 +329,7 @@ describe('QuickActionsSection', () => {
     render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
     
     expect(screen.getByText('Quick Actions')).toBeInTheDocument();
-    // Check for recovery-related actions (use getAllByText for multiple matches)
+    // Check for recovery-related actions
     const rpeElements = screen.getAllByText(/RPE/i);
     expect(rpeElements.length).toBeGreaterThan(0);
   });
@@ -269,10 +369,8 @@ describe('QuickActionsSection', () => {
     
     expect(screen.getByText('Quick Actions')).toBeInTheDocument();
     // Should show default actions for new users
-    const connectStravaAction = screen.queryByText(/connect/i) || screen.queryByText(/strava/i);
-    if (connectStravaAction) {
-      expect(connectStravaAction).toBeInTheDocument();
-    }
+    expect(screen.getByText('Connect Strava')).toBeInTheDocument();
+    expect(screen.getByText('Set Your First Goal')).toBeInTheDocument();
   });
 
   it('displays training stats correctly', () => {
@@ -338,5 +436,27 @@ describe('QuickActionsSection', () => {
     
     // Should have icons for different action types
     expect(container.querySelector('svg')).toBeInTheDocument();
+  });
+
+  it('navigates to analytics page when share progress is clicked', () => {
+    const activities = [
+      createMockActivity({
+        kilojoules: 300
+      })
+    ];
+
+    mockUseUserActivities.mockReturnValue({
+      data: activities,
+      isLoading: false,
+      error: null,
+      refetch: jest.fn()
+    } as any);
+
+    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
+    
+    const shareAction = screen.getByText('Share Progress');
+    fireEvent.click(shareAction);
+    
+    expect(mockPush).toHaveBeenCalledWith('/dashboard/analytics');
   });
 }); 

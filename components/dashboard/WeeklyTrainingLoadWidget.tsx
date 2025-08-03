@@ -118,7 +118,7 @@ const calculateDailyTSS = (activities: ActivityWithTrainingData[], weekStart: Da
 
 export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetProps) {
   const queryClient = useQueryClient()
-  const { data: activities, isLoading, error, refetch } = useUserActivities(userId)
+  const { data: activities, isLoading, error, refetch, isRefetching } = useUserActivities(userId)
   const { data: personalizedTSSTarget } = usePersonalizedTSSTarget(userId)
 
   // Force refresh data when component mounts to ensure freshness
@@ -234,9 +234,10 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
               variant="outline" 
               size="sm" 
               className="mt-3"
+              disabled={isRefetching}
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh Data
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? 'animate-spin' : ''}`} />
+              {isRefetching ? 'Refreshing...' : 'Refresh Data'}
             </Button>
           </div>
         </CardContent>
@@ -262,8 +263,10 @@ export function WeeklyTrainingLoadWidget({ userId }: WeeklyTrainingLoadWidgetPro
             variant="ghost" 
             size="sm"
             className="ml-auto"
+            disabled={isRefetching}
+            title="Refresh training data"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
           </Button>
         </CardTitle>
       </CardHeader>
