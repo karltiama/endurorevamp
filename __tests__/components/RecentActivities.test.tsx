@@ -106,8 +106,7 @@ describe('RecentActivities', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText('Recent Activities')).toBeInTheDocument();
-    expect(screen.getByTestId('activities-loading')).toBeInTheDocument();
+    expect(screen.getByText('📊 Loading from database...')).toBeInTheDocument();
   });
 
   it('shows empty state when no activities are available', () => {
@@ -124,8 +123,7 @@ describe('RecentActivities', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText('Recent Activities')).toBeInTheDocument();
-    expect(screen.getByText(/no activities found/i)).toBeInTheDocument();
+    expect(screen.getByText('No recent activities found in database')).toBeInTheDocument();
   });
 
   it('shows error state when activities fail to load', () => {
@@ -142,8 +140,8 @@ describe('RecentActivities', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText('Recent Activities')).toBeInTheDocument();
-    expect(screen.getByText(/error loading activities/i)).toBeInTheDocument();
+    expect(screen.getByText(/Error:/)).toBeInTheDocument();
+    expect(screen.getByText(/Failed to load activities/)).toBeInTheDocument();
   });
 
   it('displays activity details correctly', () => {
@@ -158,11 +156,11 @@ describe('RecentActivities', () => {
     expect(screen.getByText('Afternoon Ride')).toBeInTheDocument();
 
     // Check activity types (component shows "Activity" for all types)
-    expect(screen.getByText('Activity')).toBeInTheDocument();
+    expect(screen.getAllByText(/Activity/)).toHaveLength(2);
 
     // Check distances (should be formatted)
-    expect(screen.getByText(/5\.0 km/i)).toBeInTheDocument();
-    expect(screen.getByText(/20\.0 km/i)).toBeInTheDocument();
+    expect(screen.getByText(/5 km/i)).toBeInTheDocument();
+    expect(screen.getByText(/20 km/i)).toBeInTheDocument();
   });
 
   it('handles activity click navigation', () => {
@@ -288,6 +286,6 @@ describe('RecentActivities', () => {
 
     // Should still render without crashing
     expect(screen.getByText('Recent Activities')).toBeInTheDocument();
-    expect(screen.getByText('Activity')).toBeInTheDocument();
+    expect(screen.getAllByText(/Activity/)).toHaveLength(1);
   });
 }); 

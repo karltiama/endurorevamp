@@ -240,7 +240,11 @@ describe('useTrainingLoad', () => {
     });
 
     expect(result.current.isLoading).toBe(false);
-    expect(result.current.hasData).toBe(false);
+    expect(result.current.hasData).toBeFalsy();
+    expect(result.current.data).toBeUndefined();
+    expect(result.current.hasHRData).toBeFalsy();
+    expect(result.current.hasPowerData).toBeFalsy();
+    expect(result.current.error).toBeNull();
   });
 
   it('handles missing training profile gracefully', async () => {
