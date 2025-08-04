@@ -123,9 +123,7 @@ describe('AppFooter', () => {
         body: JSON.stringify({
           type: 'suggestion',
           title: 'Dark Mode',
-          name: 'Anonymous',
-          email: 'anonymous@example.com',
-          message: 'Add dark mode support',
+          description: 'Add dark mode support',
           category: 'feature_request'
         })
       });
@@ -148,7 +146,7 @@ describe('AppFooter', () => {
     
     expect(mockOpen).toHaveBeenCalledWith('https://karltiama.dev', '_blank');
     
-    const articleButton = screen.getByText('How I Built This');
+    const articleButton = screen.getByText('Behind the Scenes: Building Enduro Stats');
     await user.click(articleButton);
     
     expect(mockOpen).toHaveBeenCalledWith('https://www.karltiama.dev/blog/enduro-refactor', '_blank');
@@ -160,7 +158,8 @@ describe('AppFooter', () => {
     expect(screen.getByText('Version:')).toBeInTheDocument();
     expect(screen.getByText('2.0.0')).toBeInTheDocument();
     expect(screen.getByText('Built with:')).toBeInTheDocument();
-    expect(screen.getByText('Next.js 15, TypeScript, React 19, Supabase, React Query, Tailwind')).toBeInTheDocument();
+    // Tech stack icons are now displayed as individual icons with tooltips, not as text
+    expect(screen.getByText('Built with:')).toBeInTheDocument();
     expect(screen.getByText('Last updated:')).toBeInTheDocument();
   });
 
@@ -170,7 +169,7 @@ describe('AppFooter', () => {
     render(<AppFooter />);
     
     expect(screen.getByText('Built with passion for the fitness community')).toBeInTheDocument();
-    expect(screen.getByText('© 2024 Enduro Revamp. All rights reserved.')).toBeInTheDocument();
+    expect(screen.getByText('© 2024 Enduro Stats. All rights reserved.')).toBeInTheDocument();
   });
 
   it('validates required fields in contact form', async () => {

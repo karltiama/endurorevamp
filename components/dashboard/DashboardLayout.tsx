@@ -31,7 +31,7 @@ import {
   Calendar1
 } from "lucide-react"
 import { FaRunning } from "react-icons/fa"
-import { useAuth } from '@/providers/AuthProvider'
+
 import { UserNav } from './UserNav'
 import { StravaStatus } from './StravaStatus'
 

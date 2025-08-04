@@ -136,7 +136,7 @@ export default async function Home() {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900">+12% Improvement</p>
-                    <p className="text-sm text-gray-500">This month's pace</p>
+                    <p className="text-sm text-gray-500">This month&apos;s pace</p>
                   </div>
                 </div>
               </div>
@@ -257,8 +257,8 @@ export default async function Home() {
                 ))}
               </div>
               <blockquote className="text-2xl sm:text-3xl font-medium text-gray-900 leading-relaxed mb-8">
-                "Enduro Stats completely changed how I approach my training. The training load insights helped me avoid
-                overtraining, and I PR'd my marathon by 8 minutes!"
+                &ldquo;Enduro Stats completely changed how I approach my training. The training load insights helped me avoid
+                overtraining, and I PR&apos;d my marathon by 8 minutes!&rdquo;
               </blockquote>
               <div className="flex items-center justify-center space-x-4">
                 <div className="w-15 h-15 bg-gray-200 rounded-full flex items-center justify-center">
@@ -280,12 +280,12 @@ export default async function Home() {
           <div className="text-center">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Ready to Unlock Your Running Potential?</h2>
             <p className="text-xl text-indigo-100 mb-8 max-w-2xl mx-auto">
-              Join thousands of runners who've transformed their training with data-driven insights.
+              Join thousands of runners who&apos;ve transformed their training with data-driven insights.
             </p>
             <Link href="/auth/signup">
               <Button size="lg" className="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold">
                 <Activity className="mr-2 h-5 w-5" />
-                Get Started - It's Free
+                Get Started - It&apos;s Free
               </Button>
             </Link>
             <p className="text-indigo-200 text-sm mt-4">No credit card required • Connect your Strava account • Cancel anytime</p>
@@ -308,7 +308,7 @@ export default async function Home() {
                   How does Enduro Stats connect to my Strava account?
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4 text-gray-600">
-                  We use Strava's secure OAuth system to connect to your account. You'll be redirected to Strava to
+                  We use Strava&apos;s secure OAuth system to connect to your account. You&apos;ll be redirected to Strava to
                   authorize access, and we only read your activity data - we never post or modify anything on your
                   behalf.
                 </AccordionContent>

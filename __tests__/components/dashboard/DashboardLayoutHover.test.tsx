@@ -12,6 +12,20 @@ jest.mock('next/navigation', () => ({
   usePathname: () => '/dashboard'
 }))
 
+// Mock UserNav component
+jest.mock('@/components/dashboard/UserNav', () => ({
+  UserNav: () => (
+    <button aria-label="User Menu" className="user-nav-button">
+      <span>User</span>
+    </button>
+  )
+}))
+
+// Mock StravaStatus component
+jest.mock('@/components/dashboard/StravaStatus', () => ({
+  StravaStatus: () => <div data-testid="strava-status">Strava Status</div>
+}))
+
 // Mock user object
 const mockUser = {
   id: 'test-user-id',
@@ -159,30 +173,30 @@ describe('DashboardLayout with Hover Sidebar', () => {
       // Check for header element
       const header = document.querySelector('header')
       expect(header).toBeInTheDocument()
-      expect(header).toHaveClass('flex', 'h-16', 'shrink-0', 'items-center', 'gap-2', 'border-b', 'px-4')
+      expect(header).toHaveClass('flex', 'h-16', 'shrink-0', 'items-center', 'gap-4', 'border-b', 'px-4')
     })
   })
 
   describe('User Information', () => {
-    it('shows user profile in settings and logout at bottom', () => {
+    it('shows user profile in settings and user navigation in header', () => {
       renderDashboardLayout()
       
       // Check for Profile button in Settings group
       expect(screen.getByText('Profile')).toBeInTheDocument()
       
-      // Check for Logout button in footer
-      expect(screen.getByText('Logout')).toBeInTheDocument()
+      // Check for UserNav component in header (logout functionality is in UserNav dropdown)
+      expect(screen.getByRole('button', { name: 'User Menu' })).toBeInTheDocument()
     })
 
-    it('includes logout functionality at bottom of sidebar', async () => {
+    it('includes user navigation with logout functionality in header', async () => {
       renderDashboardLayout()
       
-      // Check that the Logout button exists in the footer
-      const logoutButton = screen.getByText('Logout')
-      expect(logoutButton).toBeInTheDocument()
+      // Check that the UserNav component exists in the header
+      const userNavButton = screen.getByRole('button', { name: 'User Menu' })
+      expect(userNavButton).toBeInTheDocument()
       
-      // The logout button should be clickable and trigger form submission
-      expect(logoutButton.closest('button')).toBeInTheDocument()
+      // The user nav button should be clickable and contain logout functionality
+      expect(userNavButton.closest('button')).toBeInTheDocument()
     })
   })
 
