@@ -24,14 +24,16 @@ import {
   BarChart3,
   Target,
   Settings,
-  LogOut,
   User,
   Home,
   TrendingUp,
   Activity,
   Calendar1
 } from "lucide-react"
+import { FaRunning } from "react-icons/fa"
 import { useAuth } from '@/providers/AuthProvider'
+import { UserNav } from './UserNav'
+import { StravaStatus } from './StravaStatus'
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -111,7 +113,6 @@ const navigation = [
 
 function AppSidebar() {
   const pathname = usePathname()
-  const { signOut, isLoading } = useAuth()
 
   return (
     <Sidebar variant="sidebar" collapsible="hover" className="h-screen top-0">
@@ -120,9 +121,9 @@ function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link href="/dashboard">
-                <TrendingUp className="size-4" />
+                <FaRunning className="size-4" />
                 <span className="truncate font-semibold">
-                  EnduroRevamp
+                  Enduro Stats
                 </span>
               </Link>
             </SidebarMenuButton>
@@ -158,17 +159,7 @@ function AppSidebar() {
       </SidebarContent>
       
       <SidebarFooter className="border-t">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={signOut}
-              disabled={isLoading}
-            >
-              <LogOut className="size-4" />
-              <span>{isLoading ? 'Signing out...' : 'Logout'}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        {/* Footer content can be added here if needed */}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
@@ -183,9 +174,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <AppSidebar />
           <main className="flex-1 flex flex-col min-h-screen relative">
             {/* Header with sidebar trigger */}
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background z-20 relative">
+            <header className="flex h-16 shrink-0 items-center gap-4 border-b px-4 bg-background z-20 relative">
               <SidebarTrigger className="-ml-1 md:hidden" />
+              
+
+              
               <div className="flex-1" />
+              
+              {/* Status and user section */}
+              <div className="flex items-center gap-3">
+                {/* Strava sync status */}
+                <StravaStatus />
+                
+                {/* User avatar/menu */}
+                <UserNav />
+              </div>
             </header>
             
             {/* Main content */}

@@ -2,14 +2,25 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ExternalLink, Mail, MessageSquare, Github, Globe, FileText, Heart } from 'lucide-react';
+import { ExternalLink, Mail, MessageSquare, Github, Globe, FileText, Heart, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+
+// Import tech stack icons from react-icons
+import { 
+  SiNextdotjs, 
+  SiTypescript, 
+  SiReact, 
+  SiSupabase, 
+  SiReactquery, 
+  SiTailwindcss 
+} from 'react-icons/si';
 
 export function AppFooter() {
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
@@ -58,9 +69,7 @@ export function AppFooter() {
         body: JSON.stringify({
           type: 'suggestion',
           title: suggestionForm.title,
-          name: 'Anonymous', // You might want to add name field to suggestion form
-          email: 'anonymous@example.com', // You might want to add email field
-          message: suggestionForm.description,
+          description: suggestionForm.description,
           category: 'feature_request'
         })
       });
@@ -70,7 +79,7 @@ export function AppFooter() {
         // TODO: Show success message
       } else {
         // TODO: Show error message
-        console.error('Failed to submit suggestion');
+        console.error('Failed to submit suggestion form');
       }
     } catch (error) {
       console.error('Suggestion form error:', error);
@@ -80,17 +89,26 @@ export function AppFooter() {
   };
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-200 mt-auto">
+    <footer className="bg-gray-900 text-white border-t border-gray-800 mt-auto">
       <div className="container mx-auto px-4 py-8">
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           
           {/* Contact & Support */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Contact & Support</h3>
+            {/* Enduro Stats Branding */}
+            <div className="flex items-center space-x-2 mb-4">
+              <Activity className="h-8 w-8 text-indigo-600" />
+              <span className="text-2xl font-bold">Enduro Stats</span>
+            </div>
+            <p className="text-gray-400 mb-4">
+              Unlock deeper insights from your Strava data and take your running to the next level.
+            </p>
+            
+            <h3 className="text-lg font-semibold text-white">Contact & Support</h3>
             <div className="space-y-3">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Button variant="outline" size="sm" className="w-full justify-start text-gray-300 border-gray-700 hover:bg-gray-800 hover:text-white">
                     <Mail className="w-4 h-4 mr-2" />
                     Contact Us
                   </Button>
@@ -108,7 +126,7 @@ export function AppFooter() {
                       <Input
                         id="name"
                         value={contactForm.name}
-                        onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
+                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                         required
                       />
                     </div>
@@ -118,7 +136,7 @@ export function AppFooter() {
                         id="email"
                         type="email"
                         value={contactForm.email}
-                        onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
+                        onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                         required
                       />
                     </div>
@@ -127,8 +145,7 @@ export function AppFooter() {
                       <Textarea
                         id="message"
                         value={contactForm.message}
-                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
-                        rows={4}
+                        onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                         required
                       />
                     </div>
@@ -141,7 +158,7 @@ export function AppFooter() {
 
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Button variant="outline" size="sm" className="w-full justify-start text-gray-300 border-gray-700 hover:bg-gray-800 hover:text-white">
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Suggest Feature
                   </Button>
@@ -159,7 +176,7 @@ export function AppFooter() {
                       <Input
                         id="title"
                         value={suggestionForm.title}
-                        onChange={(e) => setSuggestionForm(prev => ({ ...prev, title: e.target.value }))}
+                        onChange={(e) => setSuggestionForm({ ...suggestionForm, title: e.target.value })}
                         required
                       />
                     </div>
@@ -168,8 +185,7 @@ export function AppFooter() {
                       <Textarea
                         id="description"
                         value={suggestionForm.description}
-                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setSuggestionForm(prev => ({ ...prev, description: e.target.value }))}
-                        rows={4}
+                        onChange={(e) => setSuggestionForm({ ...suggestionForm, description: e.target.value })}
                         placeholder="Describe the feature you'd like to see..."
                         required
                       />
@@ -185,12 +201,12 @@ export function AppFooter() {
 
           {/* Developer Info */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Developer</h3>
+            <h3 className="text-lg font-semibold text-white">Developer</h3>
             <div className="space-y-3">
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start"
+                className="w-full justify-start text-gray-400 hover:text-white hover:bg-gray-800"
                 onClick={() => window.open('https://github.com/karltiama', '_blank')}
               >
                 <Github className="w-4 h-4 mr-2" />
@@ -201,7 +217,7 @@ export function AppFooter() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start"
+                className="w-full justify-start text-gray-400 hover:text-white hover:bg-gray-800"
                 onClick={() => window.open('https://karltiama.dev', '_blank')}
               >
                 <Globe className="w-4 h-4 mr-2" />
@@ -212,48 +228,127 @@ export function AppFooter() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start"
+                className="w-full justify-start text-gray-400 hover:text-white hover:bg-gray-800"
                 onClick={() => window.open('https://www.karltiama.dev/blog/enduro-refactor', '_blank')}
               >
                 <FileText className="w-4 h-4 mr-2" />
-                How I Built This
+                Behind the Scenes: Building Enduro Stats
                 <ExternalLink className="w-3 h-3 ml-auto" />
               </Button>
             </div>
           </div>
 
-          {/* App Info */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">App Info</h3>
-            <div className="space-y-2 text-sm text-gray-600">
-              <p><strong>Version:</strong> 2.0.0</p>
-              {/* TODO: Add Icons of each technology */}
-              <p><strong>Built with:</strong> Next.js 15, TypeScript, React 19, Supabase, React Query, Tailwind</p>
-              <p><strong>Last updated:</strong> {new Date().toLocaleDateString()}</p>
-            </div>
-            <div className="space-y-2">
-              <Button variant="link" size="sm" className="h-auto text-sm" asChild>
-                <Link href="/privacy">Privacy Policy</Link>
-              </Button>
-              <Button variant="link" size="sm" className="h-auto text-sm" asChild>
-                <Link href="/terms">Terms of Service</Link>
-              </Button>
-            </div>
-          </div>
+                     <div className="space-y-4">
+             <h3 className="text-lg font-semibold text-white">App Info</h3>
+             <div className="space-y-2 text-sm text-gray-400">
+               <p><strong>Version:</strong> 2.0.0</p>
+               <div className="flex items-center space-x-2">
+                 <span className="font-semibold">Built with:</span>
+                 <div className="flex space-x-2">
+                                       <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-pointer hover:scale-110 transition-transform">
+                            <SiNextdotjs className="w-6 h-6" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Next.js 15</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-pointer hover:scale-110 transition-transform">
+                            <SiTypescript className="w-6 h-6" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>TypeScript</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-pointer hover:scale-110 transition-transform">
+                            <SiReact className="w-6 h-6" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>React 19</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-pointer hover:scale-110 transition-transform">
+                            <SiSupabase className="w-6 h-6" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Supabase</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-pointer hover:scale-110 transition-transform">
+                            <SiReactquery className="w-6 h-6" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>React Query</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-pointer hover:scale-110 transition-transform">
+                            <SiTailwindcss className="w-6 h-6" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Tailwind CSS</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                 </div>
+               </div>
+               <p><strong>Last updated:</strong> {new Date().toLocaleDateString()}</p>
+             </div>
+             <div className="space-y-2">
+               <Button variant="link" size="sm" className="h-auto text-sm text-gray-400 hover:text-white" asChild>
+                 <Link href="/privacy">Privacy Policy</Link>
+               </Button>
+               <Button variant="link" size="sm" className="h-auto text-sm text-gray-400 hover:text-white" asChild>
+                 <Link href="/terms">Terms of Service</Link>
+               </Button>
+             </div>
+           </div>
 
           
         </div>
 
-        <Separator className="my-6" />
+        <Separator className="my-6 bg-gray-800" />
         
         {/* Bottom Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-500">
+        <div className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-400">
           <div className="flex items-center space-x-2">
             <Heart className="w-4 h-4 text-red-500" />
             <span>Built with passion for the fitness community</span>
           </div>
           <div className="mt-2 sm:mt-0">
-            <span>&copy; 2024 Enduro Revamp. All rights reserved.</span>
+            <span>&copy; 2024 Enduro Stats. All rights reserved.</span>
           </div>
         </div>
       </div>
