@@ -68,8 +68,8 @@ export default async function Home() {
       {/* Hero Section */}
       <section className="py-20 lg:py-32 bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
+                    <div className="grid lg:grid-cols-5 gap-8 lg:gap-16 items-center">
+            <div className="space-y-8 lg:col-span-3">
               <div className="space-y-4">
                 <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 hover:bg-indigo-100">
                   <Zap className="w-3 h-3 mr-1" />
@@ -118,25 +118,25 @@ export default async function Home() {
               </div>
             </div>
 
-            <div className="relative">
-              <div className="bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-2xl p-8">
+            <div className="relative flex justify-center lg:col-span-2">
+              <div className="bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-2xl p-6 lg:p-8 shadow-xl relative">
                 <Image
-                  src="/images/hero/runner-illustration.png"
+                  src="/images/hero/runner-illustration.svg"
                   alt="Enduro Stats Dashboard"
-                  width={500}
-                  height={600}
-                  className="rounded-lg shadow-2xl"
+                  width={700}
+                  height={700}
+                  className="rounded-lg shadow-2xl w-full h-auto"
                   priority
                 />
-              </div>
-              <div className="absolute -bottom-6 -left-6 bg-white rounded-lg shadow-lg p-4 border">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <TrendingUp className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">+12% Improvement</p>
-                    <p className="text-sm text-gray-500">This month&apos;s pace</p>
+                <div className="absolute -bottom-6 -left-6 bg-white rounded-lg shadow-lg p-4 border">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                      <TrendingUp className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">+12% Improvement</p>
+                      <p className="text-sm text-gray-500">This month&apos;s pace</p>
+                    </div>
                   </div>
                 </div>
               </div>
