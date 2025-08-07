@@ -19,6 +19,11 @@ import Image from "next/image"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import AnimatedStats from "@/components/AnimatedStats"
+import AnimatedChart from "@/components/AnimatedChart"
+import AnimatedMetrics from "@/components/AnimatedMetrics"
+import AnimatedLevelUp from "@/components/AnimatedLevelUp"
+import AnimatedTestimonials from "@/components/AnimatedTestimonials"
 
 export default async function Home() {
   const supabase = await createClient()
@@ -84,14 +89,14 @@ export default async function Home() {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/auth/signup">
                   <Button
                     size="lg"
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 text-lg font-semibold"
                   >
                     <Activity className="mr-2 h-5 w-5" />
-                    Get Started Free
+                    Get Started For Free
                   </Button>
                 </Link>
                 <Link href="/auth/login">
@@ -102,7 +107,7 @@ export default async function Home() {
                 </Link>
               </div>
 
-              <div className="flex items-center space-x-6 text-sm text-gray-500">
+              <div className="flex items-center space-x-6 text-sm text-gray-500 justify-center">
                 <div className="flex items-center">
                   <Shield className="h-4 w-4 mr-1" />
                   Secure OAuth
@@ -128,17 +133,7 @@ export default async function Home() {
                   className="rounded-lg shadow-2xl w-full h-auto"
                   priority
                 />
-                <div className="absolute -bottom-6 -left-6 bg-white rounded-lg shadow-lg p-4 border">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                      <TrendingUp className="h-6 w-6 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">+12% Improvement</p>
-                      <p className="text-sm text-gray-500">This month&apos;s pace</p>
-                    </div>
-                  </div>
-                </div>
+                <AnimatedStats />
               </div>
             </div>
           </div>
@@ -146,16 +141,95 @@ export default async function Home() {
       </section>
 
       {/* Value Proposition */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
-              More than Miles. Real Performance Insights.
-            </h2>
-            <p className="text-xl text-gray-600 leading-relaxed">
-              While Strava shows you what happened, Enduro Stats shows you why it matters. Get the deep analytics and
-              personalized insights that serious runners need to improve.
-            </p>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="relative">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 shadow-xl border">
+                <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                  {/* Dashboard Header */}
+                  <div className="bg-indigo-600 text-white p-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold">Training Analytics Dashboard</h3>
+                      <div className="flex space-x-2">
+                        <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                        <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                        <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Dashboard Content */}
+                  <div className="p-6 space-y-6">
+                    {/* Key Metrics Row */}
+                    <AnimatedMetrics />
+                    
+                    {/* Chart Placeholder */}
+                    <AnimatedChart />
+                    
+                    {/* Recent Activity */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-gray-900">Recent Activities</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                              <Activity className="h-4 w-4 text-green-600" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">Morning Run</div>
+                              <div className="text-sm text-gray-500">5.2 miles • 9:30/mile</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-medium text-gray-900">+2.3%</div>
+                            <div className="text-xs text-green-600">vs last week</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Floating Elements */}
+              <div className="absolute -top-4 -right-4 bg-white rounded-lg shadow-lg p-3 border">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-gray-700">Live Data</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-6">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+                More than Miles. <span className="text-indigo-600">Real Performance Insights.</span>
+              </h2>
+              <p className="text-xl text-gray-600 leading-relaxed">
+                While Strava shows you what happened, Enduro Stats shows you why it matters. Get the deep analytics and
+                personalized insights that serious runners need to improve.
+              </p>
+              <div className="space-y-4 text-center">
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                  </div>
+                  <span className="text-gray-700">Advanced training load analysis</span>
+                </div>
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <BarChart3 className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <span className="text-gray-700">Performance trend visualization</span>
+                </div>
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Target className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <span className="text-gray-700">Smart goal tracking & insights</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -164,7 +238,7 @@ export default async function Home() {
       <section id="features" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Everything You Need to Level Up</h2>
+            <AnimatedLevelUp />
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Powerful features designed specifically for serious runners who want to optimize their training.
             </p>
@@ -249,46 +323,25 @@ export default async function Home() {
       {/* Testimonial Section */}
       <section id="testimonials" className="py-20 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="mb-8">
-              <div className="flex justify-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-6 w-6 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <blockquote className="text-2xl sm:text-3xl font-medium text-gray-900 leading-relaxed mb-8">
-                &ldquo;Enduro Stats completely changed how I approach my training. The training load insights helped me avoid
-                overtraining, and I PR&apos;d my marathon by 8 minutes!&rdquo;
-              </blockquote>
-              <div className="flex items-center justify-center space-x-4">
-                <div className="w-15 h-15 bg-gray-200 rounded-full flex items-center justify-center">
-                  <span className="text-gray-600 font-semibold">SC</span>
-                </div>
-                <div className="text-left">
-                  <p className="font-semibold text-gray-900">Sarah Chen</p>
-                  <p className="text-gray-600">Boston Marathon Qualifier</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <AnimatedTestimonials />
         </div>
       </section>
 
       {/* CTA Banner */}
-      <section className="py-16 bg-gradient-to-r from-indigo-600 to-indigo-700">
+      <section className="py-16 bg-gradient-to-br from-indigo-50 to-blue-50 border-t border-indigo-100">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Ready to Unlock Your Running Potential?</h2>
-            <p className="text-xl text-indigo-100 mb-8 max-w-2xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Ready to Unlock Your Running Potential?</h2>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               Join thousands of runners who&apos;ve transformed their training with data-driven insights.
             </p>
             <Link href="/auth/signup">
-              <Button size="lg" className="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold">
+              <Button size="lg" className="bg-indigo-600 text-white hover:bg-indigo-700 px-8 py-4 text-lg font-semibold shadow-lg">
                 <Activity className="mr-2 h-5 w-5" />
                 Get Started - It&apos;s Free
               </Button>
             </Link>
-            <p className="text-indigo-200 text-sm mt-4">No credit card required • Connect your Strava account • Cancel anytime</p>
+            <p className="text-gray-500 text-sm mt-4">No credit card required • Connect your Strava account</p>
           </div>
         </div>
       </section>
