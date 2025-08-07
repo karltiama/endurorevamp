@@ -202,10 +202,10 @@ export default async function Home() {
             </div>
             
             <div className="space-y-6">
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center">
                 More than Miles. <span className="text-indigo-600">Real Performance Insights.</span>
               </h2>
-              <p className="text-xl text-gray-600 leading-relaxed">
+              <p className="text-xl text-gray-600 leading-relaxed text-center">
                 While Strava shows you what happened, Enduro Stats shows you why it matters. Get the deep analytics and
                 personalized insights that serious runners need to improve.
               </p>

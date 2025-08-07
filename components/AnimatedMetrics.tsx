@@ -4,9 +4,19 @@ import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { TrendingUp } from 'lucide-react'
 
-// Removed unused MetricCardProps interface
-
-function AnimatedCounter({ value, color, delay = 0, unit, showIcon = false }: { value: string; color: string; delay?: number; unit?: string; showIcon?: boolean }) {
+function AnimatedCounter({ 
+  value, 
+  color, 
+  delay = 0, 
+  unit, 
+  showIcon = false 
+}: { 
+  value: string
+  color: string
+  delay?: number
+  unit?: string
+  showIcon?: boolean 
+}) {
   const [displayValue, setDisplayValue] = useState(0)
   
   useEffect(() => {
@@ -35,12 +45,12 @@ function AnimatedCounter({ value, color, delay = 0, unit, showIcon = false }: { 
 
   return (
     <motion.div 
-      className={`text-2xl font-bold ${color} flex items-center justify-center gap-1`}
+      className={`text-xl font-bold ${color} flex items-center justify-center gap-1`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: delay + 0.5, duration: 0.5 }}
     >
-      {showIcon && <TrendingUp className="h-5 w-5" />}
+      {showIcon && <TrendingUp className="h-4 w-4" />}
       {displayValue}{unit || ''}
     </motion.div>
   )
@@ -48,9 +58,33 @@ function AnimatedCounter({ value, color, delay = 0, unit, showIcon = false }: { 
 
 export default function AnimatedMetrics() {
   const metrics = [
-    { value: '12', label: 'Pace Improvement', color: 'text-indigo-600', bgColor: 'bg-indigo-50', delay: 0, unit: ' min/mi', showIcon: true },
-    { value: '85', label: 'Goal Progress', color: 'text-green-600', bgColor: 'bg-green-50', delay: 0.2, unit: '%', showIcon: false },
-    { value: '2.3', label: 'Recovery Rate', color: 'text-blue-600', bgColor: 'bg-blue-50', delay: 0.4, unit: 'x faster', showIcon: false }
+    { 
+      value: '12', 
+      label: 'Pace Improvement', 
+      color: 'text-indigo-600', 
+      bgColor: 'bg-indigo-50', 
+      delay: 0, 
+      unit: ' min/mi', 
+      showIcon: true 
+    },
+    { 
+      value: '85', 
+      label: 'Goal Progress', 
+      color: 'text-green-600', 
+      bgColor: 'bg-green-50', 
+      delay: 0.2, 
+      unit: '%', 
+      showIcon: false 
+    },
+    { 
+      value: '2.3', 
+      label: 'Recovery Rate', 
+      color: 'text-blue-600', 
+      bgColor: 'bg-blue-50', 
+      delay: 0.4, 
+      unit: 'x faster', 
+      showIcon: false 
+    }
   ]
 
   return (
@@ -63,15 +97,15 @@ export default function AnimatedMetrics() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: metric.delay, duration: 0.5, type: "spring" }}
         >
-                     <AnimatedCounter 
-             value={metric.value} 
-             color={metric.color} 
-             delay={metric.delay} 
-             unit={metric.unit}
-             showIcon={metric.showIcon}
-           />
+          <AnimatedCounter 
+            value={metric.value} 
+            color={metric.color} 
+            delay={metric.delay} 
+            unit={metric.unit}
+            showIcon={metric.showIcon}
+          />
           <motion.div 
-            className="text-sm text-gray-600"
+            className="text-xs text-gray-600"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: metric.delay + 1, duration: 0.5 }}
