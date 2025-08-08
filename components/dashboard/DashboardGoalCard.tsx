@@ -15,7 +15,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
-import { formatDistance, formatPace, convertDistance, convertPace, type DistanceUnit, type PaceUnit } from '@/lib/utils';
+import { formatDistance, formatPace, convertPace, type DistanceUnit, type PaceUnit } from '@/lib/utils';
 
 interface DashboardGoalCardProps {
   goal: UserGoal;

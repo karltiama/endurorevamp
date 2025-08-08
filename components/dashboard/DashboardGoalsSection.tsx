@@ -31,10 +31,12 @@ export function DashboardGoalsSection() {
     return (
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Target className="h-5 w-5" />
-            Dashboard Goals
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Target className="h-5 w-5" />
+              Dashboard Goals
+            </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           <GoalCardSkeletonGrid count={3} />
@@ -95,7 +97,7 @@ export function DashboardGoalsSection() {
                   className="w-full text-xs text-muted-foreground hover:text-foreground"
                 >
                   <Eye className="h-3 w-3 mr-1" />
-                  View All Goals & Analytics
+                  View All Goals
                 </Button>
               </div>
             </div>

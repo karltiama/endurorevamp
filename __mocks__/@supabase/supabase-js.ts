@@ -26,6 +26,7 @@ const mockFrom = jest.fn().mockReturnValue({
     eq: jest.fn().mockReturnValue({
       single: jest.fn().mockResolvedValue({ data: null, error: null })
     }),
+    limit: jest.fn().mockResolvedValue({ data: null, error: null }),
     insert: jest.fn().mockReturnValue({
       select: jest.fn().mockReturnValue({
         single: jest.fn().mockResolvedValue({ data: null, error: null })
@@ -46,6 +47,12 @@ const mockFrom = jest.fn().mockReturnValue({
     select: jest.fn().mockReturnValue({
       single: jest.fn().mockResolvedValue({ data: null, error: null })
     })
+  }),
+  delete: jest.fn().mockReturnValue({
+    eq: jest.fn().mockResolvedValue({ data: null, error: null })
+  }),
+  update: jest.fn().mockReturnValue({
+    eq: jest.fn().mockResolvedValue({ data: null, error: null })
   })
 })
 
