@@ -1,6 +1,30 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Create Resend client lazily to avoid build-time issues
+function createResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    // In development, return a mock client that logs instead of sending
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️  RESEND_API_KEY not found - emails will be logged instead of sent');
+      return {
+        emails: {
+          send: async (options: { to: string; subject: string; from: string; html: string }) => {
+            console.log('📧 Mock email sent:', {
+              to: options.to,
+              subject: options.subject,
+              from: options.from,
+              html: options.html.substring(0, 100) + '...'
+            });
+            return { data: { id: 'mock-email-id' }, error: null };
+          }
+        }
+      };
+    }
+    throw new Error('RESEND_API_KEY environment variable is required in production');
+  }
+  return new Resend(apiKey);
+}
 
 export interface EmailOptions {
   to: string;
@@ -11,6 +35,7 @@ export interface EmailOptions {
 
 export async function sendEmail({ to, subject, html, from }: EmailOptions) {
   try {
+    const resend = createResendClient();
     const fromEmail = from || process.env.FROM_EMAIL || 'onboarding@resend.dev'
     const { data, error } = await resend.emails.send({
       from: fromEmail,
