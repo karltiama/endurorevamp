@@ -17,6 +17,7 @@ jest.mock('framer-motion', () => ({
     ),
   },
   AnimatePresence: ({ children }: any) => <div>{children}</div>,
+  useReducedMotion: () => false,
 }))
 
 // Mock lucide-react icons
@@ -25,6 +26,26 @@ jest.mock('lucide-react', () => ({
   TrendingUp: () => <div data-testid="trending-up-icon">📈</div>,
   Star: () => <div data-testid="star-icon">⭐</div>,
 }))
+
+// Mock use-mobile hook
+jest.mock('@/hooks/use-mobile', () => ({
+  useIsMobile: () => false,
+}))
+
+// Mock window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+})
 
 describe('AnimatedLevelUp', () => {
   it('renders the complete title text', () => {

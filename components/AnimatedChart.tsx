@@ -33,7 +33,7 @@ export default function AnimatedChart() {
   }, [])
 
   return (
-    <div ref={chartRef} className="bg-white rounded-lg border border-gray-200 p-4 h-32">
+    <div ref={chartRef} className="bg-white rounded-lg border border-gray-200 p-4 h-32 overflow-hidden sm:overflow-visible">
       {/* Chart Header */}
       <div className="flex items-center justify-between mb-3">
         <motion.div 
@@ -55,7 +55,7 @@ export default function AnimatedChart() {
       </div>
 
              {/* Chart Container */}
-       <div className="relative h-20">
+       <div className="relative h-20 overflow-hidden sm:overflow-visible">
          <svg className="w-full h-full" viewBox="0 0 100 50" preserveAspectRatio="none">
           {/* Subtle grid lines */}
           <motion.g

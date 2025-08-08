@@ -70,163 +70,328 @@ export default async function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid lg:grid-cols-5 gap-8 lg:gap-16 items-center">
-            <div className="space-y-8 lg:col-span-3">
-              <div className="space-y-4">
-                <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 hover:bg-indigo-100">
-                  <Zap className="w-3 h-3 mr-1" />
-                  Powered by Strava Data
-                </Badge>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                  Go Beyond the Basics – <span className="text-indigo-600">Know Your Run</span>
-                </h1>
-                <p className="text-xl text-gray-600 leading-relaxed">
-                  Transform your Strava data into actionable insights. Track training load, analyze performance trends,
-                  and achieve your running goals with personalized analytics.
-                </p>
+      {/* Hero Section with flowing transition */}
+      <section className="relative bg-gradient-to-b from-blue-50 via-indigo-100 via-white via-gray-50 to-white">
+        {/* Hero Content */}
+        <div className="py-12 sm:py-16 lg:py-32">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-5 gap-8 lg:gap-16 items-center">
+              <div className="space-y-8 lg:col-span-3">
+                <div className="space-y-4">
+                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 hover:bg-indigo-100">
+                    <Zap className="w-3 h-3 mr-1" />
+                    Powered by Strava Data
+                  </Badge>
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight text-center">
+                    Go Beyond the Basics – <span className="text-indigo-600">Know Your Run</span>
+                  </h1>
+                  <p className="text-lg sm:text-xl text-gray-600 leading-relaxed text-center">
+                    Transform your Strava data into actionable insights. Track training load, analyze performance trends,
+                    and achieve your running goals with personalized analytics.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link href="/auth/signup" className="w-full sm:w-auto">
+                    <Button
+                      size="lg"
+                      className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold"
+                    >
+                      <Activity className="mr-2 h-4 sm:h-5 w-4 sm:w-5" />
+                      Get Started For Free
+                    </Button>
+                  </Link>
+                  <Link href="/auth/login" className="w-full sm:w-auto">
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg bg-transparent">
+                      Sign In
+                      <ChevronRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
+                    </Button>
+                  </Link>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-sm text-gray-500 justify-center">
+                  <div className="flex items-center">
+                    <Shield className="h-4 w-4 mr-1" />
+                    Secure OAuth
+                  </div>
+                  <div className="flex items-center">
+                    <Smartphone className="h-4 w-4 mr-1" />
+                    Mobile Friendly
+                  </div>
+                  <div className="flex items-center">
+                    <Star className="h-4 w-4 mr-1 fill-current text-yellow-400" />
+                    4.9/5 Rating
+                  </div>
+                </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/auth/signup">
-                  <Button
-                    size="lg"
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 text-lg font-semibold"
-                  >
-                    <Activity className="mr-2 h-5 w-5" />
-                    Get Started For Free
-                  </Button>
-                </Link>
-                <Link href="/auth/login">
-                  <Button variant="outline" size="lg" className="px-8 py-4 text-lg bg-transparent">
-                    Sign In
-                    <ChevronRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-              </div>
-
-              <div className="flex items-center space-x-6 text-sm text-gray-500 justify-center">
-                <div className="flex items-center">
-                  <Shield className="h-4 w-4 mr-1" />
-                  Secure OAuth
+              <div className="relative flex justify-center lg:col-span-2">
+                <div className="bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-2xl p-6 lg:p-8 shadow-xl relative">
+                  <Image
+                    src="/images/hero/runner-illustration.svg"
+                    alt="Enduro Stats Dashboard"
+                    width={700}
+                    height={700}
+                    className="rounded-lg shadow-2xl w-full h-auto"
+                    priority
+                  />
+                  <AnimatedStats />
                 </div>
-                <div className="flex items-center">
-                  <Smartphone className="h-4 w-4 mr-1" />
-                  Mobile Friendly
-                </div>
-                <div className="flex items-center">
-                  <Star className="h-4 w-4 mr-1 fill-current text-yellow-400" />
-                  4.9/5 Rating
-                </div>
-              </div>
-            </div>
-
-            <div className="relative flex justify-center lg:col-span-2">
-              <div className="bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-2xl p-6 lg:p-8 shadow-xl relative">
-                <Image
-                  src="/images/hero/runner-illustration.svg"
-                  alt="Enduro Stats Dashboard"
-                  width={700}
-                  height={700}
-                  className="rounded-lg shadow-2xl w-full h-auto"
-                  priority
-                />
-                <AnimatedStats />
               </div>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Value Proposition */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="relative">
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 shadow-xl border">
-                <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                  {/* Dashboard Header */}
-                  <div className="bg-indigo-600 text-white p-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold">Training Analytics Dashboard</h3>
-                      <div className="flex space-x-2">
-                        <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                        <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                        <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+        {/* Value Proposition Content - seamlessly integrated */}
+        <div className="py-12 sm:py-16 lg:py-20">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+              <div className="relative">
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 shadow-xl border">
+                  <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                    {/* Dashboard Header */}
+                    <div className="bg-indigo-600 text-white p-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold">Training Analytics Dashboard</h3>
+                        <div className="flex space-x-2">
+                          <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                          <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                          <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Dashboard Content */}
-                  <div className="p-6 space-y-6">
-                    {/* Key Metrics Row */}
-                    <AnimatedMetrics />
                     
-                    {/* Chart Placeholder */}
-                    <AnimatedChart />
-                    
-                    {/* Recent Activity */}
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-gray-900">Recent Activities</h4>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                              <Activity className="h-4 w-4 text-green-600" />
+                    {/* Dashboard Content */}
+                    <div className="p-6 space-y-6">
+                      {/* Key Metrics Row */}
+                      <AnimatedMetrics />
+                      
+                      {/* Chart Placeholder */}
+                      <AnimatedChart />
+                      
+                      {/* Recent Activity */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-gray-900">Recent Activities</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <Activity className="h-4 w-4 text-green-600" />
+                              </div>
+                              <div>
+                                <div className="font-medium text-gray-900">Morning Run</div>
+                                <div className="text-sm text-gray-500">5.2 miles • 9:30/mile</div>
+                              </div>
                             </div>
-                            <div>
-                              <div className="font-medium text-gray-900">Morning Run</div>
-                              <div className="text-sm text-gray-500">5.2 miles • 9:30/mile</div>
+                            <div className="text-right">
+                              <div className="text-sm font-medium text-gray-900">+2.3%</div>
+                              <div className="text-xs text-green-600">vs last week</div>
                             </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm font-medium text-gray-900">+2.3%</div>
-                            <div className="text-xs text-green-600">vs last week</div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+                
+                {/* Floating Elements */}
+                <div className="absolute -top-4 -right-4 bg-white rounded-lg shadow-lg p-3 border">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium text-gray-700">Live Data</span>
+                  </div>
+                </div>
               </div>
               
-              {/* Floating Elements */}
-              <div className="absolute -top-4 -right-4 bg-white rounded-lg shadow-lg p-3 border">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-gray-700">Live Data</span>
+              <div className="space-y-6">
+                <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center">
+                  More than Miles. <span className="text-indigo-600">Real Performance Insights.</span>
+                </h2>
+                <p className="text-xl text-gray-600 leading-relaxed text-center">
+                  While Strava shows you what happened, Enduro Stats shows you why it matters. Get the deep analytics and
+                  personalized insights that serious runners need to improve.
+                </p>
+                <div className="space-y-4 text-center">
+                  <div className="flex items-center justify-center space-x-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <TrendingUp className="h-4 w-4 text-green-600" />
+                    </div>
+                    <span className="text-gray-700">Advanced training load analysis</span>
+                  </div>
+                  <div className="flex items-center justify-center space-x-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <BarChart3 className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <span className="text-gray-700">Performance trend visualization</span>
+                  </div>
+                  <div className="flex items-center justify-center space-x-3">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                      <Target className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <span className="text-gray-700">Smart goal tracking & insights</span>
+                  </div>
                 </div>
               </div>
             </div>
-            
-            <div className="space-y-6">
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center">
-                More than Miles. <span className="text-indigo-600">Real Performance Insights.</span>
-              </h2>
-              <p className="text-xl text-gray-600 leading-relaxed text-center">
-                While Strava shows you what happened, Enduro Stats shows you why it matters. Get the deep analytics and
-                personalized insights that serious runners need to improve.
+          </div>
+        </div>
+
+        {/* Features Content - seamlessly integrated */}
+        <div id="features" className="py-12 sm:py-16 lg:py-20">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16 px-4 sm:px-0">
+              <AnimatedLevelUp />
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Powerful features designed specifically for serious runners who want to optimize their training.
               </p>
-              <div className="space-y-4 text-center">
-                <div className="flex items-center justify-center space-x-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <TrendingUp className="h-4 w-4 text-green-600" />
+            </div>
+
+            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="flex flex-row items-start gap-4 sm:flex-col sm:items-center sm:text-center">
+                  <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0 sm:mb-4">
+                    <BarChart3 className="h-6 w-6 text-indigo-600" />
                   </div>
-                  <span className="text-gray-700">Advanced training load analysis</span>
+                  <div className="flex-1 sm:flex-none">
+                    <CardTitle className="text-xl text-left sm:text-center">Training Load Analysis</CardTitle>
+                    <CardDescription className="text-gray-600 text-left sm:text-center">
+                      Track your training stress and recovery with advanced load metrics and trend analysis.
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+              </Card>
+
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="flex flex-row items-start gap-4 sm:flex-col sm:items-center sm:text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 sm:mb-4">
+                    <TrendingUp className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div className="flex-1 sm:flex-none">
+                    <CardTitle className="text-xl text-left sm:text-center">Performance Trends</CardTitle>
+                    <CardDescription className="text-gray-600 text-left sm:text-center">
+                      Visualize pace, heart rate, and cadence trends over weeks, months, and years.
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+              </Card>
+
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="flex flex-row items-start gap-4 sm:flex-col sm:items-center sm:text-center">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 sm:mb-4">
+                    <Activity className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div className="flex-1 sm:flex-none">
+                    <CardTitle className="text-xl text-left sm:text-center">VO2 Max Estimation</CardTitle>
+                    <CardDescription className="text-gray-600 text-left sm:text-center">
+                      Get accurate fitness estimates and track your aerobic capacity improvements over time.
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+              </Card>
+
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="flex flex-row items-start gap-4 sm:flex-col sm:items-center sm:text-center">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0 sm:mb-4">
+                    <Target className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div className="flex-1 sm:flex-none">
+                    <CardTitle className="text-xl text-left sm:text-center">Goal Tracking</CardTitle>
+                    <CardDescription className="text-gray-600 text-left sm:text-center">
+                      Set and monitor progress toward distance, pace, and consistency goals with smart insights.
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+              </Card>
+
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="flex flex-row items-start gap-4 sm:flex-col sm:items-center sm:text-center">
+                  <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0 sm:mb-4">
+                    <Award className="h-6 w-6 text-yellow-600" />
+                  </div>
+                  <div className="flex-1 sm:flex-none">
+                    <CardTitle className="text-xl text-left sm:text-center">Achievements & Streaks</CardTitle>
+                    <CardDescription className="text-gray-600 text-left sm:text-center">
+                      Earn badges, track running streaks, and celebrate milestones with gamified progress.
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+              </Card>
+
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="flex flex-row items-start gap-4 sm:flex-col sm:items-center sm:text-center">
+                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0 sm:mb-4">
+                    <Smartphone className="h-6 w-6 text-red-600" />
+                  </div>
+                  <div className="flex-1 sm:flex-none">
+                    <CardTitle className="text-xl text-left sm:text-center">Mobile Dashboard</CardTitle>
+                    <CardDescription className="text-gray-600 text-left sm:text-center">
+                      Access your insights anywhere with a responsive, mobile-optimized interface.
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials and CTA Section with flowing transition */}
+      <section className="relative bg-gradient-to-b from-white via-indigo-50 to-blue-50">
+        {/* Testimonial Content */}
+        <div id="testimonials" className="py-12 sm:py-16 lg:py-20">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <AnimatedTestimonials />
+          </div>
+        </div>
+
+        {/* CTA Banner Content - seamlessly integrated */}
+        <div className="py-12 sm:py-14 lg:py-16">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              {/* Enhanced headline */}
+              <div className="mb-6">
+                <div className="inline-flex items-center bg-indigo-100 text-indigo-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
+                  <Zap className="w-4 h-4 mr-2" />
+                  Start training smarter today
                 </div>
-                <div className="flex items-center justify-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <BarChart3 className="h-4 w-4 text-blue-600" />
+                <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+                  Ready to Unlock Your Running Potential?
+                </h2>
+                <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                  Transform your training with data-driven insights. Connect your Strava account and discover what your running data reveals about your performance.
+                </p>
+              </div>
+
+              {/* Enhanced CTA buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+                <Link href="/auth/signup" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto bg-indigo-600 text-white hover:bg-indigo-700 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1">
+                    <Activity className="mr-2 h-4 sm:h-5 w-4 sm:w-5" />
+                    Start Your Free Trial
+                  </Button>
+                </Link>
+                <Link href="#features" className="w-full sm:w-auto">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg border-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50">
+                    See All Features
+                    <ChevronRight className="ml-2 h-4 sm:h-5 w-4 sm:w-5" />
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Honest trust signals */}
+              <div className="space-y-3">
+                <p className="text-gray-500 text-sm">
+                  ✓ 14-day free trial • ✓ No credit card required • ✓ Cancel anytime
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <Shield className="h-4 w-4 text-green-500 mr-1" />
+                    <span>Secure & Private</span>
                   </div>
-                  <span className="text-gray-700">Performance trend visualization</span>
-                </div>
-                <div className="flex items-center justify-center space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <Target className="h-4 w-4 text-purple-600" />
+                  <div className="flex items-center">
+                    <Activity className="h-4 w-4 text-blue-500 mr-1" />
+                    <span>Official Strava Integration</span>
                   </div>
-                  <span className="text-gray-700">Smart goal tracking & insights</span>
                 </div>
               </div>
             </div>
@@ -234,120 +399,8 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <AnimatedLevelUp />
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Powerful features designed specifically for serious runners who want to optimize their training.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
-                  <BarChart3 className="h-6 w-6 text-indigo-600" />
-                </div>
-                <CardTitle className="text-xl">Training Load Analysis</CardTitle>
-                <CardDescription className="text-gray-600">
-                  Track your training stress and recovery with advanced load metrics and trend analysis.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <TrendingUp className="h-6 w-6 text-blue-600" />
-                </div>
-                <CardTitle className="text-xl">Performance Trends</CardTitle>
-                <CardDescription className="text-gray-600">
-                  Visualize pace, heart rate, and cadence trends over weeks, months, and years.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                  <Activity className="h-6 w-6 text-green-600" />
-                </div>
-                <CardTitle className="text-xl">VO2 Max Estimation</CardTitle>
-                <CardDescription className="text-gray-600">
-                  Get accurate fitness estimates and track your aerobic capacity improvements over time.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                  <Target className="h-6 w-6 text-purple-600" />
-                </div>
-                <CardTitle className="text-xl">Goal Tracking</CardTitle>
-                <CardDescription className="text-gray-600">
-                  Set and monitor progress toward distance, pace, and consistency goals with smart insights.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
-                  <Award className="h-6 w-6 text-yellow-600" />
-                </div>
-                <CardTitle className="text-xl">Achievements & Streaks</CardTitle>
-                <CardDescription className="text-gray-600">
-                  Earn badges, track running streaks, and celebrate milestones with gamified progress.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                  <Smartphone className="h-6 w-6 text-red-600" />
-                </div>
-                <CardTitle className="text-xl">Mobile Dashboard</CardTitle>
-                <CardDescription className="text-gray-600">
-                  Access your insights anywhere with a responsive, mobile-optimized interface.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonial Section */}
-      <section id="testimonials" className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimatedTestimonials />
-        </div>
-      </section>
-
-      {/* CTA Banner */}
-      <section className="py-16 bg-gradient-to-br from-indigo-50 to-blue-50 border-t border-indigo-100">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Ready to Unlock Your Running Potential?</h2>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of runners who&apos;ve transformed their training with data-driven insights.
-            </p>
-            <Link href="/auth/signup">
-              <Button size="lg" className="bg-indigo-600 text-white hover:bg-indigo-700 px-8 py-4 text-lg font-semibold shadow-lg">
-                <Activity className="mr-2 h-5 w-5" />
-                Get Started - It&apos;s Free
-              </Button>
-            </Link>
-            <p className="text-gray-500 text-sm mt-4">No credit card required • Connect your Strava account</p>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section id="faq" className="py-20 bg-gray-50">
+      {/* FAQ Section with subtle gradient */}
+      <section id="faq" className="py-20 bg-gradient-to-b from-blue-50 to-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-16">

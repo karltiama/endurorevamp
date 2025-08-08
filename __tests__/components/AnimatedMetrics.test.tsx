@@ -15,7 +15,7 @@ describe('AnimatedMetrics', () => {
   it('renders all three metric cards', () => {
     render(<AnimatedMetrics />)
     
-    expect(screen.getByText('Pace Improvement')).toBeInTheDocument()
+    expect(screen.getByText('Average Pace')).toBeInTheDocument()
     expect(screen.getByText('Goal Progress')).toBeInTheDocument()
     expect(screen.getByText('Recovery Rate')).toBeInTheDocument()
   })
@@ -23,15 +23,15 @@ describe('AnimatedMetrics', () => {
   it('has the correct grid structure', () => {
     render(<AnimatedMetrics />)
     
-    const container = screen.getByText('Pace Improvement').closest('div')
-    expect(container?.parentElement?.parentElement).toHaveClass('grid', 'grid-cols-3', 'gap-4')
+    const container = screen.getByText('Average Pace').closest('div')
+    expect(container?.parentElement?.parentElement).toHaveClass('grid', 'grid-cols-3', 'gap-2', 'sm:gap-4')
   })
 
   it('displays metric values', () => {
     render(<AnimatedMetrics />)
     
     // The values should be present (even if animated)
-    const paceCard = screen.getByText('Pace Improvement').closest('div')
+    const paceCard = screen.getByText('Average Pace').closest('div')
     expect(paceCard).toBeInTheDocument()
   })
 }) 

@@ -106,10 +106,6 @@ export default function AnimatedTestimonials() {
           <ChevronLeft className="h-5 w-5 text-gray-600" />
         </button>
         
-        <div className="text-sm text-gray-500">
-          {currentIndex + 1} of {testimonials.length}
-        </div>
-        
         <button
           onClick={nextTestimonial}
           className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"

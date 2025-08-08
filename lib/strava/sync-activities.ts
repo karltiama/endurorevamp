@@ -18,6 +18,7 @@ interface SyncResult {
   errors: string[];
   syncType?: string; // Track what type of sync was performed
   totalPages?: number; // Track pagination info
+  tokenRefreshed?: boolean; // Track if token was refreshed during sync
 }
 
 interface StravaAuthResponse {
@@ -79,7 +80,8 @@ export async function syncStravaActivities(options: SyncOptions): Promise<SyncRe
     updatedActivities: 0,
     errors: [],
     syncType,
-    totalPages: 0
+    totalPages: 0,
+    tokenRefreshed: false
   };
 
   try {
@@ -105,6 +107,7 @@ export async function syncStravaActivities(options: SyncOptions): Promise<SyncRe
         result.errors.push('Failed to refresh Strava token');
         return result;
       }
+      result.tokenRefreshed = true;
     }
 
     // Fetch activities from Strava based on sync type
