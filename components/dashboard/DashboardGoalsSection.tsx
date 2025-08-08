@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { 
   Target, 
   Settings, 
-  Plus
+  Plus,
+  Eye
 } from 'lucide-react';
 import { useUserGoals } from '@/hooks/useGoals';
 import { useGoalManagement } from '@/hooks/useGoals';
@@ -14,12 +15,14 @@ import { DashboardGoalSelector } from './DashboardGoalSelector';
 import { AddGoalModal } from '@/components/goals/AddGoalModal';
 import { DashboardGoalCard } from './DashboardGoalCard';
 import { GoalCardSkeletonGrid } from '@/components/goals/GoalCardSkeleton';
+import { useRouter } from 'next/navigation';
 
 export function DashboardGoalsSection() {
   const { isLoading } = useUserGoals();
   const { getDashboardGoals } = useGoalManagement();
   const [showGoalSelector, setShowGoalSelector] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const router = useRouter();
 
   const dashboardGoals = getDashboardGoals();
   const hasGoals = dashboardGoals.length > 0;
@@ -72,14 +75,29 @@ export function DashboardGoalsSection() {
         </CardHeader>
         <CardContent>
           {hasGoals ? (
-            <div className="grid grid-cols-1 gap-3">
-              {dashboardGoals.map((goal, index) => (
-                <DashboardGoalCard
-                  key={goal.id}
-                  goal={goal}
-                  priority={index + 1}
-                />
-              ))}
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 gap-3">
+                {dashboardGoals.map((goal, index) => (
+                  <DashboardGoalCard
+                    key={goal.id}
+                    goal={goal}
+                    priority={index + 1}
+                  />
+                ))}
+              </div>
+              
+              {/* View All Goals Link */}
+              <div className="pt-2 border-t">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push('/dashboard/goals')}
+                  className="w-full text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <Eye className="h-3 w-3 mr-1" />
+                  View All Goals & Analytics
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="text-center py-6">
@@ -88,14 +106,18 @@ export function DashboardGoalsSection() {
               <p className="text-muted-foreground mb-4 max-w-md mx-auto text-sm">
                 Set up goals to track your training progress. You can add up to 3 goals to your dashboard for quick access.
               </p>
-              <div className="flex justify-center gap-2">
+              <div className="flex justify-center gap-2 flex-wrap">
                 <Button onClick={() => setShowAddModal(true)} size="sm">
                   <Plus className="h-3 w-3 mr-1" />
                   Create Your First Goal
                 </Button>
+                <Button variant="outline" onClick={() => router.push('/dashboard/goals')} size="sm">
+                  <Eye className="h-3 w-3 mr-1" />
+                  View All Goals
+                </Button>
                 <Button variant="outline" onClick={() => setShowGoalSelector(true)} size="sm">
                   <Settings className="h-3 w-3 mr-1" />
-                  Manage Goals
+                  Manage Dashboard
                 </Button>
               </div>
             </div>

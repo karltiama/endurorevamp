@@ -178,7 +178,8 @@ function formatGoalValue(value: number, goal: UserGoal, unit: 'km' | 'miles'): s
   
   switch (category) {
     case 'distance':
-      return formatDistance(value * 1000, unit) // Convert to meters for formatDistance
+      // Value is already in km from database, so convert to meters for formatDistance
+      return formatDistance(value * 1000, unit)
     case 'frequency':
       return `${Math.round(value)} runs`
     case 'pace':

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ExternalLink, Mail, MessageSquare, Github, Globe, FileText, Heart, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,9 +24,13 @@ import {
 } from 'react-icons/si';
 
 export function AppFooter() {
+  const pathname = usePathname();
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
   const [suggestionForm, setSuggestionForm] = useState({ title: '', description: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Check if we're on a dashboard page to apply sidebar-aware styling
+  const isDashboardPage = pathname?.startsWith('/dashboard');
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +94,9 @@ export function AppFooter() {
   };
 
   return (
-    <footer className="bg-gray-900 text-white border-t border-gray-800 mt-auto">
+    <footer className={`bg-gray-900 text-white border-t border-gray-800 mt-auto transition-[margin-left] duration-200 ease-linear ${
+      isDashboardPage ? 'md:ml-[3rem]' : ''
+    }`}>
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           

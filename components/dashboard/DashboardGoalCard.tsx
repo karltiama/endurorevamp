@@ -46,8 +46,8 @@ export function DashboardGoalCard({ goal, priority }: DashboardGoalCardProps) {
 
   const formatGoalValue = (value: number, goal: UserGoal, unit: DistanceUnit) => {
     if (goal.goal_type?.category === 'distance') {
-      const convertedValue = convertDistance(value * 1000, unit); // Convert to meters first
-      return formatDistance(convertedValue, unit);
+      // Value is already in km from database, so convert to meters for formatDistance
+      return formatDistance(value * 1000, unit);
     }
     if (goal.goal_type?.category === 'pace') {
       const convertedValue = convertPace(value, unit as PaceUnit);

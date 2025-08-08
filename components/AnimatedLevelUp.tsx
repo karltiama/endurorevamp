@@ -10,9 +10,14 @@ export default function AnimatedLevelUp() {
   const [showPowerUp, setShowPowerUp] = useState(false)
   const [showPlusOne, setShowPlusOne] = useState(false)
   const [powerUpHit, setPowerUpHit] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const levelUpRef = useRef<HTMLDivElement>(null)
   const isMobile = useIsMobile()
   const shouldReduceMotion = useReducedMotion()
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -33,7 +38,7 @@ export default function AnimatedLevelUp() {
   }, [isVisible])
 
   useEffect(() => {
-    if (!isVisible) return
+    if (!isVisible || !isClient) return
 
     // On mobile or reduced-motion, minimize chained effects
     const hitDelayMs = shouldReduceMotion || isMobile ? 800 : 1200
@@ -53,7 +58,7 @@ export default function AnimatedLevelUp() {
       clearTimeout(hitTimer)
       clearTimeout(plusOneTimer)
     }
-  }, [isVisible, isMobile, shouldReduceMotion])
+  }, [isVisible, isMobile, shouldReduceMotion, isClient])
 
   return (
     <div className="px-2 sm:px-0">

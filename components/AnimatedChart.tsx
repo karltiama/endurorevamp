@@ -9,9 +9,16 @@ const barData = [42, 58, 38, 67, 52, 78, 61, 83, 55, 72, 48, 89, 63, 76, 51, 68,
 
 export default function AnimatedChart() {
   const [isVisible, setIsVisible] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const chartRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isClient) return
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -30,7 +37,7 @@ export default function AnimatedChart() {
     }
 
     return () => observer.disconnect()
-  }, [])
+  }, [isClient])
 
   return (
     <div ref={chartRef} className="bg-white rounded-lg border border-gray-200 p-4 h-32 overflow-hidden sm:overflow-visible">

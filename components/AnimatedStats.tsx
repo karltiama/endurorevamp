@@ -64,16 +64,27 @@ const stats = [
 
 export default function AnimatedStats() {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isClient) return
+    
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % stats.length)
     }, 4000) // Change every 4 seconds to give more time to appreciate each animation
 
     return () => clearInterval(interval)
-  }, [])
+  }, [isClient])
 
   const currentStat = stats[currentIndex]
+
+  if (!isClient) {
+    return null
+  }
 
   return (
     <AnimatePresence mode="wait">

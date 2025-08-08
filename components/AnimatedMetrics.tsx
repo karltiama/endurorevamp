@@ -18,8 +18,15 @@ function AnimatedCounter({
   showIcon?: boolean 
 }) {
   const [displayValue, setDisplayValue] = useState<string | number>(0)
+  const [isClient, setIsClient] = useState(false)
   
   useEffect(() => {
+    setIsClient(true)
+  }, [])
+  
+  useEffect(() => {
+    if (!isClient) return
+    
     // Handle time format (7:32) vs numeric values
     if (value.includes(':')) {
       // For time values, just animate the opacity and show the full value
@@ -30,11 +37,12 @@ function AnimatedCounter({
     } else {
       // For numeric values, animate counting up
       const targetValue = parseInt(value.replace(/[^0-9]/g, ''))
-      const startTime = Date.now()
       const duration = 2000 // 2 seconds
+      let startTime: number
       
-      const animate = () => {
-        const elapsed = Date.now() - startTime
+      const animate = (timestamp: number) => {
+        if (!startTime) startTime = timestamp
+        const elapsed = timestamp - startTime
         const progress = Math.min(elapsed / duration, 1)
         const currentValue = Math.round(targetValue * progress)
         
@@ -51,7 +59,7 @@ function AnimatedCounter({
       
       return () => clearTimeout(timer)
     }
-  }, [value, delay])
+  }, [value, delay, isClient])
 
   return (
     <motion.div 
