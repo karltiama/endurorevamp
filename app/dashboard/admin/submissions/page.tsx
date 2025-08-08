@@ -5,41 +5,49 @@ import { SubmissionsDashboard } from '@/components/admin/SubmissionsDashboard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// Force dynamic rendering for admin pages
+export const dynamic = 'force-dynamic';
+
 export default async function AdminSubmissionsPage() {
-  const supabase = await createClient();
-  
-  // Check authentication
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
-  if (authError || !user) {
-    redirect('/auth/login?message=Please log in to access admin features');
-  }
+  try {
+    const supabase = await createClient();
+    
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      redirect('/auth/login?message=Please log in to access admin features');
+    }
 
-  // Check if user is admin
-  const { data: profile } = await supabase
-    .from('user_training_profiles')
-    .select('is_admin')
-    .eq('user_id', user.id)
-    .single();
+    // Check if user is admin
+    const { data: profile } = await supabase
+      .from('user_training_profiles')
+      .select('is_admin')
+      .eq('user_id', user.id)
+      .single();
 
-  if (!profile?.is_admin) {
-    redirect('/dashboard?message=Access denied. Admin privileges required.');
-  }
+    if (!profile?.is_admin) {
+      redirect('/dashboard?message=Access denied. Admin privileges required.');
+    }
 
-  return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Form Submissions</h1>
-        <p className="text-muted-foreground">
-          Manage contact forms and feature suggestions from users
-        </p>
+      return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Form Submissions</h1>
+          <p className="text-muted-foreground">
+            Manage contact forms and feature suggestions from users
+          </p>
+        </div>
+
+        <Suspense fallback={<SubmissionsSkeleton />}>
+          <SubmissionsDashboard />
+        </Suspense>
       </div>
-
-      <Suspense fallback={<SubmissionsSkeleton />}>
-        <SubmissionsDashboard />
-      </Suspense>
-    </div>
-  );
+    );
+  } catch (error) {
+    console.error('Admin submissions page error:', error);
+    redirect('/dashboard?message=Unable to load admin page');
+  }
 }
 
 function SubmissionsSkeleton() {
