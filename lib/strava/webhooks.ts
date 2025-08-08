@@ -159,14 +159,18 @@ export interface StravaWebhookEvent {
 /**
  * Utility function to validate webhook events
  */
-export function isValidWebhookEvent(event: Record<string, unknown>): event is StravaWebhookEvent {
+export function isValidWebhookEvent(event: unknown): event is StravaWebhookEvent {
+  if (!event || typeof event !== 'object') {
+    return false
+  }
+  
+  const eventObj = event as Record<string, unknown>
   return (
-    event &&
-    typeof event.object_type === 'string' &&
-    typeof event.object_id === 'number' &&
-    typeof event.aspect_type === 'string' &&
-    typeof event.owner_id === 'number' &&
-    typeof event.subscription_id === 'number' &&
-    typeof event.event_time === 'number'
+    typeof eventObj.object_type === 'string' &&
+    typeof eventObj.object_id === 'number' &&
+    typeof eventObj.aspect_type === 'string' &&
+    typeof eventObj.owner_id === 'number' &&
+    typeof eventObj.subscription_id === 'number' &&
+    typeof eventObj.event_time === 'number'
   )
 }
