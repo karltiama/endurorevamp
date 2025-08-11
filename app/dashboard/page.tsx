@@ -8,6 +8,7 @@ import { WeatherWidgetEnhanced } from '@/components/weather/WeatherWidgetEnhance
 import { QuickActionsSection } from '@/components/dashboard/QuickActionsSection'
 import { DashboardGoalsSection } from '@/components/dashboard/DashboardGoalsSection'
 import { StravaOAuthHandler } from '@/components/dashboard/StravaOAuthHandler'
+import { ProductionDebugger } from '@/components/ProductionDebugger'
 import { 
   TrainingReadinessSkeleton,
   TrainingLoadSkeleton,
@@ -34,6 +35,9 @@ export default async function DashboardPage() {
     <DashboardLayout user={user}>
       {/* Handle Strava OAuth callbacks */}
       <StravaOAuthHandler />
+      
+      {/* Production Debugger - Only shows in production */}
+      <ProductionDebugger />
       
       <div className="space-y-6">
         {/* Header - More compact */}

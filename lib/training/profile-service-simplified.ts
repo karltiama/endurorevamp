@@ -27,16 +27,16 @@ export class TrainingProfileService {
     const supabase = useServerClient ? await createServerClient() : createClient()
     
     try {
-      // Get user profile
+      // Get user profile - using the correct table name
       const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
+        .from('user_training_profiles')
         .select('*')
         .eq('user_id', userId)
         .single()
 
       // Get training preferences
       const { data: preferences } = await supabase
-        .from('training_preferences')
+        .from('user_training_preferences')
         .select('*')
         .eq('user_id', userId)
         .single()
@@ -69,9 +69,9 @@ export class TrainingProfileService {
     const supabase = useServerClient ? await createServerClient() : createClient()
     
     try {
-      // Check if profile exists
+      // Check if profile exists - using the correct table name
       const { data: existing } = await supabase
-        .from('user_profiles')
+        .from('user_training_profiles')
         .select('id')
         .eq('user_id', userId)
         .single()
@@ -86,7 +86,7 @@ export class TrainingProfileService {
       if (existing) {
         // Update existing profile
         const { data, error } = await supabase
-          .from('user_profiles')
+          .from('user_training_profiles')
           .update(profileData)
           .eq('user_id', userId)
           .select()
@@ -98,7 +98,7 @@ export class TrainingProfileService {
         // Create new profile with defaults
         const defaultProfile = this.createDefaultProfile(userId)
         const { data, error } = await supabase
-          .from('user_profiles')
+          .from('user_training_profiles')
           .insert({ ...defaultProfile, ...profileData })
           .select()
           .single()
@@ -126,7 +126,7 @@ export class TrainingProfileService {
     
     try {
       const { data: result, error } = await supabase
-        .from('training_preferences')
+        .from('user_training_preferences')
         .upsert({
           user_id: userId,
           ...data,
@@ -322,7 +322,7 @@ export class TrainingProfileService {
     }
 
     const { data, error } = await supabase
-      .from('training_preferences')
+      .from('user_training_preferences')
       .insert(defaultPreferences)
       .select()
       .single()

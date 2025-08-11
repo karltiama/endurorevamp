@@ -24,69 +24,98 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Get user (more secure than getSession)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    // Get user (more secure than getSession)
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
 
-  // Protect admin routes
-  if (request.nextUrl.pathname.startsWith('/dashboard/admin')) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/auth/login?message=Please log in to access admin features', request.url))
+    // Log authentication status for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔐 Middleware auth check:', {
+        path: request.nextUrl.pathname,
+        hasUser: !!user,
+        userId: user?.id?.slice(0, 8) + '...',
+        error: userError?.message
+      })
     }
 
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from('user_training_profiles')
-      .select('is_admin')
-      .eq('user_id', user.id)
-      .single()
+    // Protect admin routes
+    if (request.nextUrl.pathname.startsWith('/dashboard/admin')) {
+      if (!user) {
+        return NextResponse.redirect(new URL('/auth/login?message=Please log in to access admin features', request.url))
+      }
 
-    if (!profile?.is_admin) {
-      return NextResponse.redirect(new URL('/dashboard?message=Access denied. Admin privileges required.', request.url))
+      // Check if user is admin
+      const { data: profile } = await supabase
+        .from('user_training_profiles')
+        .select('is_admin')
+        .eq('user_id', user.id)
+        .single()
+
+      if (!profile?.is_admin) {
+        return NextResponse.redirect(new URL('/dashboard?message=Access denied. Admin privileges required.', request.url))
+      }
     }
-  }
 
-  // Protect API admin routes
-  if (request.nextUrl.pathname.startsWith('/api/admin')) {
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Protect API admin routes
+    if (request.nextUrl.pathname.startsWith('/api/admin')) {
+      if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+
+      // Check if user is admin
+      const { data: profile } = await supabase
+        .from('user_training_profiles')
+        .select('is_admin')
+        .eq('user_id', user.id)
+        .single()
+
+      if (!profile?.is_admin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from('user_training_profiles')
-      .select('is_admin')
-      .eq('user_id', user.id)
-      .single()
-
-    if (!profile?.is_admin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Protect routes that require authentication
+    if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
+      // Add a small delay to prevent rapid redirects
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Check session again before redirecting
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        return NextResponse.redirect(new URL('/auth/login', request.url))
+      }
     }
-  }
 
-  // Protect routes that require authentication
-  if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
-    return NextResponse.redirect(new URL('/auth/login', request.url))
-  }
+    // Redirect authenticated users away from auth pages
+    if (request.nextUrl.pathname.startsWith('/auth') && user) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
 
-  // Redirect authenticated users away from auth pages
-  if (request.nextUrl.pathname.startsWith('/auth') && user) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
+    // Block access to test/debug routes in production
+    if (process.env.NODE_ENV === 'production') {
+      const testPaths = [
+        '/test-sync',
+        '/debug',
+        '/api/test',
+        '/admin/debug'
+      ];
+      
+      if (testPaths.some(path => request.nextUrl.pathname.startsWith(path))) {
+        console.warn(`🚨 Production access blocked for: ${request.nextUrl.pathname}`);
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      }
+    }
 
-  // Block access to test/debug routes in production
-  if (process.env.NODE_ENV === 'production') {
-    const testPaths = [
-      '/test-sync',
-      '/debug',
-      '/api/test',
-      '/admin/debug'
-    ];
+  } catch (error) {
+    console.error('❌ Middleware error:', error)
     
-    if (testPaths.some(path => request.nextUrl.pathname.startsWith(path))) {
-      console.warn(`🚨 Production access blocked for: ${request.nextUrl.pathname}`);
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+    // On middleware errors, allow the request to continue rather than blocking
+    // This prevents authentication errors from completely breaking the app
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ Middleware error, allowing request to continue')
     }
   }
 

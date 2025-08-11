@@ -92,15 +92,25 @@ export async function PUT() {
       const errorText = await refreshResponse.text()
       console.error('❌ Token refresh failed:', refreshResponse.status, errorText)
       
-      // If refresh fails, remove the invalid tokens
-      await supabase
-        .from('strava_tokens')
-        .delete()
-        .eq('user_id', user.id)
+      // Only remove tokens on specific error types, not all failures
+      if (refreshResponse.status === 400 && errorText.includes('invalid_grant')) {
+        console.log('🔄 Invalid refresh token, removing from database');
+        await supabase
+          .from('strava_tokens')
+          .delete()
+          .eq('user_id', user.id)
 
+        return NextResponse.json({
+          success: false,
+          error: 'Token refresh failed. Please reconnect your Strava account.'
+        }, { status: refreshResponse.status })
+      }
+      
+      // For other errors, return the error but don't disconnect user
       return NextResponse.json({
         success: false,
-        error: 'Token refresh failed. Please reconnect your Strava account.'
+        error: `Token refresh failed: ${refreshResponse.status} - ${errorText}`,
+        retryable: true
       }, { status: refreshResponse.status })
     }
 
@@ -143,7 +153,8 @@ export async function PUT() {
     console.error('Token refresh error:', error)
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to refresh token'
+      error: error instanceof Error ? error.message : 'Failed to refresh token',
+      retryable: true
     }, { status: 500 })
   }
 }

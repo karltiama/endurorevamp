@@ -35,8 +35,10 @@ export function useStravaToken(): UseStravaTokenReturn {
       return await stravaAuth.getValidAccessToken(user.id);
     },
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 15 * 60 * 1000, // 15 minutes - increased from 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes - increased from 10 minutes
+    retry: 2, // Only retry twice to avoid infinite loops
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
 
   const refreshToken = useCallback(async () => {

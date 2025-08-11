@@ -127,17 +127,19 @@ export class StravaAuth {
       // Check if token needs refresh
       const expiresAt = new Date(tokens.expires_at);
       const now = new Date();
-      const bufferTime = 10 * 60 * 1000; // 10 minutes buffer
+      const bufferTime = 5 * 60 * 1000; // 5 minutes buffer - reduced from 10 minutes
 
       if (expiresAt.getTime() <= (now.getTime() + bufferTime)) {
         // Token expired or expiring soon, refresh it
+        console.log('🔄 Token expiring soon, attempting refresh...');
         const refreshedTokens = await this.refreshTokens(tokens.refresh_token, userId);
-        return refreshedTokens?.access_token || null;
+        return refreshedTokens?.access_token || tokens.access_token; // Fallback to old token if refresh fails
       }
 
       return tokens.access_token;
     } catch (error) {
       console.error('Error getting valid access token:', error);
+      // Don't disconnect user immediately on error, just return null
       return null;
     }
   }
@@ -147,6 +149,8 @@ export class StravaAuth {
    */
   private async refreshTokens(refreshToken: string, userId: string): Promise<StravaTokens | null> {
     try {
+      console.log('🔄 Refreshing Strava tokens for user:', userId);
+      
       const response = await fetch('https://www.strava.com/oauth/token', {
         method: 'POST',
         headers: {
@@ -161,10 +165,20 @@ export class StravaAuth {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Token refresh failed:', response.status, errorText);
+        
+        // Only disconnect on specific error types, not all failures
+        if (response.status === 400 && errorText.includes('invalid_grant')) {
+          console.log('🔄 Invalid refresh token, user needs to reconnect');
+          await this.disconnectUser(userId);
+        }
+        
         throw new Error(`Failed to refresh token: ${response.statusText}`);
       }
 
       const authResponse: StravaAuthResponse = await response.json();
+      console.log('✅ Token refresh successful');
       
       // Store the refreshed tokens
       await this.storeTokens(userId, authResponse);
@@ -174,8 +188,12 @@ export class StravaAuth {
     } catch (error) {
       console.error('Error refreshing Strava tokens:', error);
       
-      // If refresh fails, remove the invalid tokens
-      await this.disconnectUser(userId);
+      // Don't automatically disconnect user on network errors or temporary failures
+      // Only disconnect on permanent token issues
+      if (error instanceof Error && error.message.includes('invalid_grant')) {
+        await this.disconnectUser(userId);
+      }
+      
       return null;
     }
   }
