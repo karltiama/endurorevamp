@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react'
+import { renderHook, waitFor, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useStravaToken } from '@/hooks/strava/useStravaToken'
 import { useAuth } from '@/providers/AuthProvider'
@@ -110,14 +110,21 @@ describe('useStravaToken', () => {
       refreshUser: jest.fn()
     })
     
+    // Mock the function to always reject (after retries)
     mockGetValidAccessToken.mockRejectedValue(error)
 
     const { result } = renderHook(() => useStravaToken(), {
       wrapper: TestWrapper,
     })
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false)
+    // Wait for the query to finish (including retries)
+    await act(async () => {
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false)
+      }, { timeout: 10000 })
+
+      // Wait a bit more to ensure React Query has finished processing
+      await new Promise(resolve => setTimeout(resolve, 100))
     })
 
     expect(result.current.accessToken).toBeNull()

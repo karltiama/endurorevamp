@@ -5,22 +5,34 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, CheckCircle, RefreshCw } from 'lucide-react'
+import { AlertCircle, RefreshCw } from 'lucide-react'
+
+interface DebugInfo {
+  timestamp: string
+  url: string
+  userAgent: string
+  cookies: string
+  localStorage: string
+  sessionStorage: string
+  environment: string
+  hasWindow: boolean
+  hasDocument: boolean
+  hasNavigator: boolean
+  hasLocalStorage: boolean
+  hasSessionStorage: boolean
+  hasCookies: boolean
+  supabaseData: string
+}
 
 export function ProductionDebugger() {
-  const [debugInfo, setDebugInfo] = useState<any>({})
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | Record<string, never>>({})
   const [isLoading, setIsLoading] = useState(false)
-
-  // Only show in production
-  if (process.env.NODE_ENV !== 'production') {
-    return null
-  }
 
   const collectDebugInfo = async () => {
     setIsLoading(true)
     
     try {
-      const info = {
+      const info: DebugInfo = {
         timestamp: new Date().toISOString(),
         url: window.location.href,
         userAgent: navigator.userAgent,
@@ -33,14 +45,15 @@ export function ProductionDebugger() {
         hasNavigator: typeof navigator !== 'undefined',
         hasLocalStorage: typeof localStorage !== 'undefined',
         hasSessionStorage: typeof sessionStorage !== 'undefined',
-        hasCookies: typeof document?.cookie !== 'undefined'
+        hasCookies: typeof document?.cookie !== 'undefined',
+        supabaseData: 'None'
       }
 
       // Check for Supabase-related data
       try {
         const supabaseData = localStorage.getItem('sb-') || 'No Supabase data'
         info.supabaseData = supabaseData !== 'No Supabase data' ? 'Present' : 'None'
-      } catch (e) {
+      } catch {
         info.supabaseData = 'Error accessing'
       }
 
@@ -67,8 +80,16 @@ export function ProductionDebugger() {
   }
 
   useEffect(() => {
-    collectDebugInfo()
+    // Only collect debug info in production
+    if (process.env.NODE_ENV === 'production') {
+      collectDebugInfo()
+    }
   }, [])
+
+  // Only show in production
+  if (process.env.NODE_ENV !== 'production') {
+    return null
+  }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -83,7 +104,7 @@ export function ProductionDebugger() {
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             This component helps debug authentication issues that only occur in production.
-            Use it to identify what's different between your local and live environments.
+            Use it to identify what&apos;s different between your local and live environments.
           </AlertDescription>
         </Alert>
 

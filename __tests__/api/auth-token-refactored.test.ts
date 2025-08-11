@@ -188,7 +188,8 @@ describe('Auth Token API (Refactored with Helpers)', () => {
       expect(response.status).toBe(400)
       expect(data).toEqual({
         success: false,
-        error: 'Token refresh failed. Please reconnect your Strava account.'
+        error: 'Token refresh failed: 400 - Invalid refresh token',
+        retryable: true
       })
     })
 

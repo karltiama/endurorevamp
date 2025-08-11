@@ -680,7 +680,8 @@ describe('/api/auth/strava/token', () => {
       expect(response.status).toBe(500)
       expect(data).toEqual({
         success: false,
-        error: 'Unexpected error'
+        error: 'Unexpected error',
+        retryable: true
       })
     })
   })
