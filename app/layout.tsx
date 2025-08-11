@@ -4,6 +4,7 @@ import "./globals.css";
 import { RootProvider } from "@/providers/root-provider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppFooter } from "@/components/AppFooter";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,11 @@ export default function RootLayout({
             <AppFooter />
           </RootProvider>
         </ErrorBoundary>
+        <Script
+          src="https://umami.is/script.js"
+          data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID || ''}
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
