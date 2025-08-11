@@ -318,6 +318,7 @@ export function LocationSettingsClient() {
                       }}
                       size="sm"
                       variant="outline"
+                      aria-label={`Edit ${savedLocation.name}`}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -326,6 +327,7 @@ export function LocationSettingsClient() {
                       size="sm"
                       variant="outline"
                       className="text-red-600 hover:text-red-700"
+                      aria-label={`Delete ${savedLocation.name}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
