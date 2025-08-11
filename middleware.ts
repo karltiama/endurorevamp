@@ -32,14 +32,7 @@ export async function middleware(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     // Log authentication status for debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔐 Middleware auth check:', {
-        path: request.nextUrl.pathname,
-        hasUser: !!user,
-        userId: user?.id?.slice(0, 8) + '...',
-        error: userError?.message
-      })
-    }
+    // Removed debug logging for cleaner production experience
 
     // Protect admin routes
     if (request.nextUrl.pathname.startsWith('/dashboard/admin')) {
