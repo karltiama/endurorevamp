@@ -31,6 +31,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <Script
+          src="https://umami.is/script.js"
+          data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID || ''}
+          strategy="afterInteractive"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
@@ -42,11 +49,6 @@ export default function RootLayout({
             <AppFooter />
           </RootProvider>
         </ErrorBoundary>
-        <Script
-          src="https://umami.is/script.js"
-          data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID || ''}
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   );
