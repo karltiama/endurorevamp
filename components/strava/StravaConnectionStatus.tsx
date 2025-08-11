@@ -5,99 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Link2, Unlink, CheckCircle2, AlertCircle, Activity } from 'lucide-react';
 import { useStravaConnection } from '@/hooks/strava/useStravaConnection';
-import { useStravaAuth } from '@/hooks/use-strava-auth';
-import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/providers/AuthProvider';
 import { getStravaAuthUrl } from '@/lib/strava';
-import { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export function StravaConnectionStatus() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
   const { connectionStatus, isLoading: isCheckingConnection, error: connectionError, disconnect } = useStravaConnection();
-  const { mutate: exchangeToken, isPending: isAuthing } = useStravaAuth();
   const [isDisconnecting, setIsDisconnecting] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [authSuccess, setAuthSuccess] = useState(false);
 
-  // Handle OAuth callback
-  useEffect(() => {
-    const code = searchParams.get('code');
-    const error = searchParams.get('error');
-    const errorDescription = searchParams.get('error_description');
-
-    console.log('🔍 OAuth check:', { code: !!code, error, errorDescription });
-
-    // Handle OAuth errors from Strava
-    if (error) {
-      console.error('❌ OAuth error from Strava:', { error, errorDescription });
-      setAuthError(
-        errorDescription || 
-        (error === 'access_denied' ? 'Access denied by user' : 'Authorization failed')
-      );
-      
-      // Clean up URL parameters
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('code');
-      newUrl.searchParams.delete('error');
-      newUrl.searchParams.delete('error_description');
-      newUrl.searchParams.delete('state');
-      newUrl.searchParams.delete('scope');
-      router.replace(newUrl.pathname + newUrl.search, { scroll: false });
-      return;
-    }
-
-    // Handle successful OAuth code
-    if (code && !connectionStatus?.connected && !isAuthing) {
-      console.log('🔄 Processing OAuth code...');
-      setAuthError(null);
-      
-      // Clear URL parameters immediately to prevent re-processing
-      const newUrl = new URL(window.location.href);
-      const cleanedUrl = newUrl.pathname + newUrl.search.replace(/[?&]code=[^&]*/g, '').replace(/[?&]error=[^&]*/g, '').replace(/[?&]error_description=[^&]*/g, '').replace(/[?&]state=[^&]*/g, '').replace(/[?&]scope=[^&]*/g, '').replace(/^&/, '?').replace(/[?&]$/, '');
-      router.replace(cleanedUrl, { scroll: false });
-      
-      exchangeToken(code, {
-        onSuccess: async (data) => {
-          console.log('✅ Successfully connected to Strava:', data);
-          setAuthSuccess(true);
-          
-          // Invalidate queries to ensure fresh data
-          await queryClient.invalidateQueries({ 
-            queryKey: ['strava', 'connection'] 
-          });
-          
-          // Clear success message after delay
-          setTimeout(() => {
-            setAuthSuccess(false);
-          }, 3000);
-        },
-        onError: (error) => {
-          console.error('❌ Failed to connect to Strava:', error);
-          
-          let errorMessage = 'Failed to connect to Strava';
-          if (error instanceof Error) {
-            if (error.message.includes('401')) {
-              errorMessage = 'Invalid authorization code. Please try connecting again.';
-            } else if (error.message.includes('403')) {
-              errorMessage = 'Access forbidden. Please check your Strava permissions.';
-            } else if (error.message.includes('429')) {
-              errorMessage = 'Too many requests. Please wait a moment and try again.';
-            } else if (error.message.includes('500')) {
-              errorMessage = 'Server error. Please try again later.';
-            } else {
-              errorMessage = error.message;
-            }
-          }
-          
-          setAuthError(errorMessage);
-        }
-      });
-    }
-  }, [searchParams, connectionStatus?.connected, isAuthing, exchangeToken, router, queryClient, user?.id]);
+  // Note: OAuth code processing has been moved to StravaOAuthHandler to prevent race conditions
+  // This component now only handles connection status display and manual actions
 
   const handleConnect = () => {
     window.location.href = getStravaAuthUrl(window.location.origin);
@@ -114,7 +30,7 @@ export function StravaConnectionStatus() {
     }
   };
 
-  if (isCheckingConnection || isAuthing) {
+  if (isCheckingConnection) {
     return (
       <Card>
         <CardHeader className="pb-2">
@@ -129,7 +45,7 @@ export function StravaConnectionStatus() {
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              {isAuthing ? 'Connecting to Strava...' : 'Checking connection status...'}
+              Checking connection status...
             </p>
           </div>
         </CardContent>
@@ -153,22 +69,12 @@ export function StravaConnectionStatus() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 pt-0">
-        {/* Success Message */}
-        {authSuccess && (
-          <Alert className="border-green-200 bg-green-50 py-2">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-sm text-green-800">
-              Successfully connected to Strava!
-            </AlertDescription>
-          </Alert>
-        )}
-
         {/* Error Messages */}
-        {(connectionError || authError) && (
+        {connectionError && (
           <Alert className="border-red-200 bg-red-50 py-2">
             <AlertCircle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-sm text-red-800">
-              {authError || connectionError}
+              {connectionError}
             </AlertDescription>
           </Alert>
         )}

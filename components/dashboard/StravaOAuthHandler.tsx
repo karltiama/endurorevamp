@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
 import { useStravaAuth } from '@/hooks/use-strava-auth';
@@ -11,8 +11,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 /**
- * Silent OAuth handler for the main dashboard
- * Processes Strava OAuth callbacks without interfering with dashboard data loading
+ * Centralized OAuth handler for the main dashboard
+ * This is the ONLY component that should process Strava OAuth callbacks
+ * to prevent race conditions with other components
  */
 export function StravaOAuthHandler() {
   const searchParams = useSearchParams();
@@ -24,6 +25,10 @@ export function StravaOAuthHandler() {
     status: 'idle' | 'processing' | 'success' | 'error';
     message?: string;
   }>({ status: 'idle' });
+  
+  // Use ref to prevent multiple processing of the same code
+  const processedCodeRef = useRef<string | null>(null);
+  const isProcessingRef = useRef(false);
 
   const cleanUpUrl = useCallback(() => {
     const newUrl = new URL(window.location.href);
@@ -43,6 +48,10 @@ export function StravaOAuthHandler() {
     // Only process if we have parameters and haven't processed yet
     if (!code && !error) return;
     if (authStatus.status !== 'idle') return;
+    
+    // Prevent processing the same code multiple times
+    if (code && processedCodeRef.current === code) return;
+    if (isProcessingRef.current) return;
 
     console.log('🔍 Dashboard OAuth handler triggered:', { code: !!code, error, errorDescription });
 
@@ -62,6 +71,11 @@ export function StravaOAuthHandler() {
     // Handle successful OAuth code
     if (code && user && !isAuthing) {
       console.log('🔄 Processing OAuth code on dashboard...');
+      
+      // Mark as processing to prevent race conditions
+      isProcessingRef.current = true;
+      processedCodeRef.current = code;
+      
       setAuthStatus({ status: 'processing', message: 'Connecting to Strava...' });
       
       // Clean URL parameters immediately to prevent re-processing
@@ -122,6 +136,7 @@ export function StravaOAuthHandler() {
           // Clear success message after delay
           setTimeout(() => {
             setAuthStatus({ status: 'idle' });
+            isProcessingRef.current = false;
           }, 5000);
         },
         onError: (error) => {
@@ -144,9 +159,10 @@ export function StravaOAuthHandler() {
           
           setAuthStatus({ status: 'error', message: errorMessage });
           
-          // Clear error after delay
+          // Clear error after delay and reset processing state
           setTimeout(() => {
             setAuthStatus({ status: 'idle' });
+            isProcessingRef.current = false;
           }, 10000);
         }
       });
