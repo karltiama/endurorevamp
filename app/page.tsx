@@ -24,6 +24,7 @@ import AnimatedChart from "@/components/AnimatedChart"
 import AnimatedMetrics from "@/components/AnimatedMetrics"
 import AnimatedLevelUp from "@/components/AnimatedLevelUp"
 import AnimatedTestimonials from "@/components/AnimatedTestimonials"
+import EnhancedFeaturesSection from "@/components/EnhancedFeaturesSection"
 
 export default async function Home() {
   const supabase = await createClient()
@@ -236,103 +237,8 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Features Content - seamlessly integrated */}
-        <div id="features" className="py-12 sm:py-16 lg:py-20">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16 px-4 sm:px-0">
-              <AnimatedLevelUp />
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Powerful features designed specifically for serious runners who want to optimize their training.
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-                <CardHeader className="flex flex-row items-start gap-4 sm:flex-col sm:items-center sm:text-center">
-                  <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0 sm:mb-4">
-                    <BarChart3 className="h-6 w-6 text-indigo-600" />
-                  </div>
-                  <div className="flex-1 sm:flex-none">
-                    <CardTitle className="text-xl text-left sm:text-center">Training Load Analysis</CardTitle>
-                    <CardDescription className="text-gray-600 text-left sm:text-center">
-                      Track your training stress and recovery with advanced load metrics and trend analysis.
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-              </Card>
-
-              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-                <CardHeader className="flex flex-row items-start gap-4 sm:flex-col sm:items-center sm:text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 sm:mb-4">
-                    <TrendingUp className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="flex-1 sm:flex-none">
-                    <CardTitle className="text-xl text-left sm:text-center">Performance Trends</CardTitle>
-                    <CardDescription className="text-gray-600 text-left sm:text-center">
-                      Visualize pace, heart rate, and cadence trends over weeks, months, and years.
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-              </Card>
-
-              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-                <CardHeader className="flex flex-row items-start gap-4 sm:flex-col sm:items-center sm:text-center">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 sm:mb-4">
-                    <Activity className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div className="flex-1 sm:flex-none">
-                    <CardTitle className="text-xl text-left sm:text-center">VO2 Max Estimation</CardTitle>
-                    <CardDescription className="text-gray-600 text-left sm:text-center">
-                      Get accurate fitness estimates and track your aerobic capacity improvements over time.
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-              </Card>
-
-              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-                <CardHeader className="flex flex-row items-start gap-4 sm:flex-col sm:items-center sm:text-center">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0 sm:mb-4">
-                    <Target className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div className="flex-1 sm:flex-none">
-                    <CardTitle className="text-xl text-left sm:text-center">Goal Tracking</CardTitle>
-                    <CardDescription className="text-gray-600 text-left sm:text-center">
-                      Set and monitor progress toward distance, pace, and consistency goals with smart insights.
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-              </Card>
-
-              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-                <CardHeader className="flex flex-row items-start gap-4 sm:flex-col sm:items-center sm:text-center">
-                  <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0 sm:mb-4">
-                    <Award className="h-6 w-6 text-yellow-600" />
-                  </div>
-                  <div className="flex-1 sm:flex-none">
-                    <CardTitle className="text-xl text-left sm:text-center">Achievements & Streaks</CardTitle>
-                    <CardDescription className="text-gray-600 text-left sm:text-center">
-                      Earn badges, track running streaks, and celebrate milestones with gamified progress.
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-              </Card>
-
-              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-                <CardHeader className="flex flex-row items-start gap-4 sm:flex-col sm:items-center sm:text-center">
-                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0 sm:mb-4">
-                    <Smartphone className="h-6 w-6 text-red-600" />
-                  </div>
-                  <div className="flex-1 sm:flex-none">
-                    <CardTitle className="text-xl text-left sm:text-center">Mobile Dashboard</CardTitle>
-                    <CardDescription className="text-gray-600 text-left sm:text-center">
-                      Access your insights anywhere with a responsive, mobile-optimized interface.
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-              </Card>
-            </div>
-          </div>
-        </div>
+        {/* Enhanced Features Section */}
+        <EnhancedFeaturesSection />
       </section>
 
       {/* Testimonials and CTA Section with flowing transition */}
