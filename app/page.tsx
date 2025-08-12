@@ -71,7 +71,7 @@ export default async function Home() {
       </header>
 
       {/* Hero Section with flowing transition */}
-      <section className="relative bg-gradient-to-b from-blue-50 via-indigo-100 via-white via-gray-50 to-white">
+      <section className="relative bg-gradient-to-b from-blue-50 via-indigo-100 to-white">
         {/* Hero Content */}
         <div className="py-12 sm:py-16 lg:py-32">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
