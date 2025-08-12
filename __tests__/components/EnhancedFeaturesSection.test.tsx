@@ -59,13 +59,39 @@ describe('EnhancedFeaturesSection', () => {
     render(<EnhancedFeaturesSection />)
     
     const liveBadges = screen.getAllByText('Live Feature')
-    expect(liveBadges).toHaveLength(6) // One for each feature
+    expect(liveBadges).toHaveLength(5) // 5 live features, 1 coming soon
   })
 
-  it('renders screenshot placeholders', () => {
+  it('renders coming soon badge for achievements', () => {
     render(<EnhancedFeaturesSection />)
     
-    const placeholders = screen.getAllByText('Screenshot Placeholder')
-    expect(placeholders).toHaveLength(6) // One for each feature
+    const comingSoonBadge = screen.getByText('Coming Soon')
+    expect(comingSoonBadge).toBeInTheDocument()
+  })
+
+  it('renders all screenshots and coming soon features', () => {
+    render(<EnhancedFeaturesSection />)
+    
+    // Check that all expected screenshots are displayed
+    expect(screen.getByAltText('Performance trends chart showing pace and heart rate improvements over time')).toBeInTheDocument()
+    expect(screen.getByAltText('Activity analytics dashboard with detailed run metrics and charts')).toBeInTheDocument()
+    expect(screen.getByAltText('Goal tracking dashboard showing progress toward running goals')).toBeInTheDocument()
+    expect(screen.getByAltText('Mobile dashboard showing responsive design on smartphone')).toBeInTheDocument()
+    
+    // Check that the live dashboard preview is displayed for training load analysis
+    expect(screen.getByText('Live Dashboard Preview')).toBeInTheDocument()
+    
+    // Check that coming soon feature shows appropriate message
+    expect(screen.getByText('Coming Soon!')).toBeInTheDocument()
+    expect(screen.getByText('Launching in the next few days')).toBeInTheDocument()
+  })
+
+  it('renders live dashboard preview for training load analysis', () => {
+    render(<EnhancedFeaturesSection />)
+    
+    // Check that the live dashboard preview is displayed instead of a screenshot
+    expect(screen.getByText('Live Dashboard Preview')).toBeInTheDocument()
+    expect(screen.getByText('Weekly Activity')).toBeInTheDocument()
+    expect(screen.getByText('Goal Progress')).toBeInTheDocument()
   })
 })

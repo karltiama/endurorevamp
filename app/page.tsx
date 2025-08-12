@@ -71,8 +71,8 @@ export default async function Home() {
         </div>
       </header>
 
-      {/* Hero Section with flowing transition */}
-      <section className="relative bg-gradient-to-b from-blue-50 via-indigo-100 to-white">
+      {/* Hero Section - Start with blue/indigo */}
+      <section className="relative bg-gradient-to-b from-blue-50 via-indigo-100 to-indigo-50">
         {/* Hero Content */}
         <div className="py-12 sm:py-16 lg:py-32">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -143,109 +143,84 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Value Proposition Content - seamlessly integrated */}
-        <div className="py-12 sm:py-16 lg:py-20">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-              <div className="relative">
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 shadow-xl border">
-                  <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                    {/* Dashboard Header */}
-                    <div className="bg-indigo-600 text-white p-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold">Training Analytics Dashboard</h3>
-                        <div className="flex space-x-2">
-                          <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                          <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                          <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Dashboard Content */}
-                    <div className="p-6 space-y-6">
-                      {/* Key Metrics Row */}
-                      <AnimatedMetrics />
-                      
-                      {/* Chart Placeholder */}
-                      <AnimatedChart />
-                      
-                      {/* Recent Activity */}
-                      <div className="space-y-3">
-                        <h4 className="font-semibold text-gray-900">Recent Activities</h4>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                <Activity className="h-4 w-4 text-green-600" />
-                              </div>
-                              <div>
-                                <div className="font-medium text-gray-900">Morning Run</div>
-                                <div className="text-sm text-gray-500">5.2 miles • 9:30/mile</div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm font-medium text-gray-900">+2.3%</div>
-                              <div className="text-xs text-green-600">vs last week</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+        {/* More than Miles Section - blends from hero to features */}
+        <section className="bg-gradient-to-b from-indigo-50 via-white to-indigo-50">
+          <div className="py-12 sm:py-16 lg:py-20">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                <div className="relative">
+                  <div className="w-full">
+                    {/* Dashboard Screenshot - Full Outer Container */}
+                    <Image
+                      src="/images/dashboard-screenshot.png"
+                      alt="Enduro Stats Dashboard showing training analytics, metrics, and insights"
+                      width={1200}
+                      height={900}
+                      className="w-full h-auto rounded-2xl shadow-xl"
+                      priority
+                    />
+                  </div>
+                  
+                  {/* Floating Elements */}
+                  <div className="absolute -top-4 -right-4 bg-white rounded-lg shadow-lg p-3 border">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium text-gray-700">Live Data</span>
                     </div>
                   </div>
                 </div>
                 
-                {/* Floating Elements */}
-                <div className="absolute -top-4 -right-4 bg-white rounded-lg shadow-lg p-3 border">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium text-gray-700">Live Data</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-6">
-                <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center">
-                  More than Miles. <span className="text-indigo-600">Real Performance Insights.</span>
-                </h2>
-                <p className="text-xl text-gray-600 leading-relaxed text-center">
-                  While Strava shows you what happened, Enduro Stats shows you why it matters. Get the deep analytics and
-                  personalized insights that serious runners need to improve.
-                </p>
-                <div className="space-y-4 text-center">
-                  <div className="flex items-center justify-center space-x-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <TrendingUp className="h-4 w-4 text-green-600" />
+                <div className="space-y-6">
+                  <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center">
+                    More than Miles. <span className="text-indigo-600">Real Performance Insights.</span>
+                  </h2>
+                  <p className="text-xl text-gray-600 leading-relaxed text-center">
+                    While Strava shows you what happened, Enduro Stats shows you why it matters. Get the deep analytics and
+                    personalized insights that serious runners need to improve.
+                  </p>
+                  <div className="space-y-4 text-center">
+                    <div className="flex items-center justify-center space-x-3">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                      </div>
+                      <span className="text-gray-700">Advanced training load analysis</span>
                     </div>
-                    <span className="text-gray-700">Advanced training load analysis</span>
-                  </div>
-                  <div className="flex items-center justify-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <BarChart3 className="h-4 w-4 text-blue-600" />
+                    <div className="flex items-center justify-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <BarChart3 className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <span className="text-gray-700">Performance trend visualization</span>
                     </div>
-                    <span className="text-gray-700">Performance trend visualization</span>
-                  </div>
-                  <div className="flex items-center justify-center space-x-3">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                      <Target className="h-4 w-4 text-purple-600" />
+                    <div className="flex items-center justify-center space-x-3">
+                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                        <Target className="h-4 w-4 text-purple-600" />
+                      </div>
+                      <span className="text-gray-700">Smart goal tracking & insights</span>
                     </div>
-                    <span className="text-gray-700">Smart goal tracking & insights</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Enhanced Features Section */}
         <EnhancedFeaturesSection />
       </section>
 
-      {/* Testimonials and CTA Section with flowing transition */}
-      <section className="relative bg-gradient-to-b from-white via-indigo-50 to-blue-50">
+      {/* Testimonials and CTA Section - Transition from white to blue */}
+      <section className="relative bg-gradient-to-b from-white via-blue-50 to-blue-100">
         {/* Testimonial Content */}
         <div id="testimonials" className="py-12 sm:py-16 lg:py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Testimonials Title */}
+            <div className="text-center mb-16">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">What Runners Are Saying</h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Join thousands of runners who have transformed their training with Enduro Stats
+              </p>
+            </div>
+            
             <AnimatedTestimonials />
           </div>
         </div>
@@ -305,8 +280,8 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* FAQ Section with subtle gradient */}
-      <section id="faq" className="py-20 bg-gradient-to-b from-blue-50 to-gray-50">
+      {/* FAQ Section - Final transition from blue to light gray */}
+      <section id="faq" className="py-20 bg-gradient-to-b from-blue-100 via-blue-50 to-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-16">
@@ -368,6 +343,44 @@ export default async function Home() {
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer Section - Complete the gradient flow */}
+      <section className="py-16 bg-gradient-to-b from-gray-50 to-gray-100">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="flex items-center justify-center space-x-2 mb-6">
+              <Activity className="h-8 w-8 text-indigo-600" />
+              <span className="text-2xl font-bold text-gray-900">Enduro Stats</span>
+            </div>
+            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+              Transform your running data into actionable insights. Join thousands of runners who are already training smarter.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href="/auth/signup">
+                <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                  <Activity className="mr-2 h-5 w-5" />
+                  Start Free Trial
+                </Button>
+              </Link>
+              <Link href="/privacy">
+                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                  Privacy Policy
+                </Button>
+              </Link>
+              <Link href="/terms">
+                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                  Terms of Service
+                </Button>
+              </Link>
+            </div>
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <p className="text-sm text-gray-500">
+                © 2024 Enduro Stats. All rights reserved. Built with ❤️ for runners.
+              </p>
+            </div>
           </div>
         </div>
       </section>
