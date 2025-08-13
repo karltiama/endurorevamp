@@ -1,4 +1,3 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
   BarChart3,
@@ -8,11 +7,6 @@ import {
   Award,
   Smartphone,
   Zap,
-  Calendar,
-  Heart,
-  MapPin,
-  Clock,
-  Trophy,
 } from "lucide-react"
 import Image from "next/image"
 import AnimatedLevelUp from "./AnimatedLevelUp"
@@ -90,7 +84,7 @@ export default function EnhancedFeaturesSection() {
             <AnimatedLevelUp />
           </div>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            These aren't mockups - they're actual screenshots from your Enduro Stats dashboard. 
+            These aren&apos;t mockups - they&apos;re actual screenshots from your Enduro Stats dashboard. 
             Experience the real features that serious runners use every day.
           </p>
         </div>

@@ -5,17 +5,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   BarChart3,
-  TrendingUp,
   Activity,
-  Target,
-  Award,
-  Smartphone,
-  Zap,
-  Calendar,
   Heart,
   MapPin,
   Clock,
-  Trophy,
   Play,
   Pause,
   RotateCcw,
@@ -50,7 +43,6 @@ const mockGoals = [
 
 export default function LiveDashboardPreview() {
   const [isPlaying, setIsPlaying] = useState(false)
-  const [currentMetric, setCurrentMetric] = useState(0)
 
   const metrics = [
     { label: 'Weekly Distance', value: `${mockWeeklyMetrics.totalDistance}`, unit: 'miles', icon: MapPin, color: 'text-blue-600' },
@@ -65,7 +57,6 @@ export default function LiveDashboardPreview() {
 
   const resetPreview = () => {
     setIsPlaying(false)
-    setCurrentMetric(0)
   }
 
   return (
@@ -109,7 +100,7 @@ export default function LiveDashboardPreview() {
         <div className="p-6 space-y-6">
           {/* Key Metrics Row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {metrics.map((metric, index) => (
+            {metrics.map((metric) => (
               <Card key={metric.label} className="border-0 shadow-sm hover:shadow-md transition-shadow">
                 <CardContent className="p-4 text-center">
                   <div className={`w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3 ${metric.color.replace('text-', 'bg-')} bg-opacity-10`}>
@@ -131,7 +122,7 @@ export default function LiveDashboardPreview() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {mockActivityData.map((day, index) => (
+                {mockActivityData.map((day) => (
                   <div key={day.date} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">

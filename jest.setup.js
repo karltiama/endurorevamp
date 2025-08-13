@@ -1,6 +1,21 @@
 // Global test setup
 import '@testing-library/jest-dom'
 
+// Mock window.matchMedia for tests
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+})
+
 // Create global router mocks that can be overridden in tests
 const mockRouterFunctions = {
   push: jest.fn(),

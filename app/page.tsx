@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button"
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import {
@@ -10,7 +9,6 @@ import {
   Zap,
   Shield,
   Smartphone,
-  Award,
   ChevronRight,
   Star,
   Menu,
@@ -20,9 +18,6 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import AnimatedStats from "@/components/AnimatedStats"
-import AnimatedChart from "@/components/AnimatedChart"
-import AnimatedMetrics from "@/components/AnimatedMetrics"
-import AnimatedLevelUp from "@/components/AnimatedLevelUp"
 import AnimatedTestimonials from "@/components/AnimatedTestimonials"
 import EnhancedFeaturesSection from "@/components/EnhancedFeaturesSection"
 
@@ -347,43 +342,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Footer Section - Complete the gradient flow */}
-      <section className="py-16 bg-gradient-to-b from-gray-50 to-gray-100">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-6">
-              <Activity className="h-8 w-8 text-indigo-600" />
-              <span className="text-2xl font-bold text-gray-900">Enduro Stats</span>
-            </div>
-            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-              Transform your running data into actionable insights. Join thousands of runners who are already training smarter.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/auth/signup">
-                <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                  <Activity className="mr-2 h-5 w-5" />
-                  Start Free Trial
-                </Button>
-              </Link>
-              <Link href="/privacy">
-                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                  Privacy Policy
-                </Button>
-              </Link>
-              <Link href="/terms">
-                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                  Terms of Service
-                </Button>
-              </Link>
-            </div>
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <p className="text-sm text-gray-500">
-                © 2024 Enduro Stats. All rights reserved. Built with ❤️ for runners.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+    
 
     </div>
   )
