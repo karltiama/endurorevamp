@@ -7,6 +7,7 @@ The Enhanced Workout Planning System provides intelligent, personalized workout 
 ## Key Features
 
 ### 🎯 **Intelligent Workout Suggestions**
+
 - **Goal-Aware Recommendations**: Workouts are tailored to your specific goals (distance, pace, frequency)
 - **Training Load Integration**: Considers your current CTL, ATL, and TSB for optimal recommendations
 - **Periodization**: Implements proper training periodization (base, build, peak, recovery phases)
@@ -14,12 +15,14 @@ The Enhanced Workout Planning System provides intelligent, personalized workout 
 - **Experience Level**: Provides different workouts for beginner, intermediate, and advanced athletes
 
 ### 🎨 **Drag-and-Drop Editing**
+
 - **Visual Plan Editor**: Drag workouts between days to customize your schedule
 - **Real-time Updates**: See TSS, distance, and time totals update as you modify
 - **Undo/Redo**: Reset changes or shuffle workouts for variety
 - **Save Changes**: Persist your customizations to the database
 
 ### 📊 **Advanced Analytics**
+
 - **Plan Analytics**: Track workout distribution, intensity balance, and periodization
 - **Recommendations**: Get intelligent suggestions for plan improvements
 - **Progress Tracking**: Monitor how your plan aligns with goals
@@ -29,63 +32,72 @@ The Enhanced Workout Planning System provides intelligent, personalized workout 
 ### Core Components
 
 #### 1. **Enhanced Workout Planner** (`lib/training/enhanced-workout-planning.ts`)
+
 ```typescript
 export class EnhancedWorkoutPlanner {
-  generateTodaysWorkout(): EnhancedWorkoutRecommendation
-  generateWeeklyPlan(): WeeklyWorkoutPlan
-  createGoalSpecificWorkout(goal: UserGoal): EnhancedWorkoutRecommendation
+  generateTodaysWorkout(): EnhancedWorkoutRecommendation;
+  generateWeeklyPlan(): WeeklyWorkoutPlan;
+  createGoalSpecificWorkout(goal: UserGoal): EnhancedWorkoutRecommendation;
 }
 ```
 
 #### 2. **Drag-and-Drop Interface** (`components/planning/DraggableWorkoutPlan.tsx`)
+
 ```typescript
 export function DraggableWorkoutPlan({
   weeklyPlan,
   onPlanUpdate,
-  className
-}: DraggableWorkoutPlanProps)
+  className,
+}: DraggableWorkoutPlanProps);
 ```
 
 #### 3. **Enhanced Hooks** (`hooks/useEnhancedWorkoutPlanning.ts`)
+
 ```typescript
-export function useEnhancedWorkoutPlanning({ userId, includeWeather })
-export function useWorkoutPlanManager(userId)
-export function useWorkoutPlanAnalytics(weeklyPlan)
+export function useEnhancedWorkoutPlanning({ userId, includeWeather });
+export function useWorkoutPlanManager(userId);
+export function useWorkoutPlanAnalytics(weeklyPlan);
 ```
 
 ## Workout Types
 
 ### **Recovery Workouts**
+
 - **Purpose**: Active recovery, injury prevention
 - **Intensity**: 2-3/10
 - **Duration**: 20-45 minutes
 - **Examples**: Easy jogging, yoga, swimming, walking
 
 ### **Easy Workouts**
+
 - **Purpose**: Aerobic base building, active recovery
 - **Intensity**: 3-4/10
 - **Duration**: 30-60 minutes
 - **Examples**: Conversational pace running, easy cycling
 
 ### **Tempo Workouts**
+
 - **Purpose**: Lactate threshold improvement
 - **Intensity**: 7-8/10
 - **Duration**: 20-40 minutes at tempo pace
 - **Examples**: 20-minute tempo runs, sustained effort
 
 ### **Threshold Workouts**
+
 - **Purpose**: Aerobic capacity development
 - **Intensity**: 8-9/10
 - **Duration**: 30-60 minutes with intervals
 - **Examples**: 6x800m intervals, 4x1km repeats
 
 ### **Long Workouts**
+
 - **Purpose**: Endurance building, race preparation
 - **Intensity**: 4-5/10
 - **Duration**: 60-120 minutes
 - **Examples**: Long runs, endurance rides
 
 ### **Interval Workouts**
+
 - **Purpose**: VO2 max improvement, speed development
 - **Intensity**: 9-10/10
 - **Duration**: 30-60 minutes with high-intensity intervals
@@ -94,48 +106,53 @@ export function useWorkoutPlanAnalytics(weeklyPlan)
 ## Goal-Specific Workout Generation
 
 ### **Distance Goals**
+
 ```typescript
 // When progress < 50%: Focus on volume building
 if (progressPercentage < 50) {
-  return createLongWorkout() // Build endurance
+  return createLongWorkout(); // Build endurance
 } else {
-  return createIntensityWorkout() // Add quality
+  return createIntensityWorkout(); // Add quality
 }
 ```
 
 ### **Pace Goals**
+
 ```typescript
 // Always include structured speed work
-return createIntervalWorkout() // Target lactate threshold
+return createIntervalWorkout(); // Target lactate threshold
 ```
 
 ### **Frequency Goals**
+
 ```typescript
 // Focus on consistency and enjoyment
-return createEasyWorkout() // Build the habit
+return createEasyWorkout(); // Build the habit
 ```
 
 ## Training Load Integration
 
 ### **Recovery Detection**
+
 ```typescript
 private shouldRecommendRecovery(): boolean {
   // Recovery if TSB is very low (high fatigue)
   if (currentTrainingLoad.balance < -20) return true
-  
+
   // Recovery if ATL is very high
   if (currentTrainingLoad.acute > 80) return true
-  
+
   // Recovery if recent high-intensity workouts
   const recentIntenseWorkouts = recentActivities
     .slice(0, 3)
     .filter(activity => activity.training_load_score > 70)
-  
+
   return recentIntenseWorkouts.length >= 2
 }
 ```
 
 ### **Intensity Work Detection**
+
 ```typescript
 private shouldRecommendIntensityWork(): boolean {
   // Good for intensity if TSB is positive and ATL isn't too high
@@ -148,52 +165,62 @@ private shouldRecommendIntensityWork(): boolean {
 ### **Implementation Details**
 
 #### 1. **State Management**
+
 ```typescript
-const [plan, setPlan] = useState<WeeklyWorkoutPlan>(weeklyPlan)
-const [draggedWorkout, setDraggedWorkout] = useState<EnhancedWorkoutRecommendation | null>(null)
-const [isEditing, setIsEditing] = useState(false)
-const [hasChanges, setHasChanges] = useState(false)
+const [plan, setPlan] = useState<WeeklyWorkoutPlan>(weeklyPlan);
+const [draggedWorkout, setDraggedWorkout] =
+  useState<EnhancedWorkoutRecommendation | null>(null);
+const [isEditing, setIsEditing] = useState(false);
+const [hasChanges, setHasChanges] = useState(false);
 ```
 
 #### 2. **Drag Handlers**
+
 ```typescript
-const handleDragStart = useCallback((e: React.DragEvent, workout: EnhancedWorkoutRecommendation | null) => {
-  setDraggedWorkout(workout)
-  e.dataTransfer.effectAllowed = 'move'
-}, [])
+const handleDragStart = useCallback(
+  (e: React.DragEvent, workout: EnhancedWorkoutRecommendation | null) => {
+    setDraggedWorkout(workout);
+    e.dataTransfer.effectAllowed = 'move';
+  },
+  []
+);
 
-const handleDrop = useCallback((e: React.DragEvent, dayIndex: number) => {
-  e.preventDefault()
-  
-  if (!draggedWorkout) return
+const handleDrop = useCallback(
+  (e: React.DragEvent, dayIndex: number) => {
+    e.preventDefault();
 
-  const updatedPlan = { ...plan }
-  const sourceDayIndex = Object.keys(updatedPlan.workouts).find(
-    day => updatedPlan.workouts[parseInt(day)] === draggedWorkout
-  )
+    if (!draggedWorkout) return;
 
-  if (sourceDayIndex !== undefined) {
-    const sourceIndex = parseInt(sourceDayIndex)
-    
-    // Swap workouts
-    const targetWorkout = updatedPlan.workouts[dayIndex]
-    updatedPlan.workouts[sourceIndex] = targetWorkout
-    updatedPlan.workouts[dayIndex] = draggedWorkout
+    const updatedPlan = { ...plan };
+    const sourceDayIndex = Object.keys(updatedPlan.workouts).find(
+      day => updatedPlan.workouts[parseInt(day)] === draggedWorkout
+    );
 
-    // Recalculate totals
-    updatedPlan.totalTSS = calculateWeeklyTSS(updatedPlan.workouts)
-    updatedPlan.totalDistance = calculateWeeklyDistance(updatedPlan.workouts)
-    updatedPlan.totalTime = calculateWeeklyTime(updatedPlan.workouts)
+    if (sourceDayIndex !== undefined) {
+      const sourceIndex = parseInt(sourceDayIndex);
 
-    setPlan(updatedPlan)
-    setHasChanges(true)
-  }
+      // Swap workouts
+      const targetWorkout = updatedPlan.workouts[dayIndex];
+      updatedPlan.workouts[sourceIndex] = targetWorkout;
+      updatedPlan.workouts[dayIndex] = draggedWorkout;
 
-  setDraggedWorkout(null)
-}, [plan, draggedWorkout])
+      // Recalculate totals
+      updatedPlan.totalTSS = calculateWeeklyTSS(updatedPlan.workouts);
+      updatedPlan.totalDistance = calculateWeeklyDistance(updatedPlan.workouts);
+      updatedPlan.totalTime = calculateWeeklyTime(updatedPlan.workouts);
+
+      setPlan(updatedPlan);
+      setHasChanges(true);
+    }
+
+    setDraggedWorkout(null);
+  },
+  [plan, draggedWorkout]
+);
 ```
 
 #### 3. **Visual Feedback**
+
 - **Drag Cursor**: Changes to grab/grabbing during drag operations
 - **Drop Zones**: Highlighted areas where workouts can be dropped
 - **Unsaved Changes**: Badge indicates when plan has been modified
@@ -202,54 +229,61 @@ const handleDrop = useCallback((e: React.DragEvent, dayIndex: number) => {
 ## Plan Analytics
 
 ### **Metrics Calculated**
+
 ```typescript
 interface WorkoutPlanAnalytics {
-  totalWorkouts: number
-  totalTSS: number
-  totalDistance: number
-  totalTime: number
-  workoutDistribution: Record<string, number>
-  intensityDistribution: { low: number; moderate: number; high: number }
-  sportDistribution: Record<string, number>
-  periodizationPhase: 'base' | 'build' | 'peak' | 'recovery'
-  recommendations: PlanRecommendation[]
+  totalWorkouts: number;
+  totalTSS: number;
+  totalDistance: number;
+  totalTime: number;
+  workoutDistribution: Record<string, number>;
+  intensityDistribution: { low: number; moderate: number; high: number };
+  sportDistribution: Record<string, number>;
+  periodizationPhase: 'base' | 'build' | 'peak' | 'recovery';
+  recommendations: PlanRecommendation[];
 }
 ```
 
 ### **Recommendations Engine**
+
 ```typescript
-function generatePlanRecommendations(plan: WeeklyWorkoutPlan, workouts: EnhancedWorkoutRecommendation[]) {
-  const recommendations = []
+function generatePlanRecommendations(
+  plan: WeeklyWorkoutPlan,
+  workouts: EnhancedWorkoutRecommendation[]
+) {
+  const recommendations = [];
 
   // Check for recovery balance
-  const recoveryWorkouts = workouts.filter(w => w.type === 'recovery').length
-  const intenseWorkouts = workouts.filter(w => w.intensity >= 7).length
+  const recoveryWorkouts = workouts.filter(w => w.type === 'recovery').length;
+  const intenseWorkouts = workouts.filter(w => w.intensity >= 7).length;
 
   if (intenseWorkouts > 2 && recoveryWorkouts < 2) {
     recommendations.push({
       type: 'warning',
-      message: 'Consider adding more recovery days to balance your intense workouts',
-      priority: 'high'
-    })
+      message:
+        'Consider adding more recovery days to balance your intense workouts',
+      priority: 'high',
+    });
   }
 
   // Check for variety
-  const uniqueTypes = new Set(workouts.map(w => w.type)).size
+  const uniqueTypes = new Set(workouts.map(w => w.type)).size;
   if (uniqueTypes < 3) {
     recommendations.push({
       type: 'info',
       message: 'Adding more workout variety can improve overall fitness',
-      priority: 'medium'
-    })
+      priority: 'medium',
+    });
   }
 
-  return recommendations
+  return recommendations;
 }
 ```
 
 ## Weather Integration
 
 ### **Weather-Based Adjustments**
+
 ```typescript
 private adjustForWeather(workout: EnhancedWorkoutRecommendation): EnhancedWorkoutRecommendation {
   const { temperature, precipitation, windSpeed } = weather
@@ -274,15 +308,16 @@ private adjustForWeather(workout: EnhancedWorkoutRecommendation): EnhancedWorkou
 ## Usage Examples
 
 ### **Basic Implementation**
+
 ```typescript
 import { EnhancedWorkoutPlanningDashboard } from '@/components/planning/EnhancedWorkoutPlanningDashboard'
 
 function PlanningPage() {
   const { user } = useAuth()
-  
+
   return (
-    <EnhancedWorkoutPlanningDashboard 
-      userId={user.id} 
+    <EnhancedWorkoutPlanningDashboard
+      userId={user.id}
       className="max-w-6xl mx-auto"
     />
   )
@@ -290,18 +325,19 @@ function PlanningPage() {
 ```
 
 ### **Custom Hook Usage**
+
 ```typescript
 import { useEnhancedWorkoutPlanning } from '@/hooks/useEnhancedWorkoutPlanning'
 
 function MyComponent() {
-  const { 
-    todaysWorkout, 
-    weeklyPlan, 
-    isLoading, 
-    hasData 
-  } = useEnhancedWorkoutPlanning({ 
+  const {
+    todaysWorkout,
+    weeklyPlan,
+    isLoading,
+    hasData
+  } = useEnhancedWorkoutPlanning({
     userId: 'user-123',
-    includeWeather: true 
+    includeWeather: true
   })
 
   if (!hasData) {
@@ -325,6 +361,7 @@ function MyComponent() {
 ## Testing
 
 ### **Component Testing**
+
 ```typescript
 import { render, screen, fireEvent } from '@testing-library/react'
 import { DraggableWorkoutPlan } from './DraggableWorkoutPlan'
@@ -332,40 +369,42 @@ import { DraggableWorkoutPlan } from './DraggableWorkoutPlan'
 test('allows dragging workouts between days', () => {
   const mockPlan = createMockWeeklyPlan()
   const mockOnUpdate = jest.fn()
-  
+
   render(<DraggableWorkoutPlan weeklyPlan={mockPlan} onPlanUpdate={mockOnUpdate} />)
-  
+
   // Test drag and drop functionality
   const workoutCard = screen.getByText('Tempo Run')
   const targetDay = screen.getByText('Wed')
-  
+
   fireEvent.dragStart(workoutCard)
   fireEvent.drop(targetDay)
-  
+
   expect(mockOnUpdate).toHaveBeenCalled()
 })
 ```
 
 ### **Hook Testing**
+
 ```typescript
-import { renderHook, waitFor } from '@testing-library/react'
-import { useEnhancedWorkoutPlanning } from './useEnhancedWorkoutPlanning'
+import { renderHook, waitFor } from '@testing-library/react';
+import { useEnhancedWorkoutPlanning } from './useEnhancedWorkoutPlanning';
 
 test('generates workout recommendations', async () => {
-  const { result } = renderHook(() => 
+  const { result } = renderHook(() =>
     useEnhancedWorkoutPlanning({ userId: 'test-user' })
-  )
-  
+  );
+
   await waitFor(() => {
-    expect(result.current.todaysWorkout).toBeDefined()
-    expect(result.current.weeklyPlan).toBeDefined()
-  })
-})
+    expect(result.current.todaysWorkout).toBeDefined();
+    expect(result.current.weeklyPlan).toBeDefined();
+  });
+});
 ```
 
 ## Future Enhancements
 
 ### **Planned Features**
+
 1. **Workout Templates**: Pre-built workout templates for common race distances
 2. **Coach Integration**: Allow coaches to create and assign workout plans
 3. **Social Features**: Share workout plans with training partners
@@ -373,6 +412,7 @@ test('generates workout recommendations', async () => {
 5. **AI-Powered Suggestions**: Machine learning for even more personalized recommendations
 
 ### **API Endpoints**
+
 ```typescript
 // Save workout plan
 POST /api/workout-plans
@@ -396,12 +436,14 @@ PATCH /api/workout-plans/:planId
 ## Performance Considerations
 
 ### **Optimization Strategies**
+
 1. **Memoization**: Cache workout recommendations to avoid recalculation
 2. **Lazy Loading**: Load workout details only when needed
 3. **Debounced Updates**: Batch plan updates to reduce API calls
 4. **Virtual Scrolling**: For large workout libraries
 
 ### **Caching Strategy**
+
 ```typescript
 const { data: todaysWorkout } = useQuery({
   queryKey: ['enhanced-workout-planning', 'todays-workout', userId, activities.length, trainingLoadData?.metrics, goals.length, unitPreferences],
@@ -415,4 +457,4 @@ const { data: todaysWorkout } = useQuery({
 
 The Enhanced Workout Planning System provides a comprehensive solution for personalized training planning. With intelligent recommendations, drag-and-drop editing, and advanced analytics, it offers professional-grade functionality while maintaining ease of use.
 
-The system is designed to be extensible, allowing for future enhancements like AI-powered suggestions, coach integration, and social features. The modular architecture makes it easy to test, maintain, and extend. 
+The system is designed to be extensible, allowing for future enhancements like AI-powered suggestions, coach integration, and social features. The modular architecture makes it easy to test, maintain, and extend.

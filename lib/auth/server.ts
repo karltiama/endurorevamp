@@ -1,15 +1,17 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { User } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
+import { User } from '@supabase/supabase-js';
 
 /**
  * Get the current user on the server side
  * Returns null if not authenticated
  */
 export async function getUser(): Promise<User | null> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
 }
 
 /**
@@ -17,13 +19,13 @@ export async function getUser(): Promise<User | null> {
  * Redirects to login if not authenticated
  */
 export async function requireAuth(): Promise<User> {
-  const user = await getUser()
-  
+  const user = await getUser();
+
   if (!user) {
-    redirect('/auth/login')
+    redirect('/auth/login');
   }
-  
-  return user
+
+  return user;
 }
 
 /**
@@ -31,9 +33,9 @@ export async function requireAuth(): Promise<User> {
  * Useful for auth pages (login/signup)
  */
 export async function redirectIfAuthenticated(): Promise<void> {
-  const user = await getUser()
-  
+  const user = await getUser();
+
   if (user) {
-    redirect('/dashboard')
+    redirect('/dashboard');
   }
-} 
+}

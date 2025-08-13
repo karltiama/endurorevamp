@@ -14,6 +14,7 @@ I've implemented a comprehensive onboarding modal system for your running app th
 4. **`user_onboarding`** - Tracks onboarding completion status
 
 ### Key Features
+
 - **Flexible Goal System**: Supports distance goals, race preparation, fitness improvement, etc.
 - **Progress Tracking**: Automatic progress updates from Strava activities
 - **Row Level Security**: All tables have proper RLS policies
@@ -31,7 +32,7 @@ I've implemented a comprehensive onboarding modal system for your running app th
 │   ├── app/api/goals/route.ts (CRUD operations)
 │   ├── app/api/goals/types/route.ts (fetch goal types)
 │   └── app/api/onboarding/route.ts (onboarding status)
-├── 🎣 Hooks (hooks/useGoals.ts) 
+├── 🎣 Hooks (hooks/useGoals.ts)
 ├── 🧩 UI Components
 │   ├── components/ui/dialog.tsx (base modal)
 │   ├── components/onboarding/OnboardingModal.tsx (main modal)
@@ -42,8 +43,9 @@ I've implemented a comprehensive onboarding modal system for your running app th
 ```
 
 ### Goal Types Included
+
 - **Weekly Distance Goal** - Set weekly running targets
-- **Monthly Distance Goal** - Set monthly running targets  
+- **Monthly Distance Goal** - Set monthly running targets
 - **Race Preparation** - Prepare for upcoming races
 - **General Fitness** - Improve overall fitness
 - **Weight Management** - Support weight goals through running
@@ -54,18 +56,22 @@ I've implemented a comprehensive onboarding modal system for your running app th
 ## 🚀 Next Steps
 
 ### 1. Database Setup
+
 ```bash
 # Run the SQL migration in your Supabase dashboard
 psql -h your-host -U postgres -d postgres -f sql/onboarding_goals.sql
 ```
 
 ### 2. Test the Implementation
+
 Visit `/onboarding-demo` in development to test the modal:
+
 - Select goals and configure targets
 - Watch the onboarding status update
 - Test the full flow end-to-end
 
 ### 3. Integration with Auth Flow
+
 Add the modal to your post-signup flow:
 
 ```tsx
@@ -80,8 +86,8 @@ export function DashboardPage() {
   return (
     <div>
       {/* Your dashboard content */}
-      
-      <OnboardingModal 
+
+      <OnboardingModal
         open={showOnboarding}
         onOpenChange={setShowOnboarding}
         onComplete={() => {
@@ -95,6 +101,7 @@ export function DashboardPage() {
 ```
 
 ### 4. Strava Integration
+
 The second step of onboarding connects to Strava. Update the Strava OAuth callback to mark this step complete:
 
 ```tsx
@@ -104,12 +111,13 @@ await fetch('/api/onboarding', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     strava_connected: true,
-    current_step: 'complete'
-  })
+    current_step: 'complete',
+  }),
 });
 ```
 
 ### 5. Goal Progress Updates
+
 Connect goal progress to Strava activities. In your activity sync process:
 
 ```sql
@@ -125,12 +133,14 @@ SELECT update_goal_progress_from_activity(
 ## 🧪 Testing Strategy
 
 The implementation includes:
+
 - **Hook tests** for React Query integration
 - **API endpoint tests** (you can add these)
 - **Component tests** (can be added using React Testing Library)
 - **Demo page** for manual testing
 
 ### Running Tests
+
 ```bash
 npm test hooks/useGoals
 ```
@@ -171,9 +181,10 @@ npm test hooks/useGoals
 ## 🔧 Customization
 
 The system is highly customizable:
+
 - Add new goal types via database inserts
 - Modify UI components for different branding
 - Extend goal data structure with JSONB fields
 - Add custom validation rules per goal type
 
-This implementation provides a solid foundation for user goal management while maintaining your high code quality standards and testing discipline. 
+This implementation provides a solid foundation for user goal management while maintaining your high code quality standards and testing discipline.

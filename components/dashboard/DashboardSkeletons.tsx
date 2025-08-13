@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card';
 
 export function TrainingReadinessSkeleton() {
   return (
@@ -11,7 +11,7 @@ export function TrainingReadinessSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function TrainingLoadSkeleton() {
@@ -25,7 +25,7 @@ export function TrainingLoadSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function PerformanceInsightsSkeleton() {
@@ -42,7 +42,7 @@ export function PerformanceInsightsSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function QuickActionsSkeleton() {
@@ -52,14 +52,14 @@ export function QuickActionsSkeleton() {
         <div className="animate-pulse">
           <div className="h-6 bg-muted rounded w-1/3 mb-4"></div>
           <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3, 4].map(i => (
               <div key={i} className="h-20 bg-muted/50 rounded-lg"></div>
             ))}
           </div>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function GoalsSkeleton() {
@@ -70,12 +70,12 @@ export function GoalsSkeleton() {
           <div className="h-6 bg-muted rounded w-1/3 mb-4"></div>
           <div className="h-4 bg-muted rounded w-1/2 mb-6"></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3].map(i => (
               <div key={i} className="h-32 bg-muted/50 rounded-lg"></div>
             ))}
           </div>
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

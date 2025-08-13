@@ -24,20 +24,23 @@ This document provides a comprehensive reference for all training calculations, 
 **Definition**: The maximum power (watts) that a cyclist can sustain for approximately one hour without fatiguing.
 
 **Calculation Method**:
+
 ```typescript
 // Automatic estimation from activity data
-const powerActivities = activities.filter(a => a.moving_time > 1200) // > 20 minutes
+const powerActivities = activities.filter(a => a.moving_time > 1200); // > 20 minutes
 const powerValues = powerActivities
   .map(a => a.weighted_average_watts || a.average_watts)
   .filter((p): p is number => p !== undefined && p > 0)
-  .sort((a, b) => b - a)
+  .sort((a, b) => b - a);
 
-const functionalThresholdPower = powerValues.length > 0 
-  ? powerValues[Math.floor(powerValues.length * 0.1)] // 90th percentile
-  : undefined
+const functionalThresholdPower =
+  powerValues.length > 0
+    ? powerValues[Math.floor(powerValues.length * 0.1)] // 90th percentile
+    : undefined;
 ```
 
 **Usage**:
+
 - Power zone calculations
 - TSS (Training Stress Score) calculations
 - Training intensity planning
@@ -46,35 +49,39 @@ const functionalThresholdPower = powerValues.length > 0
 ### Heart Rate Thresholds
 
 #### Max Heart Rate
+
 **Estimation Method**: 95th percentile of recorded max heart rates
+
 ```typescript
 const maxHRs = activitiesWithHR
   .map(a => a.max_heartrate || a.average_heartrate)
   .filter((hr): hr is number => hr !== undefined && hr > 0)
-  .sort((a, b) => b - a)
+  .sort((a, b) => b - a);
 
-const maxHeartRate = maxHRs.length > 0 
-  ? maxHRs[Math.floor(maxHRs.length * 0.05)] || 190 
-  : 190 // Default fallback
+const maxHeartRate =
+  maxHRs.length > 0 ? maxHRs[Math.floor(maxHRs.length * 0.05)] || 190 : 190; // Default fallback
 ```
 
 #### Resting Heart Rate
+
 **Estimation Method**: 5th percentile of average heart rates
+
 ```typescript
 const avgHRs = activitiesWithHR
   .map(a => a.average_heartrate)
   .filter((hr): hr is number => hr !== undefined && hr > 0)
-  .sort((a, b) => a - b)
+  .sort((a, b) => a - b);
 
-const restingHeartRate = avgHRs.length > 0 
-  ? avgHRs[Math.floor(avgHRs.length * 0.05)] || 60 
-  : 60 // Default fallback
+const restingHeartRate =
+  avgHRs.length > 0 ? avgHRs[Math.floor(avgHRs.length * 0.05)] || 60 : 60; // Default fallback
 ```
 
 #### Lactate Threshold Heart Rate
+
 **Estimation Method**: 85% of estimated max heart rate
+
 ```typescript
-const lactateThreshold = maxHeartRate * 0.85
+const lactateThreshold = maxHeartRate * 0.85;
 ```
 
 ---
@@ -86,21 +93,23 @@ const lactateThreshold = maxHeartRate * 0.85
 **Definition**: Heart rate-based training load calculation using Banister's formula with exponential weighting.
 
 **Formula**:
+
 ```typescript
 // Heart rate reserve ratio
-const hrReserve = (avgHR - restHR) / (maxHR - restHR)
+const hrReserve = (avgHR - restHR) / (maxHR - restHR);
 
 // Exponential intensity factor
-const intensityFactor = hrRatio * 1.92
+const intensityFactor = hrRatio * 1.92;
 
 // Base TRIMP
-const trimp = duration * hrRatio * (0.64 * Math.exp(intensityFactor))
+const trimp = duration * hrRatio * (0.64 * Math.exp(intensityFactor));
 
 // Apply sport multiplier
-const finalTrimp = trimp * sportMultiplier
+const finalTrimp = trimp * sportMultiplier;
 ```
 
 **Implementation**:
+
 ```typescript
 calculateTRIMP(activity: Activity): number {
   if (!activity.has_heartrate || !activity.average_heartrate) {
@@ -133,12 +142,15 @@ calculateTRIMP(activity: Activity): number {
 **Definition**: Power-based training load calculation normalized to Functional Threshold Power (FTP).
 
 #### Power-Based TSS (Preferred)
+
 **Formula**:
+
 ```
 TSS = (seconds × NP × IF) / (FTP × 3600) × 100
 ```
 
 **Implementation**:
+
 ```typescript
 calculateTSS(activity: Activity): number {
   const duration = activity.moving_time / 3600 // Convert to hours
@@ -149,7 +161,7 @@ calculateTSS(activity: Activity): number {
     const ftp = this.athleteThresholds.functionalThresholdPower
     const intensityFactor = avgPower / ftp
     const normalizedPower = avgPower * this.calculateVariabilityIndex(activity)
-    
+
     // TSS = (seconds * NP * IF) / (FTP * 3600) * 100
     const tss = (activity.moving_time * normalizedPower * intensityFactor) / (ftp * 3600) * 100
     return Math.round(Math.max(0, tss))
@@ -178,7 +190,9 @@ calculateTSS(activity: Activity): number {
 ```
 
 #### Heart Rate-Based TSS (Fallback)
+
 **Formula**:
+
 ```
 TSS = duration_hours × intensityFactor² × 100 × sportMultiplier
 ```
@@ -188,20 +202,21 @@ TSS = duration_hours × intensityFactor² × 100 × sportMultiplier
 **Definition**: Combined TRIMP and TSS calculation normalized to a 0-100 scale for easy interpretation.
 
 **Implementation**:
+
 ```typescript
 calculateNormalizedLoad(activity: Activity): number {
   const trimp = this.calculateTRIMP(activity)
   const tss = this.calculateTSS(activity)
-  
+
   // Weighted average when both metrics available
   if (trimp > 0 && tss > 0) {
     return Math.round((trimp * 0.4 + tss * 0.6) / 10) // Normalize to 0-100
   }
-  
+
   // Use available metric
   if (tss > 0) return Math.round(tss / 10)
   if (trimp > 0) return Math.round(trimp / 10)
-  
+
   return 0
 }
 ```
@@ -215,26 +230,28 @@ calculateNormalizedLoad(activity: Activity): number {
 **Definition**: 42-day exponentially weighted average of training load.
 
 **Formula**:
+
 ```
 CTL = Σ(training_load × e^(-days_ago/42))
 ```
 
 **Implementation**:
+
 ```typescript
 calculateExponentialAverage(loadPoints: number[], days: number): number {
   if (loadPoints.length === 0) return 0
-  
+
   const now = new Date()
   let weightedSum = 0
   let weightSum = 0
-  
+
   loadPoints.forEach((load, index) => {
     const daysAgo = (now.getTime() - new Date(load.date).getTime()) / (1000 * 60 * 60 * 24)
     const weight = Math.exp(-daysAgo / days)
     weightedSum += load * weight
     weightSum += weight
   })
-  
+
   return weightSum > 0 ? weightedSum / weightSum : 0
 }
 ```
@@ -244,6 +261,7 @@ calculateExponentialAverage(loadPoints: number[], days: number): number {
 **Definition**: 7-day exponentially weighted average of training load.
 
 **Formula**:
+
 ```
 ATL = Σ(training_load × e^(-days_ago/7))
 ```
@@ -253,11 +271,13 @@ ATL = Σ(training_load × e^(-days_ago/7))
 **Definition**: The difference between CTL and ATL, indicating current form.
 
 **Formula**:
+
 ```
 TSB = CTL - ATL
 ```
 
 **Interpretation**:
+
 - **Positive TSB**: Fresh, ready for hard training
 - **Negative TSB**: Fatigued, need recovery
 - **Zero TSB**: Balanced training load
@@ -267,6 +287,7 @@ TSB = CTL - ATL
 **Definition**: Weekly change in fitness level (CTL).
 
 **Formula**:
+
 ```
 Ramp Rate = (Current CTL - Previous Week CTL) / 7
 ```
@@ -274,6 +295,7 @@ Ramp Rate = (Current CTL - Previous Week CTL) / 7
 ### Training Status
 
 **Determination Logic**:
+
 ```typescript
 determineTrainingStatus(ctl: number, atl: number, tsb: number, rampRate: number): TrainingStatus {
   if (tsb > 10 && rampRate > 0) return 'peak'
@@ -290,51 +312,110 @@ determineTrainingStatus(ctl: number, atl: number, tsb: number, rampRate: number)
 ### Heart Rate Zones (5-Zone Model)
 
 **Zone Calculations**:
+
 ```typescript
-const maxHR = athleteThresholds.maxHeartRate
-const restHR = athleteThresholds.restingHeartRate
-const hrReserve = maxHR - restHR
+const maxHR = athleteThresholds.maxHeartRate;
+const restHR = athleteThresholds.restingHeartRate;
+const hrReserve = maxHR - restHR;
 
 const zones = {
-  zone_1: { min: restHR, max: restHR + hrReserve * 0.6, name: 'Active Recovery' },
-  zone_2: { min: restHR + hrReserve * 0.6, max: restHR + hrReserve * 0.7, name: 'Aerobic Base' },
-  zone_3: { min: restHR + hrReserve * 0.7, max: restHR + hrReserve * 0.8, name: 'Aerobic Threshold' },
-  zone_4: { min: restHR + hrReserve * 0.8, max: restHR + hrReserve * 0.9, name: 'Lactate Threshold' },
-  zone_5: { min: restHR + hrReserve * 0.9, max: maxHR, name: 'VO2 Max' }
-}
+  zone_1: {
+    min: restHR,
+    max: restHR + hrReserve * 0.6,
+    name: 'Active Recovery',
+  },
+  zone_2: {
+    min: restHR + hrReserve * 0.6,
+    max: restHR + hrReserve * 0.7,
+    name: 'Aerobic Base',
+  },
+  zone_3: {
+    min: restHR + hrReserve * 0.7,
+    max: restHR + hrReserve * 0.8,
+    name: 'Aerobic Threshold',
+  },
+  zone_4: {
+    min: restHR + hrReserve * 0.8,
+    max: restHR + hrReserve * 0.9,
+    name: 'Lactate Threshold',
+  },
+  zone_5: { min: restHR + hrReserve * 0.9, max: maxHR, name: 'VO2 Max' },
+};
 ```
 
 ### Power Zones (7-Zone Coggan Model)
 
 **Zone Calculations**:
+
 ```typescript
-const ftp = athleteThresholds.functionalThresholdPower
+const ftp = athleteThresholds.functionalThresholdPower;
 
 const zones = {
   zone_1: { min: 0, max: Math.round(ftp * 0.55), name: 'Active Recovery' },
-  zone_2: { min: Math.round(ftp * 0.56), max: Math.round(ftp * 0.75), name: 'Endurance' },
-  zone_3: { min: Math.round(ftp * 0.76), max: Math.round(ftp * 0.90), name: 'Tempo' },
-  zone_4: { min: Math.round(ftp * 0.91), max: Math.round(ftp * 1.05), name: 'Lactate Threshold' },
-  zone_5: { min: Math.round(ftp * 1.06), max: Math.round(ftp * 1.20), name: 'VO2 Max' },
-  zone_6: { min: Math.round(ftp * 1.21), max: Math.round(ftp * 1.50), name: 'Anaerobic Capacity' },
-  zone_7: { min: Math.round(ftp * 1.51), max: Math.round(ftp * 2.50), name: 'Neuromuscular Power' }
-}
+  zone_2: {
+    min: Math.round(ftp * 0.56),
+    max: Math.round(ftp * 0.75),
+    name: 'Endurance',
+  },
+  zone_3: {
+    min: Math.round(ftp * 0.76),
+    max: Math.round(ftp * 0.9),
+    name: 'Tempo',
+  },
+  zone_4: {
+    min: Math.round(ftp * 0.91),
+    max: Math.round(ftp * 1.05),
+    name: 'Lactate Threshold',
+  },
+  zone_5: {
+    min: Math.round(ftp * 1.06),
+    max: Math.round(ftp * 1.2),
+    name: 'VO2 Max',
+  },
+  zone_6: {
+    min: Math.round(ftp * 1.21),
+    max: Math.round(ftp * 1.5),
+    name: 'Anaerobic Capacity',
+  },
+  zone_7: {
+    min: Math.round(ftp * 1.51),
+    max: Math.round(ftp * 2.5),
+    name: 'Neuromuscular Power',
+  },
+};
 ```
 
 ### Pace Zones (Running)
 
 **Zone Calculations**:
+
 ```typescript
 // Based on 5K pace or estimated threshold pace
-const thresholdPace = athleteThresholds.thresholdPace // seconds per km
+const thresholdPace = athleteThresholds.thresholdPace; // seconds per km
 
 const zones = {
   zone_1: { min: thresholdPace * 1.3, max: Infinity, name: 'Easy' },
-  zone_2: { min: thresholdPace * 1.1, max: thresholdPace * 1.3, name: 'Aerobic' },
-  zone_3: { min: thresholdPace * 1.0, max: thresholdPace * 1.1, name: 'Threshold' },
-  zone_4: { min: thresholdPace * 0.95, max: thresholdPace * 1.0, name: 'Lactate Threshold' },
-  zone_5: { min: thresholdPace * 0.85, max: thresholdPace * 0.95, name: 'VO2 Max' }
-}
+  zone_2: {
+    min: thresholdPace * 1.1,
+    max: thresholdPace * 1.3,
+    name: 'Aerobic',
+  },
+  zone_3: {
+    min: thresholdPace * 1.0,
+    max: thresholdPace * 1.1,
+    name: 'Threshold',
+  },
+  zone_4: {
+    min: thresholdPace * 0.95,
+    max: thresholdPace * 1.0,
+    name: 'Lactate Threshold',
+  },
+  zone_5: {
+    min: thresholdPace * 0.85,
+    max: thresholdPace * 0.95,
+    name: 'VO2 Max',
+  },
+};
 ```
 
 ---
@@ -344,53 +425,56 @@ const zones = {
 ### Automatic Threshold Detection
 
 **Max Heart Rate Estimation**:
+
 ```typescript
 // 95th percentile of recorded max heart rates
 const maxHRs = activitiesWithHR
   .map(a => a.max_heartrate || a.average_heartrate)
   .filter((hr): hr is number => hr !== undefined && hr > 0)
-  .sort((a, b) => b - a)
+  .sort((a, b) => b - a);
 
-const maxHeartRate = maxHRs.length > 0 
-  ? maxHRs[Math.floor(maxHRs.length * 0.05)] || 190 
-  : 190
+const maxHeartRate =
+  maxHRs.length > 0 ? maxHRs[Math.floor(maxHRs.length * 0.05)] || 190 : 190;
 ```
 
 **Resting Heart Rate Estimation**:
+
 ```typescript
 // 5th percentile of average heart rates
 const avgHRs = activitiesWithHR
   .map(a => a.average_heartrate)
   .filter((hr): hr is number => hr !== undefined && hr > 0)
-  .sort((a, b) => a - b)
+  .sort((a, b) => a - b);
 
-const restingHeartRate = avgHRs.length > 0 
-  ? avgHRs[Math.floor(avgHRs.length * 0.05)] || 60 
-  : 60
+const restingHeartRate =
+  avgHRs.length > 0 ? avgHRs[Math.floor(avgHRs.length * 0.05)] || 60 : 60;
 ```
 
 **FTP Estimation**:
+
 ```typescript
 // 90th percentile of weighted average watts for efforts > 20 minutes
-const powerActivities = activitiesWithPower.filter(a => a.moving_time > 1200)
+const powerActivities = activitiesWithPower.filter(a => a.moving_time > 1200);
 const powerValues = powerActivities
   .map(a => a.weighted_average_watts || a.average_watts)
   .filter((p): p is number => p !== undefined && p > 0)
-  .sort((a, b) => b - a)
+  .sort((a, b) => b - a);
 
-const functionalThresholdPower = powerValues.length > 0 
-  ? powerValues[Math.floor(powerValues.length * 0.1)]
-  : undefined
+const functionalThresholdPower =
+  powerValues.length > 0
+    ? powerValues[Math.floor(powerValues.length * 0.1)]
+    : undefined;
 ```
 
 ### Confidence Scoring
 
 **Confidence Calculation**:
+
 ```typescript
 calculateConfidence(hrActivities: number, powerActivities: number, totalActivities: number) {
   const hrPercentage = (hrActivities / totalActivities) * 100
   const powerPercentage = (powerActivities / totalActivities) * 100
-  
+
   return {
     max_heart_rate: Math.min(1.0, hrPercentage / 80),
     resting_heart_rate: Math.min(1.0, hrPercentage / 60),
@@ -407,26 +491,31 @@ calculateConfidence(hrActivities: number, powerActivities: number, totalActiviti
 ### Quality Levels
 
 **Excellent** (≥80% HR coverage + ≥20% power data + ≥20 activities)
+
 - High confidence in all calculations
 - Reliable threshold estimates
 - Accurate training load analysis
 
 **Good** (≥60% HR coverage + ≥15 activities OR ≥40% power + ≥10 activities)
+
 - Good confidence in most calculations
 - Reasonable threshold estimates
 - Reliable training load analysis
 
 **Fair** (≥30% HR coverage OR ≥10 activities)
+
 - Moderate confidence in calculations
 - Basic threshold estimates
 - Limited training load accuracy
 
 **Poor** (≥10% HR coverage OR ≥5 activities)
+
 - Low confidence in calculations
 - Rough threshold estimates
 - Limited training load accuracy
 
 **None** (Insufficient data)
+
 - Cannot perform meaningful analysis
 - Default values used
 - Recommendations for data collection
@@ -435,36 +524,39 @@ calculateConfidence(hrActivities: number, powerActivities: number, totalActiviti
 
 ```typescript
 function assessDataQuality(
-  activitiesWithHR: number, 
-  activitiesWithPower: number, 
+  activitiesWithHR: number,
+  activitiesWithPower: number,
   totalActivities: number
 ): 'excellent' | 'good' | 'fair' | 'poor' | 'none' {
-  if (totalActivities === 0) return 'none'
-  
-  const hrPercentage = (activitiesWithHR / totalActivities) * 100
-  const powerPercentage = (activitiesWithPower / totalActivities) * 100
-  
+  if (totalActivities === 0) return 'none';
+
+  const hrPercentage = (activitiesWithHR / totalActivities) * 100;
+  const powerPercentage = (activitiesWithPower / totalActivities) * 100;
+
   // Excellent: High HR coverage + some power data
   if (hrPercentage >= 80 && powerPercentage >= 20 && totalActivities >= 20) {
-    return 'excellent'
+    return 'excellent';
   }
-  
+
   // Good: Good HR coverage or decent power data
-  if ((hrPercentage >= 60 && totalActivities >= 15) || (powerPercentage >= 40 && totalActivities >= 10)) {
-    return 'good'
+  if (
+    (hrPercentage >= 60 && totalActivities >= 15) ||
+    (powerPercentage >= 40 && totalActivities >= 10)
+  ) {
+    return 'good';
   }
-  
+
   // Fair: Some HR data or activities
   if (hrPercentage >= 30 || totalActivities >= 10) {
-    return 'fair'
+    return 'fair';
   }
-  
+
   // Poor: Little data available
   if (hrPercentage >= 10 || totalActivities >= 5) {
-    return 'poor'
+    return 'poor';
   }
-  
-  return 'none'
+
+  return 'none';
 }
 ```
 
@@ -475,37 +567,39 @@ function assessDataQuality(
 ### Sport Multipliers
 
 **Multiplier Values**:
+
 ```typescript
 const SPORT_MULTIPLIERS = {
-  'Run': 1.0,           // Baseline reference
-  'Ride': 0.85,         // Cycling typically lower intensity
-  'VirtualRide': 0.85,
-  'Swim': 1.1,          // Swimming often higher intensity
-  'Hike': 0.7,
-  'Walk': 0.5,
-  'Workout': 0.9,
-  'WeightTraining': 0.8,
-  'Yoga': 0.6,
-  'CrossCountrySkiing': 1.0,
-  'Soccer': 1.0,
-  'Tennis': 0.9,
-  'Golf': 0.4,
-  'Default': 0.8
-}
+  Run: 1.0, // Baseline reference
+  Ride: 0.85, // Cycling typically lower intensity
+  VirtualRide: 0.85,
+  Swim: 1.1, // Swimming often higher intensity
+  Hike: 0.7,
+  Walk: 0.5,
+  Workout: 0.9,
+  WeightTraining: 0.8,
+  Yoga: 0.6,
+  CrossCountrySkiing: 1.0,
+  Soccer: 1.0,
+  Tennis: 0.9,
+  Golf: 0.4,
+  Default: 0.8,
+};
 ```
 
 ### Weight Training Classification
 
 **Exercise Type Multipliers**:
+
 ```typescript
 const WEIGHT_TRAINING_MULTIPLIERS = {
-  'strength': 0.7,      // Low rep, high intensity (1-5 reps)
-  'hypertrophy': 0.8,   // Moderate rep range (6-12 reps)
-  'endurance': 0.9,     // High rep, low intensity (15+ reps)
-  'power': 0.75,        // Explosive movements
-  'circuit': 1.0,       // High intensity circuit training
-  'default': 0.8
-}
+  strength: 0.7, // Low rep, high intensity (1-5 reps)
+  hypertrophy: 0.8, // Moderate rep range (6-12 reps)
+  endurance: 0.9, // High rep, low intensity (15+ reps)
+  power: 0.75, // Explosive movements
+  circuit: 1.0, // High intensity circuit training
+  default: 0.8,
+};
 ```
 
 ### Weight Training Load Calculation
@@ -513,19 +607,19 @@ const WEIGHT_TRAINING_MULTIPLIERS = {
 ```typescript
 calculateWeightTrainingLoad(activity: ActivityWithTrainingData): number {
   const duration = activity.moving_time / 60 // minutes
-  
+
   // Base calculation using heart rate if available
   let baseLoad = 0
-  
+
   if (activity.has_heartrate && activity.average_heartrate) {
     const avgHR = activity.average_heartrate
     const maxHR = this.athleteThresholds.maxHeartRate
     const restHR = this.athleteThresholds.restingHeartRate
-    
+
     // Heart rate reserve ratio
     const hrReserve = (avgHR - restHR) / (maxHR - restHR)
     const hrRatio = Math.max(0, Math.min(1, hrReserve))
-    
+
     // Weight training typically has lower HR but higher neuromuscular stress
     const neuromuscularFactor = 1.3 // Compensate for lower HR in strength training
     baseLoad = duration * hrRatio * neuromuscularFactor
@@ -533,18 +627,18 @@ calculateWeightTrainingLoad(activity: ActivityWithTrainingData): number {
     // Fallback: duration-based estimation
     baseLoad = duration * 0.8 // Moderate intensity assumption
   }
-  
+
   // Determine exercise type from activity name or use default
   const exerciseType = this.determineWeightTrainingType(activity)
   const typeMultiplier = WEIGHT_TRAINING_MULTIPLIERS[exerciseType] || WEIGHT_TRAINING_MULTIPLIERS.default
-  
+
   // Apply intensity adjustments based on RPE if available
   let intensityMultiplier = 1.0
   if (activity.perceived_exertion) {
     // RPE 1-10 scale to intensity multiplier
     intensityMultiplier = 0.5 + (activity.perceived_exertion / 10) * 0.8 // 0.5 to 1.3 range
   }
-  
+
   const finalLoad = baseLoad * typeMultiplier * intensityMultiplier
   return Math.round(finalLoad)
 }
@@ -557,9 +651,11 @@ calculateWeightTrainingLoad(activity: ActivityWithTrainingData): number {
 ### Core Classes
 
 #### TrainingLoadCalculator
+
 **Location**: `lib/training/training-load.ts`
 
 **Key Methods**:
+
 - `calculateTRIMP(activity)`: Heart rate-based training load
 - `calculateTSS(activity)`: Power-based training stress score
 - `calculateNormalizedLoad(activity)`: Combined 0-100 scale
@@ -567,18 +663,22 @@ calculateWeightTrainingLoad(activity: ActivityWithTrainingData): number {
 - `estimateAthleteThresholds(activities)`: Automatic threshold detection
 
 #### TrainingZoneAnalysis
+
 **Location**: `lib/training/zone-analysis.ts`
 
 **Key Methods**:
+
 - `analyzeUserZones(userId)`: Complete zone analysis
 - `getHeartRateStatistics(userId)`: HR data analysis
 - `getSportSpecificAnalysis(userId)`: Sport-specific patterns
 - `createZoneModels(maxHR)`: Generate zone models
 
 #### TrainingProfileService
+
 **Location**: `lib/training/profile-service.ts`
 
 **Key Methods**:
+
 - `calculateThresholds(userId, activities)`: Threshold estimation
 - `generateTrainingZones(profile)`: Zone generation
 - `autoUpdateFromCalculation(userId, estimation)`: Profile updates
@@ -616,51 +716,51 @@ This implementation is based on established sports science research:
 ```typescript
 interface Activity {
   // Basic Identification
-  id: string                    // UUID
-  user_id: string              // UUID
-  strava_activity_id: number   // Strava's ID
-  name: string                 // Activity name
-  sport_type: string           // "Run", "Ride", "Swim", etc.
-  
+  id: string; // UUID
+  user_id: string; // UUID
+  strava_activity_id: number; // Strava's ID
+  name: string; // Activity name
+  sport_type: string; // "Run", "Ride", "Swim", etc.
+
   // Time & Date
-  start_date: string           // ISO timestamp
-  start_date_local: string     // Local time
-  timezone: string             // Timezone info
-  moving_time: number          // Seconds
-  elapsed_time: number         // Seconds
-  
+  start_date: string; // ISO timestamp
+  start_date_local: string; // Local time
+  timezone: string; // Timezone info
+  moving_time: number; // Seconds
+  elapsed_time: number; // Seconds
+
   // Distance & Speed
-  distance: number             // Meters
-  average_speed: number        // m/s
-  max_speed: number           // m/s
-  
+  distance: number; // Meters
+  average_speed: number; // m/s
+  max_speed: number; // m/s
+
   // Elevation
-  total_elevation_gain: number // Meters
-  
+  total_elevation_gain: number; // Meters
+
   // Heart Rate Data
-  average_heartrate: number    // BPM
-  max_heartrate: number       // BPM
-  has_heartrate: boolean      // Data available flag
-  
+  average_heartrate: number; // BPM
+  max_heartrate: number; // BPM
+  has_heartrate: boolean; // Data available flag
+
   // Power Data (Cycling)
-  average_watts: number       // Watts
-  max_watts: number          // Watts
-  weighted_average_watts: number // Normalized power
-  kilojoules: number         // Energy expended
-  has_power: boolean         // Power data available
-  
+  average_watts: number; // Watts
+  max_watts: number; // Watts
+  weighted_average_watts: number; // Normalized power
+  kilojoules: number; // Energy expended
+  has_power: boolean; // Power data available
+
   // Activity Characteristics
-  trainer: boolean           // Indoor trainer
-  commute: boolean          // Commute activity
-  manual: boolean           // Manually entered
-  
+  trainer: boolean; // Indoor trainer
+  commute: boolean; // Commute activity
+  manual: boolean; // Manually entered
+
   // Social Metrics
-  achievement_count: number  // Strava achievements
-  kudos_count: number       // Kudos received
-  comment_count: number     // Comments received
-  
+  achievement_count: number; // Strava achievements
+  kudos_count: number; // Kudos received
+  comment_count: number; // Comments received
+
   // Additional Data
-  description: string        // Activity description
+  description: string; // Activity description
 }
 ```
 
@@ -668,29 +768,29 @@ interface Activity {
 
 ```typescript
 // Time-based computations
-week_number: number          // Week of year (1-52)
-month_number: number         // Month (1-12)
-year_number: number          // Year
-day_of_week: number         // Day (0-6, Sunday=0)
+week_number: number; // Week of year (1-52)
+month_number: number; // Month (1-12)
+year_number: number; // Year
+day_of_week: number; // Day (0-6, Sunday=0)
 
 // Performance metrics
-average_pace: number         // Seconds per km
-elevation_per_km: number     // Elevation gain per km
-efficiency_score: number     // Performance metric
+average_pace: number; // Seconds per km
+elevation_per_km: number; // Elevation gain per km
+efficiency_score: number; // Performance metric
 
 // Training load metrics
-training_stress_score: number // TSS (Training Stress Score)
-training_load_score: number  // Calculated training load
-intensity_score: number      // Workout intensity rating
-normalized_power: number     // Power-based normalized score
-recovery_time: number        // Hours needed for recovery
-relative_effort: number      // Strava's relative effort
-perceived_exertion: number   // RPE 1-10 scale (manually logged)
+training_stress_score: number; // TSS (Training Stress Score)
+training_load_score: number; // Calculated training load
+intensity_score: number; // Workout intensity rating
+normalized_power: number; // Power-based normalized score
+recovery_time: number; // Hours needed for recovery
+relative_effort: number; // Strava's relative effort
+perceived_exertion: number; // RPE 1-10 scale (manually logged)
 
 // Zone data (stored as JSON)
-power_zones: object          // Power zone distribution
-heart_rate_zones: object     // Heart rate zone data
-pace_zones: object          // Pace zone information
+power_zones: object; // Power zone distribution
+heart_rate_zones: object; // Heart rate zone data
+pace_zones: object; // Pace zone information
 ```
 
 ---
@@ -706,4 +806,4 @@ pace_zones: object          // Pace zone information
 
 ---
 
-*This document serves as the definitive reference for all training calculations and metrics in the EnduroRevamp application. For implementation details, refer to the source code files listed in each section.* 
+_This document serves as the definitive reference for all training calculations and metrics in the EnduroRevamp application. For implementation details, refer to the source code files listed in each section._

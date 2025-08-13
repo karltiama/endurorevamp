@@ -1,24 +1,24 @@
-'use client'
+'use client';
 
-import { useUserActivities } from '@/hooks/use-user-activities'
-import { PersonalBests } from './PersonalBests'
-import { useEffect } from 'react'
+import { useUserActivities } from '@/hooks/use-user-activities';
+import { PersonalBests } from './PersonalBests';
+import { useEffect } from 'react';
 
 interface PersonalBestsClientProps {
-  userId: string
+  userId: string;
 }
 
 export function PersonalBestsClient({ userId }: PersonalBestsClientProps) {
-  const { data: activities, isLoading, error } = useUserActivities(userId)
+  const { data: activities, isLoading, error } = useUserActivities(userId);
 
   useEffect(() => {
     console.log('PersonalBestsClient: Component mounted/updated', {
       userId,
       isLoading,
       error: error?.message,
-      activitiesCount: activities?.length || 0
-    })
-  }, [userId, isLoading, error, activities])
+      activitiesCount: activities?.length || 0,
+    });
+  }, [userId, isLoading, error, activities]);
 
   if (isLoading) {
     return (
@@ -41,7 +41,7 @@ export function PersonalBestsClient({ userId }: PersonalBestsClientProps) {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -51,8 +51,8 @@ export function PersonalBestsClient({ userId }: PersonalBestsClientProps) {
           Failed to load activity data: {error.message}
         </div>
       </div>
-    )
+    );
   }
 
-  return <PersonalBests activities={activities || []} />
-} 
+  return <PersonalBests activities={activities || []} />;
+}

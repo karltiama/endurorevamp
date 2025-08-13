@@ -28,7 +28,10 @@ interface GoalSuggestion {
 export class SmartGoalGenerator {
   private userId: string;
   private activities: StravaActivity[];
-  private preferences: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' };
+  private preferences: {
+    distance: 'km' | 'miles';
+    pace: 'min/km' | 'min/mile';
+  };
 
   constructor(options: SmartGoalGeneratorOptions) {
     this.userId = options.userId;
@@ -82,43 +85,56 @@ export class SmartGoalGenerator {
     });
 
     // Calculate weekly distance
-    const weeklyDistance = thisWeekActivities.reduce((sum, activity) => 
-      sum + activity.distance, 0) / 1000; // Convert to km
+    const weeklyDistance =
+      thisWeekActivities.reduce((sum, activity) => sum + activity.distance, 0) /
+      1000; // Convert to km
 
     // Calculate weekly frequency
     const weeklyFrequency = thisWeekActivities.length;
 
     // Calculate average pace
-    const runningActivities = this.activities.filter(a => a.sport_type === 'Run');
-    const averagePace = runningActivities.length > 0 
-      ? runningActivities.reduce((sum, activity) => {
-          const pace = activity.moving_time / (activity.distance / 1000); // seconds per km
-          return sum + pace;
-        }, 0) / runningActivities.length
-      : 0;
+    const runningActivities = this.activities.filter(
+      a => a.sport_type === 'Run'
+    );
+    const averagePace =
+      runningActivities.length > 0
+        ? runningActivities.reduce((sum, activity) => {
+            const pace = activity.moving_time / (activity.distance / 1000); // seconds per km
+            return sum + pace;
+          }, 0) / runningActivities.length
+        : 0;
 
     // Calculate average duration
-    const averageDuration = this.activities.length > 0
-      ? this.activities.reduce((sum, activity) => sum + activity.moving_time, 0) / this.activities.length / 60 // minutes
-      : 0;
-    
+    const averageDuration =
+      this.activities.length > 0
+        ? this.activities.reduce(
+            (sum, activity) => sum + activity.moving_time,
+            0
+          ) /
+          this.activities.length /
+          60 // minutes
+        : 0;
+
     return {
       weeklyDistance,
       weeklyFrequency,
       averagePace,
       averageDuration,
-      totalActivities: this.activities.length
+      totalActivities: this.activities.length,
     };
   }
 
-  private generateDistanceGoal(analysis: ReturnType<typeof this.analyzeTrainingPatterns>): GoalSuggestion {
+  private generateDistanceGoal(
+    analysis: ReturnType<typeof this.analyzeTrainingPatterns>
+  ): GoalSuggestion {
     const currentWeekly = analysis.weeklyDistance;
     const targetWeekly = Math.round(currentWeekly * 1.2 * 10) / 10; // 20% increase
-    
+
     return {
       id: 'weekly-distance',
       title: 'Increase Weekly Distance',
-      description: 'Build endurance gradually by increasing your weekly running distance',
+      description:
+        'Build endurance gradually by increasing your weekly running distance',
       type: 'distance',
       target: targetWeekly,
       unit: this.preferences.distance,
@@ -129,19 +145,21 @@ export class SmartGoalGenerator {
       benefits: [
         'Builds aerobic endurance',
         'Improves running economy',
-        'Prepares for longer races'
+        'Prepares for longer races',
       ],
       strategies: [
         'Increase distance by 10% each week',
         'Include rest days between runs',
-        'Listen to your body and adjust as needed'
-      ]
+        'Listen to your body and adjust as needed',
+      ],
     };
   }
 
-  private generateFrequencyGoal(analysis: ReturnType<typeof this.analyzeTrainingPatterns>): GoalSuggestion {
+  private generateFrequencyGoal(
+    analysis: ReturnType<typeof this.analyzeTrainingPatterns>
+  ): GoalSuggestion {
     const targetFrequency = Math.min(analysis.weeklyFrequency + 1, 5);
-    
+
     return {
       id: 'weekly-frequency',
       title: 'Build Training Consistency',
@@ -156,20 +174,22 @@ export class SmartGoalGenerator {
       benefits: [
         'Builds training consistency',
         'Improves fitness gradually',
-        'Creates sustainable habits'
+        'Creates sustainable habits',
       ],
       strategies: [
         'Schedule runs on specific days',
         'Start with shorter, easier runs',
-        'Gradually increase frequency'
-      ]
+        'Gradually increase frequency',
+      ],
     };
   }
 
-  private generatePaceGoal(analysis: ReturnType<typeof this.analyzeTrainingPatterns>): GoalSuggestion {
+  private generatePaceGoal(
+    analysis: ReturnType<typeof this.analyzeTrainingPatterns>
+  ): GoalSuggestion {
     const currentPace = analysis.averagePace;
     const targetPace = Math.round(currentPace * 0.95); // 5% improvement
-    
+
     return {
       id: 'pace-improvement',
       title: 'Improve Running Pace',
@@ -184,23 +204,25 @@ export class SmartGoalGenerator {
       benefits: [
         'Improves running economy',
         'Builds speed endurance',
-        'Enhances overall fitness'
+        'Enhances overall fitness',
       ],
       strategies: [
         'Include interval training once per week',
         'Focus on good running form',
-        'Gradually increase intensity'
+        'Gradually increase intensity',
       ],
       warnings: [
-        'Don\'t increase intensity too quickly',
-        'Listen to your body and rest when needed'
-      ]
+        "Don't increase intensity too quickly",
+        'Listen to your body and rest when needed',
+      ],
     };
   }
 
-  private generateDurationGoal(analysis: ReturnType<typeof this.analyzeTrainingPatterns>): GoalSuggestion {
+  private generateDurationGoal(
+    analysis: ReturnType<typeof this.analyzeTrainingPatterns>
+  ): GoalSuggestion {
     const targetDuration = Math.round(analysis.averageDuration * 1.15); // 15% increase
-    
+
     return {
       id: 'duration-increase',
       title: 'Extend Workout Duration',
@@ -215,13 +237,13 @@ export class SmartGoalGenerator {
       benefits: [
         'Builds aerobic endurance',
         'Improves fat burning',
-        'Prepares for longer races'
+        'Prepares for longer races',
       ],
       strategies: [
         'Start with 30-minute runs',
         'Increase duration by 10% weekly',
-        'Keep long runs at easy pace'
-      ]
+        'Keep long runs at easy pace',
+      ],
     };
   }
-} 
+}

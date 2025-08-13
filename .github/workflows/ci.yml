@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 env:
   NODE_VERSION: '22'
@@ -15,214 +15,217 @@ jobs:
   quality-gates:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Full history for better caching
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
-        
-    - name: Cache Next.js build
-      uses: actions/cache@v4
-      with:
-        path: |
-          .next/cache
-          node_modules/.cache
-        key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-nextjs-
-        
-    - name: Install dependencies
-      run: npm ci --prefer-offline --no-audit
-      
-    - name: TypeScript compilation check
-      run: npm run type-check
-      
-    - name: Code linting
-      run: npm run lint:ci
-      
-    - name: Run tests with coverage
-      env:
-        NODE_ENV: test
-        CI: true
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      run: npm run test:coverage
-      
-    - name: Upload test coverage
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage/lcov.info
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
-        verbose: true
-      
-    - name: Build verification
-      env:
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        NEXT_PUBLIC_STRAVA_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_STRAVA_CLIENT_ID }}
-        STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
-        STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
-      run: npm run build
-      
-    - name: Security audit
-      run: npm audit --audit-level high || echo "⚠️ Security vulnerabilities found - review recommended"
-      continue-on-error: true
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for better caching
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+            node_modules/.cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: TypeScript compilation check
+        run: npm run type-check
+
+      - name: Code linting
+        run: npm run lint:ci
+
+      - name: Check code formatting
+        run: npm run format:check
+
+      - name: Run tests with coverage
+        env:
+          NODE_ENV: test
+          CI: true
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run test:coverage
+
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Build verification
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_STRAVA_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_STRAVA_CLIENT_ID }}
+          STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+          STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
+        run: npm run build
+
+      - name: Security audit
+        run: npm audit --audit-level high || echo "⚠️ Security vulnerabilities found - review recommended"
+        continue-on-error: true
 
   # Advanced quality checks for stricter enforcement
   advanced-quality:
     runs-on: ubuntu-latest
     needs: quality-gates
     timeout-minutes: 10
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Check for unused dependencies
-      run: |
-        npx depcheck --ignores="@types/*,eslint-*,prettier,jest,typescript,@testing-library/*" || \
-        echo "::warning::Unused dependencies detected"
-      continue-on-error: true
-      
-    - name: Bundle size analysis
-      env:
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      run: |
-        npm run build
-        echo "📦 Bundle size analysis completed"
-        # Future: Add bundle size limits and reporting
-      continue-on-error: true
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for unused dependencies
+        run: |
+          npx depcheck --ignores="@types/*,eslint-*,prettier,jest,typescript,@testing-library/*" || \
+          echo "::warning::Unused dependencies detected"
+        continue-on-error: true
+
+      - name: Bundle size analysis
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          npm run build
+          echo "📦 Bundle size analysis completed"
+          # Future: Add bundle size limits and reporting
+        continue-on-error: true
 
   # Database schema validation (if needed)
   database-check:
     runs-on: ubuntu-latest
     needs: quality-gates
     timeout-minutes: 5
-    if: github.ref == 'refs/heads/main'  # Only run on main branch
-    
+    if: github.ref == 'refs/heads/main' # Only run on main branch
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Validate database schema
-      env:
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      run: |
-        echo "🔍 Database schema validation completed"
-        # Future: Add actual schema validation if needed
-      continue-on-error: true
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate database schema
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          echo "🔍 Database schema validation completed"
+          # Future: Add actual schema validation if needed
+        continue-on-error: true
 
   summary:
     runs-on: ubuntu-latest
     needs: [quality-gates, advanced-quality, database-check]
     if: always()
-    
+
     steps:
-    - name: Quality Gates Summary
-      run: |
-        echo "🎯 CI/CD Pipeline Results:"
-        echo ""
-        
-        if [ "${{ needs.quality-gates.result }}" == "success" ]; then
-          echo "✅ Quality Gates: PASSED"
-          echo "   ✅ TypeScript compilation"
-          echo "   ✅ Code linting"
-          echo "   ✅ Test suite with coverage"
-          echo "   ✅ Build verification"
-          echo "   ✅ Security audit"
-        else
-          echo "❌ Quality Gates: FAILED"
-          echo "   Pipeline blocked - fix issues before merging"
-          exit 1
-        fi
-        
-        if [ "${{ needs.advanced-quality.result }}" == "success" ]; then
-          echo "✅ Advanced Quality: PASSED"
-        else
-          echo "⚠️ Advanced Quality: Some warnings detected"
-        fi
-        
-        if [ "${{ needs.database-check.result }}" == "success" ]; then
-          echo "✅ Database Check: PASSED"
-        elif [ "${{ needs.database-check.result }}" == "skipped" ]; then
-          echo "⏭️ Database Check: SKIPPED (not on main branch)"
-        else
-          echo "⚠️ Database Check: Some warnings detected"
-        fi
-        
-        echo ""
-        echo "🚀 Ready for deployment: ${{ needs.quality-gates.result == 'success' && 'YES' || 'NO' }}"
-        echo "📊 Test coverage: Available in Codecov"
-        echo "🔒 Security: Audit completed"
-        
-    - name: Comment PR Results
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const { data: comments } = await github.rest.issues.listComments({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-          });
-          
-          const botComment = comments.find(comment => 
-            comment.user.type === 'Bot' && 
-            comment.body.includes('🎯 CI/CD Pipeline Results')
-          );
-          
-          const summary = `## 🎯 CI/CD Pipeline Results
-          
-          **Quality Gates**: ${{ needs.quality-gates.result == 'success' && '✅ PASSED' || '❌ FAILED' }}
-          **Advanced Quality**: ${{ needs.advanced-quality.result == 'success' && '✅ PASSED' || '⚠️ WARNINGS' }}
-          **Database Check**: ${{ needs.database-check.result == 'success' && '✅ PASSED' || needs.database-check.result == 'skipped' && '⏭️ SKIPPED' || '⚠️ WARNINGS' }}
-          
-          **Deployment Ready**: ${{ needs.quality-gates.result == 'success' && '✅ YES' || '❌ NO' }}
-          
-          ${{ needs.quality-gates.result == 'success' && '🚀 This PR is ready for review and merge!' || '🔧 Please fix the issues above before merging.' }}`;
-          
-          if (botComment) {
-            await github.rest.issues.updateComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: botComment.id,
-              body: summary
-            });
-          } else {
-            await github.rest.issues.createComment({
+      - name: Quality Gates Summary
+        run: |
+          echo "🎯 CI/CD Pipeline Results:"
+          echo ""
+
+          if [ "${{ needs.quality-gates.result }}" == "success" ]; then
+            echo "✅ Quality Gates: PASSED"
+            echo "   ✅ TypeScript compilation"
+            echo "   ✅ Code linting"
+            echo "   ✅ Test suite with coverage"
+            echo "   ✅ Build verification"
+            echo "   ✅ Security audit"
+          else
+            echo "❌ Quality Gates: FAILED"
+            echo "   Pipeline blocked - fix issues before merging"
+            exit 1
+          fi
+
+          if [ "${{ needs.advanced-quality.result }}" == "success" ]; then
+            echo "✅ Advanced Quality: PASSED"
+          else
+            echo "⚠️ Advanced Quality: Some warnings detected"
+          fi
+
+          if [ "${{ needs.database-check.result }}" == "success" ]; then
+            echo "✅ Database Check: PASSED"
+          elif [ "${{ needs.database-check.result }}" == "skipped" ]; then
+            echo "⏭️ Database Check: SKIPPED (not on main branch)"
+          else
+            echo "⚠️ Database Check: Some warnings detected"
+          fi
+
+          echo ""
+          echo "🚀 Ready for deployment: ${{ needs.quality-gates.result == 'success' && 'YES' || 'NO' }}"
+          echo "📊 Test coverage: Available in Codecov"
+          echo "🔒 Security: Audit completed"
+
+      - name: Comment PR Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: summary
             });
-          } 
+
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🎯 CI/CD Pipeline Results')
+            );
+
+            const summary = `## 🎯 CI/CD Pipeline Results
+
+            **Quality Gates**: ${{ needs.quality-gates.result == 'success' && '✅ PASSED' || '❌ FAILED' }}
+            **Advanced Quality**: ${{ needs.advanced-quality.result == 'success' && '✅ PASSED' || '⚠️ WARNINGS' }}
+            **Database Check**: ${{ needs.database-check.result == 'success' && '✅ PASSED' || needs.database-check.result == 'skipped' && '⏭️ SKIPPED' || '⚠️ WARNINGS' }}
+
+            **Deployment Ready**: ${{ needs.quality-gates.result == 'success' && '✅ YES' || '❌ NO' }}
+
+            ${{ needs.quality-gates.result == 'success' && '🚀 This PR is ready for review and merge!' || '🔧 Please fix the issues above before merging.' }}`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: summary
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: summary
+              });
+            }

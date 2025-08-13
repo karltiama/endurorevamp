@@ -4,10 +4,13 @@ import { createClient } from '@/lib/supabase/server';
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -23,7 +26,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     const { searchParams } = new URL(request.url);
-    
+
     const type = searchParams.get('type');
     const status = searchParams.get('status');
     const page = parseInt(searchParams.get('page') || '1');
@@ -49,8 +52,7 @@ export async function GET(request: NextRequest) {
       .select('*', { count: 'exact', head: true });
 
     // Get paginated results
-    const { data, error } = await query
-      .range(offset, offset + limit - 1);
+    const { data, error } = await query.range(offset, offset + limit - 1);
 
     if (error) {
       console.error('Database error:', error);
@@ -66,10 +68,9 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total: count || 0,
-        totalPages: Math.ceil((count || 0) / limit)
-      }
+        totalPages: Math.ceil((count || 0) / limit),
+      },
     });
-
   } catch (error) {
     console.error('Admin submissions error:', error);
     return NextResponse.json(
@@ -82,10 +83,13 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -107,7 +111,7 @@ export async function PATCH(request: NextRequest) {
       .update({
         status,
         admin_notes,
-        responded_at: status === 'responded' ? new Date().toISOString() : null
+        responded_at: status === 'responded' ? new Date().toISOString() : null,
       })
       .eq('id', id)
       .select()
@@ -122,7 +126,6 @@ export async function PATCH(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, submission: data });
-
   } catch (error) {
     console.error('Update submission error:', error);
     return NextResponse.json(
@@ -130,4 +133,4 @@ export async function PATCH(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

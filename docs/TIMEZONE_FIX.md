@@ -15,12 +15,12 @@ The workout times in the activity feed were displaying incorrectly due to a **mi
 
 ```typescript
 // Strava provides these fields:
-const startDateLocal = "2024-01-15T14:30:00Z"  // UTC but represents local time
-const timezone = "(GMT-05:00) America/Detroit"  // User is in Eastern Time
+const startDateLocal = '2024-01-15T14:30:00Z'; // UTC but represents local time
+const timezone = '(GMT-05:00) America/Detroit'; // User is in Eastern Time
 
 // ❌ WRONG: JavaScript treats start_date_local as UTC
-const date = new Date(startDateLocal)
-const time = date.toLocaleTimeString() // Shows 4:30 PM instead of 2:30 PM
+const date = new Date(startDateLocal);
+const time = date.toLocaleTimeString(); // Shows 4:30 PM instead of 2:30 PM
 ```
 
 ## Solution Implemented
@@ -31,32 +31,35 @@ Created dedicated functions in `lib/utils.ts` that avoid JavaScript's automatic 
 
 ```typescript
 // ✅ CORRECT: Direct time extraction without timezone conversion
-export function formatStravaTime(dateString: string, timezone?: string): string {
-  if (!dateString) return ''
-  
+export function formatStravaTime(
+  dateString: string,
+  timezone?: string
+): string {
+  if (!dateString) return '';
+
   try {
     // Parse the date string and extract time components manually
     // This avoids JavaScript's automatic timezone conversion
-    const date = new Date(dateString)
-    
+    const date = new Date(dateString);
+
     // Check if the date is valid
     if (isNaN(date.getTime())) {
-      console.warn('Invalid date string:', dateString)
-      return ''
+      console.warn('Invalid date string:', dateString);
+      return '';
     }
-    
+
     // Get the time in the local timezone of the activity (not browser timezone)
-    const hours = date.getUTCHours()
-    const minutes = date.getUTCMinutes()
-    
+    const hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes();
+
     // Convert to 12-hour format
-    const period = hours >= 12 ? 'PM' : 'AM'
-    const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours
-    
-    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
   } catch (error) {
-    console.error('Error formatting Strava time:', error, dateString)
-    return ''
+    console.error('Error formatting Strava time:', error, dateString);
+    return '';
   }
 }
 ```
@@ -79,14 +82,20 @@ Updated all components that display activity times to use timezone-aware formatt
 ```typescript
 // Validates date before formatting
 if (isNaN(date.getTime())) {
-  console.warn('Invalid date string:', dateString)
-  return ''
+  console.warn('Invalid date string:', dateString);
+  return '';
 }
 
 // Accurate date comparison (date only, not time)
-const activityDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-const diffDays = Math.floor((today.getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24))
+const activityDate = new Date(
+  date.getFullYear(),
+  date.getMonth(),
+  date.getDate()
+);
+const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+const diffDays = Math.floor(
+  (today.getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24)
+);
 ```
 
 ## Technical Details
@@ -94,6 +103,7 @@ const diffDays = Math.floor((today.getTime() - activityDate.getTime()) / (1000 *
 ### How Strava Provides Time Data
 
 Strava provides three time-related fields:
+
 - `start_date`: UTC time
 - `start_date_local`: UTC format but represents local time
 - `timezone`: Timezone information (e.g., `"(GMT-05:00) America/Detroit"`)
@@ -101,11 +111,13 @@ Strava provides three time-related fields:
 ### Timezone Conversion Flow
 
 **Before (Broken):**
+
 ```
 Strava start_date_local (UTC) → new Date() → Browser timezone → Wrong time
 ```
 
 **After (Fixed):**
+
 ```
 Strava start_date_local (UTC) + timezone field → convertStravaLocalTime() → Correct local time
 ```
@@ -113,6 +125,7 @@ Strava start_date_local (UTC) + timezone field → convertStravaLocalTime() → 
 ### Browser Compatibility
 
 The fix works across all modern browsers:
+
 - ✅ Chrome/Chromium
 - ✅ Firefox
 - ✅ Safari
@@ -127,15 +140,15 @@ Created comprehensive tests in `__tests__/lib/utils.test.ts`:
 ```typescript
 describe('formatStravaTime', () => {
   it('formats time correctly', () => {
-    const testTime = '2024-01-15T14:30:00Z'
-    const formatted = formatStravaTime(testTime)
-    expect(formatted).toMatch(/^\d{1,2}:\d{2}\s?(AM|PM)$/)
-  })
+    const testTime = '2024-01-15T14:30:00Z';
+    const formatted = formatStravaTime(testTime);
+    expect(formatted).toMatch(/^\d{1,2}:\d{2}\s?(AM|PM)$/);
+  });
 
   it('handles invalid date string', () => {
-    expect(formatStravaTime('invalid-date')).toBe('')
-  })
-})
+    expect(formatStravaTime('invalid-date')).toBe('');
+  });
+});
 ```
 
 ### Manual Testing
@@ -159,6 +172,7 @@ Minimal - the new functions are lightweight and include proper error handling.
 ### Error Logging
 
 Invalid date strings are logged to console for debugging:
+
 ```
 console.warn('Invalid date string:', dateString)
 ```
@@ -168,16 +182,18 @@ console.warn('Invalid date string:', dateString)
 ### 1. **User Timezone Preferences**
 
 Consider adding user timezone preferences:
+
 ```typescript
 interface UserPreferences {
-  timezone: string
-  timeFormat: '12h' | '24h'
+  timezone: string;
+  timeFormat: '12h' | '24h';
 }
 ```
 
 ### 2. **Internationalization**
 
 Support for different date/time formats:
+
 ```typescript
 formatStravaTime(dateString, locale: 'en-US' | 'en-GB' | 'de-DE')
 ```
@@ -185,9 +201,10 @@ formatStravaTime(dateString, locale: 'en-US' | 'en-GB' | 'de-DE')
 ### 3. **Advanced Timezone Handling**
 
 For users who travel frequently:
+
 ```typescript
 // Use activity location to determine timezone
-const activityTimezone = getTimezoneFromLocation(activity.start_latlng)
+const activityTimezone = getTimezoneFromLocation(activity.start_latlng);
 ```
 
 ## Debugging
@@ -205,11 +222,11 @@ const activityTimezone = getTimezoneFromLocation(activity.start_latlng)
 console.log('Activity time data:', {
   start_date: activity.start_date,
   start_date_local: activity.start_date_local,
-  timezone: activity.timezone
-})
+  timezone: activity.timezone,
+});
 
 // Test formatting
-console.log('Formatted time:', formatStravaTime(activity.start_date_local))
+console.log('Formatted time:', formatStravaTime(activity.start_date_local));
 ```
 
 ## Conclusion
@@ -221,4 +238,4 @@ This fix ensures that activity times are displayed correctly across all timezone
 - ✅ **Maintainable**: Clear utility functions
 - ✅ **Backward Compatible**: No breaking changes
 
-The activity feed should now show the correct times for all your workouts! 
+The activity feed should now show the correct times for all your workouts!

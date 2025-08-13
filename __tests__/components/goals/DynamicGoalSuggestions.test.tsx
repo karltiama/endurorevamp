@@ -18,26 +18,35 @@ jest.mock('@/hooks/useUnitPreferences');
 jest.mock('@/hooks/useDynamicGoals');
 jest.mock('@/providers/AuthProvider');
 
-const mockUseUserActivities = useUserActivities as jest.MockedFunction<typeof useUserActivities>;
-const mockUseUserGoals = useUserGoals as jest.MockedFunction<typeof useUserGoals>;
-const mockUseUnitPreferences = useUnitPreferences as jest.MockedFunction<typeof useUnitPreferences>;
-const mockUseUnifiedGoalCreation = useUnifiedGoalCreation as jest.MockedFunction<typeof useUnifiedGoalCreation>;
-const mockUseDynamicGoals = useDynamicGoals as jest.MockedFunction<typeof useDynamicGoals>;
+const mockUseUserActivities = useUserActivities as jest.MockedFunction<
+  typeof useUserActivities
+>;
+const mockUseUserGoals = useUserGoals as jest.MockedFunction<
+  typeof useUserGoals
+>;
+const mockUseUnitPreferences = useUnitPreferences as jest.MockedFunction<
+  typeof useUnitPreferences
+>;
+const mockUseUnifiedGoalCreation =
+  useUnifiedGoalCreation as jest.MockedFunction<typeof useUnifiedGoalCreation>;
+const mockUseDynamicGoals = useDynamicGoals as jest.MockedFunction<
+  typeof useDynamicGoals
+>;
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 
 describe('DynamicGoalSuggestions Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Create activities from the current week
     const now = new Date();
     const weekStart = new Date(now);
     weekStart.setDate(now.getDate() - now.getDay() + 1);
     weekStart.setHours(0, 0, 0, 0);
-    
+
     const activityDate = new Date(weekStart);
     activityDate.setDate(weekStart.getDate() + 2); // Wednesday
-    
+
     mockUseUserActivities.mockReturnValue({
       data: [
         {
@@ -47,7 +56,7 @@ describe('DynamicGoalSuggestions Component', () => {
           distance: 5000, // 5km
           moving_time: 1500, // 25 minutes
           start_date_local: activityDate.toISOString(),
-          activity_type: 'Run'
+          activity_type: 'Run',
         },
         {
           id: 2,
@@ -55,49 +64,56 @@ describe('DynamicGoalSuggestions Component', () => {
           sport_type: 'Run',
           distance: 3000, // 3km
           moving_time: 900, // 15 minutes
-          start_date_local: new Date(activityDate.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Next day
-          activity_type: 'Run'
-        }
+          start_date_local: new Date(
+            activityDate.getTime() + 24 * 60 * 60 * 1000
+          ).toISOString(), // Next day
+          activity_type: 'Run',
+        },
       ],
       isLoading: false,
-      error: null
+      error: null,
     } as any);
 
     mockUseUserGoals.mockReturnValue({
       data: {
         goals: [],
-        onboarding: null
+        onboarding: null,
       },
       isLoading: false,
-      error: null
+      error: null,
     } as any);
 
     mockUseUnifiedGoalCreation.mockReturnValue({
       mutateAsync: jest.fn(),
       isPending: false,
-      error: null
+      error: null,
     } as any);
 
     mockUseDynamicGoals.mockReturnValue({
       suggestions: [],
       isLoading: false,
-      error: null
+      error: null,
     } as any);
 
     mockUseAuth.mockReturnValue({
       user: { id: 'user-1' },
       isLoading: false,
-      error: null
+      error: null,
     } as any);
   });
 
   it('displays performance profile with kilometers when set to km', async () => {
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'km', pace: 'min/km', temperature: 'celsius', windSpeed: 'km/h' },
+      preferences: {
+        distance: 'km',
+        pace: 'min/km',
+        temperature: 'celsius',
+        windSpeed: 'km/h',
+      },
       isLoading: false,
       updatePreferences: jest.fn(),
       setDistanceUnit: jest.fn(),
-      toggleUnits: jest.fn()
+      toggleUnits: jest.fn(),
     });
 
     renderWithQueryClient(<DynamicGoalSuggestions />);
@@ -112,11 +128,16 @@ describe('DynamicGoalSuggestions Component', () => {
 
   it('displays performance profile with miles when set to miles', async () => {
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'miles', pace: 'min/mile', temperature: 'fahrenheit', windSpeed: 'mph' },
+      preferences: {
+        distance: 'miles',
+        pace: 'min/mile',
+        temperature: 'fahrenheit',
+        windSpeed: 'mph',
+      },
       isLoading: false,
       updatePreferences: jest.fn(),
       setDistanceUnit: jest.fn(),
-      toggleUnits: jest.fn()
+      toggleUnits: jest.fn(),
     });
 
     renderWithQueryClient(<DynamicGoalSuggestions />);
@@ -133,15 +154,20 @@ describe('DynamicGoalSuggestions Component', () => {
     mockUseUserActivities.mockReturnValue({
       data: [],
       isLoading: true,
-      error: null
+      error: null,
     } as any);
 
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'km', pace: 'min/km', temperature: 'celsius', windSpeed: 'km/h' },
+      preferences: {
+        distance: 'km',
+        pace: 'min/km',
+        temperature: 'celsius',
+        windSpeed: 'km/h',
+      },
       isLoading: false,
       updatePreferences: jest.fn(),
       setDistanceUnit: jest.fn(),
-      toggleUnits: jest.fn()
+      toggleUnits: jest.fn(),
     });
 
     renderWithQueryClient(<DynamicGoalSuggestions />);
@@ -154,44 +180,58 @@ describe('DynamicGoalSuggestions Component', () => {
     mockUseUserActivities.mockReturnValue({
       data: [],
       isLoading: false,
-      error: null
+      error: null,
     } as any);
 
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'km', pace: 'min/km', temperature: 'celsius', windSpeed: 'km/h' },
+      preferences: {
+        distance: 'km',
+        pace: 'min/km',
+        temperature: 'celsius',
+        windSpeed: 'km/h',
+      },
       isLoading: false,
       updatePreferences: jest.fn(),
       setDistanceUnit: jest.fn(),
-      toggleUnits: jest.fn()
+      toggleUnits: jest.fn(),
     });
 
     renderWithQueryClient(<DynamicGoalSuggestions />);
 
     await waitFor(() => {
       expect(screen.getByText('Start Your Journey')).toBeInTheDocument();
-      expect(screen.getByText('Complete your first activity')).toBeInTheDocument();
+      expect(
+        screen.getByText('Complete your first activity')
+      ).toBeInTheDocument();
     });
   });
 
   it('calls onGoalCreated when Set Goal button is clicked', async () => {
     const mockOnGoalCreated = jest.fn();
-    
+
     mockUseUnitPreferences.mockReturnValue({
-      preferences: { distance: 'km', pace: 'min/km', temperature: 'celsius', windSpeed: 'km/h' },
+      preferences: {
+        distance: 'km',
+        pace: 'min/km',
+        temperature: 'celsius',
+        windSpeed: 'km/h',
+      },
       isLoading: false,
       updatePreferences: jest.fn(),
       setDistanceUnit: jest.fn(),
-      toggleUnits: jest.fn()
+      toggleUnits: jest.fn(),
     });
 
-    renderWithQueryClient(<DynamicGoalSuggestions onGoalCreated={mockOnGoalCreated} />);
+    renderWithQueryClient(
+      <DynamicGoalSuggestions onGoalCreated={mockOnGoalCreated} />
+    );
 
     await waitFor(() => {
       const setGoalButtons = screen.getAllByText('Set Goal');
       expect(setGoalButtons.length).toBeGreaterThan(0);
-      
+
       setGoalButtons[0].click();
       expect(mockOnGoalCreated).toHaveBeenCalled();
     });
   });
-}); 
+});

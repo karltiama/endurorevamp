@@ -11,7 +11,8 @@ export const QUERY_KEYS = {
 
   // Strava Integration
   strava: {
-    connection: (userId?: string) => ['strava-connection', userId].filter(Boolean),
+    connection: (userId?: string) =>
+      ['strava-connection', userId].filter(Boolean),
     token: (userId?: string) => ['strava-token', userId].filter(Boolean),
     sync: {
       status: 'strava-sync-status',
@@ -47,8 +48,13 @@ export const QUERY_KEYS = {
   // Activities & Performance
   activities: {
     user: (userId: string) => ['user', 'activities', userId],
-    monthly: (userId: string, year: number, month: number) => 
-      ['activities', 'monthly', userId, year, month],
+    monthly: (userId: string, year: number, month: number) => [
+      'activities',
+      'monthly',
+      userId,
+      year,
+      month,
+    ],
     analytics: (userId: string) => ['activities', 'analytics', userId],
   },
 
@@ -119,10 +125,11 @@ export const QueryKeyHelpers = {
 export const validateQueryKey = (key: unknown): boolean => {
   if (typeof key === 'string') return true;
   if (Array.isArray(key)) {
-    return key.every(item => 
-      typeof item === 'string' || 
-      typeof item === 'number' || 
-      typeof item === 'boolean'
+    return key.every(
+      item =>
+        typeof item === 'string' ||
+        typeof item === 'number' ||
+        typeof item === 'boolean'
     );
   }
   return false;
@@ -149,16 +156,16 @@ export const getInvalidationKeys = {
     ...QUERY_KEYS.dashboard.keyMetrics(userId),
     ...QUERY_KEYS.dashboard.lastActivity(userId),
   ],
-  
+
   afterGoalUpdate: (userId: string) => [
     QUERY_KEYS.goals.types,
     ...QUERY_KEYS.goals.userGoals(userId),
     ...QUERY_KEYS.dashboard.keyMetrics(userId),
   ],
-  
+
   afterAuthChange: (userId: string) => [
     QUERY_KEYS.user.profile,
     ...QUERY_KEYS.user.preferences(userId),
     QUERY_KEYS.strava.athlete,
   ],
-} 
+};

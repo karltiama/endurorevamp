@@ -1,14 +1,18 @@
-import React from 'react'
-import { render, screen } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { KeyMetrics } from '@/components/dashboard/KeyMetrics'
-import { calculateWeeklyDistance, calculateActivityStreak, getLastActivity } from '@/lib/dashboard/metrics'
-import type { Activity } from '@/lib/strava/types'
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { KeyMetrics } from '@/components/dashboard/KeyMetrics';
+import {
+  calculateWeeklyDistance,
+  calculateActivityStreak,
+  getLastActivity,
+} from '@/lib/dashboard/metrics';
+import type { Activity } from '@/lib/strava/types';
 
 // Mock the hooks
 jest.mock('@/hooks/use-user-activities', () => ({
   useUserActivities: jest.fn(),
-}))
+}));
 
 jest.mock('@/hooks/useGoals', () => ({
   useUserGoals: jest.fn(),
@@ -21,7 +25,7 @@ jest.mock('@/hooks/useGoals', () => ({
     toggleDashboardGoal: jest.fn(),
     getGoalsByContext: jest.fn(() => []),
     getSuggestionGoals: jest.fn(() => []),
-    isLoading: false
+    isLoading: false,
   })),
   useUnifiedGoalCreation: jest.fn(() => ({
     mutate: jest.fn(),
@@ -29,19 +33,25 @@ jest.mock('@/hooks/useGoals', () => ({
     isLoading: false,
     error: null,
   })),
-}))
+}));
 
-const { useUserActivities } = require('@/hooks/use-user-activities')
-const { useUserGoals, useUpdateGoal, useGoalTypes, useCreateGoal } = require('@/hooks/useGoals')
+const { useUserActivities } = require('@/hooks/use-user-activities');
+const {
+  useUserGoals,
+  useUpdateGoal,
+  useGoalTypes,
+  useCreateGoal,
+} = require('@/hooks/useGoals');
 
 // Helper to create a test QueryClient
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
     },
-  },
-})
+  });
 
 // Sample activity data for testing
 const createMockActivity = (overrides: Partial<Activity> = {}): Activity => ({
@@ -59,81 +69,83 @@ const createMockActivity = (overrides: Partial<Activity> = {}): Activity => ({
   timezone: 'UTC',
   created_at: new Date().toISOString(),
   ...overrides,
-})
+});
 
 describe('KeyMetrics Component', () => {
-  let queryClient: QueryClient
+  let queryClient: QueryClient;
 
   beforeEach(() => {
-    queryClient = createTestQueryClient()
-    jest.clearAllMocks()
-    
+    queryClient = createTestQueryClient();
+    jest.clearAllMocks();
+
     // Setup default mocks for goal-related hooks
     useUpdateGoal.mockReturnValue({
       mutate: jest.fn(),
       mutateAsync: jest.fn(),
       isLoading: false,
-    })
-    
+    });
+
     useGoalTypes.mockReturnValue({
       data: [],
       isLoading: false,
       error: null,
-    })
-    
+    });
+
     useCreateGoal.mockReturnValue({
       mutate: jest.fn(),
       mutateAsync: jest.fn(),
       isLoading: false,
-    })
-  })
+    });
+  });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  )
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
 
   it('shows loading skeleton when data is loading', () => {
     useUserActivities.mockReturnValue({
       data: undefined,
       isLoading: true,
       error: null,
-    })
+    });
 
     useUserGoals.mockReturnValue({
       data: undefined,
       isLoading: true,
       error: null,
-    })
+    });
 
-    render(<KeyMetrics userId="user-1" />, { wrapper })
+    render(<KeyMetrics userId="user-1" />, { wrapper });
 
     // Should show skeleton with multiple cards
     const skeletonCards = screen.getAllByText((_, element) => {
-      return element?.classList.contains('animate-pulse') || false
-    })
-    expect(skeletonCards.length).toBeGreaterThan(0)
-  })
+      return element?.classList.contains('animate-pulse') || false;
+    });
+    expect(skeletonCards.length).toBeGreaterThan(0);
+  });
 
   it('shows setup message when no dashboard goals exist', () => {
     useUserActivities.mockReturnValue({
       data: [],
       isLoading: false,
       error: null,
-    })
+    });
 
     useUserGoals.mockReturnValue({
       data: { goals: [] },
       isLoading: false,
       error: null,
-    })
+    });
 
-    render(<KeyMetrics userId="user-1" />, { wrapper })
+    render(<KeyMetrics userId="user-1" />, { wrapper });
 
-    expect(screen.getByText('Set Up Your Dashboard Goals')).toBeInTheDocument()
-    expect(screen.getByText('Choose up to 3 goals to track as key metrics on your dashboard.')).toBeInTheDocument()
-  })
+    expect(screen.getByText('Set Up Your Dashboard Goals')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Choose up to 3 goals to track as key metrics on your dashboard.'
+      )
+    ).toBeInTheDocument();
+  });
 
   it('displays goal metric cards when dashboard goals exist', () => {
     const mockActivities = [
@@ -142,7 +154,7 @@ describe('KeyMetrics Component', () => {
         distance: 10000,
         start_date: new Date().toISOString(),
       }),
-    ]
+    ];
 
     const mockGoals = [
       {
@@ -159,7 +171,18 @@ describe('KeyMetrics Component', () => {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         goal_data: { show_on_dashboard: true, dashboard_priority: 1 },
-        goal_type: { id: 'weekly-distance', display_name: 'Weekly Distance Goal', category: 'distance', name: 'weekly_distance_goal', description: '', metric_type: '', calculation_method: '', is_active: true, created_at: '', updated_at: '' },
+        goal_type: {
+          id: 'weekly-distance',
+          display_name: 'Weekly Distance Goal',
+          category: 'distance',
+          name: 'weekly_distance_goal',
+          description: '',
+          metric_type: '',
+          calculation_method: '',
+          is_active: true,
+          created_at: '',
+          updated_at: '',
+        },
       },
       {
         id: 'goal-2',
@@ -175,174 +198,185 @@ describe('KeyMetrics Component', () => {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         goal_data: { show_on_dashboard: true, dashboard_priority: 2 },
-        goal_type: { id: 'monthly-frequency', display_name: 'Monthly Frequency Goal', category: 'frequency', name: 'monthly_frequency_goal', description: '', metric_type: '', calculation_method: '', is_active: true, created_at: '', updated_at: '' },
+        goal_type: {
+          id: 'monthly-frequency',
+          display_name: 'Monthly Frequency Goal',
+          category: 'frequency',
+          name: 'monthly_frequency_goal',
+          description: '',
+          metric_type: '',
+          calculation_method: '',
+          is_active: true,
+          created_at: '',
+          updated_at: '',
+        },
       },
-    ]
+    ];
 
     useUserActivities.mockReturnValue({
       data: mockActivities,
       isLoading: false,
       error: null,
-    })
+    });
 
     useUserGoals.mockReturnValue({
       data: { goals: mockGoals },
       isLoading: false,
       error: null,
-    })
+    });
 
     // Mock useGoalManagement to return the dashboard goals
-    const { useGoalManagement } = require('@/hooks/useGoals')
+    const { useGoalManagement } = require('@/hooks/useGoals');
     useGoalManagement.mockReturnValue({
       goals: mockGoals as any,
       getDashboardGoals: jest.fn(() => mockGoals as any),
       toggleDashboardGoal: jest.fn(),
       getGoalsByContext: jest.fn(() => []),
       getSuggestionGoals: jest.fn(() => []),
-      isLoading: false
-    })
+      isLoading: false,
+    });
 
-    render(<KeyMetrics userId="user-1" />, { wrapper })
+    render(<KeyMetrics userId="user-1" />, { wrapper });
 
     // Should show the goal metric cards
-    expect(screen.getByText('Weekly Distance Goal')).toBeInTheDocument()
-    expect(screen.getByText('Monthly Frequency Goal')).toBeInTheDocument()
-    expect(screen.getByText('Key Metrics')).toBeInTheDocument()
-  })
-})
+    expect(screen.getByText('Weekly Distance Goal')).toBeInTheDocument();
+    expect(screen.getByText('Monthly Frequency Goal')).toBeInTheDocument();
+    expect(screen.getByText('Key Metrics')).toBeInTheDocument();
+  });
+});
 
 describe('Dashboard Metrics Utilities', () => {
   describe('calculateWeeklyDistance', () => {
     it('calculates weekly distance correctly', () => {
-      const now = new Date()
-      const thisWeek = new Date(now)
-      thisWeek.setDate(now.getDate() - now.getDay() + 1) // This week (Monday)
-      
-      const lastWeek = new Date(thisWeek)
-      lastWeek.setDate(thisWeek.getDate() - 7)
+      const now = new Date();
+      const thisWeek = new Date(now);
+      thisWeek.setDate(now.getDate() - now.getDay() + 1); // This week (Monday)
+
+      const lastWeek = new Date(thisWeek);
+      lastWeek.setDate(thisWeek.getDate() - 7);
 
       const activities = [
-        createMockActivity({ 
-          distance: 5000, 
-          start_date: thisWeek.toISOString() 
+        createMockActivity({
+          distance: 5000,
+          start_date: thisWeek.toISOString(),
         }),
-        createMockActivity({ 
-          distance: 10000, 
-          start_date: lastWeek.toISOString() 
+        createMockActivity({
+          distance: 10000,
+          start_date: lastWeek.toISOString(),
         }),
-      ]
+      ];
 
-      const result = calculateWeeklyDistance(activities)
+      const result = calculateWeeklyDistance(activities);
 
-      expect(result.current).toBe(5000)
-      expect(result.previous).toBe(10000)
-      expect(result.change).toBe(-50) // 50% decrease
-    })
+      expect(result.current).toBe(5000);
+      expect(result.previous).toBe(10000);
+      expect(result.change).toBe(-50); // 50% decrease
+    });
 
     it('handles no previous week data', () => {
-      const thisWeek = new Date()
+      const thisWeek = new Date();
       const activities = [
-        createMockActivity({ 
-          distance: 5000, 
-          start_date: thisWeek.toISOString() 
-        })
-      ]
+        createMockActivity({
+          distance: 5000,
+          start_date: thisWeek.toISOString(),
+        }),
+      ];
 
-      const result = calculateWeeklyDistance(activities)
+      const result = calculateWeeklyDistance(activities);
 
-      expect(result.current).toBe(5000)
-      expect(result.previous).toBe(0)
-      expect(result.change).toBe(100)
-    })
+      expect(result.current).toBe(5000);
+      expect(result.previous).toBe(0);
+      expect(result.change).toBe(100);
+    });
 
     it('handles empty activities', () => {
-      const result = calculateWeeklyDistance([])
+      const result = calculateWeeklyDistance([]);
 
-      expect(result.current).toBe(0)
-      expect(result.previous).toBe(0)
-      expect(result.change).toBe(0)
-    })
-  })
+      expect(result.current).toBe(0);
+      expect(result.previous).toBe(0);
+      expect(result.change).toBe(0);
+    });
+  });
 
   describe('calculateActivityStreak', () => {
     it('calculates current streak correctly', () => {
-      const today = new Date()
-      const yesterday = new Date(today)
-      yesterday.setDate(today.getDate() - 1)
-      const twoDaysAgo = new Date(today)
-      twoDaysAgo.setDate(today.getDate() - 2)
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+      const twoDaysAgo = new Date(today);
+      twoDaysAgo.setDate(today.getDate() - 2);
 
       const activities = [
         createMockActivity({ start_date: today.toISOString() }),
         createMockActivity({ start_date: yesterday.toISOString() }),
         createMockActivity({ start_date: twoDaysAgo.toISOString() }),
-      ]
+      ];
 
-      const result = calculateActivityStreak(activities)
+      const result = calculateActivityStreak(activities);
 
-      expect(result.current).toBe(3)
-      expect(result.longest).toBe(3)
-    })
+      expect(result.current).toBe(3);
+      expect(result.longest).toBe(3);
+    });
 
     it('handles broken streak', () => {
-      const today = new Date()
-      const threeDaysAgo = new Date(today)
-      threeDaysAgo.setDate(today.getDate() - 3)
+      const today = new Date();
+      const threeDaysAgo = new Date(today);
+      threeDaysAgo.setDate(today.getDate() - 3);
 
       const activities = [
         createMockActivity({ start_date: today.toISOString() }),
         createMockActivity({ start_date: threeDaysAgo.toISOString() }),
-      ]
+      ];
 
-      const result = calculateActivityStreak(activities)
+      const result = calculateActivityStreak(activities);
 
-      expect(result.current).toBe(1) // Only today counts for current streak
-    })
+      expect(result.current).toBe(1); // Only today counts for current streak
+    });
 
     it('calculates consistency percentage', () => {
       const activities = Array.from({ length: 15 }, (_, i) => {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
-        return createMockActivity({ start_date: date.toISOString() })
-      })
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        return createMockActivity({ start_date: date.toISOString() });
+      });
 
-      const result = calculateActivityStreak(activities)
+      const result = calculateActivityStreak(activities);
 
-      expect(result.consistency).toBe(50) // 15 days out of 30 = 50%
-    })
+      expect(result.consistency).toBe(50); // 15 days out of 30 = 50%
+    });
 
     it('handles empty activities', () => {
-      const result = calculateActivityStreak([])
+      const result = calculateActivityStreak([]);
 
-      expect(result.current).toBe(0)
-      expect(result.longest).toBe(0)
-      expect(result.consistency).toBe(0)
-    })
-  })
+      expect(result.current).toBe(0);
+      expect(result.longest).toBe(0);
+      expect(result.consistency).toBe(0);
+    });
+  });
 
   describe('getLastActivity', () => {
     it('returns the most recent activity', () => {
-      const older = createMockActivity({ 
-        id: '1', 
+      const older = createMockActivity({
+        id: '1',
         name: 'Older Activity',
-        start_date: new Date('2024-01-01').toISOString()
-      })
-      const newer = createMockActivity({ 
-        id: '2', 
+        start_date: new Date('2024-01-01').toISOString(),
+      });
+      const newer = createMockActivity({
+        id: '2',
         name: 'Newer Activity',
-        start_date: new Date('2024-01-02').toISOString()
-      })
+        start_date: new Date('2024-01-02').toISOString(),
+      });
 
       // Activities should be passed in descending order (newest first)
-      const result = getLastActivity([newer, older])
+      const result = getLastActivity([newer, older]);
 
-      expect(result?.name).toBe('Newer Activity')
-    })
+      expect(result?.name).toBe('Newer Activity');
+    });
 
     it('returns null for empty activities', () => {
-      const result = getLastActivity([])
+      const result = getLastActivity([]);
 
-      expect(result).toBeNull()
-    })
-  })
-}) 
+      expect(result).toBeNull();
+    });
+  });
+});

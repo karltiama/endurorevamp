@@ -1,144 +1,150 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { MapPin, Navigation, Trash2, Plus, Edit, Check, X } from 'lucide-react'
-import { useLocation } from '@/hooks/useLocation'
+import React, { useState } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { MapPin, Navigation, Trash2, Plus, Edit, Check, X } from 'lucide-react';
+import { useLocation } from '@/hooks/useLocation';
 
 interface SavedLocation {
-  id: string
-  name: string
-  lat: number
-  lon: number
-  isDefault?: boolean
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  isDefault?: boolean;
 }
 
-const SAVED_LOCATIONS_KEY = 'enduro-saved-locations'
+const SAVED_LOCATIONS_KEY = 'enduro-saved-locations';
 
 export function LocationSettingsClient() {
-  const { 
-    location, 
-    requestLocation, 
-    setManualLocation, 
+  const {
+    location,
+    requestLocation,
+    setManualLocation,
     clearLocation,
     permissionStatus,
-    hasLocationPermission 
-  } = useLocation()
-  
+    hasLocationPermission,
+  } = useLocation();
+
   const [savedLocations, setSavedLocations] = useState<SavedLocation[]>(() => {
     try {
-      const saved = localStorage.getItem(SAVED_LOCATIONS_KEY)
-      return saved ? JSON.parse(saved) : []
+      const saved = localStorage.getItem(SAVED_LOCATIONS_KEY);
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return []
+      return [];
     }
-  })
-  
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [editingLocation, setEditingLocation] = useState<string | null>(null)
+  });
+
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingLocation, setEditingLocation] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     lat: '',
-    lon: ''
-  })
+    lon: '',
+  });
 
   const saveLocations = (locations: SavedLocation[]) => {
     try {
-      localStorage.setItem(SAVED_LOCATIONS_KEY, JSON.stringify(locations))
-      setSavedLocations(locations)
+      localStorage.setItem(SAVED_LOCATIONS_KEY, JSON.stringify(locations));
+      setSavedLocations(locations);
     } catch (error) {
-      console.error('Error saving locations:', error)
+      console.error('Error saving locations:', error);
     }
-  }
+  };
 
   const handleAddLocation = (e: React.FormEvent) => {
-    e.preventDefault()
-    const lat = parseFloat(formData.lat)
-    const lon = parseFloat(formData.lon)
-    
+    e.preventDefault();
+    const lat = parseFloat(formData.lat);
+    const lon = parseFloat(formData.lon);
+
     if (!isNaN(lat) && !isNaN(lon) && formData.name.trim()) {
       const newLocation: SavedLocation = {
         id: Date.now().toString(),
         name: formData.name.trim(),
         lat,
-        lon
-      }
-      
-      const updated = [...savedLocations, newLocation]
-      saveLocations(updated)
-      
-      setFormData({ name: '', lat: '', lon: '' })
-      setShowAddForm(false)
+        lon,
+      };
+
+      const updated = [...savedLocations, newLocation];
+      saveLocations(updated);
+
+      setFormData({ name: '', lat: '', lon: '' });
+      setShowAddForm(false);
     }
-  }
+  };
 
   const handleEditLocation = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingLocation) return
-    
-    const lat = parseFloat(formData.lat)
-    const lon = parseFloat(formData.lon)
-    
+    e.preventDefault();
+    if (!editingLocation) return;
+
+    const lat = parseFloat(formData.lat);
+    const lon = parseFloat(formData.lon);
+
     if (!isNaN(lat) && !isNaN(lon) && formData.name.trim()) {
-      const updated = savedLocations.map(loc => 
-        loc.id === editingLocation 
+      const updated = savedLocations.map(loc =>
+        loc.id === editingLocation
           ? { ...loc, name: formData.name.trim(), lat, lon }
           : loc
-      )
-      saveLocations(updated)
-      
-      setFormData({ name: '', lat: '', lon: '' })
-      setEditingLocation(null)
+      );
+      saveLocations(updated);
+
+      setFormData({ name: '', lat: '', lon: '' });
+      setEditingLocation(null);
     }
-  }
+  };
 
   const handleDeleteLocation = (id: string) => {
-    const updated = savedLocations.filter(loc => loc.id !== id)
-    saveLocations(updated)
-  }
+    const updated = savedLocations.filter(loc => loc.id !== id);
+    saveLocations(updated);
+  };
 
   const handleSetAsCurrent = (savedLocation: SavedLocation) => {
-    setManualLocation(savedLocation.lat, savedLocation.lon, savedLocation.name)
-  }
+    setManualLocation(savedLocation.lat, savedLocation.lon, savedLocation.name);
+  };
 
   const handleRequestGPSLocation = async () => {
     try {
-      await requestLocation()
+      await requestLocation();
     } catch (error) {
-      console.error('Failed to get GPS location:', error)
+      console.error('Failed to get GPS location:', error);
     }
-  }
+  };
 
   const getLocationSourceIcon = () => {
     switch (location.source) {
       case 'geolocation':
-        return <Navigation className="h-4 w-4" />
+        return <Navigation className="h-4 w-4" />;
       case 'manual':
-        return <MapPin className="h-4 w-4" />
+        return <MapPin className="h-4 w-4" />;
       case 'saved':
-        return <MapPin className="h-4 w-4" />
+        return <MapPin className="h-4 w-4" />;
       default:
-        return <MapPin className="h-4 w-4" />
+        return <MapPin className="h-4 w-4" />;
     }
-  }
+  };
 
   const getLocationSourceText = () => {
     switch (location.source) {
       case 'geolocation':
-        return 'GPS Location'
+        return 'GPS Location';
       case 'manual':
-        return 'Manual'
+        return 'Manual';
       case 'saved':
-        return 'Saved'
+        return 'Saved';
       default:
-        return 'Default'
+        return 'Default';
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -164,14 +170,12 @@ export function LocationSettingsClient() {
                 </div>
               </div>
             </div>
-            <Badge variant="outline">
-              {getLocationSourceText()}
-            </Badge>
+            <Badge variant="outline">{getLocationSourceText()}</Badge>
           </div>
 
           <div className="flex gap-2">
             {hasLocationPermission && (
-              <Button 
+              <Button
                 onClick={handleRequestGPSLocation}
                 variant="outline"
                 size="sm"
@@ -180,10 +184,7 @@ export function LocationSettingsClient() {
                 Use GPS Location
               </Button>
             )}
-            <Button 
-              onClick={() => setShowAddForm(true)}
-              size="sm"
-            >
+            <Button onClick={() => setShowAddForm(true)} size="sm">
               <Plus className="h-4 w-4 mr-2" />
               Add New Location
             </Button>
@@ -192,7 +193,8 @@ export function LocationSettingsClient() {
           {permissionStatus === 'denied' && (
             <Alert>
               <AlertDescription>
-                Location access was denied. You can still add locations manually or change your browser settings.
+                Location access was denied. You can still add locations manually
+                or change your browser settings.
               </AlertDescription>
             </Alert>
           )}
@@ -209,18 +211,25 @@ export function LocationSettingsClient() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={editingLocation ? handleEditLocation : handleAddLocation} className="space-y-4">
+            <form
+              onSubmit={
+                editingLocation ? handleEditLocation : handleAddLocation
+              }
+              className="space-y-4"
+            >
               <div className="space-y-2">
                 <Label htmlFor="locationName">Location Name</Label>
                 <Input
                   id="locationName"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={e =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   placeholder="e.g., Home, Work, Gym"
                   required
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="latitude">Latitude</Label>
@@ -229,12 +238,14 @@ export function LocationSettingsClient() {
                     type="number"
                     step="any"
                     value={formData.lat}
-                    onChange={(e) => setFormData({ ...formData, lat: e.target.value })}
+                    onChange={e =>
+                      setFormData({ ...formData, lat: e.target.value })
+                    }
                     placeholder="51.5074"
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="longitude">Longitude</Label>
                   <Input
@@ -242,26 +253,28 @@ export function LocationSettingsClient() {
                     type="number"
                     step="any"
                     value={formData.lon}
-                    onChange={(e) => setFormData({ ...formData, lon: e.target.value })}
+                    onChange={e =>
+                      setFormData({ ...formData, lon: e.target.value })
+                    }
                     placeholder="-0.1278"
                     required
                   />
                 </div>
               </div>
-              
+
               <div className="flex gap-2">
                 <Button type="submit" size="sm">
                   <Check className="h-4 w-4 mr-2" />
                   {editingLocation ? 'Update' : 'Add'} Location
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   size="sm"
                   onClick={() => {
-                    setShowAddForm(false)
-                    setEditingLocation(null)
-                    setFormData({ name: '', lat: '', lon: '' })
+                    setShowAddForm(false);
+                    setEditingLocation(null);
+                    setFormData({ name: '', lat: '', lon: '' });
                   }}
                 >
                   <X className="h-4 w-4 mr-2" />
@@ -287,18 +300,22 @@ export function LocationSettingsClient() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {savedLocations.map((savedLocation) => (
-                <div key={savedLocation.id} className="flex items-center justify-between p-3 border rounded-lg">
+              {savedLocations.map(savedLocation => (
+                <div
+                  key={savedLocation.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div className="flex items-center gap-3">
                     <MapPin className="h-4 w-4 text-gray-500" />
                     <div>
                       <div className="font-medium">{savedLocation.name}</div>
                       <div className="text-sm text-gray-500">
-                        {savedLocation.lat.toFixed(4)}, {savedLocation.lon.toFixed(4)}
+                        {savedLocation.lat.toFixed(4)},{' '}
+                        {savedLocation.lon.toFixed(4)}
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-2">
                     <Button
                       onClick={() => handleSetAsCurrent(savedLocation)}
@@ -309,12 +326,12 @@ export function LocationSettingsClient() {
                     </Button>
                     <Button
                       onClick={() => {
-                        setEditingLocation(savedLocation.id)
+                        setEditingLocation(savedLocation.id);
                         setFormData({
                           name: savedLocation.name,
                           lat: savedLocation.lat.toString(),
-                          lon: savedLocation.lon.toString()
-                        })
+                          lon: savedLocation.lon.toString(),
+                        });
                       }}
                       size="sm"
                       variant="outline"
@@ -351,10 +368,10 @@ export function LocationSettingsClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button 
+          <Button
             onClick={() => {
-              clearLocation()
-              saveLocations([])
+              clearLocation();
+              saveLocations([]);
             }}
             variant="outline"
             className="text-red-600 hover:text-red-700"
@@ -365,5 +382,5 @@ export function LocationSettingsClient() {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

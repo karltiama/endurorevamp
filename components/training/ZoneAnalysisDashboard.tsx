@@ -1,48 +1,66 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useZoneInfo, useCustomZoneAnalysis, useZoneCalculations } from '@/hooks/use-zone-analysis'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
+import { useState } from 'react';
+import {
+  useZoneInfo,
+  useCustomZoneAnalysis,
+  useZoneCalculations,
+} from '@/hooks/use-zone-analysis';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
 
 export default function ZoneAnalysisDashboard() {
-  const { 
-    analysis, 
-    isLoading, 
-    error, 
-    zones, 
-    maxHeartRate, 
-    dataQuality, 
-    confidence, 
+  const {
+    analysis,
+    isLoading,
+    error,
+    zones,
+    maxHeartRate,
+    dataQuality,
+    confidence,
     needsMoreData,
     formatConfidenceLevel,
-    getDataQualityInfo 
-  } = useZoneInfo()
+    getDataQualityInfo,
+  } = useZoneInfo();
 
-  const customAnalysis = useCustomZoneAnalysis()
-  const { getTargetZoneRecommendation } = useZoneCalculations()
+  const customAnalysis = useCustomZoneAnalysis();
+  const { getTargetZoneRecommendation } = useZoneCalculations();
 
   // Custom zone form state
-  const [customMaxHR, setCustomMaxHR] = useState('')
-  const [selectedZoneModel, setSelectedZoneModel] = useState<'5-zone' | '3-zone' | 'coggan'>('5-zone')
-  const [showCustomForm, setShowCustomForm] = useState(false)
+  const [customMaxHR, setCustomMaxHR] = useState('');
+  const [selectedZoneModel, setSelectedZoneModel] = useState<
+    '5-zone' | '3-zone' | 'coggan'
+  >('5-zone');
+  const [showCustomForm, setShowCustomForm] = useState(false);
 
   const handleCustomAnalysis = () => {
-    const maxHR = parseInt(customMaxHR)
+    const maxHR = parseInt(customMaxHR);
     if (maxHR > 100 && maxHR < 250) {
       customAnalysis.mutate({
         maxHeartRate: maxHR,
-        zoneModel: selectedZoneModel
-      })
+        zoneModel: selectedZoneModel,
+      });
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -56,7 +74,7 @@ export default function ZoneAnalysisDashboard() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -66,29 +84,34 @@ export default function ZoneAnalysisDashboard() {
           Failed to analyze training zones: {error.message}
         </AlertDescription>
       </Alert>
-    )
+    );
   }
 
   if (!analysis) {
     return (
       <Alert>
         <AlertDescription>
-          No zone analysis data available. Please sync some activities with heart rate data first.
+          No zone analysis data available. Please sync some activities with
+          heart rate data first.
         </AlertDescription>
       </Alert>
-    )
+    );
   }
 
-  const confidenceInfo = formatConfidenceLevel(confidence || 'low')
-  const qualityInfo = getDataQualityInfo(dataQuality || 'none')
+  const confidenceInfo = formatConfidenceLevel(confidence || 'low');
+  const qualityInfo = getDataQualityInfo(dataQuality || 'none');
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Training Zone Analysis</h2>
-          <p className="text-gray-600">Personalized heart rate training zones based on your activity data</p>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Training Zone Analysis
+          </h2>
+          <p className="text-gray-600">
+            Personalized heart rate training zones based on your activity data
+          </p>
         </div>
         <Button
           variant="outline"
@@ -108,12 +131,17 @@ export default function ZoneAnalysisDashboard() {
             <div className="flex items-center space-x-2">
               <span className="text-2xl">{qualityInfo.icon}</span>
               <div>
-                <p className={`font-semibold ${qualityInfo.color}`}>{qualityInfo.text}</p>
-                <p className="text-sm text-gray-500">{qualityInfo.description}</p>
+                <p className={`font-semibold ${qualityInfo.color}`}>
+                  {qualityInfo.text}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {qualityInfo.description}
+                </p>
               </div>
             </div>
             <div className="mt-2 text-xs text-gray-500">
-              {analysis.overall.activitiesWithHR} of {analysis.overall.totalActivities} activities with HR data
+              {analysis.overall.activitiesWithHR} of{' '}
+              {analysis.overall.totalActivities} activities with HR data
             </div>
           </CardContent>
         </Card>
@@ -124,8 +152,12 @@ export default function ZoneAnalysisDashboard() {
           </CardHeader>
           <CardContent>
             <div>
-              <p className={`font-semibold ${confidenceInfo.color}`}>{confidenceInfo.text}</p>
-              <p className="text-sm text-gray-500">{confidenceInfo.description}</p>
+              <p className={`font-semibold ${confidenceInfo.color}`}>
+                {confidenceInfo.text}
+              </p>
+              <p className="text-sm text-gray-500">
+                {confidenceInfo.description}
+              </p>
             </div>
             {maxHeartRate && (
               <div className="mt-2 text-xs text-gray-500">
@@ -141,8 +173,12 @@ export default function ZoneAnalysisDashboard() {
           </CardHeader>
           <CardContent>
             <div>
-              <p className="font-semibold">{analysis.suggestedZoneModel.name}</p>
-              <p className="text-sm text-gray-500">{analysis.suggestedZoneModel.description}</p>
+              <p className="font-semibold">
+                {analysis.suggestedZoneModel.name}
+              </p>
+              <p className="text-sm text-gray-500">
+                {analysis.suggestedZoneModel.description}
+              </p>
             </div>
             <div className="mt-2">
               <Badge variant="secondary" className="text-xs">
@@ -157,7 +193,8 @@ export default function ZoneAnalysisDashboard() {
       {needsMoreData && (
         <Alert className="border-yellow-200 bg-yellow-50">
           <AlertDescription className="text-yellow-800">
-            <strong>More data needed:</strong> Your zone recommendations would be more accurate with additional heart rate data from your workouts.
+            <strong>More data needed:</strong> Your zone recommendations would
+            be more accurate with additional heart rate data from your workouts.
           </AlertDescription>
         </Alert>
       )}
@@ -168,7 +205,9 @@ export default function ZoneAnalysisDashboard() {
             <strong>Recommendations:</strong>
             <ul className="mt-2 list-disc list-inside space-y-1">
               {analysis.recommendations.map((rec, index) => (
-                <li key={index} className="text-sm">{rec}</li>
+                <li key={index} className="text-sm">
+                  {rec}
+                </li>
               ))}
             </ul>
           </AlertDescription>
@@ -193,12 +232,21 @@ export default function ZoneAnalysisDashboard() {
                   type="number"
                   placeholder="e.g., 190"
                   value={customMaxHR}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCustomMaxHR(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setCustomMaxHR(e.target.value)
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="zoneModel">Zone Model</Label>
-                <Select value={selectedZoneModel} onValueChange={(value: string) => setSelectedZoneModel(value as "5-zone" | "3-zone" | "coggan")}>
+                <Select
+                  value={selectedZoneModel}
+                  onValueChange={(value: string) =>
+                    setSelectedZoneModel(
+                      value as '5-zone' | '3-zone' | 'coggan'
+                    )
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -210,12 +258,14 @@ export default function ZoneAnalysisDashboard() {
                 </Select>
               </div>
             </div>
-            <Button 
+            <Button
               onClick={handleCustomAnalysis}
               disabled={!customMaxHR || customAnalysis.isPending}
               className="w-full md:w-auto"
             >
-              {customAnalysis.isPending ? 'Analyzing...' : 'Generate Custom Zones'}
+              {customAnalysis.isPending
+                ? 'Analyzing...'
+                : 'Generate Custom Zones'}
             </Button>
           </CardContent>
         </Card>
@@ -235,29 +285,41 @@ export default function ZoneAnalysisDashboard() {
             <CardHeader>
               <CardTitle>Your Training Zones</CardTitle>
               <CardDescription>
-                Based on {analysis.suggestedZoneModel.name.toLowerCase()} using max HR of {maxHeartRate} BPM
+                Based on {analysis.suggestedZoneModel.name.toLowerCase()} using
+                max HR of {maxHeartRate} BPM
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {zones.map((zone) => (
+                {zones.map(zone => (
                   <div
                     key={zone.number}
                     className="p-4 rounded-lg border-2"
-                    style={{ 
+                    style={{
                       backgroundColor: zone.color + '20',
-                      borderColor: zone.color 
+                      borderColor: zone.color,
                     }}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-lg font-bold">Zone {zone.number}</span>
-                      <Badge style={{ backgroundColor: zone.color, color: 'white' }}>
+                      <span className="text-lg font-bold">
+                        Zone {zone.number}
+                      </span>
+                      <Badge
+                        style={{ backgroundColor: zone.color, color: 'white' }}
+                      >
                         {zone.percentRange}
                       </Badge>
                     </div>
-                    <h4 className="font-semibold text-gray-900 mb-1">{zone.name}</h4>
-                    <p className="text-sm text-gray-600 mb-3">{zone.description}</p>
-                    <div className="text-lg font-mono font-bold" style={{ color: zone.color }}>
+                    <h4 className="font-semibold text-gray-900 mb-1">
+                      {zone.name}
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-3">
+                      {zone.description}
+                    </p>
+                    <div
+                      className="text-lg font-mono font-bold"
+                      style={{ color: zone.color }}
+                    >
                       {zone.range}
                     </div>
                   </div>
@@ -270,31 +332,63 @@ export default function ZoneAnalysisDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Workout Recommendations</CardTitle>
-              <CardDescription>Suggested zones for different workout types</CardDescription>
+              <CardDescription>
+                Suggested zones for different workout types
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { type: 'Recovery', key: 'recovery', description: 'Easy recovery sessions' },
-                  { type: 'Base Building', key: 'base', description: 'Aerobic base development' },
-                  { type: 'Tempo', key: 'tempo', description: 'Comfortably hard efforts' },
-                  { type: 'Threshold', key: 'threshold', description: 'Lactate threshold training' },
-                  { type: 'VO2 Max', key: 'vo2max', description: 'High-intensity intervals' }
-                ].map((workout) => {
-                  const targetZone = getTargetZoneRecommendation(workout.key)
+                  {
+                    type: 'Recovery',
+                    key: 'recovery',
+                    description: 'Easy recovery sessions',
+                  },
+                  {
+                    type: 'Base Building',
+                    key: 'base',
+                    description: 'Aerobic base development',
+                  },
+                  {
+                    type: 'Tempo',
+                    key: 'tempo',
+                    description: 'Comfortably hard efforts',
+                  },
+                  {
+                    type: 'Threshold',
+                    key: 'threshold',
+                    description: 'Lactate threshold training',
+                  },
+                  {
+                    type: 'VO2 Max',
+                    key: 'vo2max',
+                    description: 'High-intensity intervals',
+                  },
+                ].map(workout => {
+                  const targetZone = getTargetZoneRecommendation(workout.key);
                   return (
-                    <div key={workout.key} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div
+                      key={workout.key}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
                       <div>
                         <p className="font-medium">{workout.type}</p>
-                        <p className="text-sm text-gray-500">{workout.description}</p>
+                        <p className="text-sm text-gray-500">
+                          {workout.description}
+                        </p>
                       </div>
                       {targetZone && (
-                        <Badge style={{ backgroundColor: targetZone.color, color: 'white' }}>
+                        <Badge
+                          style={{
+                            backgroundColor: targetZone.color,
+                            color: 'white',
+                          }}
+                        >
                           Zone {targetZone.number}
                         </Badge>
                       )}
                     </div>
-                  )
+                  );
                 })}
               </div>
             </CardContent>
@@ -307,7 +401,8 @@ export default function ZoneAnalysisDashboard() {
             <CardHeader>
               <CardTitle>Sport-Specific Analysis</CardTitle>
               <CardDescription>
-                Heart rate patterns vary by sport - here&apos;s your data by activity type
+                Heart rate patterns vary by sport - here&apos;s your data by
+                activity type
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -323,27 +418,37 @@ export default function ZoneAnalysisDashboard() {
                       </div>
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
-                          <p className="text-sm text-gray-500">Max Heart Rate</p>
-                          <p className="text-xl font-mono font-bold">{sport.maxHR} BPM</p>
+                          <p className="text-sm text-gray-500">
+                            Max Heart Rate
+                          </p>
+                          <p className="text-xl font-mono font-bold">
+                            {sport.maxHR} BPM
+                          </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500">Average Heart Rate</p>
-                          <p className="text-xl font-mono font-bold">{sport.avgHR} BPM</p>
+                          <p className="text-sm text-gray-500">
+                            Average Heart Rate
+                          </p>
+                          <p className="text-xl font-mono font-bold">
+                            {sport.avgHR} BPM
+                          </p>
                         </div>
                       </div>
                       <Separator className="my-3" />
                       <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
-                        {sport.suggestedZones.slice(0, 5).map((zone) => (
-                          <div 
+                        {sport.suggestedZones.slice(0, 5).map(zone => (
+                          <div
                             key={zone.number}
                             className="text-center p-2 rounded text-xs"
-                            style={{ 
+                            style={{
                               backgroundColor: zone.color + '30',
-                              borderColor: zone.color 
+                              borderColor: zone.color,
                             }}
                           >
                             <div className="font-bold">Z{zone.number}</div>
-                            <div>{zone.minHR}-{zone.maxHR}</div>
+                            <div>
+                              {zone.minHR}-{zone.maxHR}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -353,7 +458,9 @@ export default function ZoneAnalysisDashboard() {
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   <p>No sport-specific analysis available.</p>
-                  <p className="text-sm">Need at least 3 activities per sport for analysis.</p>
+                  <p className="text-sm">
+                    Need at least 3 activities per sport for analysis.
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -378,18 +485,22 @@ export default function ZoneAnalysisDashboard() {
                       <p className="text-gray-600">{model.description}</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                      {model.zones.map((zone) => (
+                      {model.zones.map(zone => (
                         <div
                           key={zone.number}
                           className="p-3 rounded border text-center"
-                          style={{ 
+                          style={{
                             backgroundColor: zone.color + '20',
-                            borderColor: zone.color 
+                            borderColor: zone.color,
                           }}
                         >
-                          <div className="font-bold text-sm">Zone {zone.number}</div>
+                          <div className="font-bold text-sm">
+                            Zone {zone.number}
+                          </div>
                           <div className="text-xs font-medium">{zone.name}</div>
-                          <div className="text-xs font-mono mt-1">{zone.minHR}-{zone.maxHR}</div>
+                          <div className="text-xs font-mono mt-1">
+                            {zone.minHR}-{zone.maxHR}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -401,5 +512,5 @@ export default function ZoneAnalysisDashboard() {
         </TabsContent>
       </Tabs>
     </div>
-  )
-} 
+  );
+}

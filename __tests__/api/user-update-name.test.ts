@@ -8,7 +8,9 @@ jest.mock('@/lib/supabase/server', () => ({
 
 import { createClient } from '@/lib/supabase/server';
 
-const mockCreateClient = createClient as jest.MockedFunction<typeof createClient>;
+const mockCreateClient = createClient as jest.MockedFunction<
+  typeof createClient
+>;
 
 // Mock the server-side Supabase client
 const mockSupabase = {
@@ -41,10 +43,13 @@ describe('/api/user/update-name', () => {
       error: null,
     });
 
-    const request = new NextRequest('http://localhost:3000/api/user/update-name', {
-      method: 'PATCH',
-      body: JSON.stringify({ name: 'New Name' }),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/user/update-name',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ name: 'New Name' }),
+      }
+    );
 
     const response = await PATCH(request);
     const data = await response.json();
@@ -67,10 +72,13 @@ describe('/api/user/update-name', () => {
       error: null,
     });
 
-    const request = new NextRequest('http://localhost:3000/api/user/update-name', {
-      method: 'PATCH',
-      body: JSON.stringify({ name: 'New Name' }),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/user/update-name',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ name: 'New Name' }),
+      }
+    );
 
     const response = await PATCH(request);
     const data = await response.json();
@@ -92,10 +100,13 @@ describe('/api/user/update-name', () => {
       error: null,
     });
 
-    const request = new NextRequest('http://localhost:3000/api/user/update-name', {
-      method: 'PATCH',
-      body: JSON.stringify({}),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/user/update-name',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({}),
+      }
+    );
 
     const response = await PATCH(request);
     const data = await response.json();
@@ -117,10 +128,13 @@ describe('/api/user/update-name', () => {
       error: null,
     });
 
-    const request = new NextRequest('http://localhost:3000/api/user/update-name', {
-      method: 'PATCH',
-      body: JSON.stringify({ name: '' }),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/user/update-name',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ name: '' }),
+      }
+    );
 
     const response = await PATCH(request);
     const data = await response.json();
@@ -143,10 +157,13 @@ describe('/api/user/update-name', () => {
     });
 
     const longName = 'A'.repeat(101); // 101 characters
-    const request = new NextRequest('http://localhost:3000/api/user/update-name', {
-      method: 'PATCH',
-      body: JSON.stringify({ name: longName }),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/user/update-name',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ name: longName }),
+      }
+    );
 
     const response = await PATCH(request);
     const data = await response.json();
@@ -161,10 +178,13 @@ describe('/api/user/update-name', () => {
   });
 
   it('returns 500 when request body is invalid JSON', async () => {
-    const request = new NextRequest('http://localhost:3000/api/user/update-name', {
-      method: 'PATCH',
-      body: 'invalid json',
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/user/update-name',
+      {
+        method: 'PATCH',
+        body: 'invalid json',
+      }
+    );
 
     const response = await PATCH(request);
     const data = await response.json();
@@ -191,10 +211,13 @@ describe('/api/user/update-name', () => {
       error: { message: 'Database error' },
     });
 
-    const request = new NextRequest('http://localhost:3000/api/user/update-name', {
-      method: 'PATCH',
-      body: JSON.stringify({ name: 'New Name' }),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/user/update-name',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ name: 'New Name' }),
+      }
+    );
 
     const response = await PATCH(request);
     const data = await response.json();
@@ -211,10 +234,13 @@ describe('/api/user/update-name', () => {
       error: { message: 'Auth error' },
     });
 
-    const request = new NextRequest('http://localhost:3000/api/user/update-name', {
-      method: 'PATCH',
-      body: JSON.stringify({ name: 'New Name' }),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/user/update-name',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ name: 'New Name' }),
+      }
+    );
 
     const response = await PATCH(request);
     const data = await response.json();
@@ -241,10 +267,13 @@ describe('/api/user/update-name', () => {
       error: null,
     });
 
-    const request = new NextRequest('http://localhost:3000/api/user/update-name', {
-      method: 'PATCH',
-      body: JSON.stringify({ name: '  Trimmed Name  ' }),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/user/update-name',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ name: '  Trimmed Name  ' }),
+      }
+    );
 
     const response = await PATCH(request);
     const data = await response.json();
@@ -266,10 +295,15 @@ describe('/api/user/update-name', () => {
       error: null,
     });
 
-    const request = new NextRequest('http://localhost:3000/api/user/update-name', {
-      method: 'PATCH',
-      body: JSON.stringify({ name: 'Name with <script>alert("xss")</script>' }),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/user/update-name',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({
+          name: 'Name with <script>alert("xss")</script>',
+        }),
+      }
+    );
 
     const response = await PATCH(request);
     const data = await response.json();
@@ -300,15 +334,21 @@ describe('/api/user/update-name', () => {
     });
 
     // Simulate concurrent requests
-    const request1 = new NextRequest('http://localhost:3000/api/user/update-name', {
-      method: 'PATCH',
-      body: JSON.stringify({ name: 'Concurrent Name' }),
-    });
+    const request1 = new NextRequest(
+      'http://localhost:3000/api/user/update-name',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ name: 'Concurrent Name' }),
+      }
+    );
 
-    const request2 = new NextRequest('http://localhost:3000/api/user/update-name', {
-      method: 'PATCH',
-      body: JSON.stringify({ name: 'Another Name' }),
-    });
+    const request2 = new NextRequest(
+      'http://localhost:3000/api/user/update-name',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ name: 'Another Name' }),
+      }
+    );
 
     const [response1, response2] = await Promise.all([
       PATCH(request1),
@@ -318,4 +358,4 @@ describe('/api/user/update-name', () => {
     expect(response1.status).toBe(200);
     expect(response2.status).toBe(200);
   });
-}); 
+});

@@ -24,11 +24,15 @@ interface EditGoalModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) {
+export function EditGoalModal({
+  goal,
+  open,
+  onOpenChange,
+}: EditGoalModalProps) {
   const updateGoalMutation = useUpdateGoal();
   const deleteGoalMutation = useDeleteGoal();
   const [error, setError] = useState<string>('');
-  
+
   const [formData, setFormData] = useState({
     targetValue: goal.target_value || 0,
     targetDate: goal.target_date || '',
@@ -64,21 +68,29 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
           target_value: formData.targetValue,
           target_date: formData.targetDate || undefined,
           goal_data: {
-            notes: formData.notes
+            notes: formData.notes,
           },
           current_progress: formData.currentProgress,
           is_completed: formData.isCompleted,
-        }
+        },
       });
 
       handleClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update goal. Please try again.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to update goal. Please try again.'
+      );
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this goal? This action cannot be undone.')) {
+    if (
+      !confirm(
+        'Are you sure you want to delete this goal? This action cannot be undone.'
+      )
+    ) {
       return;
     }
 
@@ -88,11 +100,15 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
       await deleteGoalMutation.mutateAsync(goal.id);
       handleClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete goal. Please try again.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to delete goal. Please try again.'
+      );
     }
   };
 
-  const progressPercentage = formData.targetValue 
+  const progressPercentage = formData.targetValue
     ? Math.min(100, (formData.currentProgress / formData.targetValue) * 100)
     : 0;
 
@@ -105,7 +121,8 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
         <DialogHeader>
           <DialogTitle>Edit Goal</DialogTitle>
           <DialogDescription>
-            Update your goal details. Most goals update automatically from your activities.
+            Update your goal details. Most goals update automatically from your
+            activities.
           </DialogDescription>
         </DialogHeader>
 
@@ -120,23 +137,38 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
           {/* Progress Type Indicator */}
           <div className="bg-blue-50 p-3 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
-              {goal.goal_type?.metric_type && ['total_distance', 'average_pace', 'run_count', 'total_time'].includes(goal.goal_type.metric_type) ? (
+              {goal.goal_type?.metric_type &&
+              [
+                'total_distance',
+                'average_pace',
+                'run_count',
+                'total_time',
+              ].includes(goal.goal_type.metric_type) ? (
                 <>
                   <CheckCircle className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium text-green-800">Auto-Tracked Goal</span>
+                  <span className="text-sm font-medium text-green-800">
+                    Auto-Tracked Goal
+                  </span>
                 </>
               ) : (
                 <>
                   <User className="h-4 w-4 text-orange-600" />
-                  <span className="text-sm font-medium text-orange-800">Manual Goal</span>
+                  <span className="text-sm font-medium text-orange-800">
+                    Manual Goal
+                  </span>
                 </>
               )}
             </div>
             <p className="text-xs text-blue-700">
-              {goal.goal_type?.metric_type && ['total_distance', 'average_pace', 'run_count', 'total_time'].includes(goal.goal_type.metric_type) 
-                ? "This goal updates automatically from your Strava activities. Manual updates are for corrections only."
-                : "This goal type requires manual updates (e.g., race results, heart rate zones, weight tracking)."
-              }
+              {goal.goal_type?.metric_type &&
+              [
+                'total_distance',
+                'average_pace',
+                'run_count',
+                'total_time',
+              ].includes(goal.goal_type.metric_type)
+                ? 'This goal updates automatically from your Strava activities. Manual updates are for corrections only.'
+                : 'This goal type requires manual updates (e.g., race results, heart rate zones, weight tracking).'}
             </p>
           </div>
 
@@ -144,9 +176,7 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <h3 className="font-semibold">{goal.goal_type?.display_name}</h3>
-              <Badge variant="outline">
-                {goal.goal_type?.category}
-              </Badge>
+              <Badge variant="outline">{goal.goal_type?.category}</Badge>
             </div>
             <p className="text-sm text-muted-foreground">
               {goal.goal_type?.description}
@@ -165,10 +195,12 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
                   type="number"
                   step="0.1"
                   value={formData.targetValue}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    targetValue: parseFloat(e.target.value) || 0
-                  }))}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      targetValue: parseFloat(e.target.value) || 0,
+                    }))
+                  }
                   className="mt-1"
                 />
               </div>
@@ -183,10 +215,12 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
                   id="targetDate"
                   type="date"
                   value={formData.targetDate}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    targetDate: e.target.value
-                  }))}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      targetDate: e.target.value,
+                    }))
+                  }
                   className="mt-1"
                 />
               </div>
@@ -201,10 +235,12 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
                 type="number"
                 step="0.1"
                 value={formData.currentProgress}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  currentProgress: parseFloat(e.target.value) || 0
-                }))}
+                onChange={e =>
+                  setFormData(prev => ({
+                    ...prev,
+                    currentProgress: parseFloat(e.target.value) || 0,
+                  }))
+                }
                 className="mt-1"
               />
               {formData.targetValue > 0 && (
@@ -222,10 +258,12 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
                 id="notes"
                 placeholder="Any additional notes..."
                 value={formData.notes}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  notes: e.target.value
-                }))}
+                onChange={e =>
+                  setFormData(prev => ({
+                    ...prev,
+                    notes: e.target.value,
+                  }))
+                }
                 className="mt-1"
               />
             </div>
@@ -235,10 +273,12 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
                 id="isCompleted"
                 type="checkbox"
                 checked={formData.isCompleted}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  isCompleted: e.target.checked
-                }))}
+                onChange={e =>
+                  setFormData(prev => ({
+                    ...prev,
+                    isCompleted: e.target.checked,
+                  }))
+                }
                 className="h-4 w-4"
               />
               <Label htmlFor="isCompleted" className="text-sm font-medium">
@@ -287,4 +327,4 @@ export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) 
       </DialogContent>
     </Dialog>
   );
-} 
+}

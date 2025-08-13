@@ -1,221 +1,269 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Activity } from '@/lib/strava/types'
-import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { convertDistance, formatDuration, formatPace, getDistanceUnit } from '@/lib/utils'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { TrendingUp, Calendar, Filter } from 'lucide-react'
+import { useMemo, useState } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Activity } from '@/lib/strava/types';
+import { useUnitPreferences } from '@/hooks/useUnitPreferences';
+import {
+  convertDistance,
+  formatDuration,
+  formatPace,
+  getDistanceUnit,
+} from '@/lib/utils';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
+import { TrendingUp, Calendar, Filter } from 'lucide-react';
 
 interface HistoricalTrendsProps {
-  activities: Activity[]
+  activities: Activity[];
 }
 
 interface TrendData {
-  date: string
-  distance: number
-  duration: number
-  pace: number
-  speed: number
-  elevation: number
-  heartRate: number
-  power: number
-  count: number
+  date: string;
+  distance: number;
+  duration: number;
+  pace: number;
+  speed: number;
+  elevation: number;
+  heartRate: number;
+  power: number;
+  count: number;
 }
 
 export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
-  const { preferences } = useUnitPreferences()
-  const [timeRange, setTimeRange] = useState('12w')
-  const [metric, setMetric] = useState('distance')
-  const [groupBy, setGroupBy] = useState('week')
+  const { preferences } = useUnitPreferences();
+  const [timeRange, setTimeRange] = useState('12w');
+  const [metric, setMetric] = useState('distance');
+  const [groupBy, setGroupBy] = useState('week');
 
   const trendData = useMemo(() => {
-    if (!activities || activities.length === 0) return []
+    if (!activities || activities.length === 0) return [];
 
-    const validActivities = activities.filter(activity => 
-      activity.distance > 0 && activity.moving_time > 0
-    )
+    const validActivities = activities.filter(
+      activity => activity.distance > 0 && activity.moving_time > 0
+    );
 
-    if (validActivities.length === 0) return []
+    if (validActivities.length === 0) return [];
 
     // Calculate date range based on selection
-    const now = new Date()
-    let startDate: Date
-    
+    const now = new Date();
+    let startDate: Date;
+
     switch (timeRange) {
       case '4w':
-        startDate = new Date(now.getTime() - 4 * 7 * 24 * 60 * 60 * 1000)
-        break
+        startDate = new Date(now.getTime() - 4 * 7 * 24 * 60 * 60 * 1000);
+        break;
       case '8w':
-        startDate = new Date(now.getTime() - 8 * 7 * 24 * 60 * 60 * 1000)
-        break
+        startDate = new Date(now.getTime() - 8 * 7 * 24 * 60 * 60 * 1000);
+        break;
       case '12w':
-        startDate = new Date(now.getTime() - 12 * 7 * 24 * 60 * 60 * 1000)
-        break
+        startDate = new Date(now.getTime() - 12 * 7 * 24 * 60 * 60 * 1000);
+        break;
       case '6m':
-        startDate = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000)
-        break
+        startDate = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000);
+        break;
       case '1y':
-        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
-        break
+        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        break;
       default:
-        startDate = new Date(now.getTime() - 12 * 7 * 24 * 60 * 60 * 1000)
+        startDate = new Date(now.getTime() - 12 * 7 * 24 * 60 * 60 * 1000);
     }
 
     // Filter activities within date range
-    const filteredActivities = validActivities.filter(activity => 
-      new Date(activity.start_date) >= startDate
-    )
+    const filteredActivities = validActivities.filter(
+      activity => new Date(activity.start_date) >= startDate
+    );
 
-    if (filteredActivities.length === 0) return []
+    if (filteredActivities.length === 0) return [];
 
     // Group activities by time period
-    const groupedData: Record<string, Activity[]> = {}
+    const groupedData: Record<string, Activity[]> = {};
 
     filteredActivities.forEach(activity => {
-      const activityDate = new Date(activity.start_date)
-      let periodKey: string
+      const activityDate = new Date(activity.start_date);
+      let periodKey: string;
 
       if (groupBy === 'week') {
         // Get week start (Monday)
-        const dayOfWeek = activityDate.getDay()
-        const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
-        const weekStart = new Date(activityDate)
-        weekStart.setDate(activityDate.getDate() - daysToMonday)
-        weekStart.setHours(0, 0, 0, 0)
-        periodKey = weekStart.toISOString().split('T')[0]
+        const dayOfWeek = activityDate.getDay();
+        const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        const weekStart = new Date(activityDate);
+        weekStart.setDate(activityDate.getDate() - daysToMonday);
+        weekStart.setHours(0, 0, 0, 0);
+        periodKey = weekStart.toISOString().split('T')[0];
       } else if (groupBy === 'month') {
-        periodKey = `${activityDate.getFullYear()}-${String(activityDate.getMonth() + 1).padStart(2, '0')}`
+        periodKey = `${activityDate.getFullYear()}-${String(activityDate.getMonth() + 1).padStart(2, '0')}`;
       } else {
         // Daily
-        periodKey = activityDate.toISOString().split('T')[0]
+        periodKey = activityDate.toISOString().split('T')[0];
       }
 
       if (!groupedData[periodKey]) {
-        groupedData[periodKey] = []
+        groupedData[periodKey] = [];
       }
-      groupedData[periodKey].push(activity)
-    })
+      groupedData[periodKey].push(activity);
+    });
 
     // Calculate metrics for each period
-    const trendData: TrendData[] = Object.entries(groupedData).map(([periodKey, periodActivities]) => {
-      const totalDistance = periodActivities.reduce((sum, activity) => sum + activity.distance, 0)
-      const totalDuration = periodActivities.reduce((sum, activity) => sum + activity.moving_time, 0)
-      const totalElevation = periodActivities.reduce((sum, activity) => 
-        sum + (activity.total_elevation_gain || 0), 0
-      )
-      
-      // Calculate average pace (seconds per km)
-      const averagePace = totalDistance > 0 ? (totalDuration / totalDistance) * 1000 : 0
-      
-      // Calculate average speed (km/h)
-      const averageSpeed = totalDistance > 0 ? (totalDistance / 1000) / (totalDuration / 3600) : 0
-      
-      // Calculate average heart rate
-      const hrActivities = periodActivities.filter(activity => activity.average_heartrate)
-      const averageHR = hrActivities.length > 0 
-        ? hrActivities.reduce((sum, activity) => sum + activity.average_heartrate!, 0) / hrActivities.length
-        : 0
+    const trendData: TrendData[] = Object.entries(groupedData).map(
+      ([periodKey, periodActivities]) => {
+        const totalDistance = periodActivities.reduce(
+          (sum, activity) => sum + activity.distance,
+          0
+        );
+        const totalDuration = periodActivities.reduce(
+          (sum, activity) => sum + activity.moving_time,
+          0
+        );
+        const totalElevation = periodActivities.reduce(
+          (sum, activity) => sum + (activity.total_elevation_gain || 0),
+          0
+        );
 
-      // Calculate average power
-      const powerActivities = periodActivities.filter(activity => activity.average_watts)
-      const averagePower = powerActivities.length > 0
-        ? powerActivities.reduce((sum, activity) => sum + activity.average_watts!, 0) / powerActivities.length
-        : 0
+        // Calculate average pace (seconds per km)
+        const averagePace =
+          totalDistance > 0 ? (totalDuration / totalDistance) * 1000 : 0;
 
-      return {
-        date: periodKey,
-        distance: totalDistance,
-        duration: totalDuration,
-        pace: averagePace,
-        speed: averageSpeed,
-        elevation: totalElevation,
-        heartRate: averageHR,
-        power: averagePower,
-        count: periodActivities.length
+        // Calculate average speed (km/h)
+        const averageSpeed =
+          totalDistance > 0 ? totalDistance / 1000 / (totalDuration / 3600) : 0;
+
+        // Calculate average heart rate
+        const hrActivities = periodActivities.filter(
+          activity => activity.average_heartrate
+        );
+        const averageHR =
+          hrActivities.length > 0
+            ? hrActivities.reduce(
+                (sum, activity) => sum + activity.average_heartrate!,
+                0
+              ) / hrActivities.length
+            : 0;
+
+        // Calculate average power
+        const powerActivities = periodActivities.filter(
+          activity => activity.average_watts
+        );
+        const averagePower =
+          powerActivities.length > 0
+            ? powerActivities.reduce(
+                (sum, activity) => sum + activity.average_watts!,
+                0
+              ) / powerActivities.length
+            : 0;
+
+        return {
+          date: periodKey,
+          distance: totalDistance,
+          duration: totalDuration,
+          pace: averagePace,
+          speed: averageSpeed,
+          elevation: totalElevation,
+          heartRate: averageHR,
+          power: averagePower,
+          count: periodActivities.length,
+        };
       }
-    })
+    );
 
     // Sort by date
-    return trendData.sort((a, b) => a.date.localeCompare(b.date))
-  }, [activities, timeRange, groupBy])
+    return trendData.sort((a, b) => a.date.localeCompare(b.date));
+  }, [activities, timeRange, groupBy]);
 
   const formatTooltipValue = (value: number, metric: string) => {
     switch (metric) {
       case 'distance':
-        return `${convertDistance(value, preferences.distance).toFixed(1)} ${getDistanceUnit(preferences.distance)}`
+        return `${convertDistance(value, preferences.distance).toFixed(1)} ${getDistanceUnit(preferences.distance)}`;
       case 'duration':
-        return formatDuration(value)
+        return formatDuration(value);
       case 'pace':
-        return formatPace(value, preferences.pace)
+        return formatPace(value, preferences.pace);
       case 'speed':
-        const speedKmh = value
+        const speedKmh = value;
         if (preferences.distance === 'miles') {
-          const speedMph = speedKmh * 0.621371
-          return `${speedMph.toFixed(1)} mph`
+          const speedMph = speedKmh * 0.621371;
+          return `${speedMph.toFixed(1)} mph`;
         } else {
-          return `${speedKmh.toFixed(1)} km/h`
+          return `${speedKmh.toFixed(1)} km/h`;
         }
       case 'elevation':
-        return `${value.toFixed(0)} m`
+        return `${value.toFixed(0)} m`;
       case 'heartRate':
-        return `${value.toFixed(0)} BPM`
+        return `${value.toFixed(0)} BPM`;
       case 'power':
-        return `${value.toFixed(0)} W`
+        return `${value.toFixed(0)} W`;
       case 'count':
-        return `${value} activities`
+        return `${value} activities`;
       default:
-        return value.toString()
+        return value.toString();
     }
-  }
+  };
 
   const getMetricLabel = (metric: string) => {
     switch (metric) {
       case 'distance':
-        return 'Distance'
+        return 'Distance';
       case 'duration':
-        return 'Duration'
+        return 'Duration';
       case 'pace':
-        return 'Average Pace'
+        return 'Average Pace';
       case 'speed':
-        return 'Average Speed'
+        return 'Average Speed';
       case 'elevation':
-        return 'Elevation Gain'
+        return 'Elevation Gain';
       case 'heartRate':
-        return 'Average Heart Rate'
+        return 'Average Heart Rate';
       case 'power':
-        return 'Average Power'
+        return 'Average Power';
       case 'count':
-        return 'Activity Count'
+        return 'Activity Count';
       default:
-        return metric
+        return metric;
     }
-  }
+  };
 
   const getMetricColor = (metric: string) => {
     switch (metric) {
       case 'distance':
-        return '#3b82f6'
+        return '#3b82f6';
       case 'duration':
-        return '#10b981'
+        return '#10b981';
       case 'pace':
-        return '#f59e0b'
+        return '#f59e0b';
       case 'speed':
-        return '#06b6d4'
+        return '#06b6d4';
       case 'elevation':
-        return '#8b5cf6'
+        return '#8b5cf6';
       case 'heartRate':
-        return '#ef4444'
+        return '#ef4444';
       case 'power':
-        return '#06b6d4'
+        return '#06b6d4';
       case 'count':
-        return '#6b7280'
+        return '#6b7280';
       default:
-        return '#3b82f6'
+        return '#3b82f6';
     }
-  }
+  };
 
   if (!activities || activities.length === 0) {
     return (
@@ -225,19 +273,19 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
             <TrendingUp className="h-5 w-5" />
             Historical Trends
           </CardTitle>
-          <CardDescription>
-            Track your performance over time
-          </CardDescription>
+          <CardDescription>Track your performance over time</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center text-muted-foreground py-8">
             <TrendingUp className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p>No activities found to analyze trends</p>
-            <p className="text-sm">Sync your activities from Strava to see your progress</p>
+            <p className="text-sm">
+              Sync your activities from Strava to see your progress
+            </p>
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -247,9 +295,9 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
           <TrendingUp className="h-5 w-5" />
           Historical Trends
         </CardTitle>
-                 <CardDescription>
-           Track your performance over time with interactive charts
-         </CardDescription>
+        <CardDescription>
+          Track your performance over time with interactive charts
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Controls */}
@@ -290,16 +338,16 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
               <SelectTrigger className="w-40">
                 <SelectValue />
               </SelectTrigger>
-                             <SelectContent>
-                 <SelectItem value="distance">Distance</SelectItem>
-                 <SelectItem value="duration">Duration</SelectItem>
-                 <SelectItem value="pace">Average Pace</SelectItem>
-                 <SelectItem value="speed">Average Speed</SelectItem>
-                 <SelectItem value="elevation">Elevation</SelectItem>
-                 <SelectItem value="heartRate">Heart Rate</SelectItem>
-                 <SelectItem value="power">Power</SelectItem>
-                 <SelectItem value="count">Activity Count</SelectItem>
-               </SelectContent>
+              <SelectContent>
+                <SelectItem value="distance">Distance</SelectItem>
+                <SelectItem value="duration">Duration</SelectItem>
+                <SelectItem value="pace">Average Pace</SelectItem>
+                <SelectItem value="speed">Average Speed</SelectItem>
+                <SelectItem value="elevation">Elevation</SelectItem>
+                <SelectItem value="heartRate">Heart Rate</SelectItem>
+                <SelectItem value="power">Power</SelectItem>
+                <SelectItem value="count">Activity Count</SelectItem>
+              </SelectContent>
             </Select>
           </div>
         </div>
@@ -309,47 +357,71 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
-                tickFormatter={(value) => {
+              <XAxis
+                dataKey="date"
+                tickFormatter={value => {
                   if (groupBy === 'week') {
-                    return new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    return new Date(value).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    });
                   } else if (groupBy === 'month') {
-                    return new Date(value + '-01').toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+                    return new Date(value + '-01').toLocaleDateString('en-US', {
+                      month: 'short',
+                      year: '2-digit',
+                    });
                   } else {
-                    return new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    return new Date(value).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    });
                   }
                 }}
               />
-                             <YAxis 
-                 tickFormatter={(value) => {
-                   // For pace, show only the numeric value without units to prevent cutoff
-                   if (metric === 'pace') {
-                     return formatPace(value, preferences.pace).replace(/[^\d:]/g, '')
-                   }
-                   return formatTooltipValue(value, metric)
-                 }}
-                 domain={metric === 'pace' ? ['dataMin', 'dataMax'] : [0, 'dataMax']}
-               />
-              <Tooltip 
-                labelFormatter={(value) => {
+              <YAxis
+                tickFormatter={value => {
+                  // For pace, show only the numeric value without units to prevent cutoff
+                  if (metric === 'pace') {
+                    return formatPace(value, preferences.pace).replace(
+                      /[^\d:]/g,
+                      ''
+                    );
+                  }
+                  return formatTooltipValue(value, metric);
+                }}
+                domain={
+                  metric === 'pace' ? ['dataMin', 'dataMax'] : [0, 'dataMax']
+                }
+              />
+              <Tooltip
+                labelFormatter={value => {
                   if (groupBy === 'week') {
-                    return `Week of ${new Date(value).toLocaleDateString()}`
+                    return `Week of ${new Date(value).toLocaleDateString()}`;
                   } else if (groupBy === 'month') {
-                    return new Date(value + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                    return new Date(value + '-01').toLocaleDateString('en-US', {
+                      month: 'long',
+                      year: 'numeric',
+                    });
                   } else {
-                    return new Date(value).toLocaleDateString()
+                    return new Date(value).toLocaleDateString();
                   }
                 }}
-                formatter={(value: number) => [formatTooltipValue(value, metric), getMetricLabel(metric)]}
+                formatter={(value: number) => [
+                  formatTooltipValue(value, metric),
+                  getMetricLabel(metric),
+                ]}
               />
-              <Line 
-                type="monotone" 
-                dataKey={metric} 
+              <Line
+                type="monotone"
+                dataKey={metric}
                 stroke={getMetricColor(metric)}
                 strokeWidth={2}
                 dot={{ fill: getMetricColor(metric), strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: getMetricColor(metric), strokeWidth: 2 }}
+                activeDot={{
+                  r: 6,
+                  stroke: getMetricColor(metric),
+                  strokeWidth: 2,
+                }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -363,14 +435,20 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
                 {trendData.length}
               </div>
               <div className="text-sm text-muted-foreground">
-                {groupBy === 'week' ? 'Weeks' : groupBy === 'month' ? 'Months' : 'Days'}
+                {groupBy === 'week'
+                  ? 'Weeks'
+                  : groupBy === 'month'
+                    ? 'Months'
+                    : 'Days'}
               </div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
                 {trendData.reduce((sum, data) => sum + data.count, 0)}
               </div>
-              <div className="text-sm text-muted-foreground">Total Activities</div>
+              <div className="text-sm text-muted-foreground">
+                Total Activities
+              </div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
@@ -379,7 +457,9 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
                   'distance'
                 )}
               </div>
-              <div className="text-sm text-muted-foreground">Total Distance</div>
+              <div className="text-sm text-muted-foreground">
+                Total Distance
+              </div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600">
@@ -394,5 +474,5 @@ export function HistoricalTrends({ activities }: HistoricalTrendsProps) {
         )}
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

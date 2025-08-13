@@ -17,6 +17,7 @@ The issue was caused by **multiple OAuth handlers competing** for the same autho
 3. **`OnboardingDemo`** (on onboarding demo page) - Also processing OAuth codes
 
 **Race Condition Flow:**
+
 ```
 User clicks "Connect to Strava"
   ↓
@@ -24,7 +25,7 @@ Strava redirects to: `/dashboard?code=xyz123`
   ↓
 MULTIPLE components detect the same code:
   - StravaOAuthHandler (dashboard)
-  - StravaConnectionStatus (settings) 
+  - StravaConnectionStatus (settings)
   - OnboardingDemo (if active)
   ↓
 First one succeeds, others fail (code is single-use)
@@ -37,6 +38,7 @@ On refresh: Code is gone, only connection check runs → Success!
 ## ✅ **Solution Implemented**
 
 ### **1. Centralized OAuth Handling**
+
 - ❌ **Removed** OAuth processing from `StravaConnectionStatus`
 - ✅ **Centralized** all OAuth handling in `StravaOAuthHandler`
 - 🛡️ **Added race condition prevention** with refs and state tracking
@@ -44,6 +46,7 @@ On refresh: Code is gone, only connection check runs → Success!
 ### **2. Race Condition Prevention**
 
 **Before (Race Condition):**
+
 ```typescript
 // Multiple components processing the same code
 useEffect(() => {
@@ -55,6 +58,7 @@ useEffect(() => {
 ```
 
 **After (Race Condition Fixed):**
+
 ```typescript
 // Single component with race condition prevention
 const processedCodeRef = useRef<string | null>(null);
@@ -62,15 +66,15 @@ const isProcessingRef = useRef(false);
 
 useEffect(() => {
   const code = searchParams.get('code');
-  
+
   // Prevent processing the same code multiple times
   if (code && processedCodeRef.current === code) return;
   if (isProcessingRef.current) return;
-  
+
   // Mark as processing
   isProcessingRef.current = true;
   processedCodeRef.current = code;
-  
+
   exchangeToken(code);
 }, [searchParams]);
 ```
@@ -78,17 +82,20 @@ useEffect(() => {
 ### **3. Component Responsibilities**
 
 **`StravaOAuthHandler` (Dashboard):**
+
 - ✅ **ONLY component** that processes OAuth codes
 - ✅ Handles token exchange
 - ✅ Updates connection status
 - ✅ Manages user feedback
 
 **`StravaConnectionStatus` (Settings):**
+
 - ✅ **ONLY** displays connection status
 - ✅ **NO** OAuth code processing
 - ✅ Provides connect/disconnect buttons
 
 **`OnboardingDemo` (Development):**
+
 - ✅ **ONLY** for development testing
 - ✅ Has production guard
 - ✅ Minimal OAuth handling
@@ -105,17 +112,17 @@ export function StravaOAuthHandler() {
 
   useEffect(() => {
     const code = searchParams.get('code');
-    
+
     // Multiple safety checks
     if (!code) return;
     if (authStatus.status !== 'idle') return;
     if (processedCodeRef.current === code) return; // Already processed
     if (isProcessingRef.current) return; // Currently processing
-    
+
     // Mark as processing
     isProcessingRef.current = true;
     processedCodeRef.current = code;
-    
+
     // Process the code...
   }, [searchParams, authStatus.status]);
 }
@@ -154,6 +161,7 @@ if (authStatus.status !== 'idle') return;
 ## 🧪 **Testing the Fix**
 
 ### **Test 1: First Connection**
+
 1. Clear all cookies and storage
 2. Go to dashboard
 3. Click "Connect to Strava"
@@ -162,12 +170,14 @@ if (authStatus.status !== 'idle') return;
 6. **Before**: Would fail, require refresh
 
 ### **Test 2: Multiple Page Loads**
+
 1. After successful connection
 2. Navigate between dashboard and settings
 3. **Expected**: Connection status remains consistent
 4. **Before**: Would show different states
 
 ### **Test 3: Error Handling**
+
 1. Try to connect with invalid credentials
 2. **Expected**: Clear error message
 3. **Before**: Would show confusing state
@@ -175,12 +185,14 @@ if (authStatus.status !== 'idle') return;
 ## 📊 **Performance Improvements**
 
 ### **Before (Race Condition):**
+
 - ❌ Multiple API calls with same code
 - ❌ Inconsistent UI state
 - ❌ User confusion and errors
 - ❌ Required page refresh
 
 ### **After (Fixed):**
+
 - ✅ Single API call per code
 - ✅ Consistent UI state
 - ✅ Clear user feedback
@@ -189,16 +201,19 @@ if (authStatus.status !== 'idle') return;
 ## 🚨 **Common Issues to Watch For**
 
 ### **1. Multiple OAuth Handlers**
+
 - **Symptom**: Connection works on refresh but fails initially
 - **Cause**: Multiple components processing same OAuth code
 - **Fix**: Ensure only one component handles OAuth
 
 ### **2. URL Parameter Persistence**
+
 - **Symptom**: OAuth code remains in URL after processing
 - **Cause**: URL cleanup not happening immediately
 - **Fix**: Clean URL parameters as soon as processing starts
 
 ### **3. State Race Conditions**
+
 - **Symptom**: Inconsistent connection status
 - **Cause**: Multiple state updates competing
 - **Fix**: Use refs and proper state management
@@ -206,6 +221,7 @@ if (authStatus.status !== 'idle') return;
 ## 🔍 **Debugging**
 
 ### **Console Logs to Watch For**
+
 ```
 🔍 Dashboard OAuth handler triggered: { code: true, error: null }
 🔄 Processing OAuth code on dashboard...
@@ -213,6 +229,7 @@ if (authStatus.status !== 'idle') return;
 ```
 
 ### **Red Flags**
+
 - Multiple "Processing OAuth code" messages
 - "Invalid authorization code" errors after success
 - Inconsistent connection status
@@ -236,4 +253,4 @@ if (authStatus.status !== 'idle') return;
 **Result**: ✅ Single-attempt OAuth connections work consistently
 **Performance**: ⚡ Instant connection status updates (no refresh required)
 **Reliability**: 🛡️ Better error handling and user feedback
-**Maintainability**: 🧹 Cleaner, centralized OAuth logic 
+**Maintainability**: 🧹 Cleaner, centralized OAuth logic

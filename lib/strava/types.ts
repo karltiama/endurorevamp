@@ -51,7 +51,7 @@ export interface StravaActivity {
   start_date: string; // ISO date
   start_date_local: string; // ISO date
   timezone: string;
-  
+
   // Performance metrics
   average_speed?: number; // m/s
   max_speed?: number; // m/s
@@ -62,11 +62,11 @@ export interface StravaActivity {
   max_watts?: number;
   average_cadence?: number;
   kilojoules?: number;
-  
+
   // Location
   start_latlng?: [number, number];
   end_latlng?: [number, number];
-  
+
   // Characteristics
   trainer?: boolean;
   commute?: boolean;
@@ -76,7 +76,7 @@ export interface StravaActivity {
   device_name?: string;
   device_watts?: boolean;
   has_heartrate?: boolean;
-  
+
   // Social
   kudos_count?: number;
   comment_count?: number;
@@ -84,7 +84,7 @@ export interface StravaActivity {
   photo_count?: number;
   achievement_count?: number;
   pr_count?: number;
-  
+
   // Additional fields from API
   calories?: number;
   description?: string;
@@ -99,7 +99,7 @@ export interface StravaActivity {
     summary_polyline?: string;
     resource_state: number;
   };
-  
+
   // COMPUTED FIELDS (calculated by our app)
   week_number?: number;
   month_number?: number;
@@ -108,7 +108,7 @@ export interface StravaActivity {
   average_pace?: number; // Seconds per km
   elevation_per_km?: number;
   efficiency_score?: number;
-  
+
   // TRAINING METRICS
   relative_effort?: number;
   perceived_exertion?: number;
@@ -117,7 +117,7 @@ export interface StravaActivity {
   recovery_time?: number;
   normalized_power?: number;
   training_stress_score?: number;
-  
+
   // ZONE DATA
   power_zones?: ZoneData[];
   heart_rate_zones?: ZoneData[];
@@ -170,7 +170,7 @@ export interface Activity {
   start_date: string;
   start_date_local: string;
   timezone: string;
-  
+
   // Performance metrics
   average_speed?: number;
   max_speed?: number;
@@ -181,11 +181,11 @@ export interface Activity {
   max_watts?: number;
   average_cadence?: number;
   kilojoules?: number;
-  
+
   // Location as string for PostGIS POINT
   start_latlng?: string;
   end_latlng?: string;
-  
+
   // Characteristics
   trainer?: boolean;
   commute?: boolean;
@@ -195,7 +195,7 @@ export interface Activity {
   device_name?: string;
   device_watts?: boolean;
   has_heartrate?: boolean;
-  
+
   // Social
   kudos_count?: number;
   comment_count?: number;
@@ -203,12 +203,12 @@ export interface Activity {
   photo_count?: number;
   achievement_count?: number;
   pr_count?: number;
-  
+
   // Additional
   calories?: number;
   description?: string;
   gear_id?: string;
-  
+
   // COMPUTED FIELDS (calculated by our app)
   week_number?: number;
   month_number?: number;
@@ -217,7 +217,7 @@ export interface Activity {
   average_pace?: number; // Seconds per km
   elevation_per_km?: number;
   efficiency_score?: number;
-  
+
   // TRAINING METRICS
   relative_effort?: number;
   perceived_exertion?: number;
@@ -226,12 +226,12 @@ export interface Activity {
   recovery_time?: number;
   normalized_power?: number;
   training_stress_score?: number;
-  
+
   // ZONE DATA
   power_zones?: ZoneData[];
   heart_rate_zones?: ZoneData[];
   pace_zones?: ZoneData[];
-  
+
   last_synced_at?: string;
   created_at?: string;
   updated_at?: string;
@@ -266,4 +266,4 @@ export interface SyncResult {
     remaining: number;
     resetTime: string;
   };
-} 
+}

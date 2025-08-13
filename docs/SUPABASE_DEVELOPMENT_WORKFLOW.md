@@ -7,6 +7,7 @@ This guide explains the proper way to develop with Supabase, moving from manual 
 ## Current vs. Proper Workflow
 
 ### ❌ Current Manual Approach
+
 - Writing SQL directly in Supabase dashboard
 - No version control for schema changes
 - No local development environment
@@ -15,6 +16,7 @@ This guide explains the proper way to develop with Supabase, moving from manual 
 - No rollback capability
 
 ### ✅ Proper Development Workflow
+
 - Local development with Supabase CLI
 - Version-controlled migrations
 - Local database for development
@@ -27,6 +29,7 @@ This guide explains the proper way to develop with Supabase, moving from manual 
 ### 1. Install Supabase CLI
 
 **Windows:**
+
 ```bash
 # Option 1: Download from GitHub
 # Visit: https://github.com/supabase/cli/releases
@@ -40,11 +43,13 @@ choco install supabase
 ```
 
 **macOS:**
+
 ```bash
 brew install supabase/tap/supabase
 ```
 
 **Linux:**
+
 ```bash
 curl -fsSL https://supabase.com/install.sh | sh
 ```
@@ -96,6 +101,7 @@ supabase migration new create_users_table
 ```
 
 Edit the migration file:
+
 ```sql
 -- supabase/migrations/TIMESTAMP_create_users_table.sql
 CREATE TABLE users (
@@ -118,10 +124,12 @@ supabase db push
 ### 4. Database Schema Changes
 
 **❌ Don't do this:**
+
 - Manually create tables in Supabase dashboard
 - Write SQL directly in the SQL editor
 
 **✅ Do this instead:**
+
 ```bash
 # 1. Create migration
 supabase migration new add_user_profile
@@ -152,6 +160,7 @@ supabase db diff --schema public -f migration_name
 ## Environment Configuration
 
 ### Local Development
+
 ```bash
 # Copy your remote schema to local
 supabase db pull
@@ -161,7 +170,9 @@ supabase start
 ```
 
 ### Environment Variables
+
 Update your `.env.local`:
+
 ```env
 # For local development
 NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
@@ -175,11 +186,13 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_local_anon_key
 ## Best Practices
 
 ### 1. Always Use Migrations
+
 - Never make schema changes directly in production
 - Always test migrations locally first
 - Use descriptive migration names
 
 ### 2. Version Control
+
 ```bash
 # Commit migrations with your code
 git add supabase/migrations/
@@ -187,6 +200,7 @@ git commit -m "Add user profile table"
 ```
 
 ### 3. Testing
+
 ```bash
 # Test migrations locally
 supabase db reset
@@ -196,6 +210,7 @@ npm test
 ```
 
 ### 4. Deployment
+
 ```bash
 # Deploy to production
 supabase db push
@@ -237,6 +252,7 @@ supabase db seed
 ## Migration Examples
 
 ### Creating Tables
+
 ```sql
 -- supabase/migrations/TIMESTAMP_create_activities.sql
 CREATE TABLE activities (
@@ -260,14 +276,16 @@ CREATE INDEX idx_activities_start_date ON activities(start_date);
 ```
 
 ### Adding Columns
+
 ```sql
 -- supabase/migrations/TIMESTAMP_add_activity_notes.sql
-ALTER TABLE activities 
+ALTER TABLE activities
 ADD COLUMN notes TEXT,
 ADD COLUMN rating INTEGER CHECK (rating >= 1 AND rating <= 5);
 ```
 
 ### Creating Functions
+
 ```sql
 -- supabase/migrations/TIMESTAMP_create_activity_stats_function.sql
 CREATE OR REPLACE FUNCTION get_user_activity_stats(user_uuid UUID)
@@ -278,11 +296,11 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     COUNT(*)::BIGINT,
     COALESCE(SUM(distance), 0),
     COALESCE(SUM(moving_time), 0)
-  FROM activities 
+  FROM activities
   WHERE user_id = user_uuid;
 END;
 $$ LANGUAGE plpgsql;
@@ -293,6 +311,7 @@ $$ LANGUAGE plpgsql;
 ### Common Issues
 
 1. **Port conflicts:**
+
 ```bash
 # Check what's using the ports
 netstat -ano | findstr :54321
@@ -300,6 +319,7 @@ netstat -ano | findstr :54322
 ```
 
 2. **Migration conflicts:**
+
 ```bash
 # Reset local database
 supabase db reset
@@ -309,6 +329,7 @@ supabase db pull
 ```
 
 3. **Environment variables:**
+
 ```bash
 # Verify your .env.local has correct local URLs
 NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
@@ -332,4 +353,4 @@ NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 - **Collaboration**: Team members can see and apply schema changes
 - **CI/CD**: Automated database deployments
 - **Testing**: Test migrations before applying to production
-- **Documentation**: Migration files serve as documentation 
+- **Documentation**: Migration files serve as documentation

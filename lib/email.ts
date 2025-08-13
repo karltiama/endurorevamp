@@ -6,22 +6,31 @@ function createResendClient() {
   if (!apiKey) {
     // In development, return a mock client that logs instead of sending
     if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️  RESEND_API_KEY not found - emails will be logged instead of sent');
+      console.warn(
+        '⚠️  RESEND_API_KEY not found - emails will be logged instead of sent'
+      );
       return {
         emails: {
-          send: async (options: { to: string; subject: string; from: string; html: string }) => {
+          send: async (options: {
+            to: string;
+            subject: string;
+            from: string;
+            html: string;
+          }) => {
             console.log('📧 Mock email sent:', {
               to: options.to,
               subject: options.subject,
               from: options.from,
-              html: options.html.substring(0, 100) + '...'
+              html: options.html.substring(0, 100) + '...',
             });
             return { data: { id: 'mock-email-id' }, error: null };
-          }
-        }
+          },
+        },
       };
     }
-    throw new Error('RESEND_API_KEY environment variable is required in production');
+    throw new Error(
+      'RESEND_API_KEY environment variable is required in production'
+    );
   }
   return new Resend(apiKey);
 }
@@ -36,7 +45,7 @@ export interface EmailOptions {
 export async function sendEmail({ to, subject, html, from }: EmailOptions) {
   try {
     const resend = createResendClient();
-    const fromEmail = from || process.env.FROM_EMAIL || 'onboarding@resend.dev'
+    const fromEmail = from || process.env.FROM_EMAIL || 'onboarding@resend.dev';
     const { data, error } = await resend.emails.send({
       from: fromEmail,
       to,
@@ -74,10 +83,15 @@ export const emailTemplates = {
         <p>Happy training!</p>
         <p>The EnduroRevamp Team</p>
       </div>
-    `
+    `,
   }),
 
-  contactForm: (submission: { name: string; email: string; message: string; type: string }) => ({
+  contactForm: (submission: {
+    name: string;
+    email: string;
+    message: string;
+    type: string;
+  }) => ({
     subject: `New ${submission.type} submission from ${submission.name}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -89,10 +103,13 @@ export const emailTemplates = {
           ${submission.message}
         </div>
       </div>
-    `
+    `,
   }),
 
-  weeklyProgress: (userName: string, stats: { activities?: number; distance?: string; time?: string }) => ({
+  weeklyProgress: (
+    userName: string,
+    stats: { activities?: number; distance?: string; time?: string }
+  ) => ({
     subject: 'Your Weekly Training Summary',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -110,6 +127,6 @@ export const emailTemplates = {
         <p>Keep up the great work!</p>
         <p>The EnduroRevamp Team</p>
       </div>
-    `
-  })
+    `,
+  }),
 };

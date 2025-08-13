@@ -7,7 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useUserGoals, useUpdateGoal, useGoalManagement } from '@/hooks/useGoals';
+import {
+  useUserGoals,
+  useUpdateGoal,
+  useGoalManagement,
+} from '@/hooks/useGoals';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +25,10 @@ interface DashboardGoalSelectorProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelectorProps) {
+export function DashboardGoalSelector({
+  open,
+  onOpenChange,
+}: DashboardGoalSelectorProps) {
   const { data: goalsData, isLoading } = useUserGoals();
   const updateGoalMutation = useUpdateGoal();
   const { toggleDashboardGoal, getDashboardGoals } = useGoalManagement();
@@ -49,7 +56,7 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
 
   const handleSave = async () => {
     setError('');
-    
+
     try {
       // Update all goals to remove from dashboard first
       for (const goal of activeGoals) {
@@ -66,7 +73,9 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
 
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update dashboard goals');
+      setError(
+        err instanceof Error ? err.message : 'Failed to update dashboard goals'
+      );
     }
   };
 
@@ -109,13 +118,16 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
               Manage Dashboard Goals
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-6">
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold mb-2">Select Goals for Dashboard</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Select Goals for Dashboard
+                </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Choose up to 3 goals to display on your dashboard. Goals will be shown in order of selection.
+                  Choose up to 3 goals to display on your dashboard. Goals will
+                  be shown in order of selection.
                 </p>
               </div>
 
@@ -129,7 +141,7 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Your Active Goals</h3>
                   <div className="grid gap-4">
-                    {activeGoals.map((goal) => {
+                    {activeGoals.map(goal => {
                       const isSelected = selectedGoals.includes(goal.id);
                       const priority = selectedGoals.indexOf(goal.id) + 1;
                       const canSelect = isSelected || selectedGoals.length < 3;
@@ -138,12 +150,12 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
                         <Card
                           key={goal.id}
                           className={cn(
-                            "cursor-pointer transition-all",
-                            isSelected 
-                              ? "ring-2 ring-primary bg-primary/5" 
-                              : canSelect 
-                                ? "hover:shadow-md hover:ring-1 hover:ring-primary/30" 
-                                : "opacity-60 cursor-not-allowed"
+                            'cursor-pointer transition-all',
+                            isSelected
+                              ? 'ring-2 ring-primary bg-primary/5'
+                              : canSelect
+                                ? 'hover:shadow-md hover:ring-1 hover:ring-primary/30'
+                                : 'opacity-60 cursor-not-allowed'
                           )}
                           onClick={() => canSelect && handleGoalToggle(goal.id)}
                         >
@@ -152,20 +164,25 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
                               <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-2">
                                   {isSelected && (
-                                    <Badge variant="secondary" className="text-xs">
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-xs"
+                                    >
                                       #{priority}
                                     </Badge>
                                   )}
                                   <Target className="h-4 w-4 text-muted-foreground" />
                                   <div>
-                                    <h4 className="font-medium">{goal.goal_type?.display_name}</h4>
+                                    <h4 className="font-medium">
+                                      {goal.goal_type?.display_name}
+                                    </h4>
                                     <p className="text-sm text-muted-foreground">
                                       {goal.target_value} {goal.target_unit}
                                     </p>
                                   </div>
                                 </div>
                               </div>
-                              
+
                               <div className="flex items-center gap-2">
                                 {isSelected ? (
                                   <Check className="h-4 w-4 text-primary" />
@@ -184,9 +201,12 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
                 <Card>
                   <CardContent className="p-8 text-center">
                     <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No Active Goals</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      No Active Goals
+                    </h3>
                     <p className="text-muted-foreground mb-6">
-                      Create your first goal to start tracking your progress on the dashboard.
+                      Create your first goal to start tracking your progress on
+                      the dashboard.
                     </p>
                     <Button onClick={() => setShowAddModal(true)}>
                       <Plus className="h-4 w-4 mr-2" />
@@ -206,7 +226,10 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
                         Create additional goals to choose from
                       </p>
                     </div>
-                    <Button variant="outline" onClick={() => setShowAddModal(true)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAddModal(true)}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Add New Goal
                     </Button>
@@ -220,8 +243,13 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
                   <Button variant="outline" onClick={handleCancel}>
                     Cancel
                   </Button>
-                  <Button onClick={handleSave} disabled={updateGoalMutation.isPending}>
-                    {updateGoalMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  <Button
+                    onClick={handleSave}
+                    disabled={updateGoalMutation.isPending}
+                  >
+                    {updateGoalMutation.isPending
+                      ? 'Saving...'
+                      : 'Save Changes'}
                   </Button>
                 </div>
               )}
@@ -231,10 +259,7 @@ export function DashboardGoalSelector({ open, onOpenChange }: DashboardGoalSelec
       </Dialog>
 
       {/* Add Goal Modal */}
-      <AddGoalModal
-        open={showAddModal}
-        onOpenChange={setShowAddModal}
-      />
+      <AddGoalModal open={showAddModal} onOpenChange={setShowAddModal} />
     </>
   );
-} 
+}

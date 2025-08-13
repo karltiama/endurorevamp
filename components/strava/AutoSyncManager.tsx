@@ -1,127 +1,142 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Loader2, Webhook, Clock, Zap, AlertCircle, CheckCircle } from 'lucide-react'
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import {
+  Loader2,
+  Webhook,
+  Clock,
+  Zap,
+  AlertCircle,
+  CheckCircle,
+} from 'lucide-react';
 
 interface WebhookStatus {
-  hasActiveWebhook: boolean
-  subscriptions: { id: string; callback_url: string; created_at: string }[]
+  hasActiveWebhook: boolean;
+  subscriptions: { id: string; callback_url: string; created_at: string }[];
 }
 
 interface SyncStats {
-  totalUsers: number
-  recentSyncs: number
-  staleSyncs: number
-  expiredTokens: number
+  totalUsers: number;
+  recentSyncs: number;
+  staleSyncs: number;
+  expiredTokens: number;
 }
 
 export function AutoSyncManager() {
-  const [webhookStatus, setWebhookStatus] = useState<WebhookStatus | null>(null)
-  const [syncStats, setSyncStats] = useState<SyncStats | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSetupLoading, setIsSetupLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [webhookStatus, setWebhookStatus] = useState<WebhookStatus | null>(
+    null
+  );
+  const [syncStats, setSyncStats] = useState<SyncStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSetupLoading, setIsSetupLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   const loadData = async () => {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
       const [webhookRes, statsRes] = await Promise.all([
         fetch('/api/webhooks/setup'),
-        fetch('/api/sync/background')
-      ])
+        fetch('/api/sync/background'),
+      ]);
 
       if (webhookRes.ok) {
-        const webhookData = await webhookRes.json()
-        setWebhookStatus(webhookData)
+        const webhookData = await webhookRes.json();
+        setWebhookStatus(webhookData);
       }
 
       if (statsRes.ok) {
-        const statsData = await statsRes.json()
-        setSyncStats(statsData.stats)
+        const statsData = await statsRes.json();
+        setSyncStats(statsData.stats);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load data')
+      setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const setupWebhook = async () => {
     try {
-      setIsSetupLoading(true)
-      const response = await fetch('/api/webhooks/setup', { method: 'POST' })
-      const result = await response.json()
+      setIsSetupLoading(true);
+      const response = await fetch('/api/webhooks/setup', { method: 'POST' });
+      const result = await response.json();
 
       if (result.success) {
-        await loadData() // Refresh data
+        await loadData(); // Refresh data
       } else {
-        setError(result.error || 'Failed to setup webhook')
+        setError(result.error || 'Failed to setup webhook');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to setup webhook')
+      setError(err instanceof Error ? err.message : 'Failed to setup webhook');
     } finally {
-      setIsSetupLoading(false)
+      setIsSetupLoading(false);
     }
-  }
+  };
 
   const deleteWebhook = async () => {
     try {
-      setIsSetupLoading(true)
-      const response = await fetch('/api/webhooks/setup', { method: 'DELETE' })
-      const result = await response.json()
+      setIsSetupLoading(true);
+      const response = await fetch('/api/webhooks/setup', { method: 'DELETE' });
+      const result = await response.json();
 
       if (result.success) {
-        await loadData() // Refresh data
+        await loadData(); // Refresh data
       } else {
-        setError(result.error || 'Failed to delete webhook')
+        setError(result.error || 'Failed to delete webhook');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete webhook')
+      setError(err instanceof Error ? err.message : 'Failed to delete webhook');
     } finally {
-      setIsSetupLoading(false)
+      setIsSetupLoading(false);
     }
-  }
+  };
 
   const triggerBackgroundSync = async () => {
     try {
-      setIsSetupLoading(true)
+      setIsSetupLoading(true);
       const response = await fetch('/api/sync/background', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'authorization': `Bearer ${process.env.NEXT_PUBLIC_BACKGROUND_SYNC_API_KEY || 'test-key'}`
+          authorization: `Bearer ${process.env.NEXT_PUBLIC_BACKGROUND_SYNC_API_KEY || 'test-key'}`,
         },
         body: JSON.stringify({
           syncType: 'quick',
           maxUsers: 50,
-          skipRecentlySynced: true
-        })
-      })
+          skipRecentlySynced: true,
+        }),
+      });
 
-      const result = await response.json()
-      
+      const result = await response.json();
+
       if (result.success) {
-        await loadData() // Refresh stats
+        await loadData(); // Refresh stats
       } else {
-        setError(result.error || 'Failed to trigger sync')
+        setError(result.error || 'Failed to trigger sync');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to trigger sync')
+      setError(err instanceof Error ? err.message : 'Failed to trigger sync');
     } finally {
-      setIsSetupLoading(false)
+      setIsSetupLoading(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -133,7 +148,7 @@ export function AutoSyncManager() {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -145,7 +160,8 @@ export function AutoSyncManager() {
             Automatic Sync Configuration
           </CardTitle>
           <CardDescription>
-            Configure automatic syncing of Strava activities using webhooks and background sync
+            Configure automatic syncing of Strava activities using webhooks and
+            background sync
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -170,7 +186,10 @@ export function AutoSyncManager() {
               </div>
               <div className="flex items-center gap-2">
                 {webhookStatus?.hasActiveWebhook ? (
-                  <Badge variant="default" className="bg-green-100 text-green-800">
+                  <Badge
+                    variant="default"
+                    className="bg-green-100 text-green-800"
+                  >
                     <CheckCircle className="h-3 w-3 mr-1" />
                     Active
                   </Badge>
@@ -191,7 +210,9 @@ export function AutoSyncManager() {
                   onClick={deleteWebhook}
                   disabled={isSetupLoading}
                 >
-                  {isSetupLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  {isSetupLoading && (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  )}
                   Remove Webhook
                 </Button>
               ) : (
@@ -200,7 +221,9 @@ export function AutoSyncManager() {
                   onClick={setupWebhook}
                   disabled={isSetupLoading}
                 >
-                  {isSetupLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  {isSetupLoading && (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  )}
                   Setup Webhook
                 </Button>
               )}
@@ -229,7 +252,9 @@ export function AutoSyncManager() {
               onClick={triggerBackgroundSync}
               disabled={isSetupLoading}
             >
-              {isSetupLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              {isSetupLoading && (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              )}
               Trigger Manual Sync
             </Button>
           </div>
@@ -242,20 +267,36 @@ export function AutoSyncManager() {
                 <Label>Sync Statistics</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{syncStats.totalUsers}</div>
-                    <div className="text-sm text-muted-foreground">Total Users</div>
+                    <div className="text-2xl font-bold">
+                      {syncStats.totalUsers}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Total Users
+                    </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{syncStats.recentSyncs}</div>
-                    <div className="text-sm text-muted-foreground">Recent Syncs</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {syncStats.recentSyncs}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Recent Syncs
+                    </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">{syncStats.staleSyncs}</div>
-                    <div className="text-sm text-muted-foreground">Stale Data</div>
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {syncStats.staleSyncs}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Stale Data
+                    </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-red-600">{syncStats.expiredTokens}</div>
-                    <div className="text-sm text-muted-foreground">Expired Tokens</div>
+                    <div className="text-2xl font-bold text-red-600">
+                      {syncStats.expiredTokens}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Expired Tokens
+                    </div>
                   </div>
                 </div>
               </div>
@@ -282,13 +323,18 @@ export function AutoSyncManager() {
           <div className="space-y-2">
             <h4 className="font-medium">Deployment Requirements:</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Webhook endpoint: /api/webhooks/strava (must be publicly accessible)</li>
-              <li>• Set up cron job to call /api/sync/background every 2-4 hours</li>
+              <li>
+                • Webhook endpoint: /api/webhooks/strava (must be publicly
+                accessible)
+              </li>
+              <li>
+                • Set up cron job to call /api/sync/background every 2-4 hours
+              </li>
               <li>• Ensure your domain has valid SSL certificate</li>
             </ul>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

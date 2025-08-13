@@ -1,30 +1,30 @@
-'use client'
+'use client';
 
-import { 
+import {
   TrainingReadinessSkeleton,
   TrainingLoadSkeleton,
   PerformanceInsightsSkeleton,
   QuickActionsSkeleton,
-  GoalsSkeleton
-} from '@/components/dashboard/DashboardSkeletons'
+  GoalsSkeleton,
+} from '@/components/dashboard/DashboardSkeletons';
 
 // Error fallback components
 export function TrainingReadinessErrorFallback() {
-  return <TrainingReadinessSkeleton />
+  return <TrainingReadinessSkeleton />;
 }
 
 export function TrainingLoadErrorFallback() {
-  return <TrainingLoadSkeleton />
+  return <TrainingLoadSkeleton />;
 }
 
 export function PerformanceInsightsErrorFallback() {
-  return <PerformanceInsightsSkeleton />
+  return <PerformanceInsightsSkeleton />;
 }
 
 export function QuickActionsErrorFallback() {
-  return <QuickActionsSkeleton />
+  return <QuickActionsSkeleton />;
 }
 
 export function GoalsErrorFallback() {
-  return <GoalsSkeleton />
-} 
+  return <GoalsSkeleton />;
+}

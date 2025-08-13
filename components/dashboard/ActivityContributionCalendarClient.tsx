@@ -1,27 +1,32 @@
-'use client'
+'use client';
 
-import { useUserActivities } from '@/hooks/use-user-activities'
-import { ActivityContributionCalendar } from './ActivityContributionCalendar'
-import { useEffect } from 'react'
+import { useUserActivities } from '@/hooks/use-user-activities';
+import { ActivityContributionCalendar } from './ActivityContributionCalendar';
+import { useEffect } from 'react';
 
 interface ActivityContributionCalendarClientProps {
-  userId: string
+  userId: string;
 }
 
-export function ActivityContributionCalendarClient({ userId }: ActivityContributionCalendarClientProps) {
-  const { data: activities, isLoading, error } = useUserActivities(userId)
+export function ActivityContributionCalendarClient({
+  userId,
+}: ActivityContributionCalendarClientProps) {
+  const { data: activities, isLoading, error } = useUserActivities(userId);
 
   useEffect(() => {
-    console.log('ActivityContributionCalendarClient: Component mounted/updated', {
-      userId,
-      isLoading,
-      error: error?.message,
-      activitiesCount: activities?.length || 0
-    })
-  }, [userId, isLoading, error, activities])
+    console.log(
+      'ActivityContributionCalendarClient: Component mounted/updated',
+      {
+        userId,
+        isLoading,
+        error: error?.message,
+        activitiesCount: activities?.length || 0,
+      }
+    );
+  }, [userId, isLoading, error, activities]);
 
   if (isLoading) {
-    console.log('ActivityContributionCalendarClient: Loading state')
+    console.log('ActivityContributionCalendarClient: Loading state');
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <div className="animate-pulse">
@@ -30,20 +35,23 @@ export function ActivityContributionCalendarClient({ userId }: ActivityContribut
           <div className="h-32 bg-gray-100 rounded-lg"></div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
-    console.error('ActivityContributionCalendarClient: Error state', error)
+    console.error('ActivityContributionCalendarClient: Error state', error);
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <div className="text-red-500">
           Failed to load activity data: {error.message}
         </div>
       </div>
-    )
+    );
   }
 
-  console.log('ActivityContributionCalendarClient: Rendering calendar with activities:', activities?.length || 0)
-  return <ActivityContributionCalendar activities={activities || []} />
-} 
+  console.log(
+    'ActivityContributionCalendarClient: Rendering calendar with activities:',
+    activities?.length || 0
+  );
+  return <ActivityContributionCalendar activities={activities || []} />;
+}

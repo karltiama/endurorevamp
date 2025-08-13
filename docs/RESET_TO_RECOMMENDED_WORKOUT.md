@@ -13,17 +13,19 @@ The "Reset to Recommended" feature allows users to clear their saved workout pla
 ### Frontend Components
 
 #### Enhanced Workout Planning Dashboard
+
 - **Location**: `components/planning/EnhancedWorkoutPlanningDashboard.tsx`
 - **Feature**: Added "Reset to Recommended" button next to "Edit Plan" button
-- **Behavior**: 
+- **Behavior**:
   - Only shows when a workout plan exists
   - Shows loading state during reset operation
   - Automatically refetches data after reset
 
 #### Hook Updates
+
 - **Location**: `hooks/useEnhancedWorkoutPlanning.ts`
 - **New Function**: `resetToRecommended()` in `useWorkoutPlanManager`
-- **Behavior**: 
+- **Behavior**:
   - Calls DELETE API endpoint
   - Invalidates React Query cache to refetch fresh data
   - Returns success/error status
@@ -31,12 +33,14 @@ The "Reset to Recommended" feature allows users to clear their saved workout pla
 ### Backend API
 
 #### DELETE Endpoint
+
 - **Route**: `/api/workout-plans`
 - **Method**: DELETE
 - **Function**: Deletes the current week's saved workout plan
 - **Database**: Removes active plan for current week from `workout_plans` table
 
 #### Database Logic
+
 - Calculates current week start date (Sunday)
 - Deletes plan where `user_id`, `week_start`, and `is_active = true` match
 - Returns success message on completion
@@ -53,6 +57,7 @@ The "Reset to Recommended" feature allows users to clear their saved workout pla
 ## Testing
 
 ### Component Tests
+
 - **File**: `__tests__/components/planning/WorkoutPlanningDashboard.test.tsx`
 - **Coverage**:
   - Button renders when plan exists
@@ -61,6 +66,7 @@ The "Reset to Recommended" feature allows users to clear their saved workout pla
   - Button doesn't show when no plan exists
 
 ### API Tests
+
 - **File**: `__tests__/api/workout-plans.test.ts`
 - **Coverage**:
   - Successful plan deletion
@@ -70,21 +76,26 @@ The "Reset to Recommended" feature allows users to clear their saved workout pla
 ## Technical Details
 
 ### React Query Integration
+
 ```typescript
 // Invalidate queries after reset
-await queryClient.invalidateQueries({ queryKey: ['workout-plans', userId] })
-await queryClient.invalidateQueries({ queryKey: ['enhanced-workout-planning', 'weekly-plan'] })
+await queryClient.invalidateQueries({ queryKey: ['workout-plans', userId] });
+await queryClient.invalidateQueries({
+  queryKey: ['enhanced-workout-planning', 'weekly-plan'],
+});
 ```
 
 ### Database Query
+
 ```sql
-DELETE FROM workout_plans 
-WHERE user_id = ? 
-  AND week_start = ? 
+DELETE FROM workout_plans
+WHERE user_id = ?
+  AND week_start = ?
   AND is_active = true
 ```
 
 ### Error Handling
+
 - Database errors return 500 status
 - Authentication errors return 500 status
 - Network errors are caught and logged
@@ -103,4 +114,4 @@ WHERE user_id = ?
 - `hooks/useEnhancedWorkoutPlanning.ts`
 - `app/api/workout-plans/route.ts`
 - `__tests__/components/planning/WorkoutPlanningDashboard.test.tsx`
-- `__tests__/api/workout-plans.test.ts` 
+- `__tests__/api/workout-plans.test.ts`

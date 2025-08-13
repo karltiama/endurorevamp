@@ -16,7 +16,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 // import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Sparkles, ArrowLeft, Loader2 } from 'lucide-react';
 import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
 import { SmartGoalCard, SmartGoalCardSkeleton } from './SmartGoalCard';
@@ -32,19 +38,22 @@ interface AddGoalModalProps {
   description?: string;
 }
 
-export function AddGoalModal({ 
-  open, 
-  onOpenChange, 
-  suggestion, 
-  title = "Smart Goal Suggestions",
-  description = "AI-powered goal recommendations based on your running data"
+export function AddGoalModal({
+  open,
+  onOpenChange,
+  suggestion,
+  title = 'Smart Goal Suggestions',
+  description = 'AI-powered goal recommendations based on your running data',
 }: AddGoalModalProps) {
   const { user } = useAuth();
   const { preferences } = useUnitPreferences();
-  const { suggestions, isLoading: isLoadingSuggestions } = useDynamicGoals(user?.id || '');
+  const { suggestions, isLoading: isLoadingSuggestions } = useDynamicGoals(
+    user?.id || ''
+  );
   const createGoalMutation = useUnifiedGoalCreation();
-  
-  const [selectedSuggestion, setSelectedSuggestion] = useState<DynamicGoalSuggestion | null>(null);
+
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<DynamicGoalSuggestion | null>(null);
   const [formData, setFormData] = useState<Partial<GoalFormData>>({});
   const [error, setError] = useState<string>('');
 
@@ -55,7 +64,7 @@ export function AddGoalModal({
       setFormData({
         targetValue: suggestion.suggestedTarget,
         targetUnit: suggestion.targetUnit || preferences.distance,
-        notes: `${suggestion.reasoning}\n\nStrategies: ${suggestion.strategies.join(', ')}`
+        notes: `${suggestion.reasoning}\n\nStrategies: ${suggestion.strategies.join(', ')}`,
       });
     }
   }, [suggestion, open, preferences.distance]);
@@ -79,7 +88,7 @@ export function AddGoalModal({
     setFormData({
       targetValue: suggestion.suggestedTarget,
       targetUnit: suggestion.targetUnit || preferences.distance,
-      notes: suggestion.reasoning
+      notes: suggestion.reasoning,
     });
   };
 
@@ -90,12 +99,18 @@ export function AddGoalModal({
     }
 
     // Validate required fields based on goal category
-    if (selectedSuggestion.goalType.category === 'distance' && !formData.targetValue) {
+    if (
+      selectedSuggestion.goalType.category === 'distance' &&
+      !formData.targetValue
+    ) {
       setError('Target distance is required.');
       return;
     }
 
-    if (selectedSuggestion.goalType.category === 'event' && !formData.targetDate) {
+    if (
+      selectedSuggestion.goalType.category === 'event' &&
+      !formData.targetDate
+    ) {
       setError('Target date is required for event goals.');
       return;
     }
@@ -110,18 +125,25 @@ export function AddGoalModal({
         targetDate: formData.targetDate,
         notes: formData.notes,
         context: 'suggestion',
-        suggestion: selectedSuggestion
+        suggestion: selectedSuggestion,
       });
 
       handleClose(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create goal. Please try again.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to create goal. Please try again.'
+      );
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="add-goal-description">
+      <DialogContent
+        className="max-w-4xl max-h-[90vh] overflow-y-auto"
+        aria-describedby="add-goal-description"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-purple-500" />
@@ -140,18 +162,19 @@ export function AddGoalModal({
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Choose Your Next Goal</h3>
               <p className="text-sm text-muted-foreground">
-                These goals are personalized based on your running data, current fitness level, and activity patterns.
+                These goals are personalized based on your running data, current
+                fitness level, and activity patterns.
               </p>
-              
+
               {isLoadingSuggestions ? (
                 <div className="grid gap-4 md:grid-cols-2">
-                  {[1, 2, 3, 4].map((i) => (
+                  {[1, 2, 3, 4].map(i => (
                     <SmartGoalCardSkeleton key={i} />
                   ))}
                 </div>
               ) : suggestions.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2">
-                  {suggestions.map((suggestion) => (
+                  {suggestions.map(suggestion => (
                     <SmartGoalCard
                       key={suggestion.id}
                       suggestion={suggestion}
@@ -164,15 +187,17 @@ export function AddGoalModal({
               ) : (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-center">No Suggestions Available</CardTitle>
+                    <CardTitle className="text-center">
+                      No Suggestions Available
+                    </CardTitle>
                     <CardDescription className="text-center">
-                      We need more activity data to generate personalized suggestions. 
-                      Try syncing your Strava activities first.
+                      We need more activity data to generate personalized
+                      suggestions. Try syncing your Strava activities first.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full"
                       onClick={() => handleClose(false)}
                     >
@@ -208,8 +233,13 @@ export function AddGoalModal({
               {/* Selected Goal Summary */}
               <div className="bg-blue-50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold text-blue-900">AI Recommendation</h4>
-                  <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                  <h4 className="font-semibold text-blue-900">
+                    AI Recommendation
+                  </h4>
+                  <Badge
+                    variant="outline"
+                    className="bg-blue-100 text-blue-800"
+                  >
                     {selectedSuggestion.successProbability}% success rate
                   </Badge>
                 </div>
@@ -218,16 +248,21 @@ export function AddGoalModal({
                 </p>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="font-medium">Target:</span> {selectedSuggestion.suggestedTarget}{selectedSuggestion.targetUnit}
+                    <span className="font-medium">Target:</span>{' '}
+                    {selectedSuggestion.suggestedTarget}
+                    {selectedSuggestion.targetUnit}
                   </div>
                   <div>
-                    <span className="font-medium">Duration:</span> {selectedSuggestion.timeframe}
+                    <span className="font-medium">Duration:</span>{' '}
+                    {selectedSuggestion.timeframe}
                   </div>
                   <div>
-                    <span className="font-medium">Difficulty:</span> {selectedSuggestion.difficulty}
+                    <span className="font-medium">Difficulty:</span>{' '}
+                    {selectedSuggestion.difficulty}
                   </div>
                   <div>
-                    <span className="font-medium">Commitment:</span> {selectedSuggestion.requiredCommitment}
+                    <span className="font-medium">Commitment:</span>{' '}
+                    {selectedSuggestion.requiredCommitment}
                   </div>
                 </div>
               </div>
@@ -236,8 +271,15 @@ export function AddGoalModal({
               <div className="space-y-4">
                 {selectedSuggestion.goalType.category === 'distance' && (
                   <div>
-                    <Label htmlFor="targetValue" className="text-sm font-medium">
-                      Target {selectedSuggestion.targetUnit === 'km' ? 'Kilometers' : 'Miles'} *
+                    <Label
+                      htmlFor="targetValue"
+                      className="text-sm font-medium"
+                    >
+                      Target{' '}
+                      {selectedSuggestion.targetUnit === 'km'
+                        ? 'Kilometers'
+                        : 'Miles'}{' '}
+                      *
                     </Label>
                     <div className="flex items-center gap-4">
                       <Input
@@ -245,12 +287,22 @@ export function AddGoalModal({
                         type="number"
                         min={0}
                         value={formData.targetValue ?? ''}
-                        onChange={e => setFormData(f => ({ ...f, targetValue: e.target.valueAsNumber }))}
+                        onChange={e =>
+                          setFormData(f => ({
+                            ...f,
+                            targetValue: e.target.valueAsNumber,
+                          }))
+                        }
                         className="w-32"
                       />
                       <select
                         value={formData.targetUnit || preferences.distance}
-                        onChange={e => setFormData(f => ({ ...f, targetUnit: e.target.value }))}
+                        onChange={e =>
+                          setFormData(f => ({
+                            ...f,
+                            targetUnit: e.target.value,
+                          }))
+                        }
                         className="border rounded px-2 py-1 ml-2"
                       >
                         <option value="km">Kilometers</option>
@@ -258,35 +310,45 @@ export function AddGoalModal({
                       </select>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      AI suggests: {selectedSuggestion.suggestedTarget}{selectedSuggestion.targetUnit}
+                      AI suggests: {selectedSuggestion.suggestedTarget}
+                      {selectedSuggestion.targetUnit}
                     </p>
                   </div>
                 )}
 
                 {selectedSuggestion.goalType.category === 'frequency' && (
                   <div>
-                    <Label htmlFor="targetValue" className="text-sm font-medium">
+                    <Label
+                      htmlFor="targetValue"
+                      className="text-sm font-medium"
+                    >
                       Target {selectedSuggestion.targetUnit} *
                     </Label>
                     <Input
                       id="targetValue"
                       type="number"
                       value={formData.targetValue || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        targetValue: parseFloat(e.target.value) || undefined
-                      }))}
+                      onChange={e =>
+                        setFormData(prev => ({
+                          ...prev,
+                          targetValue: parseFloat(e.target.value) || undefined,
+                        }))
+                      }
                       className="mt-1"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      AI suggests: {selectedSuggestion.suggestedTarget} {selectedSuggestion.targetUnit}
+                      AI suggests: {selectedSuggestion.suggestedTarget}{' '}
+                      {selectedSuggestion.targetUnit}
                     </p>
                   </div>
                 )}
 
                 {selectedSuggestion.goalType.category === 'pace' && (
                   <div>
-                    <Label htmlFor="targetValue" className="text-sm font-medium">
+                    <Label
+                      htmlFor="targetValue"
+                      className="text-sm font-medium"
+                    >
                       Target Pace (minutes per km) *
                     </Label>
                     <Input
@@ -294,31 +356,48 @@ export function AddGoalModal({
                       type="number"
                       step="0.1"
                       value={formData.targetValue || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        targetValue: parseFloat(e.target.value) || undefined
-                      }))}
+                      onChange={e =>
+                        setFormData(prev => ({
+                          ...prev,
+                          targetValue: parseFloat(e.target.value) || undefined,
+                        }))
+                      }
                       className="mt-1"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      AI suggests: {Math.floor((selectedSuggestion.suggestedTarget || 0) / 60)}:{String(Math.floor((selectedSuggestion.suggestedTarget || 0) % 60)).padStart(2, '0')}/km
+                      AI suggests:{' '}
+                      {Math.floor(
+                        (selectedSuggestion.suggestedTarget || 0) / 60
+                      )}
+                      :
+                      {String(
+                        Math.floor(
+                          (selectedSuggestion.suggestedTarget || 0) % 60
+                        )
+                      ).padStart(2, '0')}
+                      /km
                     </p>
                   </div>
                 )}
 
                 {selectedSuggestion.goalType.category === 'duration' && (
                   <div>
-                    <Label htmlFor="targetValue" className="text-sm font-medium">
+                    <Label
+                      htmlFor="targetValue"
+                      className="text-sm font-medium"
+                    >
                       Target Minutes *
                     </Label>
                     <Input
                       id="targetValue"
                       type="number"
                       value={formData.targetValue || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        targetValue: parseFloat(e.target.value) || undefined
-                      }))}
+                      onChange={e =>
+                        setFormData(prev => ({
+                          ...prev,
+                          targetValue: parseFloat(e.target.value) || undefined,
+                        }))
+                      }
                       className="mt-1"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
@@ -329,17 +408,22 @@ export function AddGoalModal({
 
                 {selectedSuggestion.goalType.category === 'elevation' && (
                   <div>
-                    <Label htmlFor="targetValue" className="text-sm font-medium">
+                    <Label
+                      htmlFor="targetValue"
+                      className="text-sm font-medium"
+                    >
                       Target Elevation *
                     </Label>
                     <Input
                       id="targetValue"
                       type="number"
                       value={formData.targetValue || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        targetValue: parseFloat(e.target.value) || undefined
-                      }))}
+                      onChange={e =>
+                        setFormData(prev => ({
+                          ...prev,
+                          targetValue: parseFloat(e.target.value) || undefined,
+                        }))
+                      }
                       className="mt-1"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
@@ -357,10 +441,12 @@ export function AddGoalModal({
                       id="targetDate"
                       type="date"
                       value={formData.targetDate || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        targetDate: e.target.value
-                      }))}
+                      onChange={e =>
+                        setFormData(prev => ({
+                          ...prev,
+                          targetDate: e.target.value,
+                        }))
+                      }
                       className="mt-1"
                     />
                   </div>
@@ -374,10 +460,12 @@ export function AddGoalModal({
                     id="notes"
                     placeholder="Add any additional notes about your goal..."
                     value={formData.notes || ''}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData(prev => ({
-                      ...prev,
-                      notes: e.target.value
-                    }))}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      setFormData(prev => ({
+                        ...prev,
+                        notes: e.target.value,
+                      }))
+                    }
                     className="mt-1 w-full min-h-[80px] px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     rows={3}
                   />
@@ -385,34 +473,40 @@ export function AddGoalModal({
               </div>
 
               {/* Strategies Section */}
-              {selectedSuggestion.strategies && selectedSuggestion.strategies.length > 0 && (
-                <div className="bg-green-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-green-900 mb-2">Recommended Strategies</h4>
-                  <ul className="space-y-1 text-sm text-green-800">
-                    {selectedSuggestion.strategies.map((strategy, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <span className="text-green-600">•</span>
-                        {strategy}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {selectedSuggestion.strategies &&
+                selectedSuggestion.strategies.length > 0 && (
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-green-900 mb-2">
+                      Recommended Strategies
+                    </h4>
+                    <ul className="space-y-1 text-sm text-green-800">
+                      {selectedSuggestion.strategies.map((strategy, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <span className="text-green-600">•</span>
+                          {strategy}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
               {/* Warnings Section */}
-              {selectedSuggestion.warnings && selectedSuggestion.warnings.length > 0 && (
-                <div className="bg-yellow-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-yellow-900 mb-2">Keep in Mind</h4>
-                  <ul className="space-y-1 text-sm text-yellow-800">
-                    {selectedSuggestion.warnings.map((warning, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <span className="text-yellow-600">•</span>
-                        {warning}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {selectedSuggestion.warnings &&
+                selectedSuggestion.warnings.length > 0 && (
+                  <div className="bg-yellow-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-yellow-900 mb-2">
+                      Keep in Mind
+                    </h4>
+                    <ul className="space-y-1 text-sm text-yellow-800">
+                      {selectedSuggestion.warnings.map((warning, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <span className="text-yellow-600">•</span>
+                          {warning}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3">
@@ -449,4 +543,4 @@ export function AddGoalModal({
       </DialogContent>
     </Dialog>
   );
-} 
+}

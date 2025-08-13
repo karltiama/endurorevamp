@@ -7,13 +7,15 @@ This document details the fix for a critical issue where Strava connection statu
 ## 🎯 Problem Statement
 
 ### Symptoms
+
 - User completes Strava OAuth flow successfully
-- Gets redirected to dashboard homepage 
+- Gets redirected to dashboard homepage
 - Connection appears active and sync works
 - **Issue**: Navigating to `/dashboard/settings` shows "Disconnected" status
 - User confused about actual connection state
 
 ### User Impact
+
 ```mermaid
 graph LR
     A[Connect to Strava] --> B[OAuth Success]
@@ -28,13 +30,14 @@ graph LR
 The issue stemmed from multiple problems in the OAuth callback handling and React Query cache management:
 
 ### 1. Race Condition in Cache Updates
+
 ```tsx
 // BEFORE: Problematic code
-await queryClient.invalidateQueries({ 
-  queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id] 
+await queryClient.invalidateQueries({
+  queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id],
 });
-await queryClient.invalidateQueries({ 
-  queryKey: [STRAVA_TOKEN_QUERY_KEY, user?.id] 
+await queryClient.invalidateQueries({
+  queryKey: [STRAVA_TOKEN_QUERY_KEY, user?.id],
 });
 
 // Refresh happening too early
@@ -47,6 +50,7 @@ setTimeout(() => {
 **Problem**: Cache invalidation was happening before the UI could reflect the connected state, causing a flash of "disconnected" status.
 
 ### 2. Aggressive Query Refetching
+
 ```tsx
 // BEFORE: Too aggressive settings
 staleTime: 30 * 1000, // 30 seconds - too short
@@ -57,6 +61,7 @@ gcTime: 5 * 60 * 1000, // 5 minutes - too short
 **Problem**: React Query was refetching connection status too frequently, especially on window focus and navigation.
 
 ### 3. No Immediate Cache Updates
+
 The code wasn't setting the expected connection state immediately after successful OAuth, relying entirely on server-side validation.
 
 ## ✅ Solution Implementation
@@ -65,42 +70,42 @@ The code wasn't setting the expected connection state immediately after successf
 
 ```tsx
 // AFTER: Fixed implementation
-onSuccess: async (data) => {
+onSuccess: async data => {
   console.log('✅ Successfully connected to Strava:', data);
   setAuthSuccess(true);
-  
+
   // Set the connection status immediately in cache
-  queryClient.setQueryData(
-    [STRAVA_CONNECTION_QUERY_KEY, user?.id],
-    {
-      connected: true,
-      athlete: data.athlete ? {
-        id: data.athlete.id,
-        firstname: data.athlete.firstname,
-        lastname: data.athlete.lastname,
-        profile: data.athlete.profile,
-      } : undefined,
-    }
-  );
-  
+  queryClient.setQueryData([STRAVA_CONNECTION_QUERY_KEY, user?.id], {
+    connected: true,
+    athlete: data.athlete
+      ? {
+          id: data.athlete.id,
+          firstname: data.athlete.firstname,
+          lastname: data.athlete.lastname,
+          profile: data.athlete.profile,
+        }
+      : undefined,
+  });
+
   // Invalidate queries to ensure fresh data from server
   await Promise.all([
-    queryClient.invalidateQueries({ 
-      queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id] 
+    queryClient.invalidateQueries({
+      queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id],
     }),
-    queryClient.invalidateQueries({ 
-      queryKey: [STRAVA_TOKEN_QUERY_KEY, user?.id] 
-    })
+    queryClient.invalidateQueries({
+      queryKey: [STRAVA_TOKEN_QUERY_KEY, user?.id],
+    }),
   ]);
-  
+
   // Clear success message after delay
   setTimeout(() => {
     setAuthSuccess(false);
   }, 3000);
-}
+};
 ```
 
 **Key Changes**:
+
 - ✅ Immediate cache update with `setQueryData()`
 - ✅ Parallel cache invalidation with `Promise.all()`
 - ✅ Removed premature `refreshStatus()` call
@@ -119,7 +124,7 @@ const {
   queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id],
   queryFn: async () => {
     if (!user) return null;
-    
+
     const stravaAuth = new StravaAuth(false);
     return await stravaAuth.getConnectionStatus(user.id);
   },
@@ -132,6 +137,7 @@ const {
 ```
 
 **Key Improvements**:
+
 - ✅ Increased `staleTime` to 2 minutes (was 30 seconds)
 - ✅ Increased `gcTime` to 15 minutes (was 5 minutes)
 - ✅ Disabled refetch on window focus
@@ -145,7 +151,7 @@ async getConnectionStatus(userId: string) {
   try {
     console.log('🔍 Checking connection status for user:', userId);
     const tokens = await this.getTokens(userId);
-    
+
     if (!tokens) {
       console.log('❌ No tokens found for user');
       return { connected: false };
@@ -154,7 +160,7 @@ async getConnectionStatus(userId: string) {
     console.log('✅ Tokens found, checking if connected...');
     const connected = await this.isConnected(userId);
     console.log('🔗 Connection status:', connected, 'expires at:', tokens.expires_at);
-    
+
     return {
       connected,
       athlete: { /* ... */ },
@@ -172,6 +178,7 @@ async getConnectionStatus(userId: string) {
 ### Manual Testing Checklist
 
 1. **Basic Connection Flow**
+
    ```
    ☐ Navigate to /dashboard/settings
    ☐ Click "Connect to Strava"
@@ -181,6 +188,7 @@ async getConnectionStatus(userId: string) {
    ```
 
 2. **Navigation Persistence Test**
+
    ```
    ☐ From connected state on /dashboard
    ☐ Navigate to /dashboard/settings
@@ -211,12 +219,14 @@ Expected: All tests should pass with the new implementation.
 ## 📊 Performance Impact
 
 ### Before Fix
+
 - **Cache Duration**: 30 seconds
 - **Refetch Frequency**: High (on focus, reconnect)
 - **User Experience**: Inconsistent connection status
 - **Network Requests**: Excessive due to frequent refetching
 
 ### After Fix
+
 - **Cache Duration**: 2 minutes
 - **Refetch Frequency**: Controlled and intentional
 - **User Experience**: Consistent connection status
@@ -250,7 +260,7 @@ graph TD
     C --> D[UI Shows Connected]
     D --> E[Navigation]
     E --> F[Cache Hit - Still Connected]
-    
+
     G[Before Fix] --> H[Cache Invalidation]
     H --> I[Race Condition]
     I --> J[Shows Disconnected]
@@ -259,12 +269,15 @@ graph TD
 ## 🚀 Deployment Notes
 
 ### Environment Considerations
+
 - No environment variable changes required
 - No database schema changes
 - Backward compatible with existing tokens
 
 ### Monitoring
+
 Monitor the following after deployment:
+
 - Connection status consistency across navigation
 - Reduced query refetch frequency in browser network tab
 - User reports of sync disconnection issues
@@ -272,23 +285,25 @@ Monitor the following after deployment:
 ## 🔮 Future Improvements
 
 1. **Connection Health Monitoring**
+
    ```tsx
    // Potential enhancement
    const useConnectionHealth = () => {
      // Monitor connection stability
      // Alert on frequent disconnections
      // Provide connection quality metrics
-   }
+   };
    ```
 
 2. **Offline Support**
+
    ```tsx
    // Potential enhancement
    const useOfflineSync = () => {
      // Cache sync operations when offline
      // Retry when connection restored
      // Show offline indicators
-   }
+   };
    ```
 
 3. **Connection Analytics**
@@ -298,7 +313,7 @@ Monitor the following after deployment:
      // Track connection success rates
      // Monitor token refresh patterns
      // Identify common failure points
-   }
+   };
    ```
 
 ## 📝 Conclusion
@@ -312,4 +327,4 @@ The solution maintains backward compatibility while significantly improving perf
 **Author**: Development Team  
 **Date**: December 2024  
 **Version**: 1.0  
-**Status**: ✅ Implemented & Tested 
+**Status**: ✅ Implemented & Tested

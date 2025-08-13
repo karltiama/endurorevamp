@@ -29,7 +29,7 @@ We've implemented a comprehensive training load analysis system that uses **TRIM
 ### 🎯 Performance Metrics
 
 - **Fitness (CTL)**: Chronic Training Load - 42-day exponentially weighted average
-- **Fatigue (ATL)**: Acute Training Load - 7-day exponentially weighted average  
+- **Fatigue (ATL)**: Acute Training Load - 7-day exponentially weighted average
 - **Form (TSB)**: Training Stress Balance = CTL - ATL
 - **Ramp Rate**: Weekly change in fitness level
 - **Training Status**: Peak, Build, Maintain, or Recover phases
@@ -63,35 +63,39 @@ We've implemented a comprehensive training load analysis system that uses **TRIM
 ### Calculation Details
 
 #### TRIMP Formula
+
 ```typescript
 // Heart rate reserve ratio
-const hrReserve = (avgHR - restHR) / (maxHR - restHR)
+const hrReserve = (avgHR - restHR) / (maxHR - restHR);
 
 // Exponential intensity factor
-const intensityFactor = hrRatio * 1.92
+const intensityFactor = hrRatio * 1.92;
 
 // Base TRIMP
-const trimp = duration * hrRatio * (0.64 * Math.exp(intensityFactor))
+const trimp = duration * hrRatio * (0.64 * Math.exp(intensityFactor));
 
 // Apply sport multiplier
-const finalTrimp = trimp * sportMultiplier
+const finalTrimp = trimp * sportMultiplier;
 ```
 
 #### TSS Formula (Power-based)
+
 ```typescript
 // Intensity Factor relative to FTP
-const intensityFactor = avgPower / functionalThresholdPower
+const intensityFactor = avgPower / functionalThresholdPower;
 
 // TSS calculation
-const tss = (duration_seconds * normalizedPower * intensityFactor) / (ftp * 3600) * 100
+const tss =
+  ((duration_seconds * normalizedPower * intensityFactor) / (ftp * 3600)) * 100;
 ```
 
 #### TSS Formula (HR-based)
+
 ```typescript
 // Intensity Factor relative to LTHR
 const intensityFactor = avgHR / lactateThresholdHR
 
-// HR-based TSS approximation  
+// HR-based TSS approximation
 const tss = duration_hours * intensityFactor² * 100
 ```
 
@@ -101,17 +105,17 @@ The system applies different intensity multipliers based on activity type:
 
 ```typescript
 const SPORT_MULTIPLIERS = {
-  'Run': 1.0,           // Baseline
-  'Ride': 0.85,         // Cycling typically lower intensity
-  'VirtualRide': 0.85,
-  'Swim': 1.1,          // Swimming often higher intensity
-  'Hike': 0.7,
-  'Walk': 0.5,
-  'Workout': 0.9,
-  'WeightTraining': 0.8,
-  'Yoga': 0.6,
+  Run: 1.0, // Baseline
+  Ride: 0.85, // Cycling typically lower intensity
+  VirtualRide: 0.85,
+  Swim: 1.1, // Swimming often higher intensity
+  Hike: 0.7,
+  Walk: 0.5,
+  Workout: 0.9,
+  WeightTraining: 0.8,
+  Yoga: 0.6,
   // ... additional sports
-}
+};
 ```
 
 ### Automatic Threshold Estimation
@@ -146,8 +150,9 @@ When user thresholds aren't available, the system estimates:
 ### Data Quality Indicators
 
 The system assesses data quality based on:
+
 - **Excellent**: ≥80% HR coverage + ≥20% power data + ≥20 activities
-- **Good**: ≥60% HR coverage + ≥15 activities OR ≥40% power + ≥10 activities  
+- **Good**: ≥60% HR coverage + ≥15 activities OR ≥40% power + ≥10 activities
 - **Fair**: ≥30% HR coverage OR ≥10 activities
 - **Poor**: ≥10% HR coverage OR ≥5 activities
 - **None**: Insufficient data
@@ -217,4 +222,4 @@ The system provides professional-grade training analysis comparable to tools lik
 - **Server/Client Separation**: Follows Next.js App Router best practices
 - **Component Architecture**: Reusable, testable components
 - **Error Handling**: Graceful degradation and user feedback
-- **Loading States**: Skeleton components for better UX 
+- **Loading States**: Skeleton components for better UX

@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  TrendingUp, 
+import {
+  TrendingUp,
   Activity,
   MapPin,
   Award,
@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   Edit2,
   Save,
-  X
+  X,
 } from 'lucide-react';
 import { useUserActivities } from '@/hooks/use-user-activities';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
@@ -46,12 +46,15 @@ interface TrainingProfile {
 const estimateTSS = (activity: StravaActivity): number => {
   const durationHours = activity.moving_time / 3600;
   const baseIntensity = activity.sport_type === 'Run' ? 70 : 60;
-  
+
   let intensityMultiplier = 1;
   if (activity.average_heartrate) {
-    intensityMultiplier = Math.max(0.5, Math.min(1.5, activity.average_heartrate / 140));
+    intensityMultiplier = Math.max(
+      0.5,
+      Math.min(1.5, activity.average_heartrate / 140)
+    );
   }
-  
+
   return durationHours * baseIntensity * intensityMultiplier;
 };
 
@@ -74,11 +77,11 @@ const defaultParams = {
   frequency_target_multiplier: 1.2,
   tss_target_multiplier: 1.2,
   strength_threshold_percent: 30,
-  improvement_threshold_percent: 20
+  improvement_threshold_percent: 20,
 };
 
 const analyzeTrainingProfile = (
-  activities: StravaActivity[], 
+  activities: StravaActivity[],
   analysisParams: Record<string, number>
 ): TrainingProfile => {
   if (!activities || activities.length === 0) {
@@ -90,18 +93,28 @@ const analyzeTrainingProfile = (
       trainingFrequency: 3,
       strengths: ['Starting fresh'],
       areasForImprovement: ['Build consistency', 'Establish routine'],
-      recommendations: ['Start with 3 runs per week', 'Focus on easy pace', 'Gradually increase distance']
+      recommendations: [
+        'Start with 3 runs per week',
+        'Focus on easy pace',
+        'Gradually increase distance',
+      ],
     };
   }
 
-  const weeklyDistance = activities.reduce((sum, activity) => sum + activity.distance, 0) / 1000; // Convert to km
+  const weeklyDistance =
+    activities.reduce((sum, activity) => sum + activity.distance, 0) / 1000; // Convert to km
   const runningActivities = activities.filter(a => a.sport_type === 'Run');
-  const averagePace = runningActivities.length > 0 ? runningActivities.reduce((sum, activity) => {
-    const pace = activity.moving_time / (activity.distance / 1000); // seconds per km
-    return sum + pace;
-  }, 0) / runningActivities.length : 0;
+  const averagePace =
+    runningActivities.length > 0
+      ? runningActivities.reduce((sum, activity) => {
+          const pace = activity.moving_time / (activity.distance / 1000); // seconds per km
+          return sum + pace;
+        }, 0) / runningActivities.length
+      : 0;
   const weeklyTSS = activities.slice(0, 10).reduce((sum, activity) => {
-    const tss = (activity as ActivityWithTrainingData).training_stress_score || estimateTSS(activity);
+    const tss =
+      (activity as ActivityWithTrainingData).training_stress_score ||
+      estimateTSS(activity);
     return sum + tss;
   }, 0);
 
@@ -118,70 +131,104 @@ const analyzeTrainingProfile = (
     // Distance analysis
     distance: {
       value: weeklyDistance,
-      level: weeklyDistance < analysisParams.distance_beginner_threshold ? 'beginner' : 
-             weeklyDistance < analysisParams.distance_intermediate_threshold ? 'intermediate' : 'advanced',
-      target: weeklyDistance < analysisParams.distance_beginner_threshold ? 
-              weeklyDistance * analysisParams.distance_target_multiplier :
-              weeklyDistance < analysisParams.distance_intermediate_threshold ? 
-              analysisParams.distance_intermediate_threshold * analysisParams.distance_target_multiplier :
-              analysisParams.distance_advanced_threshold * analysisParams.distance_target_multiplier,
-      improvement: weeklyDistance < analysisParams.distance_beginner_threshold ? 
-                  `Build weekly distance to ${analysisParams.distance_beginner_threshold}-${analysisParams.distance_intermediate_threshold}km` :
-                  weeklyDistance < analysisParams.distance_intermediate_threshold ? 
-                  `Increase to ${analysisParams.distance_intermediate_threshold}-${analysisParams.distance_advanced_threshold}km per week` :
-                  `Consider ${analysisParams.distance_advanced_threshold}+km for elite training`
+      level:
+        weeklyDistance < analysisParams.distance_beginner_threshold
+          ? 'beginner'
+          : weeklyDistance < analysisParams.distance_intermediate_threshold
+            ? 'intermediate'
+            : 'advanced',
+      target:
+        weeklyDistance < analysisParams.distance_beginner_threshold
+          ? weeklyDistance * analysisParams.distance_target_multiplier
+          : weeklyDistance < analysisParams.distance_intermediate_threshold
+            ? analysisParams.distance_intermediate_threshold *
+              analysisParams.distance_target_multiplier
+            : analysisParams.distance_advanced_threshold *
+              analysisParams.distance_target_multiplier,
+      improvement:
+        weeklyDistance < analysisParams.distance_beginner_threshold
+          ? `Build weekly distance to ${analysisParams.distance_beginner_threshold}-${analysisParams.distance_intermediate_threshold}km`
+          : weeklyDistance < analysisParams.distance_intermediate_threshold
+            ? `Increase to ${analysisParams.distance_intermediate_threshold}-${analysisParams.distance_advanced_threshold}km per week`
+            : `Consider ${analysisParams.distance_advanced_threshold}+km for elite training`,
     },
-    
+
     // Pace analysis
     pace: {
       value: averagePace,
-      level: averagePace > analysisParams.pace_beginner_threshold ? 'beginner' : 
-             averagePace > analysisParams.pace_intermediate_threshold ? 'intermediate' : 'advanced',
-      target: averagePace > analysisParams.pace_beginner_threshold ? 
-              averagePace * analysisParams.pace_target_multiplier :
-              averagePace > analysisParams.pace_intermediate_threshold ? 
-              analysisParams.pace_intermediate_threshold * analysisParams.pace_target_multiplier :
-              analysisParams.pace_advanced_threshold * analysisParams.pace_target_multiplier,
-      improvement: averagePace > analysisParams.pace_beginner_threshold ? 
-                  'Focus on easy pace to build endurance' :
-                  averagePace > analysisParams.pace_intermediate_threshold ? 
-                  'Work on pace through structured workouts' :
-                  'Fine-tune pace for race-specific training'
+      level:
+        averagePace > analysisParams.pace_beginner_threshold
+          ? 'beginner'
+          : averagePace > analysisParams.pace_intermediate_threshold
+            ? 'intermediate'
+            : 'advanced',
+      target:
+        averagePace > analysisParams.pace_beginner_threshold
+          ? averagePace * analysisParams.pace_target_multiplier
+          : averagePace > analysisParams.pace_intermediate_threshold
+            ? analysisParams.pace_intermediate_threshold *
+              analysisParams.pace_target_multiplier
+            : analysisParams.pace_advanced_threshold *
+              analysisParams.pace_target_multiplier,
+      improvement:
+        averagePace > analysisParams.pace_beginner_threshold
+          ? 'Focus on easy pace to build endurance'
+          : averagePace > analysisParams.pace_intermediate_threshold
+            ? 'Work on pace through structured workouts'
+            : 'Fine-tune pace for race-specific training',
     },
-    
+
     // Frequency analysis
     frequency: {
       value: trainingFrequency,
-      level: trainingFrequency < analysisParams.frequency_beginner_threshold ? 'beginner' : 
-             trainingFrequency < analysisParams.frequency_intermediate_threshold ? 'intermediate' : 'advanced',
-      target: trainingFrequency < analysisParams.frequency_beginner_threshold ? 
-              analysisParams.frequency_beginner_threshold * analysisParams.frequency_target_multiplier :
-              trainingFrequency < analysisParams.frequency_intermediate_threshold ? 
-              analysisParams.frequency_intermediate_threshold * analysisParams.frequency_target_multiplier :
-              analysisParams.frequency_advanced_threshold * analysisParams.frequency_target_multiplier,
-      improvement: trainingFrequency < analysisParams.frequency_beginner_threshold ? 
-                  `Aim for ${analysisParams.frequency_beginner_threshold}-${analysisParams.frequency_intermediate_threshold} runs per week` :
-                  trainingFrequency < analysisParams.frequency_intermediate_threshold ? 
-                  `Increase to ${analysisParams.frequency_intermediate_threshold}-${analysisParams.frequency_advanced_threshold} runs per week` :
-                  `Consider ${analysisParams.frequency_advanced_threshold}+ runs for elite training`
+      level:
+        trainingFrequency < analysisParams.frequency_beginner_threshold
+          ? 'beginner'
+          : trainingFrequency < analysisParams.frequency_intermediate_threshold
+            ? 'intermediate'
+            : 'advanced',
+      target:
+        trainingFrequency < analysisParams.frequency_beginner_threshold
+          ? analysisParams.frequency_beginner_threshold *
+            analysisParams.frequency_target_multiplier
+          : trainingFrequency < analysisParams.frequency_intermediate_threshold
+            ? analysisParams.frequency_intermediate_threshold *
+              analysisParams.frequency_target_multiplier
+            : analysisParams.frequency_advanced_threshold *
+              analysisParams.frequency_target_multiplier,
+      improvement:
+        trainingFrequency < analysisParams.frequency_beginner_threshold
+          ? `Aim for ${analysisParams.frequency_beginner_threshold}-${analysisParams.frequency_intermediate_threshold} runs per week`
+          : trainingFrequency < analysisParams.frequency_intermediate_threshold
+            ? `Increase to ${analysisParams.frequency_intermediate_threshold}-${analysisParams.frequency_advanced_threshold} runs per week`
+            : `Consider ${analysisParams.frequency_advanced_threshold}+ runs for elite training`,
     },
-    
+
     // TSS analysis
     tss: {
       value: weeklyTSS,
-      level: weeklyTSS < analysisParams.tss_beginner_threshold ? 'beginner' : 
-             weeklyTSS < analysisParams.tss_intermediate_threshold ? 'intermediate' : 'advanced',
-      target: weeklyTSS < analysisParams.tss_beginner_threshold ? 
-              analysisParams.tss_beginner_threshold * analysisParams.tss_target_multiplier :
-              weeklyTSS < analysisParams.tss_intermediate_threshold ? 
-              analysisParams.tss_intermediate_threshold * analysisParams.tss_target_multiplier :
-              analysisParams.tss_advanced_threshold * analysisParams.tss_target_multiplier,
-      improvement: weeklyTSS < analysisParams.tss_beginner_threshold ? 
-                  'Build training load gradually' :
-                  weeklyTSS < analysisParams.tss_intermediate_threshold ? 
-                  'Increase training intensity' :
-                  'Optimize training load distribution'
-    }
+      level:
+        weeklyTSS < analysisParams.tss_beginner_threshold
+          ? 'beginner'
+          : weeklyTSS < analysisParams.tss_intermediate_threshold
+            ? 'intermediate'
+            : 'advanced',
+      target:
+        weeklyTSS < analysisParams.tss_beginner_threshold
+          ? analysisParams.tss_beginner_threshold *
+            analysisParams.tss_target_multiplier
+          : weeklyTSS < analysisParams.tss_intermediate_threshold
+            ? analysisParams.tss_intermediate_threshold *
+              analysisParams.tss_target_multiplier
+            : analysisParams.tss_advanced_threshold *
+              analysisParams.tss_target_multiplier,
+      improvement:
+        weeklyTSS < analysisParams.tss_beginner_threshold
+          ? 'Build training load gradually'
+          : weeklyTSS < analysisParams.tss_intermediate_threshold
+            ? 'Increase training intensity'
+            : 'Optimize training load distribution',
+    },
   };
 
   // Determine overall experience level (weighted average)
@@ -190,11 +237,16 @@ const analyzeTrainingProfile = (
     distance: levels[metricAnalysis.distance.level as keyof typeof levels],
     pace: levels[metricAnalysis.pace.level as keyof typeof levels],
     frequency: levels[metricAnalysis.frequency.level as keyof typeof levels],
-    tss: levels[metricAnalysis.tss.level as keyof typeof levels]
+    tss: levels[metricAnalysis.tss.level as keyof typeof levels],
   };
-  
-  const averageScore = (levelScores.distance + levelScores.pace + levelScores.frequency + levelScores.tss) / 4;
-  
+
+  const averageScore =
+    (levelScores.distance +
+      levelScores.pace +
+      levelScores.frequency +
+      levelScores.tss) /
+    4;
+
   let experienceLevel: 'beginner' | 'intermediate' | 'advanced';
   if (averageScore < 1.5) {
     experienceLevel = 'beginner';
@@ -206,21 +258,23 @@ const analyzeTrainingProfile = (
 
   // Calculate preferred distance and pace
   const distances = activities.map(a => a.distance / 1000);
-  const preferredDistance = distances.length > 0 ? 
-    distances.reduce((sum, d) => sum + d, 0) / distances.length : 5;
+  const preferredDistance =
+    distances.length > 0
+      ? distances.reduce((sum, d) => sum + d, 0) / distances.length
+      : 5;
   const preferredPace = averagePace > 0 ? averagePace : 360;
 
   // DYNAMIC STRENGTHS: Based on your best metrics
   const strengths: string[] = [];
-  
+
   // Find your strongest metrics (closest to next level)
   const metricGaps = {
     distance: metricAnalysis.distance.target - metricAnalysis.distance.value,
     pace: metricAnalysis.pace.value - metricAnalysis.pace.target, // Lower is better for pace
     frequency: metricAnalysis.frequency.target - metricAnalysis.frequency.value,
-    tss: metricAnalysis.tss.target - metricAnalysis.tss.value
+    tss: metricAnalysis.tss.target - metricAnalysis.tss.value,
   };
-  
+
   // Sort metrics by how close they are to the next level
   const sortedMetrics = Object.entries(metricGaps).sort((a, b) => {
     const aGap = a[0] === 'pace' ? a[1] : a[1]; // Pace is inverted
@@ -231,19 +285,29 @@ const analyzeTrainingProfile = (
   // Add strengths based on your best performing metrics
   sortedMetrics.slice(0, 2).forEach(([metric, gap]) => {
     const analysis = metricAnalysis[metric as keyof typeof metricAnalysis];
-    if (gap < (analysis.target * analysisParams.strength_threshold_percent / 100)) { // Use personalized threshold
+    if (
+      gap <
+      (analysis.target * analysisParams.strength_threshold_percent) / 100
+    ) {
+      // Use personalized threshold
       switch (metric) {
         case 'distance':
-          strengths.push(`Strong weekly distance (${analysis.value.toFixed(1)}km)`);
+          strengths.push(
+            `Strong weekly distance (${analysis.value.toFixed(1)}km)`
+          );
           break;
         case 'pace':
-          strengths.push(`Good running pace (${(analysis.value / 60).toFixed(1)} min/km)`);
+          strengths.push(
+            `Good running pace (${(analysis.value / 60).toFixed(1)} min/km)`
+          );
           break;
         case 'frequency':
           strengths.push(`Consistent training (${analysis.value} runs/week)`);
           break;
         case 'tss':
-          strengths.push(`Good training load (${analysis.value.toFixed(0)} TSS)`);
+          strengths.push(
+            `Good training load (${analysis.value.toFixed(0)} TSS)`
+          );
           break;
       }
     }
@@ -252,9 +316,11 @@ const analyzeTrainingProfile = (
   // Add general strengths based on experience level
   if (experienceLevel === 'beginner') {
     if (trainingFrequency >= 1) strengths.push('Getting started with running');
-    if (weeklyDistance > 0) strengths.push('Taking the first steps in your running journey');
+    if (weeklyDistance > 0)
+      strengths.push('Taking the first steps in your running journey');
   } else if (experienceLevel === 'intermediate') {
-    if (trainingFrequency >= 3) strengths.push('Building a solid training routine');
+    if (trainingFrequency >= 3)
+      strengths.push('Building a solid training routine');
     if (weeklyDistance > 20) strengths.push('Developing endurance base');
   } else {
     if (trainingFrequency >= 4) strengths.push('High training consistency');
@@ -263,37 +329,55 @@ const analyzeTrainingProfile = (
 
   // DYNAMIC AREAS FOR IMPROVEMENT: Based on your weakest metrics
   const areasForImprovement: string[] = [];
-  
+
   // Focus on the metrics furthest from their targets
   const improvementPriorities = sortedMetrics.slice(-2).reverse();
-  
+
   improvementPriorities.forEach(([metric]) => {
     const analysis = metricAnalysis[metric as keyof typeof metricAnalysis];
-    const gapPercent = metric === 'pace' ? 
-      ((analysis.value - analysis.target) / analysis.target) * 100 :
-      ((analysis.target - analysis.value) / analysis.target) * 100;
-    
-    if (gapPercent > analysisParams.improvement_threshold_percent) { // Use personalized threshold
+    const gapPercent =
+      metric === 'pace'
+        ? ((analysis.value - analysis.target) / analysis.target) * 100
+        : ((analysis.target - analysis.value) / analysis.target) * 100;
+
+    if (gapPercent > analysisParams.improvement_threshold_percent) {
+      // Use personalized threshold
       areasForImprovement.push(analysis.improvement);
     }
   });
 
   // Add cross-metric insights
-  if (metricAnalysis.frequency.level === 'beginner' && metricAnalysis.distance.level === 'intermediate') {
-    areasForImprovement.push('Increase training frequency to support your distance goals');
+  if (
+    metricAnalysis.frequency.level === 'beginner' &&
+    metricAnalysis.distance.level === 'intermediate'
+  ) {
+    areasForImprovement.push(
+      'Increase training frequency to support your distance goals'
+    );
   }
-  if (metricAnalysis.pace.level === 'beginner' && metricAnalysis.tss.level === 'intermediate') {
-    areasForImprovement.push('Focus on easy pace to build endurance before increasing intensity');
+  if (
+    metricAnalysis.pace.level === 'beginner' &&
+    metricAnalysis.tss.level === 'intermediate'
+  ) {
+    areasForImprovement.push(
+      'Focus on easy pace to build endurance before increasing intensity'
+    );
   }
-  if (metricAnalysis.distance.level === 'advanced' && metricAnalysis.frequency.level === 'beginner') {
-    areasForImprovement.push('Add more runs per week to distribute your high volume better');
+  if (
+    metricAnalysis.distance.level === 'advanced' &&
+    metricAnalysis.frequency.level === 'beginner'
+  ) {
+    areasForImprovement.push(
+      'Add more runs per week to distribute your high volume better'
+    );
   }
 
   // Ensure we always have at least one improvement
   if (areasForImprovement.length === 0) {
     // Find the metric with the biggest gap
     const biggestGap = sortedMetrics[sortedMetrics.length - 1];
-    const analysis = metricAnalysis[biggestGap[0] as keyof typeof metricAnalysis];
+    const analysis =
+      metricAnalysis[biggestGap[0] as keyof typeof metricAnalysis];
     areasForImprovement.push(analysis.improvement);
   }
 
@@ -304,10 +388,10 @@ const analyzeTrainingProfile = (
 
   // DYNAMIC RECOMMENDATIONS: Based on your specific profile
   const recommendations: string[] = [];
-  
+
   // Primary recommendation based on biggest gap
   const primaryGap = sortedMetrics[sortedMetrics.length - 1];
-  
+
   switch (primaryGap[0]) {
     case 'distance':
       recommendations.push('Gradually increase weekly distance by 10-15%');
@@ -343,7 +427,7 @@ const analyzeTrainingProfile = (
     trainingFrequency,
     strengths,
     areasForImprovement,
-    recommendations
+    recommendations,
   };
 };
 
@@ -353,7 +437,7 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
   const { user } = useAuth();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [analysisParams, setAnalysisParams] = useState<any>(null);
-  
+
   // Name editing state
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameValue, setNameValue] = useState('');
@@ -369,7 +453,8 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
             const profile = await response.json();
             // Use the user's experience level to get appropriate analysis parameters
             const experienceLevel = profile?.experience_level || 'intermediate';
-            const params = AnalysisParametersService.getDefaultParameters(experienceLevel);
+            const params =
+              AnalysisParametersService.getDefaultParameters(experienceLevel);
             setAnalysisParams(params);
           } else {
             // Fall back to default parameters
@@ -403,7 +488,7 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
 
   const handleSaveName = async () => {
     if (!user) return;
-    
+
     setIsSavingName(true);
     try {
       const response = await fetch('/api/user/update-name', {
@@ -428,20 +513,23 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
     }
   };
 
-  const profile = analyzeTrainingProfile(activities || [], analysisParams || defaultParams);
+  const profile = analyzeTrainingProfile(
+    activities || [],
+    analysisParams || defaultParams
+  );
 
   if (isLoading || !profile) {
     return (
       <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
+        {[1, 2, 3].map(i => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
               <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
               <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
               <div className="h-8 bg-gray-200 rounded w-1/4"></div>
             </CardContent>
-            </Card>
-          ))}
+          </Card>
+        ))}
       </div>
     );
   }
@@ -456,7 +544,7 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
             <div className="flex items-center gap-2">
               <Input
                 value={nameValue}
-                onChange={(e) => setNameValue(e.target.value)}
+                onChange={e => setNameValue(e.target.value)}
                 placeholder="Enter your name"
                 className="w-64"
                 disabled={isSavingName}
@@ -483,7 +571,10 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
           ) : (
             <div className="flex items-center gap-2">
               <p className="text-sm text-muted-foreground">
-                {user?.user_metadata?.full_name ? `${user.user_metadata.full_name}'s` : 'Your'} personalized training analysis and recommendations.
+                {user?.user_metadata?.full_name
+                  ? `${user.user_metadata.full_name}'s`
+                  : 'Your'}{' '}
+                personalized training analysis and recommendations.
               </p>
               <Button
                 size="sm"
@@ -499,23 +590,29 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
       </div>
 
       {/* Experience Level */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-yellow-500" />
             Training Experience Level
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-              <div className="flex items-center justify-between">
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
             <div>
-              <Badge 
-                variant={profile.experienceLevel === 'beginner' ? 'secondary' : 
-                        profile.experienceLevel === 'intermediate' ? 'default' : 'destructive'}
+              <Badge
+                variant={
+                  profile.experienceLevel === 'beginner'
+                    ? 'secondary'
+                    : profile.experienceLevel === 'intermediate'
+                      ? 'default'
+                      : 'destructive'
+                }
                 className="text-lg px-3 py-1"
               >
-                {profile.experienceLevel.charAt(0).toUpperCase() + profile.experienceLevel.slice(1)}
-                </Badge>
+                {profile.experienceLevel.charAt(0).toUpperCase() +
+                  profile.experienceLevel.slice(1)}
+              </Badge>
               <p className="text-sm text-muted-foreground mt-2">
                 Based on your training volume and consistency
               </p>
@@ -524,12 +621,14 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
               <div className="text-2xl font-bold text-blue-600">
                 {profile.weeklyTSSTarget} TSS
               </div>
-              <div className="text-sm text-muted-foreground">Recent Training Capacity</div>
+              <div className="text-sm text-muted-foreground">
+                Recent Training Capacity
+              </div>
               <div className="text-xs text-muted-foreground mt-1">
                 Based on recent activity
               </div>
-                </div>
-                  </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -540,26 +639,33 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
             <div className="flex items-center gap-3 mb-3">
               <MapPin className="h-5 w-5 text-blue-500" />
               <div>
-                                  <div className="text-sm text-muted-foreground">Preferred Distance</div>
-                  <div className="text-xl font-semibold">
-                    {formatDistance(profile.preferredDistance * 1000, preferences.distance)}
-                  </div>
+                <div className="text-sm text-muted-foreground">
+                  Preferred Distance
+                </div>
+                <div className="text-xl font-semibold">
+                  {formatDistance(
+                    profile.preferredDistance * 1000,
+                    preferences.distance
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-          <Card>
+        <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-3">
               <TrendingUp className="h-5 w-5 text-green-500" />
-                <div>
-                                  <div className="text-sm text-muted-foreground">Average Pace</div>
-                  <div className="text-xl font-semibold">
-                    {formatPace(profile.preferredPace, preferences.pace)}
-                  </div>
-              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">
+                  Average Pace
                 </div>
+                <div className="text-xl font-semibold">
+                  {formatPace(profile.preferredPace, preferences.pace)}
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -567,26 +673,28 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-3">
               <Activity className="h-5 w-5 text-purple-500" />
-                <div>
-                <div className="text-sm text-muted-foreground">Weekly Frequency</div>
+              <div>
+                <div className="text-sm text-muted-foreground">
+                  Weekly Frequency
+                </div>
                 <div className="text-xl font-semibold">
                   {profile.trainingFrequency} runs
                 </div>
               </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Strengths and Areas for Improvement */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader>
+        <Card>
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700">
               <CheckCircle className="h-5 w-5" />
               Your Strengths
             </CardTitle>
-            </CardHeader>
+          </CardHeader>
           <CardContent>
             <div className="space-y-2">
               {profile.strengths.map((strength, index) => (
@@ -595,29 +703,29 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
                   <span className="text-sm">{strength}</span>
                 </div>
               ))}
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader>
+        <Card>
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-orange-700">
               <TargetIcon className="h-5 w-5" />
               Areas for Improvement
-              </CardTitle>
-            </CardHeader>
+            </CardTitle>
+          </CardHeader>
           <CardContent>
-                <div className="space-y-2">
+            <div className="space-y-2">
               {profile.areasForImprovement.map((area, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-orange-500" />
                   <span className="text-sm">{area}</span>
                 </div>
               ))}
-                    </div>
+            </div>
           </CardContent>
         </Card>
-              </div>
+      </div>
 
       {/* Recommendations */}
       <Card>
@@ -630,14 +738,17 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
         <CardContent>
           <div className="space-y-3">
             {profile.recommendations.map((recommendation, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+              <div
+                key={index}
+                className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg"
+              >
                 <Award className="h-4 w-4 text-blue-500 mt-0.5" />
                 <span className="text-sm">{recommendation}</span>
               </div>
             ))}
           </div>
-            </CardContent>
-          </Card>
+        </CardContent>
+      </Card>
     </div>
   );
-} 
+}

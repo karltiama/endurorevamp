@@ -6,11 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { UserGoal } from '@/types/goals';
-import { 
-  Target, 
-  Calendar, 
-  TrendingUp, 
-  Edit, 
+import {
+  Target,
+  Calendar,
+  TrendingUp,
+  Edit,
   MoreHorizontal,
   Archive,
   Trophy,
@@ -20,7 +20,7 @@ import {
   Clock,
   Zap,
   Heart,
-  Mountain
+  Mountain,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -41,10 +41,14 @@ interface EnhancedGoalCardProps {
   showCompleted?: boolean;
 }
 
-export function EnhancedGoalCard({ goal, onEdit, showCompleted = false }: EnhancedGoalCardProps) {
+export function EnhancedGoalCard({
+  goal,
+  onEdit,
+  showCompleted = false,
+}: EnhancedGoalCardProps) {
   const [showDetails, setShowDetails] = useState(false);
 
-  const progressPercentage = goal.target_value 
+  const progressPercentage = goal.target_value
     ? Math.min(100, (goal.current_progress / goal.target_value) * 100)
     : 0;
 
@@ -59,13 +63,20 @@ export function EnhancedGoalCard({ goal, onEdit, showCompleted = false }: Enhanc
 
   const getGoalIcon = () => {
     switch (goal.goal_type?.category) {
-      case 'distance': return Target;
-      case 'pace': return Zap;
-      case 'frequency': return Calendar;
-      case 'duration': return Clock;
-      case 'elevation': return Mountain;
-      case 'heart_rate': return Heart;
-      default: return TrendingUp;
+      case 'distance':
+        return Target;
+      case 'pace':
+        return Zap;
+      case 'frequency':
+        return Calendar;
+      case 'duration':
+        return Clock;
+      case 'elevation':
+        return Mountain;
+      case 'heart_rate':
+        return Heart;
+      default:
+        return TrendingUp;
     }
   };
 
@@ -73,25 +84,31 @@ export function EnhancedGoalCard({ goal, onEdit, showCompleted = false }: Enhanc
 
   return (
     <TooltipProvider>
-      <Card className={`
+      <Card
+        className={`
         transition-all duration-300 hover:shadow-lg hover:scale-[1.02] cursor-pointer
         ${isCompleted ? 'border-green-200 bg-gradient-to-br from-green-50 to-emerald-50' : ''}
         ${!isCompleted && isOnTrack ? 'border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50' : ''}
         ${!isCompleted && !isOnTrack ? 'border-orange-200 bg-gradient-to-br from-orange-50 to-yellow-50' : ''}
-      `}>
+      `}
+      >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3 flex-1">
-              <div className={`
+              <div
+                className={`
                 p-3 rounded-xl shadow-sm
                 ${isCompleted ? 'bg-green-100 text-green-600' : 'bg-primary/10 text-primary'}
-              `}>
+              `}
+              >
                 <GoalIcon className="h-5 w-5" />
               </div>
-              
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <CardTitle className="text-lg leading-tight">{goal.goal_type?.display_name}</CardTitle>
+                  <CardTitle className="text-lg leading-tight">
+                    {goal.goal_type?.display_name}
+                  </CardTitle>
                   <Badge variant="outline" className="text-xs">
                     {goal.goal_type?.category}
                   </Badge>
@@ -108,7 +125,7 @@ export function EnhancedGoalCard({ goal, onEdit, showCompleted = false }: Enhanc
                     </Tooltip>
                   )}
                 </div>
-                
+
                 {goal.goal_data?.notes && (
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {goal.goal_data.notes}
@@ -116,30 +133,37 @@ export function EnhancedGoalCard({ goal, onEdit, showCompleted = false }: Enhanc
                 )}
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
               {/* Achievement Badges */}
               {achievements.map((achievement, index) => (
                 <Tooltip key={index}>
                   <TooltipTrigger>
                     <div className="p-1">
-                      <achievement.icon className={`h-4 w-4 ${achievement.color}`} />
+                      <achievement.icon
+                        className={`h-4 w-4 ${achievement.color}`}
+                      />
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{achievement.name}</p>
-                    <p className="text-xs text-muted-foreground">{achievement.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {achievement.description}
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               ))}
-              
+
               {isCompleted && (
-                <Badge variant="secondary" className="bg-green-100 text-green-700">
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-700"
+                >
                   <Trophy className="h-3 w-3 mr-1" />
                   Complete
                 </Badge>
               )}
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -151,7 +175,9 @@ export function EnhancedGoalCard({ goal, onEdit, showCompleted = false }: Enhanc
                     <Edit className="h-4 w-4 mr-2" />
                     Edit Goal
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setShowDetails(!showDetails)}>
+                  <DropdownMenuItem
+                    onClick={() => setShowDetails(!showDetails)}
+                  >
                     <BarChart3 className="h-4 w-4 mr-2" />
                     {showDetails ? 'Hide Details' : 'Show Details'}
                   </DropdownMenuItem>
@@ -185,14 +211,15 @@ export function EnhancedGoalCard({ goal, onEdit, showCompleted = false }: Enhanc
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Progress</span>
                   <span className="font-medium">
-                    {goal.current_progress} / {goal.target_value} {goal.target_unit}
+                    {goal.current_progress} / {goal.target_value}{' '}
+                    {goal.target_unit}
                   </span>
                 </div>
-                
+
                 {/* Enhanced Progress Bar */}
                 <div className="relative">
-                  <Progress 
-                    value={progressPercentage} 
+                  <Progress
+                    value={progressPercentage}
                     className={`h-3 ${isCompleted ? '[&>div]:bg-green-500' : isOnTrack ? '[&>div]:bg-blue-500' : '[&>div]:bg-orange-500'}`}
                   />
                   {progressPercentage > 0 && (
@@ -203,9 +230,11 @@ export function EnhancedGoalCard({ goal, onEdit, showCompleted = false }: Enhanc
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex items-center justify-between text-xs">
-                  <span className={`flex items-center gap-1 ${isOnTrack ? 'text-green-600' : 'text-orange-600'}`}>
+                  <span
+                    className={`flex items-center gap-1 ${isOnTrack ? 'text-green-600' : 'text-orange-600'}`}
+                  >
                     {isOnTrack ? (
                       <>
                         <TrendingUp className="h-3 w-3" />
@@ -251,12 +280,20 @@ export function EnhancedGoalCard({ goal, onEdit, showCompleted = false }: Enhanc
                   </h4>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-muted-foreground">Weekly Average:</span>
-                      <div className="font-medium">{insights.weeklyAverage}</div>
+                      <span className="text-muted-foreground">
+                        Weekly Average:
+                      </span>
+                      <div className="font-medium">
+                        {insights.weeklyAverage}
+                      </div>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Best Result:</span>
-                      <div className="font-medium">{goal.best_result || 'N/A'}</div>
+                      <span className="text-muted-foreground">
+                        Best Result:
+                      </span>
+                      <div className="font-medium">
+                        {goal.best_result || 'N/A'}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -269,7 +306,9 @@ export function EnhancedGoalCard({ goal, onEdit, showCompleted = false }: Enhanc
                     <Target className="h-4 w-4 text-green-500" />
                     Recommendation
                   </h4>
-                  <p className="text-sm text-muted-foreground">{insights.recommendation}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {insights.recommendation}
+                  </p>
                 </div>
               )}
             </div>
@@ -300,7 +339,7 @@ function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-    year: 'numeric'
+    year: 'numeric',
   });
 }
 
@@ -313,20 +352,34 @@ function calculateGoalInsights(goal: UserGoal, progressPercentage: number) {
 
   // Calculate weekly average for cumulative goals
   if (goal.goal_type?.metric_type?.includes('total')) {
-    const weeksActive = Math.max(1, Math.floor((Date.now() - new Date(goal.created_at).getTime()) / (7 * 24 * 60 * 60 * 1000)));
+    const weeksActive = Math.max(
+      1,
+      Math.floor(
+        (Date.now() - new Date(goal.created_at).getTime()) /
+          (7 * 24 * 60 * 60 * 1000)
+      )
+    );
     insights.weeklyAverage = `${(goal.current_progress / weeksActive).toFixed(1)} ${goal.target_unit}/week`;
   }
 
   // Prediction logic
   if (goal.target_value && goal.current_progress > 0) {
     const remainingProgress = goal.target_value - goal.current_progress;
-    const currentRate = goal.current_progress / Math.max(1, Math.floor((Date.now() - new Date(goal.created_at).getTime()) / (7 * 24 * 60 * 60 * 1000)));
-    
+    const currentRate =
+      goal.current_progress /
+      Math.max(
+        1,
+        Math.floor(
+          (Date.now() - new Date(goal.created_at).getTime()) /
+            (7 * 24 * 60 * 60 * 1000)
+        )
+      );
+
     if (currentRate > 0) {
       const weeksToComplete = Math.ceil(remainingProgress / currentRate);
       const completionDate = new Date();
-      completionDate.setDate(completionDate.getDate() + (weeksToComplete * 7));
-      
+      completionDate.setDate(completionDate.getDate() + weeksToComplete * 7);
+
       if (weeksToComplete <= 4) {
         insights.prediction = `Est. completion: ${completionDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
       }
@@ -335,13 +388,17 @@ function calculateGoalInsights(goal: UserGoal, progressPercentage: number) {
 
   // Recommendations based on progress
   if (progressPercentage < 25) {
-    insights.recommendation = "Consider breaking this goal into smaller weekly targets to build momentum.";
+    insights.recommendation =
+      'Consider breaking this goal into smaller weekly targets to build momentum.';
   } else if (progressPercentage < 50) {
-    insights.recommendation = "You're making progress! Try to maintain consistency in your training.";
+    insights.recommendation =
+      "You're making progress! Try to maintain consistency in your training.";
   } else if (progressPercentage < 75) {
-    insights.recommendation = "Great progress! You're on track to achieve this goal.";
+    insights.recommendation =
+      "Great progress! You're on track to achieve this goal.";
   } else if (!goal.is_completed) {
-    insights.recommendation = "You're so close! Push through to complete this goal.";
+    insights.recommendation =
+      "You're so close! Push through to complete this goal.";
   }
 
   return insights;
@@ -356,7 +413,7 @@ function getGoalAchievements(goal: UserGoal, progressPercentage: number) {
       icon: Flame,
       name: '7-Day Streak',
       description: 'Consistent for a full week',
-      color: 'text-orange-500'
+      color: 'text-orange-500',
     });
   }
 
@@ -366,7 +423,7 @@ function getGoalAchievements(goal: UserGoal, progressPercentage: number) {
       icon: Award,
       name: 'Halfway There',
       description: '50% progress achieved',
-      color: 'text-blue-500'
+      color: 'text-blue-500',
     });
   }
 
@@ -376,7 +433,7 @@ function getGoalAchievements(goal: UserGoal, progressPercentage: number) {
       icon: Trophy,
       name: 'Goal Achieved',
       description: 'Congratulations!',
-      color: 'text-gold-500'
+      color: 'text-gold-500',
     });
   }
 
@@ -393,55 +450,61 @@ function getGoalDifficulty(goal: UserGoal) {
   const thresholds = {
     distance: {
       weekly: { easy: 20, moderate: 40, hard: 60 },
-      monthly: { easy: 80, moderate: 160, hard: 250 }
+      monthly: { easy: 80, moderate: 160, hard: 250 },
     },
     frequency: {
       weekly: { easy: 3, moderate: 4, hard: 6 },
-      monthly: { easy: 12, moderate: 16, hard: 24 }
+      monthly: { easy: 12, moderate: 16, hard: 24 },
     },
     duration: {
-      weekly: { easy: 3, moderate: 6, hard: 10 } // hours
-    }
+      weekly: { easy: 3, moderate: 6, hard: 10 }, // hours
+    },
   };
 
   const period = goal.time_period || 'weekly';
   const categoryThresholds = thresholds[category as keyof typeof thresholds];
-  
+
   if (!categoryThresholds) return null;
 
-  const periodThresholds = categoryThresholds[period as keyof typeof categoryThresholds];
+  const periodThresholds =
+    categoryThresholds[period as keyof typeof categoryThresholds];
   if (!periodThresholds) return null;
 
   if (target <= periodThresholds.easy) {
     return {
       level: 'Beginner',
       variant: 'secondary' as const,
-      description: 'A great starting point for building habits'
+      description: 'A great starting point for building habits',
     };
   } else if (target <= periodThresholds.moderate) {
     return {
       level: 'Intermediate',
       variant: 'default' as const,
-      description: 'A solid challenge for regular runners'
+      description: 'A solid challenge for regular runners',
     };
   } else {
     return {
       level: 'Advanced',
       variant: 'destructive' as const,
-      description: 'An ambitious goal for experienced athletes'
+      description: 'An ambitious goal for experienced athletes',
     };
   }
 }
 
 function getGoalBenefits(category?: string) {
   const benefits = {
-    distance: "Building weekly distance improves cardiovascular endurance, strengthens your aerobic base, and increases your ability to run longer without fatigue.",
-    pace: "Improving your pace enhances running efficiency, builds speed endurance, and helps you run faster with less effort over time.",
-    frequency: "Consistent running frequency builds the habit, improves recovery between sessions, and creates the foundation for all other running improvements.",
-    duration: "Time-based goals develop mental toughness, improve fat-burning efficiency, and build the aerobic base essential for endurance.",
-    elevation: "Hill training builds leg strength, improves running economy, and enhances your ability to handle varied terrain with confidence.",
-    heart_rate: "Heart rate zone training optimizes your effort distribution, improves aerobic capacity, and ensures you're training at the right intensity."
+    distance:
+      'Building weekly distance improves cardiovascular endurance, strengthens your aerobic base, and increases your ability to run longer without fatigue.',
+    pace: 'Improving your pace enhances running efficiency, builds speed endurance, and helps you run faster with less effort over time.',
+    frequency:
+      'Consistent running frequency builds the habit, improves recovery between sessions, and creates the foundation for all other running improvements.',
+    duration:
+      'Time-based goals develop mental toughness, improve fat-burning efficiency, and build the aerobic base essential for endurance.',
+    elevation:
+      'Hill training builds leg strength, improves running economy, and enhances your ability to handle varied terrain with confidence.',
+    heart_rate:
+      "Heart rate zone training optimizes your effort distribution, improves aerobic capacity, and ensures you're training at the right intensity.",
   };
 
   return benefits[category as keyof typeof benefits];
-} 
+}

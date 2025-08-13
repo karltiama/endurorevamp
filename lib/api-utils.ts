@@ -56,7 +56,10 @@ export class ApiUtils {
   static async getAuthenticatedUser() {
     try {
       const supabase = await createClient();
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
 
       if (error || !user) {
         throw new Error('Authentication required');
@@ -75,11 +78,11 @@ export class ApiUtils {
   static async parseRequestBody<T = unknown>(request: NextRequest): Promise<T> {
     try {
       const text = await request.text();
-      
+
       if (!text || text.trim() === '') {
         throw new Error('Request body is empty');
       }
-      
+
       return JSON.parse(text) as T;
     } catch (parseError) {
       console.error('JSON parsing error:', parseError);
@@ -90,9 +93,12 @@ export class ApiUtils {
   /**
    * Handle API route errors consistently
    */
-  static handleError(error: unknown, context?: string): NextResponse<ApiResponse> {
+  static handleError(
+    error: unknown,
+    context?: string
+  ): NextResponse<ApiResponse> {
     console.error(`❌ API Error${context ? ` [${context}]` : ''}:`, error);
-    
+
     const appError = ErrorHandler.parseError(error);
     ErrorHandler.logError(appError, context);
 
@@ -105,7 +111,7 @@ export class ApiUtils {
     };
 
     const status = statusMap[appError.type] || 500;
-    
+
     return this.error(appError, status);
   }
 
@@ -116,8 +122,9 @@ export class ApiUtils {
     data: T,
     requiredFields: Array<keyof T>
   ): void {
-    const missingFields = requiredFields.filter(field => 
-      data[field] === undefined || data[field] === null || data[field] === ''
+    const missingFields = requiredFields.filter(
+      field =>
+        data[field] === undefined || data[field] === null || data[field] === ''
     );
 
     if (missingFields.length > 0) {
@@ -130,18 +137,18 @@ export class ApiUtils {
    */
   static getQueryParams(request: NextRequest) {
     const { searchParams } = new URL(request.url);
-    
+
     return {
-      getString: (key: string, defaultValue?: string) => 
+      getString: (key: string, defaultValue?: string) =>
         searchParams.get(key) || defaultValue,
-      
+
       getNumber: (key: string, defaultValue?: number) => {
         const value = searchParams.get(key);
         if (!value) return defaultValue;
         const parsed = parseInt(value, 10);
         return isNaN(parsed) ? defaultValue : parsed;
       },
-      
+
       getBoolean: (key: string, defaultValue?: boolean) => {
         const value = searchParams.get(key);
         if (!value) return defaultValue;
@@ -164,7 +171,7 @@ export class ApiUtils {
     // In a real implementation, you'd use Redis or similar
     // This is a simplified in-memory implementation
     const key = `${userId}:${operation}`;
-    
+
     // For demonstration - in production, use proper rate limiting
     console.log(`Rate limit check: ${key} (${limit}/${windowMs}ms)`);
     return true; // Always allow for now
@@ -175,8 +182,14 @@ export class ApiUtils {
    */
   static addCorsHeaders(response: NextResponse): NextResponse {
     response.headers.set('Access-Control-Allow-Origin', '*');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    response.headers.set(
+      'Access-Control-Allow-Methods',
+      'GET, POST, PUT, DELETE, OPTIONS'
+    );
+    response.headers.set(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization'
+    );
     return response;
   }
 
@@ -185,9 +198,12 @@ export class ApiUtils {
    */
   static parsePagination(request: NextRequest) {
     const params = this.getQueryParams(request);
-    
+
     const page = Math.max(1, params.getNumber('page', 1) || 1);
-    const limit = Math.min(100, Math.max(1, params.getNumber('limit', 10) || 10)); // Max 100 items
+    const limit = Math.min(
+      100,
+      Math.max(1, params.getNumber('limit', 10) || 10)
+    ); // Max 100 items
     const offset = (page - 1) * limit;
 
     return { page, limit, offset };
@@ -213,7 +229,7 @@ export class ApiUtils {
     };
   }> {
     const totalPages = Math.ceil(total / limit);
-    
+
     return {
       success: true,
       data: {
@@ -233,7 +249,10 @@ export class ApiUtils {
 
 // ✨ Common middleware functions
 export async function withAuth<T>(
-  handler: (request: NextRequest, user: { id: string; email?: string }) => Promise<T>
+  handler: (
+    request: NextRequest,
+    user: { id: string; email?: string }
+  ) => Promise<T>
 ) {
   return async (request: NextRequest): Promise<NextResponse> => {
     try {
@@ -241,7 +260,10 @@ export async function withAuth<T>(
       const result = await handler(request, user);
       return result instanceof NextResponse ? result : ApiUtils.success(result);
     } catch (error) {
-      if (error instanceof Error && error.message === 'Authentication required') {
+      if (
+        error instanceof Error &&
+        error.message === 'Authentication required'
+      ) {
         return ApiUtils.error('Authentication required', 401);
       }
       return ApiUtils.handleError(error, 'withAuth');
@@ -287,7 +309,7 @@ export class StravaApiUtils {
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Authorization': authHeader,
+        Authorization: authHeader,
         ...options?.headers,
       },
     });
@@ -313,11 +335,11 @@ export class StravaApiUtils {
     }
   ): string {
     const url = new URL(`https://www.strava.com/api/v3/${endpoint}`);
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (value) url.searchParams.set(key, value);
     });
-    
+
     return url.toString();
   }
-} 
+}

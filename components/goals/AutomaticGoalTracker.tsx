@@ -6,14 +6,14 @@ import { AutomaticGoalProgress } from '@/lib/goals/automatic-progress';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Target, 
-  TrendingUp, 
-  RefreshCw, 
-  Clock, 
+import {
+  Target,
+  TrendingUp,
+  RefreshCw,
+  Clock,
   CheckCircle,
   Zap,
-  User
+  User,
 } from 'lucide-react';
 
 interface GoalStats {
@@ -46,12 +46,12 @@ export function AutomaticGoalTracker() {
 
   const loadGoalStats = useCallback(async () => {
     if (!user) return;
-    
+
     try {
       setIsLoading(true);
-      
+
       const result = await AutomaticGoalProgress.getQuantifiableGoals(user.id);
-      
+
       setStats(result.stats);
       setAutoGoals(result.quantifiable);
       setManualGoals(result.manual);
@@ -68,17 +68,15 @@ export function AutomaticGoalTracker() {
     }
   }, [user, loadGoalStats]);
 
-
-
   const formatLastUpdate = (dateString?: string) => {
     if (!dateString) return 'Never';
-    
+
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffHours / 24);
-    
+
     if (diffDays > 0) {
       return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
     } else if (diffHours > 0) {
@@ -90,7 +88,10 @@ export function AutomaticGoalTracker() {
 
   const getProgressPercentage = (goal: AutoTrackedGoal) => {
     if (!goal.target_value) return 0;
-    return Math.min(100, Math.round((goal.current_progress / goal.target_value) * 100));
+    return Math.min(
+      100,
+      Math.round((goal.current_progress / goal.target_value) * 100)
+    );
   };
 
   if (isLoading) {
@@ -119,26 +120,36 @@ export function AutomaticGoalTracker() {
         <CardContent>
           <div className="space-y-4">
             <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">How Goal Tracking Works</h4>
+              <h4 className="font-medium text-blue-900 mb-2">
+                How Goal Tracking Works
+              </h4>
               <p className="text-sm text-blue-800">
-                Your goals use a smart hybrid system: <strong>automatic tracking</strong> for standard metrics 
-                (distance, pace, frequency) and <strong>manual updates</strong> for special cases 
-                (races, heart rate zones, corrections). This gives you the best of both worlds!
+                Your goals use a smart hybrid system:{' '}
+                <strong>automatic tracking</strong> for standard metrics
+                (distance, pace, frequency) and <strong>manual updates</strong>{' '}
+                for special cases (races, heart rate zones, corrections). This
+                gives you the best of both worlds!
               </p>
             </div>
-            
+
             {stats && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{stats.autoTrackingPercentage}%</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {stats.autoTrackingPercentage}%
+                  </div>
                   <div className="text-sm text-green-700">Auto-Tracked</div>
                 </div>
                 <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {stats.total}
+                  </div>
                   <div className="text-sm text-blue-700">Total Goals</div>
                 </div>
                 <div className="text-center p-3 bg-orange-50 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600">{stats.manualTracked}</div>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {stats.manualTracked}
+                  </div>
                   <div className="text-sm text-orange-700">Manual Goals</div>
                 </div>
               </div>
@@ -161,18 +172,23 @@ export function AutomaticGoalTracker() {
               These goals update automatically based on your Strava activities:
             </p>
             <div className="space-y-4">
-              {autoGoals.map((goal) => (
+              {autoGoals.map(goal => (
                 <div key={goal.id} className="border rounded-lg p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h4 className="font-medium">{goal.goal_type.display_name}</h4>
+                      <h4 className="font-medium">
+                        {goal.goal_type.display_name}
+                      </h4>
                       <p className="text-sm text-muted-foreground">
                         {goal.goal_type.calculation_method}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       {goal.is_completed ? (
-                        <Badge variant="default" className="bg-green-100 text-green-800">
+                        <Badge
+                          variant="default"
+                          className="bg-green-100 text-green-800"
+                        >
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Completed
                         </Badge>
@@ -184,15 +200,19 @@ export function AutomaticGoalTracker() {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span>Progress</span>
                       <span>
-                        {goal.current_progress.toFixed(1)} / {goal.target_value?.toFixed(1) || '∞'}
+                        {goal.current_progress.toFixed(1)} /{' '}
+                        {goal.target_value?.toFixed(1) || '∞'}
                       </span>
                     </div>
-                    <Progress value={getProgressPercentage(goal)} className="h-2" />
+                    <Progress
+                      value={getProgressPercentage(goal)}
+                      className="h-2"
+                    />
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
@@ -219,23 +239,32 @@ export function AutomaticGoalTracker() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              These goals require manual updates or special data not available from basic activity metrics:
+              These goals require manual updates or special data not available
+              from basic activity metrics:
             </p>
             <div className="space-y-4">
-              {manualGoals.map((goal) => (
-                <div key={goal.id} className="border rounded-lg p-4 bg-orange-50/50">
+              {manualGoals.map(goal => (
+                <div
+                  key={goal.id}
+                  className="border rounded-lg p-4 bg-orange-50/50"
+                >
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h4 className="font-medium">{goal.goal_type.display_name}</h4>
+                      <h4 className="font-medium">
+                        {goal.goal_type.display_name}
+                      </h4>
                       <p className="text-sm text-muted-foreground">
                         {goal.goal_type.calculation_method}
                       </p>
                     </div>
-                    <Badge variant="outline" className="border-orange-200 text-orange-800">
+                    <Badge
+                      variant="outline"
+                      className="border-orange-200 text-orange-800"
+                    >
                       Manual
                     </Badge>
                   </div>
-                  
+
                   <p className="text-sm text-muted-foreground">
                     This goal type requires:
                   </p>
@@ -270,22 +299,24 @@ export function AutomaticGoalTracker() {
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
               <div>
-                <strong>Automatic Tracking:</strong> Distance, pace, frequency, and time-based goals 
-                are calculated automatically from your Strava activities as they sync.
+                <strong>Automatic Tracking:</strong> Distance, pace, frequency,
+                and time-based goals are calculated automatically from your
+                Strava activities as they sync.
               </div>
             </div>
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
               <div>
-                <strong>Real-time Updates:</strong> Every time you complete a run, your progress 
-                updates immediately without any manual input.
+                <strong>Real-time Updates:</strong> Every time you complete a
+                run, your progress updates immediately without any manual input.
               </div>
             </div>
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
               <div>
-                <strong>Smart Calculation:</strong> Weekly goals reset each week, monthly goals 
-                reset each month, and personal records track your best performances.
+                <strong>Smart Calculation:</strong> Weekly goals reset each
+                week, monthly goals reset each month, and personal records track
+                your best performances.
               </div>
             </div>
           </div>
@@ -293,4 +324,4 @@ export function AutomaticGoalTracker() {
       </Card>
     </div>
   );
-} 
+}

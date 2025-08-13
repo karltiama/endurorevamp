@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -129,13 +129,13 @@
 }
 
 /* Sidebar positioning fixes */
-[data-slot="sidebar-container"] {
+[data-slot='sidebar-container'] {
   top: 0 !important;
   bottom: 0 !important;
   height: 100vh !important;
 }
 
-[data-slot="sidebar-inner"] {
+[data-slot='sidebar-inner'] {
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;

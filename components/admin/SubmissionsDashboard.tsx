@@ -3,7 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { SubmissionsList } from './SubmissionsList';
 import { MessageSquare, Lightbulb, Clock } from 'lucide-react';
 
@@ -29,10 +35,19 @@ interface Stats {
 
 export function SubmissionsDashboard() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [stats, setStats] = useState<Stats>({ total: 0, pending: 0, contact: 0, suggestions: 0 });
+  const [stats, setStats] = useState<Stats>({
+    total: 0,
+    pending: 0,
+    contact: 0,
+    suggestions: 0,
+  });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'contact' | 'suggestion'>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'responded'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'contact' | 'suggestion'>(
+    'all'
+  );
+  const [statusFilter, setStatusFilter] = useState<
+    'all' | 'pending' | 'responded'
+  >('all');
 
   const fetchSubmissions = useCallback(async () => {
     try {
@@ -40,19 +55,24 @@ export function SubmissionsDashboard() {
       const params = new URLSearchParams();
       if (activeTab !== 'all') params.append('type', activeTab);
       if (statusFilter !== 'all') params.append('status', statusFilter);
-      
+
       const response = await fetch(`/api/admin/submissions?${params}`);
       const data = await response.json();
-      
+
       setSubmissions(data.submissions || []);
-      
+
       // Calculate stats
       const allSubmissions = data.submissions || [];
       setStats({
         total: allSubmissions.length,
-        pending: allSubmissions.filter((s: Submission) => s.status === 'pending').length,
-        contact: allSubmissions.filter((s: Submission) => s.type === 'contact').length,
-        suggestions: allSubmissions.filter((s: Submission) => s.type === 'suggestion').length,
+        pending: allSubmissions.filter(
+          (s: Submission) => s.status === 'pending'
+        ).length,
+        contact: allSubmissions.filter((s: Submission) => s.type === 'contact')
+          .length,
+        suggestions: allSubmissions.filter(
+          (s: Submission) => s.type === 'suggestion'
+        ).length,
       });
     } catch (error) {
       console.error('Failed to fetch submissions:', error);
@@ -70,7 +90,7 @@ export function SubmissionsDashboard() {
       const response = await fetch('/api/admin/submissions', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status })
+        body: JSON.stringify({ id, status }),
       });
 
       if (response.ok) {
@@ -84,7 +104,8 @@ export function SubmissionsDashboard() {
 
   const filteredSubmissions = submissions.filter(submission => {
     if (activeTab !== 'all' && submission.type !== activeTab) return false;
-    if (statusFilter !== 'all' && submission.status !== statusFilter) return false;
+    if (statusFilter !== 'all' && submission.status !== statusFilter)
+      return false;
     return true;
   });
 
@@ -94,7 +115,9 @@ export function SubmissionsDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Submissions
+            </CardTitle>
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -124,7 +147,9 @@ export function SubmissionsDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Feature Suggestions</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Feature Suggestions
+            </CardTitle>
             <Lightbulb className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -135,7 +160,12 @@ export function SubmissionsDashboard() {
 
       {/* Filters and Tabs */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'all' | 'contact' | 'suggestion')}>
+        <Tabs
+          value={activeTab}
+          onValueChange={value =>
+            setActiveTab(value as 'all' | 'contact' | 'suggestion')
+          }
+        >
           <TabsList>
             <TabsTrigger value="all">All Submissions</TabsTrigger>
             <TabsTrigger value="contact">Contact Forms</TabsTrigger>
@@ -143,7 +173,12 @@ export function SubmissionsDashboard() {
           </TabsList>
         </Tabs>
 
-        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'all' | 'pending' | 'responded')}>
+        <Select
+          value={statusFilter}
+          onValueChange={value =>
+            setStatusFilter(value as 'all' | 'pending' | 'responded')
+          }
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -156,7 +191,7 @@ export function SubmissionsDashboard() {
       </div>
 
       {/* Submissions List */}
-      <SubmissionsList 
+      <SubmissionsList
         submissions={filteredSubmissions}
         loading={loading}
         onStatusUpdate={updateSubmissionStatus}
@@ -164,4 +199,4 @@ export function SubmissionsDashboard() {
       />
     </div>
   );
-} 
+}

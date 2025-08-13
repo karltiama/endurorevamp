@@ -1,9 +1,9 @@
-import { renderHook, act } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useFavoriteActivity } from '@/hooks/useFavoriteActivity'
+import { renderHook, act } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useFavoriteActivity } from '@/hooks/useFavoriteActivity';
 
 // Mock fetch
-global.fetch = jest.fn()
+global.fetch = jest.fn();
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -11,120 +11,129 @@ const createWrapper = () => {
       queries: { retry: false },
       mutations: { retry: false },
     },
-  })
-  
+  });
+
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  )
-}
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
 
 describe('useFavoriteActivity', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
-  })
+    jest.clearAllMocks();
+  });
 
   it('should toggle favorite status successfully', async () => {
     const mockResponse = {
       is_favorite: true,
-      message: 'Activity added to favorites'
-    }
+      message: 'Activity added to favorites',
+    };
 
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
+    (fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => mockResponse
-    })
+      json: async () => mockResponse,
+    });
 
     const { result } = renderHook(() => useFavoriteActivity(), {
-      wrapper: createWrapper()
-    })
+      wrapper: createWrapper(),
+    });
 
-    expect(result.current.isToggling).toBe(false)
+    expect(result.current.isToggling).toBe(false);
 
     await act(async () => {
-      await result.current.toggleFavorite(12345)
-    })
+      await result.current.toggleFavorite(12345);
+    });
 
     expect(fetch).toHaveBeenCalledWith('/api/activities/12345/favorite', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
       },
-    })
+    });
 
-    expect(result.current.isToggling).toBe(false)
-  })
+    expect(result.current.isToggling).toBe(false);
+  });
 
   it('should handle API errors gracefully', async () => {
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
+    (fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
-      status: 500
-    })
+      status: 500,
+    });
 
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
     const { result } = renderHook(() => useFavoriteActivity(), {
-      wrapper: createWrapper()
-    })
+      wrapper: createWrapper(),
+    });
 
     await act(async () => {
-      await result.current.toggleFavorite(12345)
-    })
+      await result.current.toggleFavorite(12345);
+    });
 
-    expect(consoleSpy).toHaveBeenCalledWith('Error toggling favorite:', expect.any(Error))
-    expect(result.current.isToggling).toBe(false)
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Error toggling favorite:',
+      expect.any(Error)
+    );
+    expect(result.current.isToggling).toBe(false);
 
-    consoleSpy.mockRestore()
-  })
+    consoleSpy.mockRestore();
+  });
 
   it('should handle network errors', async () => {
-    ;(fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'))
+    (fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
     const { result } = renderHook(() => useFavoriteActivity(), {
-      wrapper: createWrapper()
-    })
+      wrapper: createWrapper(),
+    });
 
     await act(async () => {
-      await result.current.toggleFavorite(12345)
-    })
+      await result.current.toggleFavorite(12345);
+    });
 
-    expect(consoleSpy).toHaveBeenCalledWith('Error toggling favorite:', expect.any(Error))
-    expect(result.current.isToggling).toBe(false)
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Error toggling favorite:',
+      expect.any(Error)
+    );
+    expect(result.current.isToggling).toBe(false);
 
-    consoleSpy.mockRestore()
-  })
+    consoleSpy.mockRestore();
+  });
 
   it('should set isToggling state correctly during API call', async () => {
     // Mock a delayed response
-    ;(fetch as jest.Mock).mockImplementationOnce(() => 
-      new Promise(resolve => 
-        setTimeout(() => resolve({ ok: true, json: async () => ({ is_favorite: true }) }), 100)
-      )
-    )
+    (fetch as jest.Mock).mockImplementationOnce(
+      () =>
+        new Promise(resolve =>
+          setTimeout(
+            () =>
+              resolve({ ok: true, json: async () => ({ is_favorite: true }) }),
+            100
+          )
+        )
+    );
 
     const { result } = renderHook(() => useFavoriteActivity(), {
-      wrapper: createWrapper()
-    })
+      wrapper: createWrapper(),
+    });
 
-    expect(result.current.isToggling).toBe(false)
+    expect(result.current.isToggling).toBe(false);
 
     // Start the toggle
     act(() => {
-      result.current.toggleFavorite(12345)
-    })
+      result.current.toggleFavorite(12345);
+    });
 
     // Should be toggling immediately
-    expect(result.current.isToggling).toBe(true)
+    expect(result.current.isToggling).toBe(true);
 
     // Wait for completion
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 150))
-    })
+      await new Promise(resolve => setTimeout(resolve, 150));
+    });
 
     // Should be done
-    expect(result.current.isToggling).toBe(false)
-  })
-}) 
+    expect(result.current.isToggling).toBe(false);
+  });
+});

@@ -1,11 +1,11 @@
-import { requireAuth } from '@/lib/auth/server'
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
-import ZoneAnalysisDashboard from '@/components/training/ZoneAnalysisDashboard'
-import { TrainingLoadChartClient } from '@/components/training/TrainingLoadChartClient'
-import { Suspense } from 'react'
+import { requireAuth } from '@/lib/auth/server';
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import ZoneAnalysisDashboard from '@/components/training/ZoneAnalysisDashboard';
+import { TrainingLoadChartClient } from '@/components/training/TrainingLoadChartClient';
+import { Suspense } from 'react';
 
 export default async function TrainingPage() {
-  const user = await requireAuth()
+  const user = await requireAuth();
 
   return (
     <DashboardLayout user={user}>
@@ -17,7 +17,6 @@ export default async function TrainingPage() {
           </p>
         </div>
 
-
         {/* Training Load Analysis */}
         <Suspense fallback={<TrainingLoadSkeleton />}>
           <TrainingLoadChartClient />
@@ -27,11 +26,9 @@ export default async function TrainingPage() {
         <Suspense fallback={<ZoneAnalysisSkeleton />}>
           <ZoneAnalysisDashboard />
         </Suspense>
-
-      
       </div>
     </DashboardLayout>
-  )
+  );
 }
 
 function ZoneAnalysisSkeleton() {
@@ -43,7 +40,7 @@ function ZoneAnalysisSkeleton() {
         <div className="h-64 bg-gray-100 rounded-lg"></div>
       </div>
     </div>
-  )
+  );
 }
 
 function TrainingLoadSkeleton() {
@@ -59,5 +56,5 @@ function TrainingLoadSkeleton() {
         <div className="h-96 bg-gray-100 rounded-lg"></div>
       </div>
     </div>
-  )
-} 
+  );
+}

@@ -22,19 +22,18 @@ jest.mock('@/hooks/useDynamicGoals', () => ({
 // Mock fetch
 global.fetch = jest.fn();
 
-const createQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: { retry: false },
-    mutations: { retry: false },
-  },
-});
+const createQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
 
 const renderWithQueryClient = (component: React.ReactElement) => {
   const queryClient = createQueryClient();
   return render(
-    <QueryClientProvider client={queryClient}>
-      {component}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{component}</QueryClientProvider>
   );
 };
 
@@ -64,16 +63,14 @@ describe('GoalCard', () => {
       calculation_method: 'Sum of all run distances in the week',
       is_active: true,
       created_at: '2024-01-01',
-      updated_at: '2024-01-01'
-    }
+      updated_at: '2024-01-01',
+    },
   };
 
   it('renders goal information correctly', () => {
     const mockOnEdit = jest.fn();
-    
-    renderWithQueryClient(
-      <GoalCard goal={mockGoal} onEdit={mockOnEdit} />
-    );
+
+    renderWithQueryClient(<GoalCard goal={mockGoal} onEdit={mockOnEdit} />);
 
     expect(screen.getByText('Weekly Distance')).toBeInTheDocument();
     expect(screen.getByText('100 km')).toBeInTheDocument();
@@ -84,7 +81,7 @@ describe('GoalCard', () => {
   it('shows completed status for completed goals', () => {
     const completedGoal = { ...mockGoal, is_completed: true };
     const mockOnEdit = jest.fn();
-    
+
     renderWithQueryClient(
       <GoalCard goal={completedGoal} onEdit={mockOnEdit} showCompleted />
     );
@@ -94,14 +91,14 @@ describe('GoalCard', () => {
 
   it('calls onEdit when edit button is clicked', async () => {
     const mockOnEdit = jest.fn();
-    
-    renderWithQueryClient(
-      <GoalCard goal={mockGoal} onEdit={mockOnEdit} />
-    );
+
+    renderWithQueryClient(<GoalCard goal={mockGoal} onEdit={mockOnEdit} />);
 
     // Click the dropdown menu trigger (it's the button with just an icon)
     const buttons = screen.getAllByRole('button');
-    const menuTrigger = buttons.find(button => button.classList.contains('h-8'));
+    const menuTrigger = buttons.find(button =>
+      button.classList.contains('h-8')
+    );
     if (!menuTrigger) throw new Error('Menu trigger not found');
     fireEvent.click(menuTrigger);
 
@@ -116,10 +113,8 @@ describe('GoalCard', () => {
 
   it('calculates progress percentage correctly', () => {
     const mockOnEdit = jest.fn();
-    
-    renderWithQueryClient(
-      <GoalCard goal={mockGoal} onEdit={mockOnEdit} />
-    );
+
+    renderWithQueryClient(<GoalCard goal={mockGoal} onEdit={mockOnEdit} />);
 
     // Progress is 50/100 = 50%
     expect(screen.getByText('50% complete')).toBeInTheDocument();
@@ -127,10 +122,8 @@ describe('GoalCard', () => {
 
   it('shows remaining distance', () => {
     const mockOnEdit = jest.fn();
-    
-    renderWithQueryClient(
-      <GoalCard goal={mockGoal} onEdit={mockOnEdit} />
-    );
+
+    renderWithQueryClient(<GoalCard goal={mockGoal} onEdit={mockOnEdit} />);
 
     expect(screen.getByText('50.0 km remaining')).toBeInTheDocument();
   });
@@ -148,7 +141,7 @@ describe('AddGoalModal', () => {
       calculation_method: 'sum',
       is_active: true,
       created_at: '2024-01-01',
-      updated_at: '2024-01-01'
+      updated_at: '2024-01-01',
     },
     {
       name: 'race_preparation',
@@ -159,19 +152,24 @@ describe('AddGoalModal', () => {
       calculation_method: 'date_target',
       is_active: true,
       created_at: '2024-01-01',
-      updated_at: '2024-01-01'
-    }
+      updated_at: '2024-01-01',
+    },
   ];
 
   beforeEach(() => {
-    const { useGoalTypes, useCreateGoal, useUserGoals, useUnifiedGoalCreation } = require('@/hooks/useGoals');
+    const {
+      useGoalTypes,
+      useCreateGoal,
+      useUserGoals,
+      useUnifiedGoalCreation,
+    } = require('@/hooks/useGoals');
     const { useDynamicGoals } = require('@/hooks/useDynamicGoals');
-    
+
     useGoalTypes.mockReturnValue({
       data: mockGoalTypes,
       isLoading: false,
     });
-    
+
     useCreateGoal.mockReturnValue({
       mutateAsync: jest.fn().mockResolvedValue({}),
       isPending: false,
@@ -210,8 +208,8 @@ describe('AddGoalModal', () => {
       reasoning: 'Based on your recent activity',
       suggestedTarget: 25,
       targetUnit: 'km',
-              goalType: { name: 'type1', category: 'distance' },
-      strategies: ['Gradual increase', 'Consistent training']
+      goalType: { name: 'type1', category: 'distance' },
+      strategies: ['Gradual increase', 'Consistent training'],
     };
 
     const { useDynamicGoals } = require('@/hooks/useDynamicGoals');
@@ -283,7 +281,7 @@ describe('AddGoalModal', () => {
 describe('Goals Page Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock all hooks properly
     const mockHooks = require('@/hooks/useGoals');
     mockHooks.useUserGoals = jest.fn();
@@ -293,7 +291,7 @@ describe('Goals Page Integration', () => {
 
   it('handles empty state correctly', () => {
     const mockHooks = require('@/hooks/useGoals');
-    
+
     mockHooks.useUserGoals.mockReturnValue({
       data: { goals: [], onboarding: null },
       isLoading: false,
@@ -306,7 +304,7 @@ describe('Goals Page Integration', () => {
 
   it('handles loading state correctly', () => {
     const mockHooks = require('@/hooks/useGoals');
-    
+
     mockHooks.useUserGoals.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -318,7 +316,7 @@ describe('Goals Page Integration', () => {
 
   it('handles error state correctly', () => {
     const mockHooks = require('@/hooks/useGoals');
-    
+
     mockHooks.useUserGoals.mockReturnValue({
       data: undefined,
       isLoading: false,
@@ -327,4 +325,4 @@ describe('Goals Page Integration', () => {
 
     // Test error message display
   });
-}); 
+});

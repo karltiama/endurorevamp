@@ -20,13 +20,18 @@ jest.mock('next/navigation', () => ({
 // Mock next/link
 jest.mock('next/link', () => {
   return ({ children, href, ...props }: any) => {
-    return <a href={href} {...props}>{children}</a>;
+    return (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    );
   };
 });
 
 describe('RecentActivities', () => {
   let queryClient: QueryClient;
-  const mockUseUserActivities = require('../../hooks/use-user-activities').useUserActivities;
+  const mockUseUserActivities =
+    require('../../hooks/use-user-activities').useUserActivities;
 
   const mockActivities = [
     {
@@ -123,7 +128,9 @@ describe('RecentActivities', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText('No recent activities found in database')).toBeInTheDocument();
+    expect(
+      screen.getByText('No recent activities found in database')
+    ).toBeInTheDocument();
   });
 
   it('shows error state when activities fail to load', () => {
@@ -288,4 +295,4 @@ describe('RecentActivities', () => {
     expect(screen.getByText('Recent Activities')).toBeInTheDocument();
     expect(screen.getAllByText(/Activity/)).toHaveLength(1);
   });
-}); 
+});

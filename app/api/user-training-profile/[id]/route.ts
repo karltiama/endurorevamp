@@ -1,35 +1,35 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params
+  const { id } = await params;
   try {
-    const supabase = await createClient()
-    
+    const supabase = await createClient();
+
     // Get the user's training profile
     const { data: profile, error } = await supabase
       .from('user_training_profiles')
       .select('*')
       .eq('user_id', id)
-      .single()
+      .single();
 
     if (error) {
       if (error.code === 'PGRST116') {
         // No profile found, return null
-        return NextResponse.json(null)
+        return NextResponse.json(null);
       }
-      throw error
+      throw error;
     }
 
-    return NextResponse.json(profile)
+    return NextResponse.json(profile);
   } catch (error) {
-    console.error('Error fetching user training profile:', error)
+    console.error('Error fetching user training profile:', error);
     return NextResponse.json(
       { error: 'Failed to fetch training profile' },
       { status: 500 }
-    )
+    );
   }
 }

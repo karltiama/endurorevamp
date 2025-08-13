@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   webpack: (config, { isServer }) => {
@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
     config.ignoreWarnings = [
       {
         module: /node_modules\/@supabase\/realtime-js/,
-        message: /Critical dependency: the request of a dependency is an expression/,
+        message:
+          /Critical dependency: the request of a dependency is an expression/,
       },
     ];
 

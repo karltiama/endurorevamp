@@ -1,36 +1,36 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface DailyAnalysis {
-  date: string
-  totalLoad: number
-  activityCount: number
+  date: string;
+  totalLoad: number;
+  activityCount: number;
   activities: Array<{
-    name: string
-    sport_type: string
-    load: number
-  }>
+    name: string;
+    sport_type: string;
+    load: number;
+  }>;
 }
 
 export function SimplifiedDailyDebugger() {
-  const [selectedDate1, setSelectedDate1] = useState('2024-07-16')
-  const [selectedDate2, setSelectedDate2] = useState('2024-07-18')
+  const [selectedDate1, setSelectedDate1] = useState('2024-07-16');
+  const [selectedDate2, setSelectedDate2] = useState('2024-07-18');
   const [analysis, setAnalysis] = useState<{
-    date1?: DailyAnalysis
-    date2?: DailyAnalysis
-  }>({})
+    date1?: DailyAnalysis;
+    date2?: DailyAnalysis;
+  }>({});
 
   const analyzeDates = () => {
-    console.log('Analyze button clicked!')
-    console.log('Date 1:', selectedDate1)
-    console.log('Date 2:', selectedDate2)
-    
+    console.log('Analyze button clicked!');
+    console.log('Date 1:', selectedDate1);
+    console.log('Date 2:', selectedDate2);
+
     // Simulate some analysis
     setAnalysis({
       date1: {
@@ -39,19 +39,17 @@ export function SimplifiedDailyDebugger() {
         activityCount: 2,
         activities: [
           { name: 'Morning Run', sport_type: 'Run', load: 25.1 },
-          { name: 'Weight Training', sport_type: 'WeightTraining', load: 20.1 }
-        ]
+          { name: 'Weight Training', sport_type: 'WeightTraining', load: 20.1 },
+        ],
       },
       date2: {
         date: selectedDate2,
         totalLoad: 52.8,
         activityCount: 1,
-        activities: [
-          { name: 'Evening Run', sport_type: 'Run', load: 52.8 }
-        ]
-      }
-    })
-  }
+        activities: [{ name: 'Evening Run', sport_type: 'Run', load: 52.8 }],
+      },
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -70,7 +68,7 @@ export function SimplifiedDailyDebugger() {
                 id="date1"
                 type="date"
                 value={selectedDate1}
-                onChange={(e) => setSelectedDate1(e.target.value)}
+                onChange={e => setSelectedDate1(e.target.value)}
               />
             </div>
             <div className="flex-1">
@@ -79,7 +77,7 @@ export function SimplifiedDailyDebugger() {
                 id="date2"
                 type="date"
                 value={selectedDate2}
-                onChange={(e) => setSelectedDate2(e.target.value)}
+                onChange={e => setSelectedDate2(e.target.value)}
               />
             </div>
             <div className="flex items-end">
@@ -102,7 +100,9 @@ export function SimplifiedDailyDebugger() {
                       </div>
                       <div className="flex justify-between">
                         <span>Total Load:</span>
-                        <Badge variant="outline">{analysis.date1.totalLoad}</Badge>
+                        <Badge variant="outline">
+                          {analysis.date1.totalLoad}
+                        </Badge>
                       </div>
                     </div>
                   </CardContent>
@@ -120,7 +120,9 @@ export function SimplifiedDailyDebugger() {
                       </div>
                       <div className="flex justify-between">
                         <span>Total Load:</span>
-                        <Badge variant="outline">{analysis.date2.totalLoad}</Badge>
+                        <Badge variant="outline">
+                          {analysis.date2.totalLoad}
+                        </Badge>
                       </div>
                     </div>
                   </CardContent>
@@ -137,5 +139,5 @@ export function SimplifiedDailyDebugger() {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

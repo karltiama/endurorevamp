@@ -11,11 +11,12 @@ export default async function ActivitiesPage() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight">Activity Feed</h1>
           <p className="text-muted-foreground">
-            Browse and filter your recent activities. Use the filters to narrow down by type or status.
+            Browse and filter your recent activities. Use the filters to narrow
+            down by type or status.
           </p>
         </div>
         <ActivitiesFeedWithFilters userId={user.id} />
       </main>
     </DashboardLayout>
   );
-} 
+}

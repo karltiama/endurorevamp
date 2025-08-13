@@ -2,7 +2,13 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useAuth } from '@/providers/AuthProvider';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
@@ -42,13 +48,16 @@ export function SupabaseTestButton() {
 
     try {
       const supabase = createClient();
-      
+
       console.log('🔍 Testing Supabase client access...');
-      
+
       // Test 1: Check auth
-      const { data: { user: supabaseUser }, error: authError } = await supabase.auth.getUser();
+      const {
+        data: { user: supabaseUser },
+        error: authError,
+      } = await supabase.auth.getUser();
       if (authError) throw new Error(`Auth error: ${authError.message}`);
-      
+
       console.log('✅ Auth check passed:', supabaseUser?.id);
 
       // Test 2: Check Strava tokens table access
@@ -62,7 +71,10 @@ export function SupabaseTestButton() {
         throw new Error(`Tokens query error: ${tokensError.message}`);
       }
 
-      console.log('✅ Strava tokens query:', tokens ? 'Found tokens' : 'No tokens');
+      console.log(
+        '✅ Strava tokens query:',
+        tokens ? 'Found tokens' : 'No tokens'
+      );
 
       // Test 3: Check activities table access
       const { data: activities, error: activitiesError } = await supabase
@@ -75,7 +87,11 @@ export function SupabaseTestButton() {
         throw new Error(`Activities query error: ${activitiesError.message}`);
       }
 
-      console.log('✅ Activities query:', activities?.length || 0, 'activities found');
+      console.log(
+        '✅ Activities query:',
+        activities?.length || 0,
+        'activities found'
+      );
 
       // Test 4: Check sync_state table access
       const { data: syncState, error: syncError } = await supabase
@@ -88,25 +104,31 @@ export function SupabaseTestButton() {
         throw new Error(`Sync state query error: ${syncError.message}`);
       }
 
-      console.log('✅ Sync state query:', syncState ? 'Found sync state' : 'No sync state');
+      console.log(
+        '✅ Sync state query:',
+        syncState ? 'Found sync state' : 'No sync state'
+      );
 
       setResult({
         authWorking: true,
         tokensFound: !!tokens,
-        tokensData: tokens ? {
-          athleteId: tokens.strava_athlete_id,
-          expiresAt: tokens.expires_at,
-          hasAccessToken: !!tokens.access_token
-        } : null,
+        tokensData: tokens
+          ? {
+              athleteId: tokens.strava_athlete_id,
+              expiresAt: tokens.expires_at,
+              hasAccessToken: !!tokens.access_token,
+            }
+          : null,
         activitiesCount: activities?.length || 0,
         syncStateExists: !!syncState,
-        syncStateData: syncState ? {
-          lastSync: syncState.last_activity_sync,
-          requestsToday: syncState.sync_requests_today,
-          syncEnabled: syncState.sync_enabled
-        } : null
+        syncStateData: syncState
+          ? {
+              lastSync: syncState.last_activity_sync,
+              requestsToday: syncState.sync_requests_today,
+              syncEnabled: syncState.sync_enabled,
+            }
+          : null,
       });
-
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       console.error('❌ Supabase test failed:', err);
@@ -125,8 +147,8 @@ export function SupabaseTestButton() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Button 
-          onClick={testSupabaseAccess} 
+        <Button
+          onClick={testSupabaseAccess}
           disabled={isLoading || !user}
           className="w-full"
         >
@@ -157,14 +179,22 @@ export function SupabaseTestButton() {
               <strong>Database Test Results:</strong>
             </div>
             <div className="space-y-1 text-xs">
-              <div>✅ Authentication: {result.authWorking ? 'Working' : 'Failed'}</div>
-              <div>🔑 Strava Tokens: {result.tokensFound ? 'Found' : 'Not found'}</div>
+              <div>
+                ✅ Authentication: {result.authWorking ? 'Working' : 'Failed'}
+              </div>
+              <div>
+                🔑 Strava Tokens: {result.tokensFound ? 'Found' : 'Not found'}
+              </div>
               <div>📊 Activities: {result.activitiesCount} found</div>
-              <div>🔄 Sync State: {result.syncStateExists ? 'Exists' : 'Missing'}</div>
+              <div>
+                🔄 Sync State: {result.syncStateExists ? 'Exists' : 'Missing'}
+              </div>
             </div>
-            
+
             <details className="mt-3">
-              <summary className="cursor-pointer font-medium">View Details</summary>
+              <summary className="cursor-pointer font-medium">
+                View Details
+              </summary>
               <pre className="mt-2 bg-white p-2 rounded border text-xs overflow-auto">
                 {JSON.stringify(result, null, 2)}
               </pre>
@@ -174,4 +204,4 @@ export function SupabaseTestButton() {
       </CardContent>
     </Card>
   );
-} 
+}

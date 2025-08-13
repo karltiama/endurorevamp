@@ -1,31 +1,37 @@
-import { WeatherService } from '@/lib/weather/service'
+import { WeatherService } from '@/lib/weather/service';
 
 describe('WeatherService - Improvement Demo', () => {
-  let weatherService: WeatherService
+  let weatherService: WeatherService;
 
   beforeEach(() => {
-    weatherService = new WeatherService('test-api-key')
-  })
+    weatherService = new WeatherService('test-api-key');
+  });
 
   it('should demonstrate the improvement from 2 AM to realistic times', () => {
     // Mock forecast with 2 AM having perfect weather but being unrealistic
     const mockForecast = {
-      location: { name: 'Test City', country: 'US', lat: 40, lon: -74, timezone: 'America/New_York' },
-      current: { 
-        temperature: 15, 
-        feelsLike: 15, 
-        humidity: 60, 
-        windSpeed: 10, 
-        windDirection: 180, 
-        precipitation: 0, 
-        uvIndex: 3, 
-        airQuality: 30, 
-        dewPoint: 5, 
-        pressure: 1013, 
-        visibility: 10, 
-        weatherCondition: 'clear', 
-        weatherIcon: '01d', 
-        lastUpdated: new Date().toISOString() 
+      location: {
+        name: 'Test City',
+        country: 'US',
+        lat: 40,
+        lon: -74,
+        timezone: 'America/New_York',
+      },
+      current: {
+        temperature: 15,
+        feelsLike: 15,
+        humidity: 60,
+        windSpeed: 10,
+        windDirection: 180,
+        precipitation: 0,
+        uvIndex: 3,
+        airQuality: 30,
+        dewPoint: 5,
+        pressure: 1013,
+        visibility: 10,
+        weatherCondition: 'clear',
+        weatherIcon: '01d',
+        lastUpdated: new Date().toISOString(),
       },
       forecast: {
         hourly: [
@@ -40,7 +46,7 @@ describe('WeatherService - Improvement Demo', () => {
             precipitation: 0,
             uvIndex: 0,
             weatherCondition: 'clear',
-            weatherIcon: '01n'
+            weatherIcon: '01n',
           },
           // 7 AM - good weather and realistic time
           {
@@ -53,7 +59,7 @@ describe('WeatherService - Improvement Demo', () => {
             precipitation: 0,
             uvIndex: 2,
             weatherCondition: 'clear',
-            weatherIcon: '01d'
+            weatherIcon: '01d',
           },
           // 6 PM - decent weather and realistic time
           {
@@ -66,26 +72,28 @@ describe('WeatherService - Improvement Demo', () => {
             precipitation: 0,
             uvIndex: 4,
             weatherCondition: 'clear',
-            weatherIcon: '01d'
-          }
+            weatherIcon: '01d',
+          },
         ],
-        daily: []
-      }
-    }
+        daily: [],
+      },
+    };
 
-    const result = weatherService.getOptimalRunningTime(mockForecast)
-    
-    console.log('🏃‍♂️ Best time to run:', result.time)
-    console.log('📝 Reason:', result.reason)
-    
+    const result = weatherService.getOptimalRunningTime(mockForecast);
+
+    console.log('🏃‍♂️ Best time to run:', result.time);
+    console.log('📝 Reason:', result.reason);
+
     // Verify it's not suggesting 2 AM
-    expect(result.time).not.toBe('2:00 AM')
-    
+    expect(result.time).not.toBe('2:00 AM');
+
     // Verify it's suggesting a realistic time
-    expect(['7:00 AM', '6:00 PM', '8:00 AM', '7:00 PM', '1:00 PM']).toContain(result.time)
-    
+    expect(['7:00 AM', '6:00 PM', '8:00 AM', '7:00 PM', '1:00 PM']).toContain(
+      result.time
+    );
+
     // Verify the reason is helpful
-    expect(result.reason).toContain('comfortable temperature')
-    expect(result.reason).toContain('light winds')
-  })
-}) 
+    expect(result.reason).toContain('comfortable temperature');
+    expect(result.reason).toContain('light winds');
+  });
+});

@@ -10,4 +10,4 @@ export default async function GoalsPage() {
       <GoalsPageClient />
     </DashboardLayout>
   );
-} 
+}

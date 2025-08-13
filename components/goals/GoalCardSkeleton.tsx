@@ -22,7 +22,7 @@ export function GoalCardSkeleton() {
           </div>
           <Skeleton className="h-2 w-full" />
         </div>
-        
+
         {/* Progress bar */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
@@ -31,7 +31,7 @@ export function GoalCardSkeleton() {
           </div>
           <Skeleton className="h-2 w-full rounded-full" />
         </div>
-        
+
         {/* Actions */}
         <div className="flex gap-2 pt-2">
           <Skeleton className="h-8 w-16" />
@@ -50,4 +50,4 @@ export function GoalCardSkeletonGrid({ count = 3 }: { count?: number }) {
       ))}
     </div>
   );
-} 
+}

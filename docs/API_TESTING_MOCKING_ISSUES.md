@@ -13,11 +13,13 @@ The main problem was that our API routes were making real `fetch` calls to exter
 ### 1. Response.json is not a function
 
 **Error:**
+
 ```
 TypeError: Response.json is not a function
 ```
 
 **Root Cause:**
+
 - Our API route was calling `response.json()` on the result of a `fetch` call
 - The mocked `fetch` was returning plain objects instead of proper Response objects
 - NextResponse objects in the test environment didnt have a `json()` method
@@ -25,6 +27,7 @@ TypeError: Response.json is not a function
 ### 2plete Mock Objects
 
 **Problem:**
+
 ```javascript
 // ❌ This didn't work
 ;(global.fetch as jest.Mock).mockResolvedValueOnce({
@@ -34,6 +37,7 @@ TypeError: Response.json is not a function
 ```
 
 **Issues:**
+
 - Plain objects don't have the same interface as real Response objects
 - Missing proper status codes and headers
 - Inconsistent behavior with real fetch responses
@@ -41,6 +45,7 @@ TypeError: Response.json is not a function
 ### 3. NextResponse Mocking
 
 **Problem:**
+
 - Tests calling `response.json()` on NextResponse objects
 - No global mock for NextResponse in Jest setup
 - Tests failing when trying to parse response data
@@ -50,6 +55,7 @@ TypeError: Response.json is not a function
 ### 1er Response Object Mocking
 
 **Solution:**
+
 ```javascript
 // ✅ Create proper Response mock objects
 const mockResponse = {
@@ -60,6 +66,7 @@ const mockResponse = {
 ```
 
 **Key Improvements:**
+
 - Include all necessary Response properties (`ok`, `status`, `statusText`)
 - Use `jest.fn()` for methods to enable proper mocking
 - Maintain realistic response structure
@@ -67,6 +74,7 @@ const mockResponse = {
 ### 2. Global NextResponse Mock
 
 **Added to `jest.setup.js`:**
+
 ```javascript
 jest.mock('next/server, () => ({
   NextRequest: global.Request,
@@ -76,11 +84,11 @@ jest.mock('next/server, () => ({
       this.statusText = (init && init.statusText) || 'OK'
       this.headers = new Headers(init && init.headers)
       this.ok = this.status >= 200 && this.status < 300   }
-    
+
     json() {
       return Promise.resolve(this.body)
     }
-    
+
     static json(data, init) [object Object]   return new NextResponse(data, init)
     }
   }
@@ -88,6 +96,7 @@ jest.mock('next/server, () => ({
 ```
 
 **Benefits:**
+
 - Provides consistent NextResponse behavior across all tests
 - Enables `response.json()` calls in tests
 - Maintains proper status code and header handling
@@ -95,6 +104,7 @@ jest.mock('next/server, () => ({
 ### 3. Comprehensive Test Scenarios
 
 **Implemented test cases for:**
+
 - ✅ Successful API responses
 - ✅ Missing authorization headers
 - ✅ External API errors (41 etc.)
@@ -106,11 +116,13 @@ jest.mock('next/server, () => ({
 ### Step-by-Step Approach
 
 1. **Mock the fetch function globally**
+
    ```javascript
-   global.fetch = jest.fn()
+   global.fetch = jest.fn();
    ```
 
 2. **Create realistic Response objects**
+
    ```javascript
    const mockResponse =[object Object]    ok: true,
      status: 200
@@ -119,13 +131,14 @@ jest.mock('next/server, () => ({
    ```
 
 3. **Test different scenarios**
+
    ```javascript
    // Success case
    ;(fetch as jest.Mock).mockResolvedValueOnce(successResponse)
-   
+
    // Error case
    ;(fetch as jest.Mock).mockResolvedValueOnce(errorResponse)
-   
+
    // Network error
    ;(fetch as jest.Mock).mockRejectedValueOnce(new Error(Network error'))
    ```
@@ -133,7 +146,7 @@ jest.mock('next/server, () => ({
 4. **Verify external API calls**
    ```javascript
    expect(fetch).toHaveBeenCalledWith(
-  https://api.external.com/endpoint,
+   https://api.external.com/endpoint,
      { headers: { Authorization: 'Bearer token' } }
    )
    ```
@@ -141,21 +154,25 @@ jest.mock('next/server, () => ({
 ## Lessons Learned
 
 ### 1. Mock What Youre Actually Using
+
 - Don't just mock the function, mock the complete interface
 - Include all methods and properties that your code actually calls
 - Test the contract, not just the happy path
 
 ### 2. External Dependencies Need Special Attention
+
 - API routes that call external services require more sophisticated mocking
 - Consider the full data flow: Request → External API → Response → NextResponse
 - Mock at the right level (fetch, not the business logic)
 
 ### 3. Jest Setup Matters
+
 - Global mocks in `jest.setup.js` provide consistency
 - NextResponse mocking is essential for API route testing
 - Proper Response object structure prevents runtime errors
 
 ### 4. Test Error Scenarios
+
 - External APIs can fail in many ways
 - Network issues, authentication errors, rate limiting
 - Malformed responses from external services
@@ -165,16 +182,18 @@ jest.mock('next/server, () => ({
 
 ### For API Route Testing
 
-1ernal dependencies completely**
-   ```javascript
-   // Mock fetch for external API calls
-   global.fetch = jest.fn()
-   
-   // Mock database clients
-   jest.mock('@/lib/supabase/server')
-   ```
+1ernal dependencies completely\*\*
+
+```javascript
+// Mock fetch for external API calls
+global.fetch = jest.fn();
+
+// Mock database clients
+jest.mock('@/lib/supabase/server');
+```
 
 2. **Create realistic test data**
+
    ```javascript
    const mockAthleteData = [object Object]   id: 12345,
      username: 'test_athlete,
@@ -183,19 +202,17 @@ jest.mock('next/server, () => ({
    ```
 
 3. **Test the complete flow**
+
    ```javascript
    // Test request → external API → response → NextResponse
-   const response = await GET(mockRequest)
-   const data = await response.json()
-   expect(data).toEqual(expectedData)
+   const response = await GET(mockRequest);
+   const data = await response.json();
+   expect(data).toEqual(expectedData);
    ```
 
 4. **Verify external calls**
    ```javascript
-   expect(fetch).toHaveBeenCalledWith(
-     expectedUrl,
-     expectedOptions
-   )
+   expect(fetch).toHaveBeenCalledWith(expectedUrl, expectedOptions);
    ```
 
 ### For Complex API Testing
@@ -206,14 +223,15 @@ jest.mock('next/server, () => ({
    })
    ```
 
-2multiple scenarios**
-   - Success responses
-   - Error responses
-   - Network failures
-   - Authentication issues3*Mock at the right abstraction level**
-   - Mock fetch for external APIs
-   - Mock database clients for data access
-   - Mock authentication for protected routes
+2multiple scenarios\*\*
+
+- Success responses
+- Error responses
+- Network failures
+- Authentication issues3\*Mock at the right abstraction level\*\*
+- Mock fetch for external APIs
+- Mock database clients for data access
+- Mock authentication for protected routes
 
 ## Example: Strava Athlete API Test
 
@@ -222,7 +240,7 @@ describe('Strava Athlete API', () => {
   it('should return athlete data successfully', async () => {
     // Mock successful Strava API response
     const mockAthleteData = { /* ... */ }
-    
+
     const mockResponse = [object Object]   ok: true,
       status: 200,
       json: jest.fn().mockResolvedValue(mockAthleteData)
@@ -254,4 +272,4 @@ The key to successful API testing with external dependencies is:
 2. **Realistic data** - Use test data that matches real API responses
 3. **Error scenarios** - Test how your code handles external failures4. **Proper setup** - Configure Jest to handle Next.js server components
 
-By following these patterns, we can create robust tests for API routes that depend on external services while maintaining fast, reliable test execution. 
+By following these patterns, we can create robust tests for API routes that depend on external services while maintaining fast, reliable test execution.

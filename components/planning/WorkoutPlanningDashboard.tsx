@@ -1,37 +1,40 @@
-'use client'
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { 
-  Dumbbell, 
-  Clock, 
-  TrendingUp, 
-  Zap, 
-  Heart, 
-  Target, 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import {
+  Dumbbell,
+  Clock,
+  TrendingUp,
+  Zap,
+  Heart,
+  Target,
   Calendar,
   AlertTriangle,
-  Info
-} from 'lucide-react'
-import { useWorkoutPlanning } from '@/hooks/useWorkoutPlanning'
-import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import type { WorkoutRecommendation } from '@/lib/training/workout-planning'
+  Info,
+} from 'lucide-react';
+import { useWorkoutPlanning } from '@/hooks/useWorkoutPlanning';
+import { useUnitPreferences } from '@/hooks/useUnitPreferences';
+import type { WorkoutRecommendation } from '@/lib/training/workout-planning';
 
 interface WorkoutPlanningDashboardProps {
-  userId: string
-  className?: string
+  userId: string;
+  className?: string;
 }
 
-export function WorkoutPlanningDashboard({ userId, className }: WorkoutPlanningDashboardProps) {
-  const { 
-    todaysWorkout, 
-    weeklyPlan, 
-    isLoadingTodaysWorkout, 
-    isLoadingWeeklyPlan, 
-    hasData 
-  } = useWorkoutPlanning({ userId })
+export function WorkoutPlanningDashboard({
+  userId,
+  className,
+}: WorkoutPlanningDashboardProps) {
+  const {
+    todaysWorkout,
+    weeklyPlan,
+    isLoadingTodaysWorkout,
+    isLoadingWeeklyPlan,
+    hasData,
+  } = useWorkoutPlanning({ userId });
 
   if (!hasData) {
     return (
@@ -47,12 +50,14 @@ export function WorkoutPlanningDashboard({ userId, className }: WorkoutPlanningD
             <div className="text-center py-8 text-muted-foreground">
               <Dumbbell className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No training data available</p>
-              <p className="text-sm">Sync some activities to get personalized workout recommendations</p>
+              <p className="text-sm">
+                Sync some activities to get personalized workout recommendations
+              </p>
             </div>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -79,7 +84,9 @@ export function WorkoutPlanningDashboard({ userId, className }: WorkoutPlanningD
               <div className="text-center py-4 text-muted-foreground">
                 <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
                 <p>Unable to generate workout recommendation</p>
-                <p className="text-sm">Check your training data and try again</p>
+                <p className="text-sm">
+                  Check your training data and try again
+                </p>
               </div>
             )}
           </CardContent>
@@ -108,32 +115,41 @@ export function WorkoutPlanningDashboard({ userId, className }: WorkoutPlanningD
               <div className="text-center py-4 text-muted-foreground">
                 <Calendar className="h-8 w-8 mx-auto mb-2" />
                 <p>No weekly plan available</p>
-                <p className="text-sm">Complete more activities to generate a weekly plan</p>
+                <p className="text-sm">
+                  Complete more activities to generate a weekly plan
+                </p>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
     </TooltipProvider>
-  )
+  );
 }
 
 function TodaysWorkoutCard({ workout }: { workout: WorkoutRecommendation }) {
-  const { preferences: unitPreferences } = useUnitPreferences()
+  const { preferences: unitPreferences } = useUnitPreferences();
 
   const getWorkoutTypeIcon = (type: string) => {
     switch (type) {
-      case 'recovery': return Heart
-      case 'easy': return TrendingUp
-      case 'tempo': return Zap
-      case 'threshold': return Target
-      case 'long': return Clock
-      case 'strength': return Dumbbell
-      default: return Dumbbell
+      case 'recovery':
+        return Heart;
+      case 'easy':
+        return TrendingUp;
+      case 'tempo':
+        return Zap;
+      case 'threshold':
+        return Target;
+      case 'long':
+        return Clock;
+      case 'strength':
+        return Dumbbell;
+      default:
+        return Dumbbell;
     }
-  }
+  };
 
-  const WorkoutIcon = getWorkoutTypeIcon(workout.type)
+  const WorkoutIcon = getWorkoutTypeIcon(workout.type);
 
   return (
     <div className="space-y-4">
@@ -143,7 +159,9 @@ function TodaysWorkoutCard({ workout }: { workout: WorkoutRecommendation }) {
           <div className="flex items-center gap-2">
             <WorkoutIcon className="h-5 w-5 text-primary" />
             <div>
-              <h3 className="font-semibold capitalize">{workout.type} {workout.sport}</h3>
+              <h3 className="font-semibold capitalize">
+                {workout.type} {workout.sport}
+              </h3>
               <p className="text-sm text-muted-foreground">{workout.sport}</p>
             </div>
           </div>
@@ -161,23 +179,24 @@ function TodaysWorkoutCard({ workout }: { workout: WorkoutRecommendation }) {
             <p className="text-sm text-muted-foreground">Intensity</p>
             <div className="flex items-center gap-2">
               <Progress value={workout.intensity * 10} className="flex-1" />
-              <span className="text-sm font-medium">{workout.intensity}/10</span>
+              <span className="text-sm font-medium">
+                {workout.intensity}/10
+              </span>
             </div>
           </div>
           {workout.distance && (
             <div>
               <p className="text-sm text-muted-foreground">Distance</p>
               <p className="font-semibold">
-                {unitPreferences.distance === 'miles' 
-                                  ? (() => {
-                    const miles = workout.distance * 0.621371
-                    return `${miles % 1 === 0 ? miles.toFixed(0) : miles.toFixed(1)} mi`
-                  })()
-                : (() => {
-                    const km = workout.distance
-                    return `${km % 1 === 0 ? km.toFixed(0) : km.toFixed(1)} km`
-                  })()
-                }
+                {unitPreferences.distance === 'miles'
+                  ? (() => {
+                      const miles = workout.distance * 0.621371;
+                      return `${miles % 1 === 0 ? miles.toFixed(0) : miles.toFixed(1)} mi`;
+                    })()
+                  : (() => {
+                      const km = workout.distance;
+                      return `${km % 1 === 0 ? km.toFixed(0) : km.toFixed(1)} km`;
+                    })()}
               </p>
             </div>
           )}
@@ -204,7 +223,7 @@ function TodaysWorkoutCard({ workout }: { workout: WorkoutRecommendation }) {
         <div>
           <h4 className="font-medium mb-2">Alternative Workouts</h4>
           <div className="space-y-2">
-            {workout.alternatives.map((alt) => (
+            {workout.alternatives.map(alt => (
               <div key={alt.id} className="p-3 border rounded-lg bg-muted/50">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -224,36 +243,38 @@ function TodaysWorkoutCard({ workout }: { workout: WorkoutRecommendation }) {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function WeeklyPlanGrid({ workouts }: { workouts: WorkoutRecommendation[] }) {
   // Get today's day of week (0 = Sunday, 1 = Monday, etc.)
-  const today = new Date().getDay()
-  
+  const today = new Date().getDay();
+
   // Convert to Monday-based week (0 = Monday, 1 = Tuesday, etc.)
-  const mondayBasedDay = today === 0 ? 6 : today - 1
-  
+  const mondayBasedDay = today === 0 ? 6 : today - 1;
+
   // Always show Monday-Sunday order, but highlight today
-  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  
+  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
   // Find which position today should be in the Monday-Sunday order
-  const todayPosition = mondayBasedDay
+  const todayPosition = mondayBasedDay;
 
   return (
     <div className="grid grid-cols-7 gap-2">
       {dayNames.map((dayName, index) => {
         // Calculate the workout index for this day
-        // If today is Wednesday (index 2), and we're showing Monday (index 0), 
+        // If today is Wednesday (index 2), and we're showing Monday (index 0),
         // we need workout index 2 (today's position - current day position)
-        const workoutIndex = (todayPosition - index + 7) % 7
-        const workout = workouts[workoutIndex]
-        const isToday = index === todayPosition
-        
+        const workoutIndex = (todayPosition - index + 7) % 7;
+        const workout = workouts[workoutIndex];
+        const isToday = index === todayPosition;
+
         return (
           <div key={index} className="text-center">
             <div className="relative">
-              <p className={`text-sm font-medium mb-2 ${isToday ? 'text-primary font-semibold' : ''}`}>
+              <p
+                className={`text-sm font-medium mb-2 ${isToday ? 'text-primary font-semibold' : ''}`}
+              >
                 {dayName}
               </p>
               {isToday && (
@@ -263,9 +284,11 @@ function WeeklyPlanGrid({ workouts }: { workouts: WorkoutRecommendation[] }) {
               )}
             </div>
             {workout ? (
-              <div className={`p-2 border rounded-lg min-h-[80px] flex flex-col items-center justify-center ${
-                isToday ? 'bg-primary/10 border-primary/20' : 'bg-card'
-              }`}>
+              <div
+                className={`p-2 border rounded-lg min-h-[80px] flex flex-col items-center justify-center ${
+                  isToday ? 'bg-primary/10 border-primary/20' : 'bg-card'
+                }`}
+              >
                 <div className="text-xs font-medium capitalize mb-1">
                   {workout.type}
                 </div>
@@ -277,15 +300,17 @@ function WeeklyPlanGrid({ workouts }: { workouts: WorkoutRecommendation[] }) {
                 </div>
               </div>
             ) : (
-              <div className={`p-2 border rounded-lg min-h-[80px] flex items-center justify-center ${
-                isToday ? 'bg-primary/10 border-primary/20' : 'bg-muted/30'
-              }`}>
+              <div
+                className={`p-2 border rounded-lg min-h-[80px] flex items-center justify-center ${
+                  isToday ? 'bg-primary/10 border-primary/20' : 'bg-muted/30'
+                }`}
+              >
                 <span className="text-xs text-muted-foreground">Rest</span>
               </div>
             )}
           </div>
-        )
+        );
       })}
     </div>
-  )
-} 
+  );
+}

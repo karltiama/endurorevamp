@@ -4,7 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Sparkles, Target, TrendingUp, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import {
+  Sparkles,
+  Target,
+  TrendingUp,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+} from 'lucide-react';
 import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
 import { convertDistance, convertPace } from '@/lib/utils';
@@ -31,14 +38,14 @@ const getPriorityColor = (priority: string) => {
   }
 };
 
-export function SmartGoalCard({ 
-  suggestion, 
-  onSelect, 
-  isSelected = false, 
-  showFullDetails = false 
+export function SmartGoalCard({
+  suggestion,
+  onSelect,
+  isSelected = false,
+  showFullDetails = false,
 }: SmartGoalCardProps) {
   const { preferences } = useUnitPreferences();
-  
+
   // Format target with proper units based on user preferences
   const formatTargetWithUnits = (target: number, unit: string): string => {
     if (unit === 'km' && preferences.distance === 'miles') {
@@ -74,7 +81,8 @@ export function SmartGoalCard({
       return `${minutes}:${seconds.toString().padStart(2, '0')}/km`;
     } else {
       // For other units, add proper spacing
-      const formattedTarget = target % 1 === 0 ? target.toFixed(0) : target.toFixed(1);
+      const formattedTarget =
+        target % 1 === 0 ? target.toFixed(0) : target.toFixed(1);
       return `${formattedTarget} ${unit}`;
     }
   };
@@ -93,7 +101,7 @@ export function SmartGoalCard({
     }
     return description;
   };
-  
+
   const getSuccessColor = (probability: number) => {
     if (probability >= 85) return 'text-green-600';
     if (probability >= 70) return 'text-yellow-600';
@@ -114,13 +122,17 @@ export function SmartGoalCard({
   };
 
   return (
-    <Card 
+    <Card
       className={cn(
-        "cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02]",
-        isSelected ? "ring-2 ring-primary bg-primary/5" : "hover:ring-2 hover:ring-primary/50",
-        suggestion.priority === 'high' ? "border-l-4 border-l-red-500" : 
-        suggestion.priority === 'medium' ? "border-l-4 border-l-yellow-500" : 
-        "border-l-4 border-l-green-500"
+        'cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02]',
+        isSelected
+          ? 'ring-2 ring-primary bg-primary/5'
+          : 'hover:ring-2 hover:ring-primary/50',
+        suggestion.priority === 'high'
+          ? 'border-l-4 border-l-red-500'
+          : suggestion.priority === 'medium'
+            ? 'border-l-4 border-l-yellow-500'
+            : 'border-l-4 border-l-green-500'
       )}
       onClick={() => onSelect(suggestion)}
     >
@@ -129,15 +141,23 @@ export function SmartGoalCard({
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-purple-500" />
             <div>
-              <CardTitle className="text-lg font-semibold">{suggestion.title}</CardTitle>
+              <CardTitle className="text-lg font-semibold">
+                {suggestion.title}
+              </CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
                 {formatDescriptionWithUnits(suggestion.description)}
               </p>
             </div>
           </div>
-          
+
           <div className="flex flex-col items-end gap-1">
-            <Badge variant="outline" className={cn(getPriorityColor(suggestion.priority), "text-xs px-2 py-1")}>
+            <Badge
+              variant="outline"
+              className={cn(
+                getPriorityColor(suggestion.priority),
+                'text-xs px-2 py-1'
+              )}
+            >
               {suggestion.priority}
             </Badge>
             <Badge variant="secondary" className="text-xs px-2 py-1">
@@ -155,8 +175,16 @@ export function SmartGoalCard({
             <span className="text-sm font-medium">Success Rate</span>
           </div>
           <div className="flex items-center gap-2">
-            <Progress value={suggestion.successProbability} className="w-16 h-2" />
-            <span className={cn("text-sm font-bold", getSuccessColor(suggestion.successProbability))}>
+            <Progress
+              value={suggestion.successProbability}
+              className="w-16 h-2"
+            />
+            <span
+              className={cn(
+                'text-sm font-bold',
+                getSuccessColor(suggestion.successProbability)
+              )}
+            >
               {suggestion.successProbability}%
             </span>
           </div>
@@ -169,11 +197,14 @@ export function SmartGoalCard({
             <div>
               <p className="text-xs text-muted-foreground">Target</p>
               <p className="text-sm font-semibold">
-                {formatTargetWithUnits(suggestion.suggestedTarget, suggestion.targetUnit)}
+                {formatTargetWithUnits(
+                  suggestion.suggestedTarget,
+                  suggestion.targetUnit
+                )}
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {getCommitmentIcon(suggestion.requiredCommitment)}
             <div>
@@ -195,14 +226,18 @@ export function SmartGoalCard({
         {/* Strategies Preview */}
         {suggestion.strategies && suggestion.strategies.length > 0 && (
           <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">Key Strategies:</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">
+              Key Strategies:
+            </h4>
             <div className="space-y-1">
-              {suggestion.strategies.slice(0, showFullDetails ? undefined : 2).map((strategy, index) => (
-                <div key={index} className="flex items-start gap-2">
-                  <CheckCircle className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-xs text-gray-600">{strategy}</span>
-                </div>
-              ))}
+              {suggestion.strategies
+                .slice(0, showFullDetails ? undefined : 2)
+                .map((strategy, index) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <CheckCircle className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-xs text-gray-600">{strategy}</span>
+                  </div>
+                ))}
               {!showFullDetails && suggestion.strategies.length > 2 && (
                 <p className="text-xs text-muted-foreground">
                   +{suggestion.strategies.length - 2} more strategies
@@ -218,7 +253,9 @@ export function SmartGoalCard({
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-yellow-800">Keep in mind:</p>
+                <p className="text-sm font-semibold text-yellow-800">
+                  Keep in mind:
+                </p>
                 <ul className="text-xs text-yellow-700 mt-1 space-y-1">
                   {suggestion.warnings.map((warning, index) => (
                     <li key={index}>• {warning}</li>
@@ -236,15 +273,15 @@ export function SmartGoalCard({
         </div>
 
         {/* Action Button */}
-        <Button 
-          className="w-full" 
-          variant={isSelected ? "default" : "outline"}
-          onClick={(e) => {
+        <Button
+          className="w-full"
+          variant={isSelected ? 'default' : 'outline'}
+          onClick={e => {
             e.stopPropagation();
             onSelect(suggestion);
           }}
         >
-          {isSelected ? "Selected" : "Choose This Goal"}
+          {isSelected ? 'Selected' : 'Choose This Goal'}
         </Button>
       </CardContent>
     </Card>
@@ -252,13 +289,13 @@ export function SmartGoalCard({
 }
 
 /* Compact version for lists */
-export function SmartGoalCardCompact({ 
-  suggestion, 
-  onSelect, 
-  isSelected = false 
+export function SmartGoalCardCompact({
+  suggestion,
+  onSelect,
+  isSelected = false,
 }: SmartGoalCardProps) {
   const { preferences } = useUnitPreferences();
-  
+
   // Format description with proper units
   const formatDescriptionWithUnits = (description: string): string => {
     if (preferences.distance === 'miles') {
@@ -275,10 +312,12 @@ export function SmartGoalCardCompact({
   };
 
   return (
-    <Card 
+    <Card
       className={cn(
-        "cursor-pointer transition-all duration-200 hover:shadow-md",
-        isSelected ? "ring-2 ring-primary bg-primary/5" : "hover:ring-2 hover:ring-primary/50"
+        'cursor-pointer transition-all duration-200 hover:shadow-md',
+        isSelected
+          ? 'ring-2 ring-primary bg-primary/5'
+          : 'hover:ring-2 hover:ring-primary/50'
       )}
       onClick={() => onSelect(suggestion)}
     >
@@ -288,15 +327,28 @@ export function SmartGoalCardCompact({
             <Sparkles className="h-4 w-4 text-purple-500" />
             <div>
               <h3 className="font-semibold text-sm">{suggestion.title}</h3>
-              <p className="text-xs text-muted-foreground">{formatDescriptionWithUnits(suggestion.description)}</p>
+              <p className="text-xs text-muted-foreground">
+                {formatDescriptionWithUnits(suggestion.description)}
+              </p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            <span className={cn("text-xs font-bold", getSuccessColor(suggestion.successProbability))}>
+            <span
+              className={cn(
+                'text-xs font-bold',
+                getSuccessColor(suggestion.successProbability)
+              )}
+            >
               {suggestion.successProbability}%
             </span>
-            <Badge variant="outline" className={cn(getPriorityColor(suggestion.priority), "text-xs px-2 py-1")}>
+            <Badge
+              variant="outline"
+              className={cn(
+                getPriorityColor(suggestion.priority),
+                'text-xs px-2 py-1'
+              )}
+            >
               {suggestion.priority}
             </Badge>
           </div>
@@ -339,4 +391,4 @@ function getSuccessColor(probability: number): string {
   if (probability >= 85) return 'text-green-600';
   if (probability >= 70) return 'text-yellow-600';
   return 'text-red-600';
-} 
+}

@@ -6,24 +6,19 @@ import { useDynamicGoals } from '@/hooks/useDynamicGoals';
 import { useAuth } from '@/providers/AuthProvider';
 import { useGoalsContext } from '@/components/goals/GoalsProvider';
 import { UserGoal } from '@/types/goals';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Target, 
-  Trophy, 
-  Calendar, 
-  TrendingUp, 
-  Plus, 
-  Zap, 
+import {
+  Target,
+  Trophy,
+  Calendar,
+  TrendingUp,
+  Plus,
+  Zap,
   Sparkles,
   Brain,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import { GoalCard } from '@/components/goals/GoalCard';
 import { AddGoalModal } from '@/components/goals/AddGoalModal';
@@ -31,22 +26,33 @@ import { EditGoalModal } from '@/components/goals/EditGoalModal';
 import { GoalCardSkeletonGrid } from '@/components/goals/GoalCardSkeleton';
 
 import { AutomaticGoalTracker } from '@/components/goals/AutomaticGoalTracker';
-import { SmartGoalCard, SmartGoalCardSkeleton } from '@/components/goals/SmartGoalCard';
+import {
+  SmartGoalCard,
+  SmartGoalCardSkeleton,
+} from '@/components/goals/SmartGoalCard';
 import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
 import { toast } from 'sonner';
 
 export function GoalsPageClient() {
   const { user } = useAuth();
-  const { activeGoals, completedGoals, isLoading, refreshGoals } = useGoalsContext();
+  const { activeGoals, completedGoals, isLoading, refreshGoals } =
+    useGoalsContext();
 
-  const { suggestions, isLoading: isLoadingSuggestions, refetch: refetchSuggestions } = useDynamicGoals(user?.id || '', { maxSuggestions: 6 });
-  
+  const {
+    suggestions,
+    isLoading: isLoadingSuggestions,
+    refetch: refetchSuggestions,
+  } = useDynamicGoals(user?.id || '', { maxSuggestions: 6 });
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<UserGoal | null>(null);
-  const [selectedSuggestion, setSelectedSuggestion] = useState<DynamicGoalSuggestion | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<DynamicGoalSuggestion | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const handleCreateGoalFromSuggestion = (suggestion: DynamicGoalSuggestion) => {
+  const handleCreateGoalFromSuggestion = (
+    suggestion: DynamicGoalSuggestion
+  ) => {
     setSelectedSuggestion(suggestion);
     setShowAddModal(true);
   };
@@ -95,10 +101,15 @@ export function GoalsPageClient() {
             disabled={refreshing}
             className="flex items-center gap-2"
           >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`}
+            />
             Refresh
           </Button>
-          <Button onClick={() => setShowAddModal(true)} className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2"
+          >
             <Plus className="h-4 w-4" />
             Add Goal
           </Button>
@@ -126,7 +137,9 @@ export function GoalsPageClient() {
           <div className="grid gap-6 md:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Goals</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Active Goals
+                </CardTitle>
                 <Target className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -143,43 +156,55 @@ export function GoalsPageClient() {
                 <Trophy className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{completedGoals.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Goals achieved
-                </p>
+                <div className="text-2xl font-bold">
+                  {completedGoals.length}
+                </div>
+                <p className="text-xs text-muted-foreground">Goals achieved</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Success Rate
+                </CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {activeGoals.length + completedGoals.length > 0 
-                    ? Math.round((completedGoals.length / (activeGoals.length + completedGoals.length)) * 100)
-                    : 0}%
+                  {activeGoals.length + completedGoals.length > 0
+                    ? Math.round(
+                        (completedGoals.length /
+                          (activeGoals.length + completedGoals.length)) *
+                          100
+                      )
+                    : 0}
+                  %
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Completion rate
-                </p>
+                <p className="text-xs text-muted-foreground">Completion rate</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg Progress</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Avg Progress
+                </CardTitle>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {activeGoals.length > 0 
-                    ? Math.round(activeGoals.reduce((sum, goal) => {
-                        const progress = goal.target_value ? (goal.current_progress / goal.target_value) * 100 : 0;
-                        return sum + progress;
-                      }, 0) / activeGoals.length)
-                    : 0}%
+                  {activeGoals.length > 0
+                    ? Math.round(
+                        activeGoals.reduce((sum, goal) => {
+                          const progress = goal.target_value
+                            ? (goal.current_progress / goal.target_value) * 100
+                            : 0;
+                          return sum + progress;
+                        }, 0) / activeGoals.length
+                      )
+                    : 0}
+                  %
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Across active goals
@@ -201,7 +226,7 @@ export function GoalsPageClient() {
               <div>
                 <h2 className="text-xl font-semibold mb-4">Active Goals</h2>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {activeGoals.map((goal) => (
+                  {activeGoals.map(goal => (
                     <GoalCard
                       key={goal.id}
                       goal={goal}
@@ -220,7 +245,10 @@ export function GoalsPageClient() {
                   Start tracking your progress by adding your first goal.
                 </p>
                 <div className="flex justify-center">
-                  <Button onClick={() => setShowAddModal(true)} className="flex items-center gap-2">
+                  <Button
+                    onClick={() => setShowAddModal(true)}
+                    className="flex items-center gap-2"
+                  >
                     <Sparkles className="h-4 w-4" />
                     Add Your First Goal with AI Help
                   </Button>
@@ -235,7 +263,7 @@ export function GoalsPageClient() {
               <div>
                 <h2 className="text-xl font-semibold mb-4">Completed Goals</h2>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {completedGoals.map((goal) => (
+                  {completedGoals.map(goal => (
                     <GoalCard
                       key={goal.id}
                       goal={goal}
@@ -258,7 +286,8 @@ export function GoalsPageClient() {
                 AI Goal Suggestions
               </h2>
               <p className="text-sm text-muted-foreground">
-                Personalized recommendations based on your running data and patterns
+                Personalized recommendations based on your running data and
+                patterns
               </p>
             </div>
             <Button
@@ -275,13 +304,13 @@ export function GoalsPageClient() {
           {/* AI Suggestions Content */}
           {isLoadingSuggestions ? (
             <div className="grid gap-4 md:grid-cols-2">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
+              {[1, 2, 3, 4, 5, 6].map(i => (
                 <SmartGoalCardSkeleton key={i} />
               ))}
             </div>
           ) : suggestions.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
-              {suggestions.map((suggestion) => (
+              {suggestions.map(suggestion => (
                 <SmartGoalCard
                   key={suggestion.id}
                   suggestion={suggestion}
@@ -295,10 +324,12 @@ export function GoalsPageClient() {
             <Card>
               <CardContent className="p-12 text-center">
                 <Brain className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Suggestions Available</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  No Suggestions Available
+                </h3>
                 <p className="text-muted-foreground mb-6">
-                  We need more activity data to generate personalized suggestions. 
-                  Try syncing your Strava activities first.
+                  We need more activity data to generate personalized
+                  suggestions. Try syncing your Strava activities first.
                 </p>
                 <Button variant="outline" onClick={() => refetchSuggestions()}>
                   <RefreshCw className="h-4 w-4 mr-2" />
@@ -330,4 +361,4 @@ export function GoalsPageClient() {
       )}
     </div>
   );
-} 
+}

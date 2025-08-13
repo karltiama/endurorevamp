@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/auth/server'
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { requireAuth } from '@/lib/auth/server';
 
 export async function POST() {
   try {
-    const user = await requireAuth()
-    const supabase = await createClient()
+    const user = await requireAuth();
+    const supabase = await createClient();
 
     // Create a simple test plan
     const testPlan = {
@@ -13,7 +13,8 @@ export async function POST() {
       weekStart: new Date().toISOString().split('T')[0],
       workouts: {
         0: null, // Sunday - rest
-        1: { // Monday
+        1: {
+          // Monday
           id: 'test-workout-1',
           type: 'easy',
           sport: 'Run',
@@ -26,46 +27,52 @@ export async function POST() {
           reasoning: 'Test workout',
           alternatives: [],
           instructions: ['Test instruction'],
-          tips: ['Test tip']
+          tips: ['Test tip'],
         },
         2: null, // Tuesday - rest
         3: null, // Wednesday - rest
         4: null, // Thursday - rest
         5: null, // Friday - rest
-        6: null // Saturday - rest
+        6: null, // Saturday - rest
       },
       totalTSS: 120,
       totalDistance: 5,
       totalTime: 30,
       periodizationPhase: 'base',
-      isEditable: true
-    }
+      isEditable: true,
+    };
 
-    console.log('Test: Calling save_workout_plan with test data')
-    
+    console.log('Test: Calling save_workout_plan with test data');
+
     const { data: planId, error } = await supabase.rpc('save_workout_plan', {
       user_uuid: user.id,
       week_start_date: new Date().toISOString().split('T')[0],
-      plan_data: testPlan
-    })
+      plan_data: testPlan,
+    });
 
     if (error) {
-      console.error('Test: Error saving workout plan:', error)
-      return NextResponse.json({ 
-        error: 'Failed to save test workout plan',
-        details: error.message 
-      }, { status: 500 })
+      console.error('Test: Error saving workout plan:', error);
+      return NextResponse.json(
+        {
+          error: 'Failed to save test workout plan',
+          details: error.message,
+        },
+        { status: 500 }
+      );
     }
 
-    console.log('Test: Successfully saved test plan with ID:', planId)
-    
-    return NextResponse.json({ 
-      success: true, 
+    console.log('Test: Successfully saved test plan with ID:', planId);
+
+    return NextResponse.json({
+      success: true,
       planId,
-      message: 'Test workout plan saved successfully' 
-    })
+      message: 'Test workout plan saved successfully',
+    });
   } catch (error) {
-    console.error('Error in test endpoint:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error in test endpoint:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
-} 
+}

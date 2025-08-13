@@ -28,7 +28,7 @@ graph TD
     B --> C[Supabase Database]
     C --> D[React Query Cache]
     D --> E[Website Components]
-    
+
     F[User Action] --> G[Sync Trigger]
     G --> B
     B --> H[Cache Invalidation]
@@ -49,69 +49,72 @@ graph TD
 
 ### Primary Data Sources
 
-| Source | Purpose | Frequency | Rate Limits |
-|--------|---------|-----------|-------------|
-| **Strava API** | Activity data, athlete profile | On-demand sync | 600 requests/day |
-| **Supabase Database** | Stored activities, user data | Real-time queries | None |
-| **React Query Cache** | Client-side caching | Automatic | None |
+| Source                | Purpose                        | Frequency         | Rate Limits      |
+| --------------------- | ------------------------------ | ----------------- | ---------------- |
+| **Strava API**        | Activity data, athlete profile | On-demand sync    | 600 requests/day |
+| **Supabase Database** | Stored activities, user data   | Real-time queries | None             |
+| **React Query Cache** | Client-side caching            | Automatic         | None             |
 
 ### Data Types Stored
 
 #### Activities Table (37 fields)
+
 ```typescript
 interface Activity {
   // Core identification
-  id: string                    // UUID
-  user_id: string              // UUID
-  strava_activity_id: number   // Strava's ID
-  
+  id: string; // UUID
+  user_id: string; // UUID
+  strava_activity_id: number; // Strava's ID
+
   // Basic activity info
-  name: string                 // Activity name
-  sport_type: string           // "Run", "Ride", etc.
-  start_date: string           // ISO timestamp
-  distance: number             // Meters
-  moving_time: number          // Seconds
-  
+  name: string; // Activity name
+  sport_type: string; // "Run", "Ride", etc.
+  start_date: string; // ISO timestamp
+  distance: number; // Meters
+  moving_time: number; // Seconds
+
   // Performance metrics
-  average_speed: number        // m/s
-  average_heartrate: number    // BPM
-  average_watts: number        // Watts (cycling)
-  
+  average_speed: number; // m/s
+  average_heartrate: number; // BPM
+  average_watts: number; // Watts (cycling)
+
   // Computed fields
-  training_stress_score: number // TSS
-  average_pace: number         // Seconds per km
-  efficiency_score: number     // Performance metric
-  
+  training_stress_score: number; // TSS
+  average_pace: number; // Seconds per km
+  efficiency_score: number; // Performance metric
+
   // Zone data (JSON)
-  power_zones: object          // Power zone distribution
-  heart_rate_zones: object     // HR zone data
-  pace_zones: object          // Pace zone info
+  power_zones: object; // Power zone distribution
+  heart_rate_zones: object; // HR zone data
+  pace_zones: object; // Pace zone info
 }
 ```
 
 #### Sync State Table
+
 ```typescript
 interface SyncState {
-  user_id: string
-  last_activity_sync: string   // Last sync timestamp
-  total_activities_synced: number
-  sync_requests_today: number  // Rate limit tracking
-  sync_enabled: boolean
-  consecutive_errors: number
-  last_error_message: string
+  user_id: string;
+  last_activity_sync: string; // Last sync timestamp
+  total_activities_synced: number;
+  sync_requests_today: number; // Rate limit tracking
+  sync_enabled: boolean;
+  consecutive_errors: number;
+  last_error_message: string;
 }
 ```
 
 #### Strava Tokens Table
+
 ```typescript
 interface StravaTokens {
-  user_id: string
-  access_token: string
-  refresh_token: string
-  expires_at: string
-  strava_athlete_id: number
-  athlete_firstname: string
-  athlete_lastname: string
+  user_id: string;
+  access_token: string;
+  refresh_token: string;
+  expires_at: string;
+  strava_athlete_id: number;
+  athlete_firstname: string;
+  athlete_lastname: string;
 }
 ```
 
@@ -127,22 +130,20 @@ interface StravaTokens {
 // OAuth callback handling
 // app/auth/callback/route.ts
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const code = searchParams.get('code')
-  
+  const { searchParams } = new URL(request.url);
+  const code = searchParams.get('code');
+
   // Exchange code for tokens
-  const tokens = await exchangeCodeForTokens(code)
-  
+  const tokens = await exchangeCodeForTokens(code);
+
   // Store tokens in database
-  await supabase
-    .from('strava_tokens')
-    .upsert({
-      user_id: userId,
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token,
-      expires_at: tokens.expires_at,
-      // ... other fields
-    })
+  await supabase.from('strava_tokens').upsert({
+    user_id: userId,
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+    expires_at: tokens.expires_at,
+    // ... other fields
+  });
 }
 ```
 
@@ -154,16 +155,16 @@ export async function GET(request: Request) {
 // lib/strava/auth.ts
 export class StravaAuth {
   async getValidAccessToken(userId: string): Promise<string | null> {
-    const tokens = await this.getTokens(userId)
-    
+    const tokens = await this.getTokens(userId);
+
     // Check if token needs refresh
-    const now = Math.floor(Date.now() / 1000)
+    const now = Math.floor(Date.now() / 1000);
     if (tokens.expires_at <= now) {
-      await this.refreshToken(userId, tokens.refresh_token)
-      return this.getValidAccessToken(userId) // Recursive call
+      await this.refreshToken(userId, tokens.refresh_token);
+      return this.getValidAccessToken(userId); // Recursive call
     }
-    
-    return tokens.access_token
+
+    return tokens.access_token;
   }
 }
 ```
@@ -173,27 +174,32 @@ export class StravaAuth {
 **Main Sync Function**: `lib/strava/sync-activities.ts`
 
 ```typescript
-export async function syncStravaActivities(options: SyncOptions): Promise<SyncResult> {
-  const { userId, forceRefresh = false, maxActivities = 200 } = options
-  
+export async function syncStravaActivities(
+  options: SyncOptions
+): Promise<SyncResult> {
+  const { userId, forceRefresh = false, maxActivities = 200 } = options;
+
   // 1. Get user's Strava tokens
-  const tokens = await getStravaTokens(userId)
-  
+  const tokens = await getStravaTokens(userId);
+
   // 2. Check if token needs refresh
   if (tokens.expires_at <= now || forceRefresh) {
-    await refreshStravaToken(userId, tokens.refresh_token)
+    await refreshStravaToken(userId, tokens.refresh_token);
   }
-  
+
   // 3. Fetch activities from Strava API
-  const activities = await fetchStravaActivities(tokens.access_token, maxActivities)
-  
+  const activities = await fetchStravaActivities(
+    tokens.access_token,
+    maxActivities
+  );
+
   // 4. Sync activities to database
-  const syncResult = await syncActivitiesToDatabase(userId, activities)
-  
+  const syncResult = await syncActivitiesToDatabase(userId, activities);
+
   // 5. Update sync state
-  await updateSyncState(userId, syncResult)
-  
-  return syncResult
+  await updateSyncState(userId, syncResult);
+
+  return syncResult;
 }
 ```
 
@@ -202,21 +208,24 @@ export async function syncStravaActivities(options: SyncOptions): Promise<SyncRe
 **Activity Fetching**: Direct API calls to Strava
 
 ```typescript
-async function fetchStravaActivities(accessToken: string, maxActivities: number): Promise<StravaActivity[] | null> {
+async function fetchStravaActivities(
+  accessToken: string,
+  maxActivities: number
+): Promise<StravaActivity[] | null> {
   const response = await fetch(
     `https://www.strava.com/api/v3/athlete/activities?per_page=${maxActivities}`,
     {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     }
-  )
-  
+  );
+
   if (!response.ok) {
-    throw new Error(`Failed to fetch activities: ${response.statusText}`)
+    throw new Error(`Failed to fetch activities: ${response.statusText}`);
   }
-  
-  return await response.json()
+
+  return await response.json();
 }
 ```
 
@@ -229,18 +238,21 @@ async function fetchStravaActivities(accessToken: string, maxActivities: number)
 **Data Transformation**: Raw Strava data → Database format
 
 ```typescript
-async function syncActivitiesToDatabase(userId: string, activities: StravaActivity[]): Promise<SyncResult> {
-  const supabase = await createClient()
-  let newActivities = 0
-  let updatedActivities = 0
-  
+async function syncActivitiesToDatabase(
+  userId: string,
+  activities: StravaActivity[]
+): Promise<SyncResult> {
+  const supabase = await createClient();
+  let newActivities = 0;
+  let updatedActivities = 0;
+
   // Initialize training load calculator for TSS calculations
-  const trainingLoadCalculator = new TrainingLoadCalculator(defaultThresholds)
-  
+  const trainingLoadCalculator = new TrainingLoadCalculator(defaultThresholds);
+
   for (const activity of activities) {
     // Calculate TSS for this activity
-    const tss = trainingLoadCalculator.calculateTSS(activity as Activity)
-    
+    const tss = trainingLoadCalculator.calculateTSS(activity as Activity);
+
     const activityData = {
       user_id: userId,
       strava_activity_id: activity.id,
@@ -252,39 +264,39 @@ async function syncActivitiesToDatabase(userId: string, activities: StravaActivi
       // Computed fields
       week_number: getWeekNumber(new Date(activity.start_date)),
       month_number: new Date(activity.start_date).getMonth() + 1,
-      average_pace: activity.moving_time && activity.distance ? 
-        (activity.moving_time / (activity.distance / 1000)) : null,
+      average_pace:
+        activity.moving_time && activity.distance
+          ? activity.moving_time / (activity.distance / 1000)
+          : null,
       // ... other computed fields
-    }
-    
+    };
+
     // Check if activity already exists
     const existingActivity = await supabase
       .from('activities')
       .select('id')
       .eq('user_id', userId)
       .eq('strava_activity_id', activity.id)
-      .maybeSingle()
-    
+      .maybeSingle();
+
     if (existingActivity) {
       // Update existing activity
       await supabase
         .from('activities')
         .update(activityData)
-        .eq('id', existingActivity.id)
-      updatedActivities++
+        .eq('id', existingActivity.id);
+      updatedActivities++;
     } else {
       // Insert new activity
-      await supabase
-        .from('activities')
-        .insert({
-          ...activityData,
-          created_at: new Date().toISOString(),
-        })
-      newActivities++
+      await supabase.from('activities').insert({
+        ...activityData,
+        created_at: new Date().toISOString(),
+      });
+      newActivities++;
     }
   }
-  
-  return { newActivities, updatedActivities }
+
+  return { newActivities, updatedActivities };
 }
 ```
 
@@ -298,33 +310,33 @@ CREATE TABLE activities (
   id TEXT PRIMARY KEY,                    -- UUID format
   user_id TEXT NOT NULL,                  -- UUID format
   strava_activity_id INTEGER UNIQUE,     -- Strava's activity ID
-  
+
   -- Basic activity info
   name TEXT,                              -- Activity name
   sport_type TEXT,                        -- "Run", "Ride", etc.
   start_date TEXT,                        -- ISO timestamp
-  
+
   -- Distance and time metrics
   distance NUMERIC,                       -- Meters
   moving_time INTEGER,                    -- Seconds
   elapsed_time INTEGER,                   -- Seconds
-  
+
   -- Performance metrics
   average_speed NUMERIC,                  -- m/s
   average_heartrate INTEGER,             -- BPM
   average_watts INTEGER,                 -- Watts
-  
+
   -- Training metrics (calculated)
   training_stress_score DOUBLE PRECISION, -- TSS
   intensity_score DOUBLE PRECISION,      -- Workout intensity
   recovery_time INTEGER,                 -- Hours needed
-  
+
   -- Computed fields
   week_number INTEGER,                   -- Week of year
   month_number INTEGER,                  -- Month
   average_pace NUMERIC,                  -- Seconds per km
   efficiency_score NUMERIC,              -- Performance metric
-  
+
   -- Zone data (JSON)
   power_zones JSONB,                     -- Power zone distribution
   heart_rate_zones JSONB,                -- HR zone data
@@ -338,8 +350,8 @@ CREATE TABLE activities (
 
 ```sql
 -- Composite unique constraint
-ALTER TABLE activities 
-ADD CONSTRAINT activities_user_strava_activity_unique 
+ALTER TABLE activities
+ADD CONSTRAINT activities_user_strava_activity_unique
 UNIQUE (user_id, strava_activity_id);
 ```
 
@@ -372,7 +384,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       },
     },
   }))
-  
+
   return (
     <QueryClientProvider client={queryClient}>
       {children}
@@ -391,28 +403,28 @@ export function useUserActivities(userId: string) {
   return useQuery({
     queryKey: ['user', 'activities', userId],
     queryFn: async (): Promise<Activity[]> => {
-      const supabase = createClient()
-      
+      const supabase = createClient();
+
       const { data, error } = await supabase
         .from('activities')
         .select('*')
         .eq('user_id', userId)
         .order('start_date', { ascending: false })
-        .limit(500)
+        .limit(500);
 
       if (error) {
-        throw new Error(`Failed to fetch activities: ${error.message}`)
+        throw new Error(`Failed to fetch activities: ${error.message}`);
       }
 
-      return data || []
+      return data || [];
     },
     enabled: !!userId,
     staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 10 * 60 * 1000,   // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
     retry: 2,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
-  })
+  });
 }
 ```
 
@@ -421,11 +433,15 @@ export function useUserActivities(userId: string) {
 **Complex Data Processing**: `hooks/useTrainingLoad.ts`
 
 ```typescript
-export function useTrainingLoad(userId: string, options: UseTrainingLoadOptions = {}) {
-  const { days = 90, enableCalculations = true } = options
-  
+export function useTrainingLoad(
+  userId: string,
+  options: UseTrainingLoadOptions = {}
+) {
+  const { days = 90, enableCalculations = true } = options;
+
   // Get activities from database
-  const { data: activities = [], isLoading: activitiesLoading } = useUserActivities(userId)
+  const { data: activities = [], isLoading: activitiesLoading } =
+    useUserActivities(userId);
 
   // Process training load data
   const { data: trainingLoadData, isLoading: processingLoading } = useQuery({
@@ -433,8 +449,8 @@ export function useTrainingLoad(userId: string, options: UseTrainingLoadOptions 
     queryFn: () => processTrainingLoadData(activities, days),
     enabled: enableCalculations && activities.length > 0,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000,   // 30 minutes
-  })
+    gcTime: 30 * 60 * 1000, // 30 minutes
+  });
 
   return {
     data: trainingLoadData,
@@ -442,7 +458,7 @@ export function useTrainingLoad(userId: string, options: UseTrainingLoadOptions 
     hasData: trainingLoadData && trainingLoadData.totalActivities > 0,
     hasHRData: trainingLoadData && trainingLoadData.activitiesWithHR > 0,
     hasPowerData: trainingLoadData && trainingLoadData.activitiesWithPower > 0,
-  }
+  };
 }
 ```
 
@@ -452,32 +468,32 @@ export function useTrainingLoad(userId: string, options: UseTrainingLoadOptions 
 
 ```typescript
 export function useStravaSync() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   // Query for sync status
   const { data: syncStatus, isLoading: isLoadingStatus } = useQuery({
     queryKey: ['strava', 'sync-status'],
     queryFn: getSyncStatus,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000,   // 30 minutes
-  })
+    gcTime: 30 * 60 * 1000, // 30 minutes
+  });
 
   // Mutation for triggering sync
   const { mutate: triggerSyncMutation, isPending: isSyncing } = useMutation({
     mutationFn: triggerSync,
-    onSuccess: (data) => {
+    onSuccess: data => {
       // Invalidate related queries for UI updates
-      queryClient.invalidateQueries({ queryKey: ['strava', 'sync-status'] })
-      queryClient.invalidateQueries({ queryKey: ['user', 'activities'] })
-      queryClient.invalidateQueries({ queryKey: ['training', 'load'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['strava', 'sync-status'] });
+      queryClient.invalidateQueries({ queryKey: ['user', 'activities'] });
+      queryClient.invalidateQueries({ queryKey: ['training', 'load'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
-  })
+  });
 
   // Helper functions for different sync strategies
-  const syncLatest = () => triggerSyncMutation({ maxActivities: 50 })
-  const syncLastWeek = () => triggerSyncMutation({ maxActivities: 100 })
-  const syncLastMonth = () => triggerSyncMutation({ maxActivities: 200 })
+  const syncLatest = () => triggerSyncMutation({ maxActivities: 50 });
+  const syncLastWeek = () => triggerSyncMutation({ maxActivities: 100 });
+  const syncLastMonth = () => triggerSyncMutation({ maxActivities: 200 });
 
   return {
     syncStatus,
@@ -486,7 +502,7 @@ export function useStravaSync() {
     syncLatest,
     syncLastWeek,
     syncLastMonth,
-  }
+  };
 }
 ```
 
@@ -528,7 +544,7 @@ export const QUERY_KEYS = {
     keyMetrics: (userId: string) => ['dashboard', 'key-metrics', userId],
     lastActivity: (userId: string) => ['dashboard', 'last-activity', userId],
   },
-}
+};
 ```
 
 ### 2. Cache Invalidation
@@ -537,16 +553,16 @@ export const QUERY_KEYS = {
 
 ```typescript
 // When sync completes, invalidate related queries
-const onSyncSuccess = (data) => {
+const onSyncSuccess = data => {
   // Invalidate Strava-related queries
-  queryClient.invalidateQueries({ queryKey: ['strava', 'sync-status'] })
-  queryClient.invalidateQueries({ queryKey: ['strava', 'activities'] })
-  
+  queryClient.invalidateQueries({ queryKey: ['strava', 'sync-status'] });
+  queryClient.invalidateQueries({ queryKey: ['strava', 'activities'] });
+
   // Invalidate database-based queries
-  queryClient.invalidateQueries({ queryKey: ['user', 'activities'] })
-  queryClient.invalidateQueries({ queryKey: ['training', 'load'] })
-  queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-}
+  queryClient.invalidateQueries({ queryKey: ['user', 'activities'] });
+  queryClient.invalidateQueries({ queryKey: ['training', 'load'] });
+  queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+};
 ```
 
 ### 3. Stale Time Configuration
@@ -556,12 +572,12 @@ const onSyncSuccess = (data) => {
 ```typescript
 // Different stale times for different data types
 const STALE_TIMES = {
-  activities: 2 * 60 * 1000,      // 2 minutes (frequently updated)
-  trainingLoad: 5 * 60 * 1000,    // 5 minutes (computationally expensive)
-  syncStatus: 5 * 60 * 1000,      // 5 minutes (rarely changes)
+  activities: 2 * 60 * 1000, // 2 minutes (frequently updated)
+  trainingLoad: 5 * 60 * 1000, // 5 minutes (computationally expensive)
+  syncStatus: 5 * 60 * 1000, // 5 minutes (rarely changes)
   athleteProfile: 15 * 60 * 1000, // 15 minutes (rarely changes)
-  trainingZones: 60 * 60 * 1000,  // 1 hour (very stable)
-}
+  trainingZones: 60 * 60 * 1000, // 1 hour (very stable)
+};
 ```
 
 ---
@@ -575,32 +591,42 @@ const STALE_TIMES = {
 ```typescript
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    
+    const supabase = await createClient();
+
     // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { action, ...options } = await request.json()
+    const { action, ...options } = await request.json();
 
     if (action === 'update-tss') {
       // Update existing activities with TSS calculations
-      const result = await updateActivitiesWithTSS(user.id)
-      return NextResponse.json({ success: true, action: 'update-tss', ...result })
+      const result = await updateActivitiesWithTSS(user.id);
+      return NextResponse.json({
+        success: true,
+        action: 'update-tss',
+        ...result,
+      });
     }
 
     // Default action: sync activities
     const result = await syncStravaActivities({
       userId: user.id,
-      ...options
-    })
+      ...options,
+    });
 
-    return NextResponse.json(result)
+    return NextResponse.json(result);
   } catch (error) {
-    console.error('Sync API error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Sync API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 ```
@@ -610,29 +636,32 @@ export async function POST(request: NextRequest) {
 **Smart Rate Limiting**: Prevent API abuse
 
 ```typescript
-async function checkCanSync(userId: string, syncState: SyncState | null): Promise<boolean> {
-  if (!syncState) return true // First time sync
+async function checkCanSync(
+  userId: string,
+  syncState: SyncState | null
+): Promise<boolean> {
+  if (!syncState) return true; // First time sync
 
-  if (!syncState.sync_enabled) return false
+  if (!syncState.sync_enabled) return false;
 
   // Check daily rate limit (5 syncs per day)
   if ((syncState.sync_requests_today || 0) >= 5) {
-    console.log('❌ Daily rate limit exceeded:', syncState.sync_requests_today)
-    return false
+    console.log('❌ Daily rate limit exceeded:', syncState.sync_requests_today);
+    return false;
   }
 
   // Check minimum time between syncs (1 hour)
   if (syncState.last_activity_sync) {
-    const lastSync = new Date(syncState.last_activity_sync)
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
-    
+    const lastSync = new Date(syncState.last_activity_sync);
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
     if (lastSync > oneHourAgo) {
-      console.log('❌ Too soon since last sync (1 hour cooldown)')
-      return false
+      console.log('❌ Too soon since last sync (1 hour cooldown)');
+      return false;
     }
   }
 
-  return true
+  return true;
 }
 ```
 
@@ -643,23 +672,22 @@ async function checkCanSync(userId: string, syncState: SyncState | null): Promis
 ```typescript
 // Update sync state after successful sync
 const updateSyncState = async (userId: string, syncResult: SyncResult) => {
-  const today = new Date().toDateString()
-  
-  await supabase
-    .from('sync_state')
-    .upsert({
-      user_id: userId,
-      last_activity_sync: new Date().toISOString(),
-      last_sync_date: today,
-      sync_requests_today: 1, // Will be incremented by existing logic
-      total_activities_synced: (syncResult.newActivities + syncResult.updatedActivities),
-      sync_enabled: true,
-      consecutive_errors: 0,
-      last_error_message: null,
-      last_error_at: null,
-      updated_at: new Date().toISOString()
-    })
-}
+  const today = new Date().toDateString();
+
+  await supabase.from('sync_state').upsert({
+    user_id: userId,
+    last_activity_sync: new Date().toISOString(),
+    last_sync_date: today,
+    sync_requests_today: 1, // Will be incremented by existing logic
+    total_activities_synced:
+      syncResult.newActivities + syncResult.updatedActivities,
+    sync_enabled: true,
+    consecutive_errors: 0,
+    last_error_message: null,
+    last_error_at: null,
+    updated_at: new Date().toISOString(),
+  });
+};
 ```
 
 ---
@@ -687,7 +715,7 @@ const { data, error } = await supabase
   .select('*')
   .eq('user_id', userId)
   .order('start_date', { ascending: false })
-  .limit(500) // Reasonable limit for performance
+  .limit(500); // Reasonable limit for performance
 ```
 
 ### 2. React Query Optimizations
@@ -697,11 +725,11 @@ const { data, error } = await supabase
 ```typescript
 // Optimized stale times
 const OPTIMIZED_STALE_TIMES = {
-  activities: 2 * 60 * 1000,      // 2 minutes (frequently updated)
-  trainingLoad: 5 * 60 * 1000,    // 5 minutes (computationally expensive)
-  syncStatus: 5 * 60 * 1000,      // 5 minutes (rarely changes)
+  activities: 2 * 60 * 1000, // 2 minutes (frequently updated)
+  trainingLoad: 5 * 60 * 1000, // 5 minutes (computationally expensive)
+  syncStatus: 5 * 60 * 1000, // 5 minutes (rarely changes)
   athleteProfile: 15 * 60 * 1000, // 15 minutes (rarely changes)
-}
+};
 ```
 
 **Garbage Collection**: Automatic cache cleanup
@@ -709,11 +737,11 @@ const OPTIMIZED_STALE_TIMES = {
 ```typescript
 // Optimized garbage collection times
 const OPTIMIZED_GC_TIMES = {
-  activities: 10 * 60 * 1000,     // 10 minutes
-  trainingLoad: 30 * 60 * 1000,   // 30 minutes
-  syncStatus: 30 * 60 * 1000,     // 30 minutes
+  activities: 10 * 60 * 1000, // 10 minutes
+  trainingLoad: 30 * 60 * 1000, // 30 minutes
+  syncStatus: 30 * 60 * 1000, // 30 minutes
   athleteProfile: 60 * 60 * 1000, // 1 hour
-}
+};
 ```
 
 ### 3. Component Optimizations
@@ -724,15 +752,15 @@ const OPTIMIZED_GC_TIMES = {
 // Optimized component with selective updates
 export function ActivityFeed({ userId }: { userId: string }) {
   const { data: activities, isLoading } = useUserActivities(userId)
-  
+
   // Only re-render when activities change
-  const recentActivities = useMemo(() => 
-    activities?.slice(0, 5) || [], 
+  const recentActivities = useMemo(() =>
+    activities?.slice(0, 5) || [],
     [activities]
   )
-  
+
   if (isLoading) return <ActivityFeedSkeleton />
-  
+
   return (
     <div>
       {recentActivities.map(activity => (
@@ -753,29 +781,32 @@ export function ActivityFeed({ userId }: { userId: string }) {
 
 ```typescript
 // Strava API error handling
-async function fetchStravaActivities(accessToken: string, maxActivities: number) {
+async function fetchStravaActivities(
+  accessToken: string,
+  maxActivities: number
+) {
   try {
     const response = await fetch(
       `https://www.strava.com/api/v3/athlete/activities?per_page=${maxActivities}`,
       {
-        headers: { 'Authorization': `Bearer ${accessToken}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       }
-    )
+    );
 
     if (!response.ok) {
       if (response.status === 401) {
-        throw new Error('Token expired - refresh required')
+        throw new Error('Token expired - refresh required');
       }
       if (response.status === 429) {
-        throw new Error('Rate limit exceeded - try again later')
+        throw new Error('Rate limit exceeded - try again later');
       }
-      throw new Error(`Strava API error: ${response.statusText}`)
+      throw new Error(`Strava API error: ${response.statusText}`);
     }
 
-    return await response.json()
+    return await response.json();
   } catch (error) {
-    console.error('Error fetching Strava activities:', error)
-    return null
+    console.error('Error fetching Strava activities:', error);
+    return null;
   }
 }
 ```
@@ -786,25 +817,28 @@ async function fetchStravaActivities(accessToken: string, maxActivities: number)
 
 ```typescript
 // Database error handling with rollback
-async function syncActivitiesToDatabase(userId: string, activities: StravaActivity[]) {
-  const supabase = await createClient()
-  
+async function syncActivitiesToDatabase(
+  userId: string,
+  activities: StravaActivity[]
+) {
+  const supabase = await createClient();
+
   try {
     // Use transaction for data consistency
     const { data, error } = await supabase.rpc('sync_activities_batch', {
       user_id: userId,
-      activities_json: JSON.stringify(activities)
-    })
-    
+      activities_json: JSON.stringify(activities),
+    });
+
     if (error) {
-      console.error('Database sync error:', error)
-      throw new Error(`Database sync failed: ${error.message}`)
+      console.error('Database sync error:', error);
+      throw new Error(`Database sync failed: ${error.message}`);
     }
-    
-    return data
+
+    return data;
   } catch (error) {
-    console.error('Sync to database failed:', error)
-    throw error
+    console.error('Sync to database failed:', error);
+    throw error;
   }
 }
 ```
@@ -818,16 +852,18 @@ async function syncActivitiesToDatabase(userId: string, activities: StravaActivi
 const RETRY_CONFIG = {
   activities: {
     retry: 2,
-    retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: (attemptIndex: number) =>
+      Math.min(1000 * 2 ** attemptIndex, 30000),
   },
   trainingLoad: {
     retry: 1, // Expensive operation, don't retry too much
-    retryDelay: (attemptIndex: number) => Math.min(2000 * 2 ** attemptIndex, 60000),
+    retryDelay: (attemptIndex: number) =>
+      Math.min(2000 * 2 ** attemptIndex, 60000),
   },
   syncStatus: {
     retry: false, // Don't retry sync status checks
   },
-}
+};
 ```
 
 ---
@@ -885,4 +921,4 @@ const RETRY_CONFIG = {
 
 ---
 
-*This document provides a comprehensive overview of your data flow architecture. The system is designed for performance, reliability, and user experience, with intelligent caching, error handling, and rate limit management.* 
+_This document provides a comprehensive overview of your data flow architecture. The system is designed for performance, reliability, and user experience, with intelligent caching, error handling, and rate limit management._

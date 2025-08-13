@@ -5,7 +5,7 @@ import { getUser } from '@/lib/auth/server';
 export async function GET() {
   try {
     const user = await getUser();
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -14,7 +14,7 @@ export async function GET() {
     }
 
     const supabase = await createClient();
-    
+
     const { data: goalTypes, error } = await supabase
       .from('goal_types')
       .select('*')
@@ -31,9 +31,8 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      goalTypes: goalTypes || []
+      goalTypes: goalTypes || [],
     });
-
   } catch (error) {
     console.error('Goal types API error:', error);
     return NextResponse.json(
@@ -41,4 +40,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-} 
+}

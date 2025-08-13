@@ -1,23 +1,15 @@
-'use client'
+'use client';
 
-import { useStravaSync, useSyncStatusInfo } from '@/hooks/use-strava-sync'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FullSyncButton } from '@/components/strava/FullSyncButton'
-import { SyncButton } from '@/components/strava/SyncButton'
+import { useStravaSync, useSyncStatusInfo } from '@/hooks/use-strava-sync';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FullSyncButton } from '@/components/strava/FullSyncButton';
+import { SyncButton } from '@/components/strava/SyncButton';
 
 export default function SyncDashboard() {
-  const {
-    refreshStatus,
-    isSyncing,
-    isLoadingStatus
-  } = useStravaSync()
+  const { refreshStatus, isSyncing, isLoadingStatus } = useStravaSync();
 
-  const {
-    lastSyncText,
-    activityCount,
-    todaySyncs,
-    maxSyncs
-  } = useSyncStatusInfo()
+  const { lastSyncText, activityCount, todaySyncs, maxSyncs } =
+    useSyncStatusInfo();
 
   if (isLoadingStatus) {
     return (
@@ -26,13 +18,16 @@ export default function SyncDashboard() {
           <div className="h-5 bg-muted rounded mb-2"></div>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="animate-pulse space-y-2" data-testid="loading-skeleton">
+          <div
+            className="animate-pulse space-y-2"
+            data-testid="loading-skeleton"
+          >
             <div className="h-3 bg-muted rounded"></div>
             <div className="h-3 bg-muted rounded w-2/3"></div>
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -50,12 +45,24 @@ export default function SyncDashboard() {
               className="text-sm text-muted-foreground hover:text-foreground focus:outline-none"
               title="Refresh sync status"
             >
-              <svg className={`w-3 h-3 ${isLoadingStatus ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <svg
+                className={`w-3 h-3 ${isLoadingStatus ? 'animate-spin' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
               </svg>
             </button>
             <div className="flex items-center space-x-1">
-              <div className={`w-2 h-2 rounded-full ${isSyncing ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></div>
+              <div
+                className={`w-2 h-2 rounded-full ${isSyncing ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}
+              ></div>
               <span className="text-xs text-muted-foreground">
                 {isSyncing ? 'Syncing...' : 'Ready'}
               </span>
@@ -71,18 +78,19 @@ export default function SyncDashboard() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
           <div className="flex items-center justify-between">
             <div className="text-xs text-blue-700">
-              {todaySyncs >= maxSyncs 
+              {todaySyncs >= maxSyncs
                 ? 'Daily limit reached'
-                : `${maxSyncs - todaySyncs} remaining`
-              }
+                : `${maxSyncs - todaySyncs} remaining`}
             </div>
             <div className="flex items-center space-x-1">
-              <div className="text-sm font-bold text-blue-700">{todaySyncs}</div>
+              <div className="text-sm font-bold text-blue-700">
+                {todaySyncs}
+              </div>
               <div className="text-xs text-blue-500">/ {maxSyncs}</div>
             </div>
           </div>
           <div className="w-full bg-blue-200 rounded-full h-1 mt-1">
-            <div 
+            <div
               className="bg-blue-600 h-1 rounded-full transition-all duration-300"
               style={{ width: `${(todaySyncs / maxSyncs) * 100}%` }}
             ></div>
@@ -95,7 +103,9 @@ export default function SyncDashboard() {
           <div>
             <div className="mb-1">
               <h3 className="text-xs font-medium">Quick Sync</h3>
-              <p className="text-xs text-muted-foreground">50 most recent activities</p>
+              <p className="text-xs text-muted-foreground">
+                50 most recent activities
+              </p>
             </div>
             <SyncButton />
           </div>
@@ -104,12 +114,14 @@ export default function SyncDashboard() {
           <div>
             <div className="mb-1">
               <h3 className="text-xs font-medium">Full Historical Sync</h3>
-              <p className="text-xs text-muted-foreground">All activities (may take several minutes)</p>
+              <p className="text-xs text-muted-foreground">
+                All activities (may take several minutes)
+              </p>
             </div>
             <FullSyncButton />
           </div>
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

@@ -1,5 +1,5 @@
 // Global test setup
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // Mock window.matchMedia for tests
 Object.defineProperty(window, 'matchMedia', {
@@ -14,7 +14,7 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: jest.fn(),
     dispatchEvent: jest.fn(),
   })),
-})
+});
 
 // Create global router mocks that can be overridden in tests
 const mockRouterFunctions = {
@@ -24,7 +24,7 @@ const mockRouterFunctions = {
   forward: jest.fn(),
   refresh: jest.fn(),
   prefetch: jest.fn(),
-}
+};
 
 // Mock Next.js server-side functions globally
 jest.mock('next/navigation', () => ({
@@ -33,7 +33,7 @@ jest.mock('next/navigation', () => ({
   usePathname: () => '/',
   redirect: jest.fn(),
   __mockRouterFunctions: mockRouterFunctions, // Export for test access
-}))
+}));
 
 // Mock Next.js cookies and headers (server-side)
 jest.mock('next/headers', () => ({
@@ -45,14 +45,18 @@ jest.mock('next/headers', () => ({
   headers: () => ({
     get: jest.fn(),
   }),
-}))
+}));
 
 // Mock Supabase clients globally to prevent server-side call issues
 jest.mock('@/lib/supabase/client', () => ({
   createClient: jest.fn(() => ({
     auth: {
-      getUser: jest.fn().mockResolvedValue({ data: { user: null }, error: null }),
-      onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
+      getUser: jest
+        .fn()
+        .mockResolvedValue({ data: { user: null }, error: null }),
+      onAuthStateChange: jest.fn(() => ({
+        data: { subscription: { unsubscribe: jest.fn() } },
+      })),
       signOut: jest.fn().mockResolvedValue({ error: null }),
     },
     from: jest.fn(() => ({
@@ -80,12 +84,14 @@ jest.mock('@/lib/supabase/client', () => ({
       })),
     })),
   })),
-}))
+}));
 
 jest.mock('@/lib/supabase/server', () => ({
   createClient: jest.fn(() => ({
     auth: {
-      getUser: jest.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      getUser: jest
+        .fn()
+        .mockResolvedValue({ data: { user: null }, error: null }),
     },
     from: jest.fn(() => ({
       select: jest.fn(() => ({
@@ -99,53 +105,79 @@ jest.mock('@/lib/supabase/server', () => ({
       })),
     })),
   })),
-}))
+}));
 
 // Mock common application hooks globally
 jest.mock('@/hooks/useGoals', () => ({
-  useUserGoals: jest.fn(() => ({ data: { goals: [], onboarding: null }, isLoading: false, error: null, refetch: jest.fn() })),
-  useUpdateGoal: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
-  useCreateGoal: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
-  useDeleteGoal: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
+  useUserGoals: jest.fn(() => ({
+    data: { goals: [], onboarding: null },
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
+  useUpdateGoal: jest.fn(() => ({
+    mutate: jest.fn(),
+    isLoading: false,
+    error: null,
+  })),
+  useCreateGoal: jest.fn(() => ({
+    mutate: jest.fn(),
+    isLoading: false,
+    error: null,
+  })),
+  useDeleteGoal: jest.fn(() => ({
+    mutate: jest.fn(),
+    isLoading: false,
+    error: null,
+  })),
   useGoalTypes: jest.fn(() => ({ data: [], isLoading: false, error: null })),
-  useCreateMultipleGoals: jest.fn(() => ({ mutate: jest.fn(), isLoading: false, error: null })),
+  useCreateMultipleGoals: jest.fn(() => ({
+    mutate: jest.fn(),
+    isLoading: false,
+    error: null,
+  })),
   useGoalManagement: jest.fn(() => ({
     goals: [],
     getDashboardGoals: jest.fn(() => []),
     toggleDashboardGoal: jest.fn(),
     getGoalsByContext: jest.fn(() => []),
     getSuggestionGoals: jest.fn(() => []),
-    isLoading: false
+    isLoading: false,
   })),
-}))
+}));
 
 jest.mock('@/hooks/use-user-activities', () => ({
-  useUserActivities: jest.fn(() => ({ data: [], isLoading: false, error: null, refetch: jest.fn() })),
-}))
+  useUserActivities: jest.fn(() => ({
+    data: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
+}));
 
 // Remove the global mock for use-strava-sync to allow individual tests to control it
 // This was causing conflicts with test-specific mocks
 
 jest.mock('@/hooks/useUnitPreferences', () => {
-  const mockSetDistanceUnit = jest.fn()
-  const mockToggleUnits = jest.fn()
-  const mockUpdatePreferences = jest.fn()
-  
+  const mockSetDistanceUnit = jest.fn();
+  const mockToggleUnits = jest.fn();
+  const mockUpdatePreferences = jest.fn();
+
   return {
     useUnitPreferences: jest.fn(() => ({
       preferences: { distance: 'km', pace: 'min/km' },
       updatePreferences: mockUpdatePreferences,
       setDistanceUnit: mockSetDistanceUnit,
       toggleUnits: mockToggleUnits,
-      isLoading: false
+      isLoading: false,
     })),
     __mocks: {
       setDistanceUnit: mockSetDistanceUnit,
       toggleUnits: mockToggleUnits,
       updatePreferences: mockUpdatePreferences,
-    }
-  }
-})
+    },
+  };
+});
 
 jest.mock('@/providers/AuthProvider', () => ({
   useAuth: jest.fn(() => ({
@@ -153,14 +185,14 @@ jest.mock('@/providers/AuthProvider', () => ({
     isLoading: false,
     isAuthenticated: false,
     signOut: jest.fn(),
-    refreshUser: jest.fn()
+    refreshUser: jest.fn(),
   })),
-}))
+}));
 
 // Mock environment variables
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
-process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key'
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
 
 // REMOVED: Heavy console mocking that was running before every test
 // REMOVED: beforeEach/afterEach hooks that were adding overhead
@@ -174,93 +206,98 @@ global.fetch = jest.fn(() =>
     status: 200,
     statusText: 'OK',
   })
-)
+);
 
 // Mock window.location in a safe way that works with JSDOM
-delete window.location
+delete window.location;
 window.location = {
   href: '',
   assign: jest.fn(),
   replace: jest.fn(),
   reload: jest.fn(),
   toString: jest.fn(() => 'http://localhost/'),
-}
+};
 
 // Mock ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   unobserve: jest.fn(),
   disconnect: jest.fn(),
-}))
+}));
 
 // Mock IntersectionObserver
 global.IntersectionObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   unobserve: jest.fn(),
   disconnect: jest.fn(),
-}))
+}));
 
 // Mock Next.js Request and Response for API route testing
 global.Request = class Request {
   constructor(url, init) {
-    this.url = url
-    this.method = (init && init.method) || 'GET'
-    this.headers = new Headers(init && init.headers)
-    this.body = init && init.body
+    this.url = url;
+    this.method = (init && init.method) || 'GET';
+    this.headers = new Headers(init && init.headers);
+    this.body = init && init.body;
   }
-  
+
   json() {
     try {
-      return Promise.resolve(JSON.parse(this.body || '{}'))
+      return Promise.resolve(JSON.parse(this.body || '{}'));
     } catch (error) {
-      return Promise.reject(error)
+      return Promise.reject(error);
     }
   }
-  
+
   text() {
-    return Promise.resolve(this.body || '')
+    return Promise.resolve(this.body || '');
   }
-}
+};
 
 global.Response = class Response {
   constructor(body, init) {
-    this.body = body
-    this.status = (init && init.status) || 200
-    this.statusText = (init && init.statusText) || 'OK'
-    this.headers = new Headers(init && init.headers)
-    this.ok = this.status >= 200 && this.status <30  }
-  
+    this.body = body;
+    this.status = (init && init.status) || 200;
+    this.statusText = (init && init.statusText) || 'OK';
+    this.headers = new Headers(init && init.headers);
+    this.ok = this.status >= 200 && this.status < 30;
+  }
+
   json() {
-    return Promise.resolve(this.body)
+    return Promise.resolve(this.body);
   }
-  
+
   text() {
-    return Promise.resolve(typeof this.body === 'string' ? this.body : JSON.stringify(this.body))
+    return Promise.resolve(
+      typeof this.body === 'string' ? this.body : JSON.stringify(this.body)
+    );
   }
-}
+};
 
 // Mock NextResponse for API route testing
 jest.mock('next/server', () => ({
   NextRequest: global.Request,
   NextResponse: class NextResponse {
     constructor(body, init) {
-      this.body = body
-      this.status = (init && init.status) || 200
-      this.statusText = (init && init.statusText) || 'OK'
-      this.headers = new Headers(init && init.headers)
-      this.ok = this.status >= 200 && this.status < 300
+      this.body = body;
+      this.status = (init && init.status) || 200;
+      this.statusText = (init && init.statusText) || 'OK';
+      this.headers = new Headers(init && init.headers);
+      this.ok = this.status >= 200 && this.status < 300;
     }
-    
+
     json() {
-      return Promise.resolve(this.body)
+      return Promise.resolve(this.body);
     }
-    
+
     text() {
-      return Promise.resolve(typeof this.body === 'string' ? this.body : JSON.stringify(this.body))
+      return Promise.resolve(
+        typeof this.body === 'string' ? this.body : JSON.stringify(this.body)
+      );
     }
-    
+
     static json(data, init) {
-      return new NextResponse(data, init)
+      return new NextResponse(data, init);
     }
-  }
-})) 
+  },
+}));

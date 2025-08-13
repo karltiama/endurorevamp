@@ -1,52 +1,55 @@
-import { NextRequest } from 'next/server'
-import { POST, GET } from '@/app/api/strava/sync/route'
-import { createClient } from '@/lib/supabase/server'
-import { syncStravaActivities, updateActivitiesWithTSS } from '@/lib/strava/sync-activities'
+import { NextRequest } from 'next/server';
+import { POST, GET } from '@/app/api/strava/sync/route';
+import { createClient } from '@/lib/supabase/server';
+import {
+  syncStravaActivities,
+  updateActivitiesWithTSS,
+} from '@/lib/strava/sync-activities';
 
 // Mock Supabase client
 jest.mock('@/lib/supabase/server', () => ({
-  createClient: jest.fn()
-}))
+  createClient: jest.fn(),
+}));
 
 // Mock sync functions
 jest.mock('@/lib/strava/sync-activities', () => ({
   syncStravaActivities: jest.fn(),
-  updateActivitiesWithTSS: jest.fn()
-}))
+  updateActivitiesWithTSS: jest.fn(),
+}));
 
 const mockSupabase = {
   auth: {
-    getUser: jest.fn()
+    getUser: jest.fn(),
   },
-  from: jest.fn()
-}
+  from: jest.fn(),
+};
 
 const mockUser = {
   id: 'test-user-id',
-  email: 'test@example.com'
-}
+  email: 'test@example.com',
+};
 
 const mockSyncState = {
   user_id: 'test-user-id',
   sync_enabled: true,
   sync_requests_today: 2,
   last_sync_date: new Date().toDateString(),
-  last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
-}
+  last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+};
 
 describe('Strava Sync API Routes', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
-    ;(createClient as jest.Mock).mockResolvedValue(mockSupabase)
-  })
+    jest.clearAllMocks();
+    (createClient as jest.Mock).mockResolvedValue(mockSupabase);
+  });
 
   describe('POST /api/strava/sync', () => {
     it('should sync activities successfully', async () => {
       // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
-        error: null
-      })
+        error: null,
+      });
 
       // Mock sync state (can sync)
       mockSupabase.from.mockReturnValue({
@@ -58,78 +61,76 @@ describe('Strava Sync API Routes', () => {
                 sync_enabled: true,
                 sync_requests_today: 2,
                 last_sync_date: new Date().toISOString().split('T')[0], // Use consistent date format
-                last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-                last_sync_new_activities: 5 // Add this field for smart cooldown
+                last_activity_sync: new Date(
+                  Date.now() - 2 * 60 * 60 * 1000
+                ).toISOString(),
+                last_sync_new_activities: 5, // Add this field for smart cooldown
               },
-              error: null
-            })
-          })
-        })
-      })
+              error: null,
+            }),
+          }),
+        }),
+      });
 
       // Mock successful sync result
-      ;(syncStravaActivities as jest.Mock).mockResolvedValue({
+      (syncStravaActivities as jest.Mock).mockResolvedValue({
         success: true,
         activitiesSynced: 10,
         newActivities: 5,
         updatedActivities: 3,
-        errors: []
-      })
+        errors: [],
+      });
 
       const request = new NextRequest('http://localhost:3000/api/strava/sync', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           maxActivities: 50,
           sinceDays: 7,
-          forceRefresh: false
-        })
-      })
+          forceRefresh: false,
+        }),
+      });
 
-      const response = await POST(request)
-      const data = await response.json()
+      const response = await POST(request);
+      const data = await response.json();
 
-      expect(response.status).toBe(200)
-      expect(data.success).toBe(true)
-      expect(data.data.activitiesProcessed).toBe(10)
-      expect(data.data.newActivities).toBe(5)
-      expect(data.data.updatedActivities).toBe(3)
-    })
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.data.activitiesProcessed).toBe(10);
+      expect(data.data.newActivities).toBe(5);
+      expect(data.data.updatedActivities).toBe(3);
+    });
 
     it('should handle unauthenticated user', async () => {
       // Mock failed authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: null },
-        error: { message: 'Invalid token' }
-      })
+        error: { message: 'Invalid token' },
+      });
 
       const request = new NextRequest('http://localhost:3000/api/strava/sync', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({})
-      })
+        body: JSON.stringify({}),
+      });
 
-      const response = await POST(request)
-      const data = await response.json()
+      const response = await POST(request);
+      const data = await response.json();
 
-      expect(response.status).toBe(401)
-      expect(data.error).toBe('Unauthorized')
-    })
-
-
-
-
+      expect(response.status).toBe(401);
+      expect(data.error).toBe('Unauthorized');
+    });
 
     it('should handle sync with errors', async () => {
       // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
-        error: null
-      })
+        error: null,
+      });
 
       // Mock sync state (can sync)
       mockSupabase.from.mockReturnValue({
@@ -141,46 +142,48 @@ describe('Strava Sync API Routes', () => {
                 sync_enabled: true,
                 sync_requests_today: 1,
                 last_sync_date: new Date().toDateString(),
-                last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+                last_activity_sync: new Date(
+                  Date.now() - 2 * 60 * 60 * 1000
+                ).toISOString(),
               },
-              error: null
-            })
-          })
-        })
-      })
+              error: null,
+            }),
+          }),
+        }),
+      });
 
       // Mock sync result with errors
-      ;(syncStravaActivities as jest.Mock).mockResolvedValue({
+      (syncStravaActivities as jest.Mock).mockResolvedValue({
         success: false,
         activitiesSynced: 8,
         newActivities: 3,
         updatedActivities: 2,
-        errors: ['Network timeout', 'Invalid activity data']
-      })
+        errors: ['Network timeout', 'Invalid activity data'],
+      });
 
       const request = new NextRequest('http://localhost:3000/api/strava/sync', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({})
-      })
+        body: JSON.stringify({}),
+      });
 
-      const response = await POST(request)
-      const data = await response.json()
+      const response = await POST(request);
+      const data = await response.json();
 
-      expect(response.status).toBe(200)
-      expect(data.success).toBe(false)
-      expect(data.errors).toContain('Network timeout')
-      expect(data.errors).toContain('Invalid activity data')
-    })
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(false);
+      expect(data.errors).toContain('Network timeout');
+      expect(data.errors).toContain('Invalid activity data');
+    });
 
     it('should handle missing request body', async () => {
       // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
-        error: null
-      })
+        error: null,
+      });
 
       // Mock sync state (can sync)
       mockSupabase.from.mockReturnValue({
@@ -192,77 +195,79 @@ describe('Strava Sync API Routes', () => {
                 sync_enabled: true,
                 sync_requests_today: 1,
                 last_sync_date: new Date().toDateString(),
-                last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+                last_activity_sync: new Date(
+                  Date.now() - 2 * 60 * 60 * 1000
+                ).toISOString(),
               },
-              error: null
-            })
-          })
-        })
-      })
+              error: null,
+            }),
+          }),
+        }),
+      });
 
       // Mock successful sync result
-      ;(syncStravaActivities as jest.Mock).mockResolvedValue({
+      (syncStravaActivities as jest.Mock).mockResolvedValue({
         success: true,
         activitiesSynced: 5,
         newActivities: 2,
         updatedActivities: 1,
-        errors: []
-      })
+        errors: [],
+      });
 
       const request = new NextRequest('http://localhost:3000/api/strava/sync', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
         // No body
-      })
+      });
 
-      const response = await POST(request)
-      const data = await response.json()
+      const response = await POST(request);
+      const data = await response.json();
 
-      expect(response.status).toBe(200)
-      expect(data.success).toBe(true)
-    })
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+    });
 
     it('should handle update-tss action', async () => {
       // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
-        error: null
-      })
+        error: null,
+      });
 
       // Mock update TSS result
-      ;(updateActivitiesWithTSS as jest.Mock).mockResolvedValue({
+      (updateActivitiesWithTSS as jest.Mock).mockResolvedValue({
         updated: 10,
-        errors: 2
-      })
+        errors: 2,
+      });
 
       const request = new NextRequest('http://localhost:3000/api/strava/sync', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          action: 'update-tss'
-        })
-      })
+          action: 'update-tss',
+        }),
+      });
 
-      const response = await POST(request)
-      const data = await response.json()
+      const response = await POST(request);
+      const data = await response.json();
 
-      expect(response.status).toBe(200)
-      expect(data.success).toBe(true)
-      expect(data.action).toBe('update-tss')
-      expect(data.updated).toBe(10)
-      expect(data.errors).toBe(2)
-    })
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.action).toBe('update-tss');
+      expect(data.updated).toBe(10);
+      expect(data.errors).toBe(2);
+    });
 
     it('should handle sync service errors', async () => {
       // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
-        error: null
-      })
+        error: null,
+      });
 
       // Mock sync state (can sync)
       mockSupabase.from.mockReturnValue({
@@ -274,40 +279,44 @@ describe('Strava Sync API Routes', () => {
                 sync_enabled: true,
                 sync_requests_today: 1,
                 last_sync_date: new Date().toDateString(),
-                last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+                last_activity_sync: new Date(
+                  Date.now() - 2 * 60 * 60 * 1000
+                ).toISOString(),
               },
-              error: null
-            })
-          })
-        })
-      })
+              error: null,
+            }),
+          }),
+        }),
+      });
 
       // Mock sync service throwing error
-      ;(syncStravaActivities as jest.Mock).mockRejectedValue(new Error('Strava API error'))
+      (syncStravaActivities as jest.Mock).mockRejectedValue(
+        new Error('Strava API error')
+      );
 
       const request = new NextRequest('http://localhost:3000/api/strava/sync', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({})
-      })
+        body: JSON.stringify({}),
+      });
 
-      const response = await POST(request)
-      const data = await response.json()
+      const response = await POST(request);
+      const data = await response.json();
 
-      expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal server error')
-    })
-  })
+      expect(response.status).toBe(500);
+      expect(data.error).toBe('Internal server error');
+    });
+  });
 
   describe('GET /api/strava/sync', () => {
     it('should return sync status successfully', async () => {
       // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
-        error: null
-      })
+        error: null,
+      });
 
       // Mock sync state (first call to supabase.from)
       mockSupabase.from.mockReturnValueOnce({
@@ -319,55 +328,57 @@ describe('Strava Sync API Routes', () => {
                 sync_enabled: true,
                 sync_requests_today: 2,
                 last_sync_date: new Date().toISOString().split('T')[0], // Use consistent date format
-                last_activity_sync: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-                last_sync_new_activities: 5
+                last_activity_sync: new Date(
+                  Date.now() - 2 * 60 * 60 * 1000
+                ).toISOString(),
+                last_sync_new_activities: 5,
               },
-              error: null
-            })
-          })
-        })
-      })
+              error: null,
+            }),
+          }),
+        }),
+      });
 
       // Mock activities count (second call to supabase.from)
       mockSupabase.from.mockReturnValueOnce({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             count: 25,
-            error: null
-          })
-        })
-      })
+            error: null,
+          }),
+        }),
+      });
 
-      const response = await GET()
-      const data = await response.json()
+      const response = await GET();
+      const data = await response.json();
 
-      expect(response.status).toBe(200)
-      expect(data.syncState).toBeDefined()
-      expect(data.syncState.user_id).toBe(mockUser.id)
-      expect(data.activityCount).toBe(25)
-      expect(data.canSync).toBe(true)
-    })
+      expect(response.status).toBe(200);
+      expect(data.syncState).toBeDefined();
+      expect(data.syncState.user_id).toBe(mockUser.id);
+      expect(data.activityCount).toBe(25);
+      expect(data.canSync).toBe(true);
+    });
 
     it('should handle unauthenticated user for GET', async () => {
       // Mock failed authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: null },
-        error: { message: 'Invalid token' }
-      })
+        error: { message: 'Invalid token' },
+      });
 
-      const response = await GET()
-      const data = await response.json()
+      const response = await GET();
+      const data = await response.json();
 
-      expect(response.status).toBe(401)
-      expect(data.error).toBe('Authentication required')
-    })
+      expect(response.status).toBe(401);
+      expect(data.error).toBe('Authentication required');
+    });
 
     it('should handle no sync state (first time user)', async () => {
       // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
-        error: null
-      })
+        error: null,
+      });
 
       // Mock no sync state (PGRST116 error)
       mockSupabase.from.mockReturnValue({
@@ -375,34 +386,34 @@ describe('Strava Sync API Routes', () => {
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
               data: null,
-              error: { code: 'PGRST116' }
-            })
+              error: { code: 'PGRST116' },
+            }),
           }),
           count: jest.fn().mockReturnValue({
             eq: jest.fn().mockResolvedValue({
               count: 0,
-              error: null
-            })
-          })
-        })
-      })
+              error: null,
+            }),
+          }),
+        }),
+      });
 
-      const response = await GET()
-      const data = await response.json()
+      const response = await GET();
+      const data = await response.json();
 
-      expect(response.status).toBe(200)
-      expect(data.syncState).toBe(null)
-      expect(data.activityCount).toBe(0)
-      expect(data.canSync).toBe(false) // No Strava tokens found
-      expect(data.hasStravaTokens).toBe(false)
-    })
+      expect(response.status).toBe(200);
+      expect(data.syncState).toBe(null);
+      expect(data.activityCount).toBe(0);
+      expect(data.canSync).toBe(false); // No Strava tokens found
+      expect(data.hasStravaTokens).toBe(false);
+    });
 
     it('should handle database errors', async () => {
       // Mock successful user authentication
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
-        error: null
-      })
+        error: null,
+      });
 
       // Mock database error
       mockSupabase.from.mockReturnValue({
@@ -410,134 +421,134 @@ describe('Strava Sync API Routes', () => {
           eq: jest.fn().mockReturnValue({
             single: jest.fn().mockResolvedValue({
               data: null,
-              error: { message: 'Database connection failed' }
-            })
-          })
-        })
-      })
+              error: { message: 'Database connection failed' },
+            }),
+          }),
+        }),
+      });
 
-      const response = await GET()
-      const data = await response.json()
+      const response = await GET();
+      const data = await response.json();
 
-      expect(response.status).toBe(500)
-      expect(data.error).toBe('Internal server error')
-    })
-  })
-})
+      expect(response.status).toBe(500);
+      expect(data.error).toBe('Internal server error');
+    });
+  });
+});
 
 describe('Daily sync counter increment', () => {
   it('should increment sync_requests_today when sync is performed', async () => {
     // Mock successful user authentication
     mockSupabase.auth.getUser.mockResolvedValue({
       data: { user: mockUser },
-      error: null
-    })
+      error: null,
+    });
 
     // Mock sync state with 1 sync today
     const mockSyncStateWithOneSync = {
       ...mockSyncState,
-      sync_requests_today: 1
-    }
+      sync_requests_today: 1,
+    };
 
     mockSupabase.from.mockReturnValue({
       select: jest.fn().mockReturnValue({
         eq: jest.fn().mockReturnValue({
           single: jest.fn().mockResolvedValue({
             data: mockSyncStateWithOneSync,
-            error: null
-          })
-        })
-      })
-    })
+            error: null,
+          }),
+        }),
+      }),
+    });
 
     // Mock successful sync result
-    ;(syncStravaActivities as jest.Mock).mockResolvedValue({
+    (syncStravaActivities as jest.Mock).mockResolvedValue({
       success: true,
       activitiesSynced: 10,
       newActivities: 5,
       updatedActivities: 3,
-      errors: []
-    })
+      errors: [],
+    });
 
     const request = new NextRequest('http://localhost:3000/api/strava/sync', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        maxActivities: 50
-      })
-    })
+        maxActivities: 50,
+      }),
+    });
 
-    const response = await POST(request)
-    const data = await response.json()
+    const response = await POST(request);
+    const data = await response.json();
 
-    expect(response.status).toBe(200)
-    expect(data.success).toBe(true)
-    
+    expect(response.status).toBe(200);
+    expect(data.success).toBe(true);
+
     // Verify that syncStravaActivities was called with correct parameters
     expect(syncStravaActivities).toHaveBeenCalledWith({
       userId: mockUser.id,
-      maxActivities: 50
-    })
-  })
+      maxActivities: 50,
+    });
+  });
 
   it('should reset sync counter to 1 for new day', async () => {
     // Mock successful user authentication
     mockSupabase.auth.getUser.mockResolvedValue({
       data: { user: mockUser },
-      error: null
-    })
+      error: null,
+    });
 
     // Mock sync state with yesterday's date and 5 syncs
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
     const mockSyncStateYesterday = {
       ...mockSyncState,
       sync_requests_today: 5,
-      last_sync_date: yesterday.toDateString()
-    }
+      last_sync_date: yesterday.toDateString(),
+    };
 
     mockSupabase.from.mockReturnValue({
       select: jest.fn().mockReturnValue({
         eq: jest.fn().mockReturnValue({
           single: jest.fn().mockResolvedValue({
             data: mockSyncStateYesterday,
-            error: null
-          })
-        })
-      })
-    })
+            error: null,
+          }),
+        }),
+      }),
+    });
 
     // Mock successful sync result
-    ;(syncStravaActivities as jest.Mock).mockResolvedValue({
+    (syncStravaActivities as jest.Mock).mockResolvedValue({
       success: true,
       activitiesSynced: 0,
       newActivities: 0,
       updatedActivities: 0,
-      errors: []
-    })
+      errors: [],
+    });
 
     const request = new NextRequest('http://localhost:3000/api/strava/sync', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        maxActivities: 50
-      })
-    })
+        maxActivities: 50,
+      }),
+    });
 
-    const response = await POST(request)
-    const data = await response.json()
+    const response = await POST(request);
+    const data = await response.json();
 
-    expect(response.status).toBe(200)
-    expect(data.success).toBe(true)
-    
+    expect(response.status).toBe(200);
+    expect(data.success).toBe(true);
+
     // Verify that syncStravaActivities was called with correct parameters
     expect(syncStravaActivities).toHaveBeenCalledWith({
       userId: mockUser.id,
-      maxActivities: 50
-    })
-  })
-}) 
+      maxActivities: 50,
+    });
+  });
+});

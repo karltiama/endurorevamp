@@ -1,41 +1,46 @@
-'use client'
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { useUserActivities } from '@/hooks/use-user-activities'
-import { useAuth } from '@/providers/AuthProvider'
-import { createClient } from '@/lib/supabase/client'
-import { useState } from 'react'
-import type { Activity } from '@/lib/strava/types'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useUserActivities } from '@/hooks/use-user-activities';
+import { useAuth } from '@/providers/AuthProvider';
+import { createClient } from '@/lib/supabase/client';
+import { useState } from 'react';
+import type { Activity } from '@/lib/strava/types';
 
 interface ProfileDebuggerProps {
-  userId: string
+  userId: string;
 }
 
 interface DebugInfo {
-  dbActivities: Activity[]
-  dbError?: string
+  dbActivities: Activity[];
+  dbError?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  syncState: any
-  syncError?: string
-  hookActivities: Activity[]
-  hookError?: string
-  isLoading: boolean
-  error?: string
+  syncState: any;
+  syncError?: string;
+  hookActivities: Activity[];
+  hookError?: string;
+  isLoading: boolean;
+  error?: string;
 }
 
 export function ProfileDebugger({ userId }: ProfileDebuggerProps) {
-  const { data: activities, isLoading, error, refetch } = useUserActivities(userId)
-  const { user } = useAuth()
-  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null)
-  const [isChecking, setIsChecking] = useState(false)
+  const {
+    data: activities,
+    isLoading,
+    error,
+    refetch,
+  } = useUserActivities(userId);
+  const { user } = useAuth();
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
 
   const runDebug = async () => {
-    if (!user) return
-    
-    setIsChecking(true)
-    const supabase = createClient()
+    if (!user) return;
+
+    setIsChecking(true);
+    const supabase = createClient();
 
     try {
       // Check database directly
@@ -44,14 +49,14 @@ export function ProfileDebugger({ userId }: ProfileDebuggerProps) {
         .select('*')
         .eq('user_id', user.id)
         .order('start_date', { ascending: false })
-        .limit(10)
+        .limit(10);
 
       // Check sync state
       const { data: syncState, error: syncError } = await supabase
         .from('sync_state')
         .select('*')
         .eq('user_id', user.id)
-        .single()
+        .single();
 
       setDebugInfo({
         dbActivities: dbActivities || [],
@@ -60,20 +65,20 @@ export function ProfileDebugger({ userId }: ProfileDebuggerProps) {
         syncError: syncError?.message,
         hookActivities: activities || [],
         hookError: error?.message,
-        isLoading
-      })
+        isLoading,
+      });
     } catch (error) {
       setDebugInfo({
         dbActivities: [],
         syncState: null,
         hookActivities: [],
         isLoading: false,
-        error: (error as Error).message
-      })
+        error: (error as Error).message,
+      });
     } finally {
-      setIsChecking(false)
+      setIsChecking(false);
     }
-  }
+  };
 
   const triggerSync = async () => {
     try {
@@ -84,25 +89,27 @@ export function ProfileDebugger({ userId }: ProfileDebuggerProps) {
         },
         body: JSON.stringify({
           maxActivities: 50,
-          forceRefresh: true
-        })
-      })
+          forceRefresh: true,
+        }),
+      });
 
       if (!response.ok) {
-        const error = await response.json()
-        alert(`Sync failed: ${error.message}`)
-        return
+        const error = await response.json();
+        alert(`Sync failed: ${error.message}`);
+        return;
       }
 
-      const result = await response.json()
-      alert(`Sync completed: ${result.data?.activitiesProcessed || 0} activities processed`)
-      
+      const result = await response.json();
+      alert(
+        `Sync completed: ${result.data?.activitiesProcessed || 0} activities processed`
+      );
+
       // Refresh the hook data
-      refetch()
+      refetch();
     } catch (error) {
-      alert(`Sync error: ${(error as Error).message}`)
+      alert(`Sync error: ${(error as Error).message}`);
     }
-  }
+  };
 
   return (
     <Card>
@@ -130,13 +137,19 @@ export function ProfileDebugger({ userId }: ProfileDebuggerProps) {
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="font-medium">Hook Loading:</span>
-              <Badge variant={isLoading ? "default" : "secondary"} className="ml-2">
+              <Badge
+                variant={isLoading ? 'default' : 'secondary'}
+                className="ml-2"
+              >
                 {isLoading ? 'Loading' : 'Loaded'}
               </Badge>
             </div>
             <div>
               <span className="font-medium">Hook Error:</span>
-              <Badge variant={error ? "destructive" : "secondary"} className="ml-2">
+              <Badge
+                variant={error ? 'destructive' : 'secondary'}
+                className="ml-2"
+              >
                 {error ? 'Error' : 'None'}
               </Badge>
             </div>
@@ -157,26 +170,40 @@ export function ProfileDebugger({ userId }: ProfileDebuggerProps) {
         {debugInfo && (
           <div className="space-y-4">
             <h4 className="font-medium">Debug Results:</h4>
-            
+
             {/* Database Activities */}
             <div className="p-3 bg-blue-50 rounded border">
-              <h5 className="font-medium text-blue-800 mb-2">Database Activities:</h5>
+              <h5 className="font-medium text-blue-800 mb-2">
+                Database Activities:
+              </h5>
               {debugInfo.dbError ? (
-                <div className="text-red-600 text-sm">Error: {debugInfo.dbError}</div>
+                <div className="text-red-600 text-sm">
+                  Error: {debugInfo.dbError}
+                </div>
               ) : (
                 <div className="text-sm">
-                  <div className="mb-2">Count: {debugInfo.dbActivities?.length || 0}</div>
+                  <div className="mb-2">
+                    Count: {debugInfo.dbActivities?.length || 0}
+                  </div>
                   {debugInfo.dbActivities?.length > 0 && (
                     <div className="space-y-1">
                       <div className="font-medium">Latest Activities:</div>
-                      {debugInfo.dbActivities?.slice(0, 3).map((activity: Activity, index: number) => (
-                        <div key={index} className="text-xs bg-white p-2 rounded border">
-                          <div className="font-medium">{activity.name}</div>
-                          <div className="text-gray-600">
-                            {activity.sport_type} • {new Date(activity.start_date_local).toLocaleDateString()}
+                      {debugInfo.dbActivities
+                        ?.slice(0, 3)
+                        .map((activity: Activity, index: number) => (
+                          <div
+                            key={index}
+                            className="text-xs bg-white p-2 rounded border"
+                          >
+                            <div className="font-medium">{activity.name}</div>
+                            <div className="text-gray-600">
+                              {activity.sport_type} •{' '}
+                              {new Date(
+                                activity.start_date_local
+                              ).toLocaleDateString()}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   )}
                 </div>
@@ -185,23 +212,37 @@ export function ProfileDebugger({ userId }: ProfileDebuggerProps) {
 
             {/* Hook Activities */}
             <div className="p-3 bg-green-50 rounded border">
-              <h5 className="font-medium text-green-800 mb-2">Hook Activities:</h5>
+              <h5 className="font-medium text-green-800 mb-2">
+                Hook Activities:
+              </h5>
               {debugInfo.hookError ? (
-                <div className="text-red-600 text-sm">Error: {debugInfo.hookError}</div>
+                <div className="text-red-600 text-sm">
+                  Error: {debugInfo.hookError}
+                </div>
               ) : (
                 <div className="text-sm">
-                  <div className="mb-2">Count: {debugInfo.hookActivities.length}</div>
+                  <div className="mb-2">
+                    Count: {debugInfo.hookActivities.length}
+                  </div>
                   {debugInfo.hookActivities.length > 0 && (
                     <div className="space-y-1">
                       <div className="font-medium">Latest Activities:</div>
-                      {debugInfo.hookActivities?.slice(0, 3).map((activity: Activity, index: number) => (
-                        <div key={index} className="text-xs bg-white p-2 rounded border">
-                          <div className="font-medium">{activity.name}</div>
-                          <div className="text-gray-600">
-                            {activity.sport_type} • {new Date(activity.start_date_local).toLocaleDateString()}
+                      {debugInfo.hookActivities
+                        ?.slice(0, 3)
+                        .map((activity: Activity, index: number) => (
+                          <div
+                            key={index}
+                            className="text-xs bg-white p-2 rounded border"
+                          >
+                            <div className="font-medium">{activity.name}</div>
+                            <div className="text-gray-600">
+                              {activity.sport_type} •{' '}
+                              {new Date(
+                                activity.start_date_local
+                              ).toLocaleDateString()}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   )}
                 </div>
@@ -212,12 +253,20 @@ export function ProfileDebugger({ userId }: ProfileDebuggerProps) {
             <div className="p-3 bg-purple-50 rounded border">
               <h5 className="font-medium text-purple-800 mb-2">Sync State:</h5>
               {debugInfo.syncError ? (
-                <div className="text-red-600 text-sm">Error: {debugInfo.syncError}</div>
+                <div className="text-red-600 text-sm">
+                  Error: {debugInfo.syncError}
+                </div>
               ) : debugInfo.syncState ? (
                 <div className="text-sm space-y-1">
-                  <div>Last Sync: {debugInfo.syncState.last_activity_sync || 'Never'}</div>
+                  <div>
+                    Last Sync:{' '}
+                    {debugInfo.syncState.last_activity_sync || 'Never'}
+                  </div>
                   <div>Today Syncs: {debugInfo.syncState.today_syncs || 0}</div>
-                  <div>Consecutive Errors: {debugInfo.syncState.consecutive_errors || 0}</div>
+                  <div>
+                    Consecutive Errors:{' '}
+                    {debugInfo.syncState.consecutive_errors || 0}
+                  </div>
                 </div>
               ) : (
                 <div className="text-sm text-gray-600">No sync state found</div>
@@ -231,14 +280,27 @@ export function ProfileDebugger({ userId }: ProfileDebuggerProps) {
           <h5 className="font-medium text-yellow-800 mb-2">Recommendations:</h5>
           <div className="text-sm space-y-1">
             {(!activities || activities.length === 0) && (
-              <div>• No activities found - try &quot;Trigger Sync&quot; to fetch from Strava</div>
+              <div>
+                • No activities found - try &quot;Trigger Sync&quot; to fetch
+                from Strava
+              </div>
             )}
-            {activities && activities.length > 0 && debugInfo?.dbActivities?.length === 0 && (
-              <div>• Activities in hook but not in database - check database connection</div>
-            )}
-            {debugInfo?.dbActivities && debugInfo.dbActivities.length > 0 && (!activities || activities.length === 0) && (
-              <div>• Activities in database but not in hook - check React Query cache</div>
-            )}
+            {activities &&
+              activities.length > 0 &&
+              debugInfo?.dbActivities?.length === 0 && (
+                <div>
+                  • Activities in hook but not in database - check database
+                  connection
+                </div>
+              )}
+            {debugInfo?.dbActivities &&
+              debugInfo.dbActivities.length > 0 &&
+              (!activities || activities.length === 0) && (
+                <div>
+                  • Activities in database but not in hook - check React Query
+                  cache
+                </div>
+              )}
             {debugInfo?.syncState?.consecutive_errors > 0 && (
               <div>• Sync has consecutive errors - check Strava connection</div>
             )}
@@ -246,5 +308,5 @@ export function ProfileDebugger({ userId }: ProfileDebuggerProps) {
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

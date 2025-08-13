@@ -5,7 +5,8 @@ import { sendEmail, emailTemplates } from '@/lib/email';
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const { type, title, name, email, message, category, priority } = await request.json();
+    const { type, title, name, email, message, category, priority } =
+      await request.json();
 
     // Validate required fields
     if (!type || !name || !email || !message) {
@@ -32,8 +33,10 @@ export async function POST(request: NextRequest) {
         name,
         email,
         message,
-        category: category || (type === 'suggestion' ? 'feature_request' : 'general_inquiry'),
-        priority: priority || 'medium'
+        category:
+          category ||
+          (type === 'suggestion' ? 'feature_request' : 'general_inquiry'),
+        priority: priority || 'medium',
       })
       .select()
       .single();
@@ -49,13 +52,18 @@ export async function POST(request: NextRequest) {
     // Send email notification to admin
     try {
       const adminEmail = process.env.ADMIN_EMAIL || 'you@example.com';
-      const emailContent = emailTemplates.contactForm({ name, email, message, type });
-      
+      const emailContent = emailTemplates.contactForm({
+        name,
+        email,
+        message,
+        type,
+      });
+
       await sendEmail({
         to: adminEmail,
         subject: emailContent.subject,
         html: emailContent.html,
-        from: process.env.FROM_EMAIL || 'onboarding@resend.dev'
+        from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
       });
 
       console.log('Email notification sent for submission:', data.id);
@@ -82,18 +90,17 @@ export async function POST(request: NextRequest) {
             <p>Best regards,<br>The EnduroRevamp Team</p>
           </div>
         `,
-        from: process.env.FROM_EMAIL || 'onboarding@resend.dev'
+        from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
       });
     } catch (emailError) {
       console.error('Failed to send confirmation email:', emailError);
       // Don't fail the request if email fails
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      id: data.id 
+    return NextResponse.json({
+      success: true,
+      id: data.id,
     });
-
   } catch (error) {
     console.error('Submission error:', error);
     return NextResponse.json(
@@ -101,4 +108,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

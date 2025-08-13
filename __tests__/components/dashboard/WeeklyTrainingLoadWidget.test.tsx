@@ -6,24 +6,31 @@ import { ActivityWithTrainingData } from '@/types';
 
 // Mock the hooks
 jest.mock('@/hooks/use-user-activities', () => ({
-  useUserActivities: jest.fn()
+  useUserActivities: jest.fn(),
 }));
 
 jest.mock('@/hooks/useTrainingProfile', () => ({
-  usePersonalizedTSSTarget: jest.fn()
+  usePersonalizedTSSTarget: jest.fn(),
 }));
 
 import { useUserActivities } from '@/hooks/use-user-activities';
 import { usePersonalizedTSSTarget } from '@/hooks/useTrainingProfile';
 
-const mockUseUserActivities = useUserActivities as jest.MockedFunction<typeof useUserActivities>;
-const mockUsePersonalizedTSSTarget = usePersonalizedTSSTarget as jest.MockedFunction<typeof usePersonalizedTSSTarget>;
+const mockUseUserActivities = useUserActivities as jest.MockedFunction<
+  typeof useUserActivities
+>;
+const mockUsePersonalizedTSSTarget =
+  usePersonalizedTSSTarget as jest.MockedFunction<
+    typeof usePersonalizedTSSTarget
+  >;
 
 // Mock fetch for TSS update
 global.fetch = jest.fn();
 
 // Mock activity data factory
-const createMockActivity = (overrides: Partial<ActivityWithTrainingData> = {}): ActivityWithTrainingData => ({
+const createMockActivity = (
+  overrides: Partial<ActivityWithTrainingData> = {}
+): ActivityWithTrainingData => ({
   id: '1',
   user_id: 'user-1',
   strava_activity_id: 123456,
@@ -48,7 +55,7 @@ const createMockActivity = (overrides: Partial<ActivityWithTrainingData> = {}): 
 const getCurrentWeekBoundaries = () => {
   const now = new Date();
   const currentWeekStart = new Date(now);
-  
+
   // If it's Sunday (day 0), show the week that's ending today
   // Otherwise, show the week that starts on Monday
   if (now.getDay() === 0) {
@@ -58,13 +65,13 @@ const getCurrentWeekBoundaries = () => {
     // Other days: show the week that starts on Monday
     currentWeekStart.setDate(now.getDate() - now.getDay() + 1);
   }
-  
+
   currentWeekStart.setHours(0, 0, 0, 0);
-  
+
   const currentWeekEnd = new Date(currentWeekStart);
   currentWeekEnd.setDate(currentWeekStart.getDate() + 6); // Sunday
   currentWeekEnd.setHours(23, 59, 59, 999);
-  
+
   return { start: currentWeekStart, end: currentWeekEnd };
 };
 
@@ -79,7 +86,7 @@ describe('WeeklyTrainingLoadWidget', () => {
         },
       },
     });
-    
+
     // Reset mocks
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
@@ -153,19 +160,23 @@ describe('WeeklyTrainingLoadWidget', () => {
 
   it('should display weekly training load with correct progress', async () => {
     const { start: weekStart, end: weekEnd } = getCurrentWeekBoundaries();
-    
+
     // Create activities for this week
     const thisWeekActivities = [
       createMockActivity({
         id: '1',
-        start_date: new Date(weekStart.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Tuesday
+        start_date: new Date(
+          weekStart.getTime() + 24 * 60 * 60 * 1000
+        ).toISOString(), // Tuesday
         training_stress_score: 50,
         moving_time: 1800, // 30 minutes
         average_heartrate: 150,
       }),
       createMockActivity({
         id: '2',
-        start_date: new Date(weekStart.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(), // Thursday
+        start_date: new Date(
+          weekStart.getTime() + 3 * 24 * 60 * 60 * 1000
+        ).toISOString(), // Thursday
         training_stress_score: 75,
         moving_time: 2700, // 45 minutes
         average_heartrate: 160,
@@ -227,11 +238,11 @@ describe('WeeklyTrainingLoadWidget', () => {
     await waitFor(() => {
       // Should show progress percentage (125/400 = 31%)
       expect(screen.getByText('31%')).toBeInTheDocument();
-      
+
       // Should show TSS values - use getAllByText since the text might be split
       const tssElements = screen.getAllByText(/125|400/);
       expect(tssElements.length).toBeGreaterThan(0);
-      
+
       // Should show workouts completed
       expect(screen.getByText('2')).toBeInTheDocument();
     });
@@ -239,11 +250,13 @@ describe('WeeklyTrainingLoadWidget', () => {
 
   it('should show warning when activities need TSS calculation', async () => {
     const { start: weekStart } = getCurrentWeekBoundaries();
-    
+
     const activitiesWithoutTSS = [
       createMockActivity({
         id: '1',
-        start_date: new Date(weekStart.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+        start_date: new Date(
+          weekStart.getTime() + 24 * 60 * 60 * 1000
+        ).toISOString(),
         training_stress_score: undefined, // No TSS calculated
         moving_time: 1800,
         average_heartrate: 150,
@@ -309,12 +322,14 @@ describe('WeeklyTrainingLoadWidget', () => {
 
   it('should handle TSS update when button is clicked', async () => {
     const { start: weekStart, end: weekEnd } = getCurrentWeekBoundaries();
-    
+
     // Create an activity that falls within the current week and has no TSS
     const activitiesWithoutTSS = [
       createMockActivity({
         id: '1',
-        start_date: new Date(weekStart.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Tuesday of current week
+        start_date: new Date(
+          weekStart.getTime() + 24 * 60 * 60 * 1000
+        ).toISOString(), // Tuesday of current week
         training_stress_score: undefined, // No TSS calculated
         moving_time: 1800,
         average_heartrate: 150,
@@ -432,24 +447,30 @@ describe('WeeklyTrainingLoadWidget', () => {
 
     renderComponent({ userId: 'user-1' });
 
-    expect(screen.getByText('No training data for this week')).toBeInTheDocument();
+    expect(
+      screen.getByText('No training data for this week')
+    ).toBeInTheDocument();
     expect(screen.getByText('Refresh Data')).toBeInTheDocument();
   });
 
   it('should display zone distribution correctly', async () => {
     const { start: weekStart } = getCurrentWeekBoundaries();
-    
+
     const activitiesWithHeartRate = [
       createMockActivity({
         id: '1',
-        start_date: new Date(weekStart.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+        start_date: new Date(
+          weekStart.getTime() + 24 * 60 * 60 * 1000
+        ).toISOString(),
         training_stress_score: 50,
         moving_time: 1800,
         average_heartrate: 140, // Zone 2
       }),
       createMockActivity({
         id: '2',
-        start_date: new Date(weekStart.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        start_date: new Date(
+          weekStart.getTime() + 3 * 24 * 60 * 60 * 1000
+        ).toISOString(),
         training_stress_score: 75,
         moving_time: 1800,
         average_heartrate: 170, // Zone 4
@@ -516,17 +537,21 @@ describe('WeeklyTrainingLoadWidget', () => {
 
   it('should display daily TSS breakdown', async () => {
     const { start: weekStart } = getCurrentWeekBoundaries();
-    
+
     const activities = [
       createMockActivity({
         id: '1',
-        start_date: new Date(weekStart.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Tuesday
+        start_date: new Date(
+          weekStart.getTime() + 24 * 60 * 60 * 1000
+        ).toISOString(), // Tuesday
         training_stress_score: 50,
         moving_time: 1800,
       }),
       createMockActivity({
         id: '2',
-        start_date: new Date(weekStart.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(), // Thursday
+        start_date: new Date(
+          weekStart.getTime() + 3 * 24 * 60 * 60 * 1000
+        ).toISOString(), // Thursday
         training_stress_score: 75,
         moving_time: 2700,
       }),
@@ -596,4 +621,4 @@ describe('WeeklyTrainingLoadWidget', () => {
       expect(screen.getByText('Sun')).toBeInTheDocument();
     });
   });
-}); 
+});

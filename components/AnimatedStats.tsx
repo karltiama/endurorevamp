@@ -1,20 +1,20 @@
-'use client'
+'use client';
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect } from 'react'
-import { TrendingUp, Zap, Target, Activity, BarChart3 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { TrendingUp, Zap, Target, Activity, BarChart3 } from 'lucide-react';
 
 const stats = [
   {
     value: '+12%',
-    label: 'This month\'s pace',
+    label: "This month's pace",
     icon: TrendingUp,
     color: 'green',
     bgColor: 'bg-green-100',
     iconColor: 'text-green-600',
     position: 'bottom-left',
     enterFrom: { x: -100, y: 50, opacity: 0 },
-    exitTo: { x: -100, y: -50, opacity: 0 }
+    exitTo: { x: -100, y: -50, opacity: 0 },
   },
   {
     value: '2.3x',
@@ -25,7 +25,7 @@ const stats = [
     iconColor: 'text-blue-600',
     position: 'top-right',
     enterFrom: { x: 100, y: -50, opacity: 0 },
-    exitTo: { x: 100, y: 50, opacity: 0 }
+    exitTo: { x: 100, y: 50, opacity: 0 },
   },
   {
     value: '85%',
@@ -36,7 +36,7 @@ const stats = [
     iconColor: 'text-purple-600',
     position: 'bottom-right',
     enterFrom: { x: 100, y: 50, opacity: 0 },
-    exitTo: { x: 100, y: -50, opacity: 0 }
+    exitTo: { x: 100, y: -50, opacity: 0 },
   },
   {
     value: '3.2k',
@@ -47,7 +47,7 @@ const stats = [
     iconColor: 'text-indigo-600',
     position: 'top-left',
     enterFrom: { x: -100, y: -50, opacity: 0 },
-    exitTo: { x: -100, y: 50, opacity: 0 }
+    exitTo: { x: -100, y: 50, opacity: 0 },
   },
   {
     value: '24%',
@@ -58,32 +58,32 @@ const stats = [
     iconColor: 'text-orange-600',
     position: 'center',
     enterFrom: { scale: 0.5, opacity: 0 },
-    exitTo: { scale: 0.5, opacity: 0 }
-  }
-]
+    exitTo: { scale: 0.5, opacity: 0 },
+  },
+];
 
 export default function AnimatedStats() {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isClient, setIsClient] = useState(false)
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true)
-  }, [])
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
-    if (!isClient) return
-    
+    if (!isClient) return;
+
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % stats.length)
-    }, 4000) // Change every 4 seconds to give more time to appreciate each animation
+      setCurrentIndex(prev => (prev + 1) % stats.length);
+    }, 4000); // Change every 4 seconds to give more time to appreciate each animation
 
-    return () => clearInterval(interval)
-  }, [isClient])
+    return () => clearInterval(interval);
+  }, [isClient]);
 
-  const currentStat = stats[currentIndex]
+  const currentStat = stats[currentIndex];
 
   if (!isClient) {
-    return null
+    return null;
   }
 
   return (
@@ -93,12 +93,12 @@ export default function AnimatedStats() {
         initial={currentStat.enterFrom}
         animate={{ x: 0, y: 0, scale: 1, opacity: 1 }}
         exit={currentStat.exitTo}
-        transition={{ 
+        transition={{
           duration: 0.6,
-          ease: "easeOut",
-          type: "spring",
+          ease: 'easeOut',
+          type: 'spring',
           stiffness: 100,
-          damping: 15
+          damping: 15,
         }}
         className="absolute -bottom-6 -left-6 bg-white rounded-lg shadow-lg p-4 border"
       >
@@ -106,7 +106,7 @@ export default function AnimatedStats() {
           <motion.div
             className={`w-12 h-12 ${currentStat.bgColor} rounded-full flex items-center justify-center`}
             whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
           >
             <currentStat.icon className={`h-6 w-6 ${currentStat.iconColor}`} />
           </motion.div>
@@ -131,5 +131,5 @@ export default function AnimatedStats() {
         </div>
       </motion.div>
     </AnimatePresence>
-  )
-} 
+  );
+}

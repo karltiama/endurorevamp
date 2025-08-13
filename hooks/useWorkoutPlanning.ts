@@ -1,69 +1,113 @@
-import { useQuery } from '@tanstack/react-query'
-import { useUserActivities } from './use-user-activities'
-import { useTrainingLoad } from './useTrainingLoad'
-import { useUnitPreferences } from './useUnitPreferences'
-import { WorkoutPlanner, type WorkoutRecommendation, type WorkoutPlanningContext } from '@/lib/training/workout-planning'
+import { useQuery } from '@tanstack/react-query';
+import { useUserActivities } from './use-user-activities';
+import { useTrainingLoad } from './useTrainingLoad';
+import { useUnitPreferences } from './useUnitPreferences';
+import {
+  WorkoutPlanner,
+  type WorkoutRecommendation,
+  type WorkoutPlanningContext,
+} from '@/lib/training/workout-planning';
 
 interface UseWorkoutPlanningOptions {
-  userId: string
-  includeWeather?: boolean
+  userId: string;
+  includeWeather?: boolean;
 }
 
-export function useWorkoutPlanning({ userId, includeWeather = false }: UseWorkoutPlanningOptions) {
+export function useWorkoutPlanning({
+  userId,
+  includeWeather = false,
+}: UseWorkoutPlanningOptions) {
   // Get user activities
-  const { data: activities = [], isLoading: activitiesLoading, error: activitiesError } = useUserActivities(userId)
-  
+  const {
+    data: activities = [],
+    isLoading: activitiesLoading,
+    error: activitiesError,
+  } = useUserActivities(userId);
+
   // Get training load data
-  const { data: trainingLoadData, isLoading: trainingLoadLoading, error: trainingLoadError } = useTrainingLoad(userId, { days: 30 })
-  
+  const {
+    data: trainingLoadData,
+    isLoading: trainingLoadLoading,
+    error: trainingLoadError,
+  } = useTrainingLoad(userId, { days: 30 });
+
   // Get unit preferences
-  const { preferences: unitPreferences } = useUnitPreferences()
+  const { preferences: unitPreferences } = useUnitPreferences();
 
   // Get today's workout recommendation
   const { data: todaysWorkout, isLoading: todaysWorkoutLoading } = useQuery({
-    queryKey: ['workout-planning', 'todays-workout', userId, activities.length, trainingLoadData?.metrics, unitPreferences],
-    queryFn: () => generateTodaysWorkout(userId, activities, trainingLoadData?.metrics, unitPreferences),
+    queryKey: [
+      'workout-planning',
+      'todays-workout',
+      userId,
+      activities.length,
+      trainingLoadData?.metrics,
+      unitPreferences,
+    ],
+    queryFn: () =>
+      generateTodaysWorkout(
+        userId,
+        activities,
+        trainingLoadData?.metrics,
+        unitPreferences
+      ),
     enabled: !!userId && activities.length > 0 && !!trainingLoadData?.metrics,
     staleTime: 5 * 60 * 1000, // 5 minutes
-  })
+  });
 
   // Get weekly workout plan
   const { data: weeklyPlan, isLoading: weeklyPlanLoading } = useQuery({
-    queryKey: ['workout-planning', 'weekly-plan', userId, activities.length, trainingLoadData?.metrics, unitPreferences],
-    queryFn: () => generateWeeklyPlan(userId, activities, trainingLoadData?.metrics, unitPreferences, todaysWorkout || null),
+    queryKey: [
+      'workout-planning',
+      'weekly-plan',
+      userId,
+      activities.length,
+      trainingLoadData?.metrics,
+      unitPreferences,
+    ],
+    queryFn: () =>
+      generateWeeklyPlan(
+        userId,
+        activities,
+        trainingLoadData?.metrics,
+        unitPreferences,
+        todaysWorkout || null
+      ),
     enabled: !!userId && activities.length > 0 && !!trainingLoadData?.metrics,
     staleTime: 10 * 60 * 1000, // 10 minutes
-  })
+  });
 
   return {
     // Today's workout
     todaysWorkout,
-    isLoadingTodaysWorkout: todaysWorkoutLoading || activitiesLoading || trainingLoadLoading,
-    
+    isLoadingTodaysWorkout:
+      todaysWorkoutLoading || activitiesLoading || trainingLoadLoading,
+
     // Weekly plan
     weeklyPlan,
-    isLoadingWeeklyPlan: weeklyPlanLoading || activitiesLoading || trainingLoadLoading,
-    
+    isLoadingWeeklyPlan:
+      weeklyPlanLoading || activitiesLoading || trainingLoadLoading,
+
     // Loading states
     isLoading: activitiesLoading || trainingLoadLoading,
     error: activitiesError || trainingLoadError,
-    
+
     // Data availability
     hasData: activities.length > 0 && !!trainingLoadData?.metrics,
-  }
+  };
 }
 
 /**
  * Generate today's workout recommendation
  */
 function generateTodaysWorkout(
-  userId: string, 
-  activities: any[], 
+  userId: string,
+  activities: any[],
   trainingLoadMetrics: any,
   unitPreferences: any
 ): WorkoutRecommendation | null {
   if (!trainingLoadMetrics || activities.length === 0) {
-    return null
+    return null;
   }
 
   const context: WorkoutPlanningContext = {
@@ -76,25 +120,25 @@ function generateTodaysWorkout(
       availableTime: 60, // Default 60 minutes
       unitPreferences, // Include user's unit preferences
       // TODO: Get weather data if includeWeather is true
-    }
-  }
+    },
+  };
 
-  const planner = new WorkoutPlanner(context)
-  return planner.generateTodaysWorkout()
+  const planner = new WorkoutPlanner(context);
+  return planner.generateTodaysWorkout();
 }
 
 /**
  * Generate weekly workout plan
  */
 function generateWeeklyPlan(
-  userId: string, 
-  activities: any[], 
+  userId: string,
+  activities: any[],
   trainingLoadMetrics: any,
   unitPreferences: any,
   todaysWorkout: WorkoutRecommendation | null
 ): WorkoutRecommendation[] {
   if (!trainingLoadMetrics || activities.length === 0) {
-    return []
+    return [];
   }
 
   const context: WorkoutPlanningContext = {
@@ -106,9 +150,9 @@ function generateWeeklyPlan(
       preferredSports: ['Run', 'Ride', 'Swim'], // Default preferences
       availableTime: 60, // Default 60 minutes
       unitPreferences, // Include user's unit preferences
-    }
-  }
+    },
+  };
 
-  const planner = new WorkoutPlanner(context)
-  return planner.generateWeeklyPlanStartingFromToday(todaysWorkout)
-} 
+  const planner = new WorkoutPlanner(context);
+  return planner.generateWeeklyPlanStartingFromToday(todaysWorkout);
+}

@@ -7,18 +7,21 @@ This guide provides comprehensive testing strategies for your automatic Strava s
 ## 🛠 **Testing Tools Available**
 
 ### **1. Testing Dashboard** (`/test-automatic-sync`)
+
 - Interactive UI for testing all sync functionality
 - Webhook simulation tools
 - Sync status monitoring
 - Real-time test results
 
 ### **2. API Endpoints for Testing**
+
 - `POST /api/test/webhook-simulator` - Simulate webhook events
 - `GET /api/test/sync-status` - Get detailed sync status
 - `POST /api/sync/background` - Trigger background sync
 - `GET /api/webhooks/setup` - Check webhook subscription status
 
 ### **3. Enhanced Logging**
+
 - Webhook events logged with unique IDs
 - Detailed sync result tracking
 - Error tracking and debugging
@@ -26,24 +29,28 @@ This guide provides comprehensive testing strategies for your automatic Strava s
 ## 📋 **Testing Checklist**
 
 ### **Phase 1: Setup Verification**
+
 - [ ] Environment variables configured
 - [ ] Database migration applied
 - [ ] Strava connection active
 - [ ] App publicly accessible (for webhooks)
 
 ### **Phase 2: Webhook Testing**
+
 - [ ] Webhook subscription created
 - [ ] Webhook verification endpoint responds correctly
 - [ ] Simulated webhook events processed
 - [ ] Real webhook events received (manual Strava activity)
 
 ### **Phase 3: Background Sync Testing**
+
 - [ ] Background sync API accessible
 - [ ] Sync processes users correctly
 - [ ] Rate limiting respected
 - [ ] Error handling works
 
 ### **Phase 4: Integration Testing**
+
 - [ ] Token refresh during sync
 - [ ] Activity deduplication
 - [ ] Error recovery
@@ -71,7 +78,7 @@ curl -X POST "https://yourdomain.com/api/test/webhook-simulator" \
   -H "Content-Type: application/json" \
   -d '{
     "eventType": "activity",
-    "aspectType": "create", 
+    "aspectType": "create",
     "ownerID": "YOUR_STRAVA_ATHLETE_ID"
   }'
 
@@ -117,16 +124,19 @@ curl "https://yourdomain.com/api/test/sync-status"
 ### **Webhook Not Received**
 
 **Symptoms:**
+
 - Completed Strava activity doesn't appear in app
 - No webhook logs in server
 
 **Debug Steps:**
+
 1. Check webhook subscription status: `GET /api/webhooks/setup`
 2. Verify app URL is publicly accessible
 3. Test with webhook simulator first
 4. Check Strava webhook delivery status (if available)
 
 **Fix:**
+
 ```bash
 # Re-create webhook subscription
 curl -X DELETE "https://yourdomain.com/api/webhooks/setup"
@@ -136,16 +146,19 @@ curl -X POST "https://yourdomain.com/api/webhooks/setup"
 ### **Background Sync Failing**
 
 **Symptoms:**
+
 - Manual sync works, background sync fails
 - High error count in sync stats
 
 **Debug Steps:**
+
 1. Check API key: `echo $BACKGROUND_SYNC_API_KEY`
 2. Test sync endpoint directly
 3. Review user token status
 4. Check rate limits
 
 **Fix:**
+
 ```bash
 # Test individual user sync
 curl -X POST "https://yourdomain.com/api/strava/sync" \
@@ -156,15 +169,18 @@ curl -X POST "https://yourdomain.com/api/strava/sync" \
 ### **Token Refresh Issues**
 
 **Symptoms:**
+
 - 401 unauthorized errors
 - Users need to reconnect frequently
 
 **Debug Steps:**
+
 1. Check token expiration: `GET /api/test/sync-status`
 2. Verify refresh token exists
 3. Test manual refresh: `PUT /api/auth/strava/token`
 
 **Fix:**
+
 - User must re-authorize Strava connection
 - Check for token storage issues
 
@@ -247,6 +263,7 @@ fi
 ## ✅ **Test Success Criteria**
 
 ### **Webhook Tests Pass When:**
+
 - [ ] Subscription can be created/deleted
 - [ ] Verification endpoint responds correctly
 - [ ] Simulated events process without errors
@@ -254,6 +271,7 @@ fi
 - [ ] Webhook logs show successful processing
 
 ### **Background Sync Tests Pass When:**
+
 - [ ] API responds with success status
 - [ ] Users are processed within rate limits
 - [ ] Failed users don't stop batch processing
@@ -261,6 +279,7 @@ fi
 - [ ] Last sync timestamps are updated
 
 ### **Integration Tests Pass When:**
+
 - [ ] New activities appear within 5 minutes
 - [ ] Token refresh happens automatically
 - [ ] Activity updates are reflected

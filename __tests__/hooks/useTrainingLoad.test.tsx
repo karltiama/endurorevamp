@@ -14,8 +14,10 @@ jest.mock('../../hooks/useTrainingProfile', () => ({
 
 describe('useTrainingLoad', () => {
   let queryClient: QueryClient;
-  const mockUseUserActivities = require('../../hooks/use-user-activities').useUserActivities;
-  const mockUseTrainingProfile = require('../../hooks/useTrainingProfile').useTrainingProfile;
+  const mockUseUserActivities =
+    require('../../hooks/use-user-activities').useUserActivities;
+  const mockUseTrainingProfile =
+    require('../../hooks/useTrainingProfile').useTrainingProfile;
 
   const mockActivities = [
     {
@@ -93,7 +95,9 @@ describe('useTrainingLoad', () => {
   it('calculates daily training load correctly', async () => {
     const { result } = renderHook(() => useTrainingLoad('test-user-id'), {
       wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       ),
     });
 
@@ -116,7 +120,9 @@ describe('useTrainingLoad', () => {
 
     const { result } = renderHook(() => useTrainingLoad('test-user-id'), {
       wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       ),
     });
 
@@ -132,7 +138,9 @@ describe('useTrainingLoad', () => {
 
     const { result } = renderHook(() => useTrainingLoad('test-user-id'), {
       wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       ),
     });
 
@@ -149,7 +157,9 @@ describe('useTrainingLoad', () => {
 
     const { result } = renderHook(() => useTrainingLoad('test-user-id'), {
       wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       ),
     });
 
@@ -166,7 +176,9 @@ describe('useTrainingLoad', () => {
 
     const { result } = renderHook(() => useTrainingLoad('test-user-id'), {
       wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       ),
     });
 
@@ -176,7 +188,9 @@ describe('useTrainingLoad', () => {
   it('calculates weekly training load correctly', async () => {
     const { result } = renderHook(() => useTrainingLoad('test-user-id'), {
       wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       ),
     });
 
@@ -192,7 +206,9 @@ describe('useTrainingLoad', () => {
   it('calculates monthly training load correctly', async () => {
     const { result } = renderHook(() => useTrainingLoad('test-user-id'), {
       wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       ),
     });
 
@@ -208,7 +224,9 @@ describe('useTrainingLoad', () => {
   it('provides daily breakdown of training load', async () => {
     const { result } = renderHook(() => useTrainingLoad('test-user-id'), {
       wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       ),
     });
 
@@ -231,7 +249,9 @@ describe('useTrainingLoad', () => {
 
     const { result } = renderHook(() => useTrainingLoad('test-user-id'), {
       wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       ),
     });
 
@@ -256,7 +276,9 @@ describe('useTrainingLoad', () => {
 
     const { result } = renderHook(() => useTrainingLoad('test-user-id'), {
       wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       ),
     });
 
@@ -272,7 +294,9 @@ describe('useTrainingLoad', () => {
   it('calculates training stress score correctly', async () => {
     const { result } = renderHook(() => useTrainingLoad('test-user-id'), {
       wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       ),
     });
 
@@ -288,7 +312,9 @@ describe('useTrainingLoad', () => {
   it('provides training load trends', async () => {
     const { result } = renderHook(() => useTrainingLoad('test-user-id'), {
       wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       ),
     });
 
@@ -300,4 +326,4 @@ describe('useTrainingLoad', () => {
     expect(result.current.hasData).toBeDefined();
     expect(result.current.isLoading).toBeDefined();
   });
-}); 
+});

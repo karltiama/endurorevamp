@@ -1,16 +1,16 @@
-import React from 'react'
-import { screen, fireEvent, waitFor } from '@testing-library/react'
-import { renderWithQueryClient } from '@/__tests__/utils/test-utils'
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
+import React from 'react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { renderWithQueryClient } from '@/__tests__/utils/test-utils';
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 
 // Mock dependencies
 jest.mock('@/hooks/use-mobile', () => ({
-  useIsMobile: () => false
-}))
+  useIsMobile: () => false,
+}));
 
 jest.mock('next/navigation', () => ({
-  usePathname: () => '/dashboard'
-}))
+  usePathname: () => '/dashboard',
+}));
 
 // Mock UserNav component
 jest.mock('@/components/dashboard/UserNav', () => ({
@@ -18,13 +18,13 @@ jest.mock('@/components/dashboard/UserNav', () => ({
     <button aria-label="User Menu" className="user-nav-button">
       <span>User</span>
     </button>
-  )
-}))
+  ),
+}));
 
 // Mock StravaStatus component
 jest.mock('@/components/dashboard/StravaStatus', () => ({
-  StravaStatus: () => <div data-testid="strava-status">Strava Status</div>
-}))
+  StravaStatus: () => <div data-testid="strava-status">Strava Status</div>,
+}));
 
 // Mock user object
 const mockUser = {
@@ -52,201 +52,223 @@ const mockUser = {
   app_metadata: {},
   user_metadata: {},
   identities: [],
-  factors: []
-}
+  factors: [],
+};
 
 describe('DashboardLayout with Hover Sidebar', () => {
   const renderDashboardLayout = (children = <div>Test Content</div>) => {
     return renderWithQueryClient(
-      <DashboardLayout user={mockUser}>
-        {children}
-      </DashboardLayout>
-    )
-  }
+      <DashboardLayout user={mockUser}>{children}</DashboardLayout>
+    );
+  };
 
   describe('Sidebar Configuration', () => {
     it('renders sidebar with hover collapsible mode', () => {
-      renderDashboardLayout()
-      
+      renderDashboardLayout();
+
       // Find the sidebar container (it may not have the exact data-testid but should have sidebar attributes)
-      const sidebarElement = document.querySelector('[data-slot="sidebar"]')
-      expect(sidebarElement).toBeInTheDocument()
-      
+      const sidebarElement = document.querySelector('[data-slot="sidebar"]');
+      expect(sidebarElement).toBeInTheDocument();
+
       // The sidebar should be configured for hover mode
-      const sidebarContainer = document.querySelector('[data-collapsible="hover"]')
-      expect(sidebarContainer).toBeInTheDocument()
-    })
+      const sidebarContainer = document.querySelector(
+        '[data-collapsible="hover"]'
+      );
+      expect(sidebarContainer).toBeInTheDocument();
+    });
 
     it('starts in collapsed state by default', () => {
-      renderDashboardLayout()
-      
-      const sidebarContainer = document.querySelector('[data-state="collapsed"]')
-      expect(sidebarContainer).toBeInTheDocument()
-    })
-  })
+      renderDashboardLayout();
+
+      const sidebarContainer = document.querySelector(
+        '[data-state="collapsed"]'
+      );
+      expect(sidebarContainer).toBeInTheDocument();
+    });
+  });
 
   describe('Navigation Items', () => {
     it('renders all navigation items', () => {
-      renderDashboardLayout()
-      
+      renderDashboardLayout();
+
       // Check for navigation items
-      expect(screen.getByText('Dashboard')).toBeInTheDocument()
-      expect(screen.getByText('Analytics')).toBeInTheDocument()
-      expect(screen.getByText('Training Load')).toBeInTheDocument()
-      expect(screen.getByText('Goals')).toBeInTheDocument()
-      expect(screen.getByText('Workout Planning')).toBeInTheDocument()
-      expect(screen.getByText('Settings')).toBeInTheDocument()
-    })
+      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+      expect(screen.getByText('Analytics')).toBeInTheDocument();
+      expect(screen.getByText('Training Load')).toBeInTheDocument();
+      expect(screen.getByText('Goals')).toBeInTheDocument();
+      expect(screen.getByText('Workout Planning')).toBeInTheDocument();
+      expect(screen.getByText('Settings')).toBeInTheDocument();
+    });
 
     it('shows tooltips for navigation items when collapsed', () => {
-      renderDashboardLayout()
-      
+      renderDashboardLayout();
+
       // In collapsed state, tooltip triggers should be present
-      const dashboardLink = screen.getByText('Dashboard')
-      expect(dashboardLink).toBeInTheDocument()
-      
+      const dashboardLink = screen.getByText('Dashboard');
+      expect(dashboardLink).toBeInTheDocument();
+
       // The button should have tooltip data
-      const button = dashboardLink.closest('a')
-      expect(button).toBeInTheDocument()
-    })
-  })
+      const button = dashboardLink.closest('a');
+      expect(button).toBeInTheDocument();
+    });
+  });
 
   describe('Hover Behavior', () => {
     it('expands sidebar on hover', async () => {
-      renderDashboardLayout()
-      
-      const sidebarContainer = document.querySelector('[data-collapsible="hover"]')
-      expect(sidebarContainer).toBeInTheDocument()
-      
+      renderDashboardLayout();
+
+      const sidebarContainer = document.querySelector(
+        '[data-collapsible="hover"]'
+      );
+      expect(sidebarContainer).toBeInTheDocument();
+
       // Initially collapsed
-      expect(sidebarContainer).toHaveAttribute('data-state', 'collapsed')
-      
+      expect(sidebarContainer).toHaveAttribute('data-state', 'collapsed');
+
       // Simulate mouse enter
-      fireEvent.mouseEnter(sidebarContainer!)
-      
+      fireEvent.mouseEnter(sidebarContainer!);
+
       // Should expand
       await waitFor(() => {
-        expect(sidebarContainer).toHaveAttribute('data-state', 'expanded')
-      })
-    })
+        expect(sidebarContainer).toHaveAttribute('data-state', 'expanded');
+      });
+    });
 
     it('collapses sidebar when mouse leaves', async () => {
-      renderDashboardLayout()
-      
-      const sidebarContainer = document.querySelector('[data-collapsible="hover"]')
-      expect(sidebarContainer).toBeInTheDocument()
-      
+      renderDashboardLayout();
+
+      const sidebarContainer = document.querySelector(
+        '[data-collapsible="hover"]'
+      );
+      expect(sidebarContainer).toBeInTheDocument();
+
       // Hover to expand
-      fireEvent.mouseEnter(sidebarContainer!)
-      
+      fireEvent.mouseEnter(sidebarContainer!);
+
       await waitFor(() => {
-        expect(sidebarContainer).toHaveAttribute('data-state', 'expanded')
-      })
-      
+        expect(sidebarContainer).toHaveAttribute('data-state', 'expanded');
+      });
+
       // Mouse leave to collapse
-      fireEvent.mouseLeave(sidebarContainer!)
-      
+      fireEvent.mouseLeave(sidebarContainer!);
+
       await waitFor(() => {
-        expect(sidebarContainer).toHaveAttribute('data-state', 'collapsed')
-      })
-    })
-  })
+        expect(sidebarContainer).toHaveAttribute('data-state', 'collapsed');
+      });
+    });
+  });
 
   describe('Layout Structure', () => {
     it('renders main content area', () => {
-      renderDashboardLayout(<div data-testid="main-content">Main Content</div>)
-      
-      expect(screen.getByTestId('main-content')).toBeInTheDocument()
-    })
+      renderDashboardLayout(<div data-testid="main-content">Main Content</div>);
+
+      expect(screen.getByTestId('main-content')).toBeInTheDocument();
+    });
 
     it('renders sidebar trigger button', () => {
-      renderDashboardLayout()
-      
+      renderDashboardLayout();
+
       // Look for the sidebar trigger button (should be in header)
-      const triggerButton = document.querySelector('[data-slot="sidebar-trigger"]')
-      expect(triggerButton).toBeInTheDocument()
-    })
+      const triggerButton = document.querySelector(
+        '[data-slot="sidebar-trigger"]'
+      );
+      expect(triggerButton).toBeInTheDocument();
+    });
 
     it('renders header with proper structure', () => {
-      renderDashboardLayout()
-      
+      renderDashboardLayout();
+
       // Check for header element
-      const header = document.querySelector('header')
-      expect(header).toBeInTheDocument()
-      expect(header).toHaveClass('flex', 'h-16', 'shrink-0', 'items-center', 'gap-4', 'border-b', 'px-4')
-    })
-  })
+      const header = document.querySelector('header');
+      expect(header).toBeInTheDocument();
+      expect(header).toHaveClass(
+        'flex',
+        'h-16',
+        'shrink-0',
+        'items-center',
+        'gap-4',
+        'border-b',
+        'px-4'
+      );
+    });
+  });
 
   describe('User Information', () => {
     it('shows user profile in settings and user navigation in header', () => {
-      renderDashboardLayout()
-      
+      renderDashboardLayout();
+
       // Check for Profile button in Settings group
-      expect(screen.getByText('Profile')).toBeInTheDocument()
-      
+      expect(screen.getByText('Profile')).toBeInTheDocument();
+
       // Check for UserNav component in header (logout functionality is in UserNav dropdown)
-      expect(screen.getByRole('button', { name: 'User Menu' })).toBeInTheDocument()
-    })
+      expect(
+        screen.getByRole('button', { name: 'User Menu' })
+      ).toBeInTheDocument();
+    });
 
     it('includes user navigation with logout functionality in header', async () => {
-      renderDashboardLayout()
-      
+      renderDashboardLayout();
+
       // Check that the UserNav component exists in the header
-      const userNavButton = screen.getByRole('button', { name: 'User Menu' })
-      expect(userNavButton).toBeInTheDocument()
-      
+      const userNavButton = screen.getByRole('button', { name: 'User Menu' });
+      expect(userNavButton).toBeInTheDocument();
+
       // The user nav button should be clickable and contain logout functionality
-      expect(userNavButton.closest('button')).toBeInTheDocument()
-    })
-  })
+      expect(userNavButton.closest('button')).toBeInTheDocument();
+    });
+  });
 
   describe('Active State Handling', () => {
     it('highlights active navigation item', () => {
-      renderDashboardLayout()
-      
+      renderDashboardLayout();
+
       // Since we mocked usePathname to return '/dashboard', the Dashboard item should be active
-      const dashboardLink = screen.getByText('Dashboard').closest('a')
-      expect(dashboardLink).toHaveAttribute('data-active', 'true')
-    })
-  })
+      const dashboardLink = screen.getByText('Dashboard').closest('a');
+      expect(dashboardLink).toHaveAttribute('data-active', 'true');
+    });
+  });
 
   describe('Responsive Behavior', () => {
     it('maintains hover functionality on desktop', () => {
       // This test ensures hover mode works when not on mobile
-      renderDashboardLayout()
-      
-      const sidebarContainer = document.querySelector('[data-collapsible="hover"]')
-      expect(sidebarContainer).toBeInTheDocument()
-      
+      renderDashboardLayout();
+
+      const sidebarContainer = document.querySelector(
+        '[data-collapsible="hover"]'
+      );
+      expect(sidebarContainer).toBeInTheDocument();
+
       // Should respond to hover events
-      fireEvent.mouseEnter(sidebarContainer!)
-      
+      fireEvent.mouseEnter(sidebarContainer!);
+
       // Should change state (testing that hover handlers are attached)
-      expect(sidebarContainer).toBeInTheDocument()
-    })
-  })
+      expect(sidebarContainer).toBeInTheDocument();
+    });
+  });
 
   describe('Accessibility', () => {
     it('maintains proper focus management', () => {
-      renderDashboardLayout()
-      
-      const dashboardLink = screen.getByText('Dashboard').closest('a')
-      expect(dashboardLink).toBeInTheDocument()
-      
+      renderDashboardLayout();
+
+      const dashboardLink = screen.getByText('Dashboard').closest('a');
+      expect(dashboardLink).toBeInTheDocument();
+
       // Should be focusable
-      dashboardLink!.focus()
-      expect(document.activeElement).toBe(dashboardLink)
-    })
+      dashboardLink!.focus();
+      expect(document.activeElement).toBe(dashboardLink);
+    });
 
     it('provides proper semantic structure', () => {
-      renderDashboardLayout()
-      
+      renderDashboardLayout();
+
       // Check for proper semantic elements
-      expect(document.querySelector('main')).toBeInTheDocument()
-      expect(document.querySelector('header')).toBeInTheDocument()
-      expect(document.querySelector('[data-slot="sidebar"]')).toBeInTheDocument()
-    })
-  })
+      expect(document.querySelector('main')).toBeInTheDocument();
+      expect(document.querySelector('header')).toBeInTheDocument();
+      expect(
+        document.querySelector('[data-slot="sidebar"]')
+      ).toBeInTheDocument();
+    });
+  });
 
   describe('Integration', () => {
     it('works with different content types', () => {
@@ -258,29 +280,31 @@ describe('DashboardLayout with Hover Sidebar', () => {
             <div>Chart 2</div>
           </div>
         </div>
-      )
-      
-      renderDashboardLayout(complexContent)
-      
-      expect(screen.getByText('Dashboard Page')).toBeInTheDocument()
-      expect(screen.getByText('Chart 1')).toBeInTheDocument()
-      expect(screen.getByText('Chart 2')).toBeInTheDocument()
-    })
+      );
+
+      renderDashboardLayout(complexContent);
+
+      expect(screen.getByText('Dashboard Page')).toBeInTheDocument();
+      expect(screen.getByText('Chart 1')).toBeInTheDocument();
+      expect(screen.getByText('Chart 2')).toBeInTheDocument();
+    });
 
     it('maintains sidebar state independent of content changes', async () => {
-      renderDashboardLayout(<div>Content 1</div>)
-      
-      const sidebarContainer = document.querySelector('[data-collapsible="hover"]')
-      
+      renderDashboardLayout(<div>Content 1</div>);
+
+      const sidebarContainer = document.querySelector(
+        '[data-collapsible="hover"]'
+      );
+
       // Expand sidebar
-      fireEvent.mouseEnter(sidebarContainer!)
-      
+      fireEvent.mouseEnter(sidebarContainer!);
+
       await waitFor(() => {
-        expect(sidebarContainer).toHaveAttribute('data-state', 'expanded')
-      })
-      
+        expect(sidebarContainer).toHaveAttribute('data-state', 'expanded');
+      });
+
       // Content should be visible
-      expect(screen.getByText('Content 1')).toBeInTheDocument()
-    })
-  })
-}) 
+      expect(screen.getByText('Content 1')).toBeInTheDocument();
+    });
+  });
+});

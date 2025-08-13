@@ -1,24 +1,26 @@
-'use client'
+'use client';
 
-import { useUserActivities } from '@/hooks/use-user-activities'
-import { HistoricalTrends } from './HistoricalTrends'
-import { useEffect } from 'react'
+import { useUserActivities } from '@/hooks/use-user-activities';
+import { HistoricalTrends } from './HistoricalTrends';
+import { useEffect } from 'react';
 
 interface HistoricalTrendsClientProps {
-  userId: string
+  userId: string;
 }
 
-export function HistoricalTrendsClient({ userId }: HistoricalTrendsClientProps) {
-  const { data: activities, isLoading, error } = useUserActivities(userId)
+export function HistoricalTrendsClient({
+  userId,
+}: HistoricalTrendsClientProps) {
+  const { data: activities, isLoading, error } = useUserActivities(userId);
 
   useEffect(() => {
     console.log('HistoricalTrendsClient: Component mounted/updated', {
       userId,
       isLoading,
       error: error?.message,
-      activitiesCount: activities?.length || 0
-    })
-  }, [userId, isLoading, error, activities])
+      activitiesCount: activities?.length || 0,
+    });
+  }, [userId, isLoading, error, activities]);
 
   if (isLoading) {
     return (
@@ -34,7 +36,7 @@ export function HistoricalTrendsClient({ userId }: HistoricalTrendsClientProps) 
           <div className="h-80 bg-gray-100 rounded-lg"></div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -44,8 +46,8 @@ export function HistoricalTrendsClient({ userId }: HistoricalTrendsClientProps) 
           Failed to load activity data: {error.message}
         </div>
       </div>
-    )
+    );
   }
 
-  return <HistoricalTrends activities={activities || []} />
-} 
+  return <HistoricalTrends activities={activities || []} />;
+}

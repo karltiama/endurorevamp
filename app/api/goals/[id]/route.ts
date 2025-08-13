@@ -9,7 +9,7 @@ export async function PATCH(
 ) {
   try {
     const user = await getUser();
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -19,9 +19,9 @@ export async function PATCH(
 
     const { id: goalId } = await params;
     const body = await request.json();
-    
+
     const supabase = await createClient();
-    
+
     // Verify the goal belongs to the user
     const { data: existingGoal, error: fetchError } = await supabase
       .from('user_goals')
@@ -31,10 +31,7 @@ export async function PATCH(
       .single();
 
     if (fetchError || !existingGoal) {
-      return NextResponse.json(
-        { error: 'Goal not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
     }
 
     // Update the goal
@@ -46,14 +43,16 @@ export async function PATCH(
         goal_data: body.goal_data,
         current_progress: body.current_progress,
         is_completed: body.is_completed,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', goalId)
       .eq('user_id', user.id)
-      .select(`
+      .select(
+        `
         *,
         goal_type:goal_types(*)
-      `)
+      `
+      )
       .single();
 
     if (updateError) {
@@ -66,9 +65,8 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      goal: updatedGoal
+      goal: updatedGoal,
     });
-
   } catch (error) {
     console.error('Goal PATCH API error:', error);
     return NextResponse.json(
@@ -85,7 +83,7 @@ export async function DELETE(
 ) {
   try {
     const user = await getUser();
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -95,7 +93,7 @@ export async function DELETE(
 
     const { id: goalId } = await params;
     const supabase = await createClient();
-    
+
     // Verify the goal belongs to the user
     const { data: existingGoal, error: fetchError } = await supabase
       .from('user_goals')
@@ -105,10 +103,7 @@ export async function DELETE(
       .single();
 
     if (fetchError || !existingGoal) {
-      return NextResponse.json(
-        { error: 'Goal not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
     }
 
     // Delete the goal (this will cascade to goal_progress due to foreign key)
@@ -128,9 +123,8 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'Goal deleted successfully'
+      message: 'Goal deleted successfully',
     });
-
   } catch (error) {
     console.error('Goal DELETE API error:', error);
     return NextResponse.json(
@@ -138,4 +132,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}

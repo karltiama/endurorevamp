@@ -17,26 +17,28 @@ jest.mock('@/lib/supabase/client', () => ({
   createClient: jest.fn(() => ({
     auth: {
       getUser: jest.fn().mockResolvedValue({
-        data: { user: { id: 'test-user-id' } }
-      })
+        data: { user: { id: 'test-user-id' } },
+      }),
     },
     from: jest.fn(() => ({
       insert: jest.fn().mockResolvedValue({ error: null }),
       update: jest.fn(() => ({
-        eq: jest.fn().mockResolvedValue({ error: null })
-      }))
-    }))
-  }))
+        eq: jest.fn().mockResolvedValue({ error: null }),
+      })),
+    })),
+  })),
 }));
 
 // Mock the hooks
 jest.mock('@/hooks/use-user-activities', () => ({
-  useUserActivities: jest.fn()
+  useUserActivities: jest.fn(),
 }));
 
 import { useUserActivities } from '@/hooks/use-user-activities';
 
-const mockUseUserActivities = useUserActivities as jest.MockedFunction<typeof useUserActivities>;
+const mockUseUserActivities = useUserActivities as jest.MockedFunction<
+  typeof useUserActivities
+>;
 
 // Mock activity data factory
 const createMockActivity = (overrides: Partial<Activity> = {}): Activity => ({
@@ -80,31 +82,37 @@ describe('QuickActionsSection', () => {
       data: undefined,
       isLoading: true,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    const { container } = render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    const { container } = render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
   });
 
   it('displays quick actions section correctly', () => {
     const activities = [
       createMockActivity({
-        start_date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // Yesterday
-        kilojoules: 300
-      })
+        start_date: new Date(
+          Date.now() - 1 * 24 * 60 * 60 * 1000
+        ).toISOString(), // Yesterday
+        kilojoules: 300,
+      }),
     ];
 
     mockUseUserActivities.mockReturnValue({
       data: activities,
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     expect(screen.getByText('Quick Actions')).toBeInTheDocument();
     // Test for actions that actually appear in this scenario
     expect(screen.getByText('Set Weekly Target')).toBeInTheDocument();
@@ -116,11 +124,13 @@ describe('QuickActionsSection', () => {
       data: [],
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     expect(screen.getByText('Quick Actions')).toBeInTheDocument();
     // Check for default actions for new users
     expect(screen.getByText('Connect Strava')).toBeInTheDocument();
@@ -133,14 +143,16 @@ describe('QuickActionsSection', () => {
       data: [],
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     const goalAction = screen.getByText('Set Your First Goal');
     fireEvent.click(goalAction);
-    
+
     expect(mockPush).toHaveBeenCalledWith('/dashboard/goals');
   });
 
@@ -149,14 +161,16 @@ describe('QuickActionsSection', () => {
       data: [],
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     const stravaAction = screen.getByText('Connect Strava');
     fireEvent.click(stravaAction);
-    
+
     expect(mockPush).toHaveBeenCalledWith('/dashboard/settings');
   });
 
@@ -165,14 +179,16 @@ describe('QuickActionsSection', () => {
       data: [],
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     const manualEntryAction = screen.getByText('Log Workout');
     fireEvent.click(manualEntryAction);
-    
+
     // Modal should appear
     await waitFor(() => {
       expect(screen.getByText('Quick Activity Log')).toBeInTheDocument();
@@ -186,27 +202,29 @@ describe('QuickActionsSection', () => {
         start_date: new Date().toISOString(), // Today
         kilojoules: 500, // High intensity
         moving_time: 5400, // 90 minutes
-        average_heartrate: 175
-      })
+        average_heartrate: 175,
+      }),
     ];
 
     mockUseUserActivities.mockReturnValue({
       data: activities,
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     expect(screen.getByText('Quick Actions')).toBeInTheDocument();
     // In high fatigue state, check for what actually appears
     const possibleActions = [
       screen.queryByText('Log RPE'),
       screen.queryByText('Set Weekly Target'),
-      screen.queryByText('Quick Activity Log')
+      screen.queryByText('Quick Activity Log'),
     ].filter(Boolean);
-    
+
     expect(possibleActions.length).toBeGreaterThan(0);
   });
 
@@ -214,22 +232,26 @@ describe('QuickActionsSection', () => {
     // Well-recovered scenario
     const activities = [
       createMockActivity({
-        start_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+        start_date: new Date(
+          Date.now() - 2 * 24 * 60 * 60 * 1000
+        ).toISOString(), // 2 days ago
         kilojoules: 200, // Low intensity
         moving_time: 1800, // 30 minutes
-        average_heartrate: 140
-      })
+        average_heartrate: 140,
+      }),
     ];
 
     mockUseUserActivities.mockReturnValue({
       data: activities,
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     expect(screen.getByText('Quick Actions')).toBeInTheDocument();
     expect(screen.getByText('Set Weekly Target')).toBeInTheDocument();
   });
@@ -238,21 +260,25 @@ describe('QuickActionsSection', () => {
     const activities = [
       createMockActivity({
         kilojoules: 350,
-        moving_time: 3600
-      })
+        moving_time: 3600,
+      }),
     ];
 
     mockUseUserActivities.mockReturnValue({
       data: activities,
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    const { container } = render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    const { container } = render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     // Should have priority indicators (colored backgrounds)
-    const coloredElements = container.querySelectorAll('[class*="bg-red-"], [class*="bg-blue-"], [class*="bg-gray-"]');
+    const coloredElements = container.querySelectorAll(
+      '[class*="bg-red-"], [class*="bg-blue-"], [class*="bg-gray-"]'
+    );
     expect(coloredElements.length).toBeGreaterThan(0);
   });
 
@@ -260,24 +286,26 @@ describe('QuickActionsSection', () => {
     const activities = [
       createMockActivity({
         start_date: new Date().toISOString(), // Recent activity without RPE
-        kilojoules: 300
-      })
+        kilojoules: 300,
+      }),
     ];
 
     mockUseUserActivities.mockReturnValue({
       data: activities,
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     // Look for RPE action
     const rpeAction = screen.queryByText('Log RPE');
     if (rpeAction) {
       fireEvent.click(rpeAction);
-      
+
       // Modal should appear
       await waitFor(() => {
         expect(screen.getByText('Rate Your Workout')).toBeInTheDocument();
@@ -288,24 +316,28 @@ describe('QuickActionsSection', () => {
   it('navigates to planning page when planning action is clicked', () => {
     const activities = [
       createMockActivity({
-        start_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+        start_date: new Date(
+          Date.now() - 2 * 24 * 60 * 60 * 1000
+        ).toISOString(), // 2 days ago
         kilojoules: 200,
-        average_heartrate: 140
-      })
+        average_heartrate: 140,
+      }),
     ];
 
     mockUseUserActivities.mockReturnValue({
       data: activities,
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     const planningAction = screen.getByText('Training Calendar');
     fireEvent.click(planningAction);
-    
+
     expect(mockPush).toHaveBeenCalledWith('/dashboard/planning');
   });
 
@@ -315,19 +347,21 @@ describe('QuickActionsSection', () => {
         start_date: new Date().toISOString(), // Today - recent high intensity
         kilojoules: 500,
         moving_time: 5400, // 90 minutes
-        average_heartrate: 175
-      })
+        average_heartrate: 175,
+      }),
     ];
 
     mockUseUserActivities.mockReturnValue({
       data: activities,
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     expect(screen.getByText('Quick Actions')).toBeInTheDocument();
     // Check for recovery-related actions
     const rpeElements = screen.getAllByText(/RPE/i);
@@ -338,19 +372,21 @@ describe('QuickActionsSection', () => {
     const activities = [
       createMockActivity({
         kilojoules: 250,
-        moving_time: 2700
-      })
+        moving_time: 2700,
+      }),
     ];
 
     mockUseUserActivities.mockReturnValue({
       data: activities,
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     expect(screen.getByText('Quick Actions')).toBeInTheDocument();
     // Check that actions are contextual to the user's training state
     const quickActionsCard = screen.getByText('Quick Actions').closest('div');
@@ -362,11 +398,13 @@ describe('QuickActionsSection', () => {
       data: [],
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     expect(screen.getByText('Quick Actions')).toBeInTheDocument();
     // Should show default actions for new users
     expect(screen.getByText('Connect Strava')).toBeInTheDocument();
@@ -376,22 +414,26 @@ describe('QuickActionsSection', () => {
   it('displays training stats correctly', () => {
     const activities = [
       createMockActivity({
-        start_date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // Yesterday
+        start_date: new Date(
+          Date.now() - 1 * 24 * 60 * 60 * 1000
+        ).toISOString(), // Yesterday
         kilojoules: 350,
         moving_time: 3600,
-        average_heartrate: 160
-      })
+        average_heartrate: 160,
+      }),
     ];
 
     mockUseUserActivities.mockReturnValue({
       data: activities,
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     expect(screen.getByText('Workouts this week')).toBeInTheDocument();
     expect(screen.getByText('Days since last workout')).toBeInTheDocument();
     expect(screen.getByText('Avg RPE (last 5)')).toBeInTheDocument();
@@ -400,40 +442,46 @@ describe('QuickActionsSection', () => {
   it('limits number of displayed actions', () => {
     const activities = [
       createMockActivity({
-        kilojoules: 300
-      })
+        kilojoules: 300,
+      }),
     ];
 
     mockUseUserActivities.mockReturnValue({
       data: activities,
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     // Should show a reasonable number of actions (max 6 per component logic)
-    const actionElements = screen.getAllByText(/^(Log RPE|Set Weekly Target|Share Progress|Quick Activity Log|Training Calendar|Plan Easy Run|Plan Interval Session|Log Recovery Session)$/);
+    const actionElements = screen.getAllByText(
+      /^(Log RPE|Set Weekly Target|Share Progress|Quick Activity Log|Training Calendar|Plan Easy Run|Plan Interval Session|Log Recovery Session)$/
+    );
     expect(actionElements.length).toBeLessThanOrEqual(6);
   });
 
   it('shows appropriate icons for each action type', () => {
     const activities = [
       createMockActivity({
-        kilojoules: 300
-      })
+        kilojoules: 300,
+      }),
     ];
 
     mockUseUserActivities.mockReturnValue({
       data: activities,
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    const { container } = render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    const { container } = render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     // Should have icons for different action types
     expect(container.querySelector('svg')).toBeInTheDocument();
   });
@@ -441,22 +489,24 @@ describe('QuickActionsSection', () => {
   it('navigates to analytics page when share progress is clicked', () => {
     const activities = [
       createMockActivity({
-        kilojoules: 300
-      })
+        kilojoules: 300,
+      }),
     ];
 
     mockUseUserActivities.mockReturnValue({
       data: activities,
       isLoading: false,
       error: null,
-      refetch: jest.fn()
+      refetch: jest.fn(),
     } as any);
 
-    render(<QuickActionsSection userId="test-user" />, { wrapper: createWrapper() });
-    
+    render(<QuickActionsSection userId="test-user" />, {
+      wrapper: createWrapper(),
+    });
+
     const shareAction = screen.getByText('Share Progress');
     fireEvent.click(shareAction);
-    
+
     expect(mockPush).toHaveBeenCalledWith('/dashboard/analytics');
   });
-}); 
+});

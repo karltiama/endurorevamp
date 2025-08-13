@@ -1,39 +1,39 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Edit2, Save, X, User, Mail, Calendar } from 'lucide-react'
-import { useAuth } from '@/providers/AuthProvider'
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Edit2, Save, X, User, Mail, Calendar } from 'lucide-react';
+import { useAuth } from '@/providers/AuthProvider';
 
 export function ProfileSettings() {
-  const { user } = useAuth()
-  const [isEditingName, setIsEditingName] = useState(false)
-  const [nameValue, setNameValue] = useState('')
-  const [isSavingName, setIsSavingName] = useState(false)
+  const { user } = useAuth();
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  const [isSavingName, setIsSavingName] = useState(false);
 
   // Initialize name value when user data loads
   useEffect(() => {
     if (user) {
-      setNameValue(user.user_metadata?.full_name || '')
+      setNameValue(user.user_metadata?.full_name || '');
     }
-  }, [user])
+  }, [user]);
 
   const handleEditName = () => {
-    setIsEditingName(true)
-  }
+    setIsEditingName(true);
+  };
 
   const handleCancelEdit = () => {
-    setNameValue(user?.user_metadata?.full_name || '')
-    setIsEditingName(false)
-  }
+    setNameValue(user?.user_metadata?.full_name || '');
+    setIsEditingName(false);
+  };
 
   const handleSaveName = async () => {
-    if (!user) return
-    
-    setIsSavingName(true)
+    if (!user) return;
+
+    setIsSavingName(true);
     try {
       const response = await fetch('/api/user/update-name', {
         method: 'PATCH',
@@ -41,29 +41,29 @@ export function ProfileSettings() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ name: nameValue }),
-      })
+      });
 
       if (response.ok) {
-        setIsEditingName(false)
+        setIsEditingName(false);
         // Optionally refresh the page or update the user context
-        window.location.reload()
+        window.location.reload();
       } else {
-        console.error('Failed to update name')
+        console.error('Failed to update name');
       }
     } catch (error) {
-      console.error('Error updating name:', error)
+      console.error('Error updating name:', error);
     } finally {
-      setIsSavingName(false)
+      setIsSavingName(false);
     }
-  }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
-    })
-  }
+      day: 'numeric',
+    });
+  };
 
   return (
     <Card>
@@ -76,12 +76,14 @@ export function ProfileSettings() {
       <CardContent className="space-y-4">
         {/* Name Section */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Display Name</label>
+          <label className="text-sm font-medium text-gray-700">
+            Display Name
+          </label>
           {isEditingName ? (
             <div className="flex items-center gap-2">
               <Input
                 value={nameValue}
-                onChange={(e) => setNameValue(e.target.value)}
+                onChange={e => setNameValue(e.target.value)}
                 placeholder="Enter your name"
                 className="flex-1"
                 disabled={isSavingName}
@@ -131,7 +133,9 @@ export function ProfileSettings() {
 
         {/* Email Section */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Email Address</label>
+          <label className="text-sm font-medium text-gray-700">
+            Email Address
+          </label>
           <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
             <Mail className="h-4 w-4 text-gray-500" />
             <span className="text-sm">{user?.email || 'No email'}</span>
@@ -143,18 +147,22 @@ export function ProfileSettings() {
 
         {/* Account Info */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Account Information</label>
+          <label className="text-sm font-medium text-gray-700">
+            Account Information
+          </label>
           <div className="space-y-2">
             <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
               <Calendar className="h-4 w-4 text-gray-500" />
               <span className="text-sm">
-                Member since {user?.created_at ? formatDate(user.created_at) : 'Unknown'}
+                Member since{' '}
+                {user?.created_at ? formatDate(user.created_at) : 'Unknown'}
               </span>
             </div>
             <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
               <User className="h-4 w-4 text-gray-500" />
               <span className="text-sm">
-                Sign-in method: {user?.app_metadata?.provider === 'google' ? 'Google' : 'Email'}
+                Sign-in method:{' '}
+                {user?.app_metadata?.provider === 'google' ? 'Google' : 'Email'}
               </span>
             </div>
           </div>
@@ -171,5 +179,5 @@ export function ProfileSettings() {
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

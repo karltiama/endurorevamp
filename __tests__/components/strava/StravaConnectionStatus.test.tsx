@@ -12,13 +12,19 @@ jest.mock('@tanstack/react-query', () => ({
   }),
 }));
 
-const mockUseStravaConnection = useStravaConnection as jest.MockedFunction<typeof useStravaConnection>;
-const mockGetStravaAuthUrl = getStravaAuthUrl as jest.MockedFunction<typeof getStravaAuthUrl>;
+const mockUseStravaConnection = useStravaConnection as jest.MockedFunction<
+  typeof useStravaConnection
+>;
+const mockGetStravaAuthUrl = getStravaAuthUrl as jest.MockedFunction<
+  typeof getStravaAuthUrl
+>;
 
 describe('StravaConnectionStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetStravaAuthUrl.mockReturnValue('https://www.strava.com/oauth/authorize?client_id=test');
+    mockGetStravaAuthUrl.mockReturnValue(
+      'https://www.strava.com/oauth/authorize?client_id=test'
+    );
   });
 
   describe('Connection Status Display', () => {
@@ -33,7 +39,9 @@ describe('StravaConnectionStatus', () => {
 
       render(<StravaConnectionStatus />);
 
-      expect(screen.getByText('Checking connection status...')).toBeInTheDocument();
+      expect(
+        screen.getByText('Checking connection status...')
+      ).toBeInTheDocument();
     });
 
     it('should show not connected state when no connection exists', () => {
@@ -48,8 +56,12 @@ describe('StravaConnectionStatus', () => {
       render(<StravaConnectionStatus />);
 
       expect(screen.getByText('Not Connected')).toBeInTheDocument();
-      expect(screen.getByText('Connect to start syncing your activities')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /connect to strava/i })).toBeInTheDocument();
+      expect(
+        screen.getByText('Connect to start syncing your activities')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /connect to strava/i })
+      ).toBeInTheDocument();
     });
 
     it('should show connected state when connection exists', () => {
@@ -73,7 +85,9 @@ describe('StravaConnectionStatus', () => {
 
       expect(screen.getByText('Connected to Strava')).toBeInTheDocument();
       expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /disconnect/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /disconnect/i })
+      ).toBeInTheDocument();
     });
 
     it('should show error state when connection check fails', () => {
@@ -87,7 +101,9 @@ describe('StravaConnectionStatus', () => {
 
       render(<StravaConnectionStatus />);
 
-      expect(screen.getByText('Failed to check connection status')).toBeInTheDocument();
+      expect(
+        screen.getByText('Failed to check connection status')
+      ).toBeInTheDocument();
     });
   });
 
@@ -103,7 +119,9 @@ describe('StravaConnectionStatus', () => {
 
       render(<StravaConnectionStatus />);
 
-      const connectButton = screen.getByRole('button', { name: /connect to strava/i });
+      const connectButton = screen.getByRole('button', {
+        name: /connect to strava/i,
+      });
       fireEvent.click(connectButton);
 
       expect(mockGetStravaAuthUrl).toHaveBeenCalled();
@@ -131,7 +149,9 @@ describe('StravaConnectionStatus', () => {
 
       render(<StravaConnectionStatus />);
 
-      const disconnectButton = screen.getByRole('button', { name: /disconnect/i });
+      const disconnectButton = screen.getByRole('button', {
+        name: /disconnect/i,
+      });
       fireEvent.click(disconnectButton);
 
       await waitFor(() => {
@@ -156,7 +176,9 @@ describe('StravaConnectionStatus', () => {
 
       // Component should render without any OAuth processing
       expect(screen.getByText('Not Connected')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /connect to strava/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /connect to strava/i })
+      ).toBeInTheDocument();
     });
   });
-}); 
+});

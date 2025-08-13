@@ -1,23 +1,23 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface SyncOptions {
-  maxActivities?: number
-  sinceDays?: number
-  forceRefresh?: boolean
-  usePagination?: boolean // New option for full sync
-  syncType?: 'quick' | 'full' // Simplified sync types: quick (50 recent) vs full (all)
+  maxActivities?: number;
+  sinceDays?: number;
+  forceRefresh?: boolean;
+  usePagination?: boolean; // New option for full sync
+  syncType?: 'quick' | 'full'; // Simplified sync types: quick (50 recent) vs full (all)
 }
 
 interface SyncResult {
-  success: boolean
-  message: string
+  success: boolean;
+  message: string;
   data?: {
-    activitiesProcessed: number
-    newActivities: number
-    updatedActivities: number
-    syncDuration: number
-  }
-  errors?: string[]
+    activitiesProcessed: number;
+    newActivities: number;
+    updatedActivities: number;
+    syncDuration: number;
+  };
+  errors?: string[];
 }
 
 interface SyncStatus {
@@ -51,32 +51,39 @@ function formatSyncStatusInfo(syncStatus: SyncStatus | undefined) {
       todaySyncs: 0,
       maxSyncs: 5,
       hasStravaTokens: false,
-      athlete: null
-    }
+      athlete: null,
+    };
   }
 
-  const { syncState, activityCount, canSync, syncDisabledReason, hasStravaTokens, athlete } = syncStatus
+  const {
+    syncState,
+    activityCount,
+    canSync,
+    syncDisabledReason,
+    hasStravaTokens,
+    athlete,
+  } = syncStatus;
 
   // Format last sync time
-  let lastSyncText = 'Never synced'
+  let lastSyncText = 'Never synced';
   if (syncState?.last_activity_sync) {
-    const lastSync = new Date(syncState.last_activity_sync)
-    const now = new Date()
-    const diffMs = now.getTime() - lastSync.getTime()
-    const diffMins = Math.floor(diffMs / (1000 * 60))
-    const diffHours = Math.floor(diffMins / 60)
-    const diffDays = Math.floor(diffHours / 24)
+    const lastSync = new Date(syncState.last_activity_sync);
+    const now = new Date();
+    const diffMs = now.getTime() - lastSync.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
 
     if (diffMins < 1) {
-      lastSyncText = 'Just now'
+      lastSyncText = 'Just now';
     } else if (diffMins < 60) {
-      lastSyncText = `${diffMins} minutes ago`
+      lastSyncText = `${diffMins} minutes ago`;
     } else if (diffHours < 24) {
-      lastSyncText = `${diffHours} hours ago`
+      lastSyncText = `${diffHours} hours ago`;
     } else if (diffDays === 1) {
-      lastSyncText = 'Yesterday'
+      lastSyncText = 'Yesterday';
     } else {
-      lastSyncText = `${diffDays} days ago`
+      lastSyncText = `${diffDays} days ago`;
     }
   }
 
@@ -90,8 +97,8 @@ function formatSyncStatusInfo(syncStatus: SyncStatus | undefined) {
     consecutiveErrors: syncState?.consecutive_errors || 0,
     lastError: syncState?.last_error_message,
     hasStravaTokens: hasStravaTokens || false,
-    athlete: athlete || null
-  }
+    athlete: athlete || null,
+  };
 }
 
 // Trigger activity sync
@@ -102,36 +109,36 @@ async function triggerSync(options: SyncOptions = {}): Promise<SyncResult> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(options),
-  })
+  });
 
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Sync failed')
+    const error = await response.json();
+    throw new Error(error.message || 'Sync failed');
   }
 
-  return response.json()
+  return response.json();
 }
 
 // Get sync status
 async function getSyncStatus(): Promise<SyncStatus> {
-  const response = await fetch('/api/strava/sync')
+  const response = await fetch('/api/strava/sync');
 
   if (!response.ok) {
-    throw new Error('Failed to get sync status')
+    throw new Error('Failed to get sync status');
   }
 
-  return response.json()
+  return response.json();
 }
 
 export function useStravaSync() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   // Query for sync status
   const {
     data: syncStatus,
     isLoading: isLoadingStatus,
     error: statusError,
-    refetch: refetchStatus
+    refetch: refetchStatus,
   } = useQuery({
     queryKey: ['strava', 'sync-status'],
     queryFn: getSyncStatus,
@@ -141,84 +148,84 @@ export function useStravaSync() {
     refetchOnReconnect: false, // Don't refetch on network reconnect
     retry: false, // Don't retry on error in tests
     // No refetchInterval - only fetch when explicitly requested
-  })
+  });
 
   // Mutation for triggering sync
   const {
     mutate: triggerSyncMutation,
     isPending: isSyncing,
     error: syncError,
-    data: syncResult
+    data: syncResult,
   } = useMutation({
     mutationFn: triggerSync,
-    onSuccess: (data) => {
+    onSuccess: data => {
       // Invalidate related queries - comprehensive cache refresh
-      queryClient.invalidateQueries({ queryKey: ['strava', 'sync-status'] })
-      queryClient.invalidateQueries({ queryKey: ['strava', 'activities'] })
-      queryClient.invalidateQueries({ queryKey: ['strava', 'weekly-metrics'] })
-      
+      queryClient.invalidateQueries({ queryKey: ['strava', 'sync-status'] });
+      queryClient.invalidateQueries({ queryKey: ['strava', 'activities'] });
+      queryClient.invalidateQueries({ queryKey: ['strava', 'weekly-metrics'] });
+
       // Invalidate database-based queries for consistent UI updates
-      queryClient.invalidateQueries({ queryKey: ['user', 'activities'] })
-      queryClient.invalidateQueries({ queryKey: ['athlete', 'profile'] })
-      queryClient.invalidateQueries({ queryKey: ['training', 'load'] })
-      queryClient.invalidateQueries({ queryKey: ['zone-analysis'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['user', 'activities'] });
+      queryClient.invalidateQueries({ queryKey: ['athlete', 'profile'] });
+      queryClient.invalidateQueries({ queryKey: ['training', 'load'] });
+      queryClient.invalidateQueries({ queryKey: ['zone-analysis'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
-    onError: (error) => {
-      console.error('❌ Sync failed:', error)
-    }
-  })
+    onError: error => {
+      console.error('❌ Sync failed:', error);
+    },
+  });
 
   // Helper functions with different sync strategies
   const quickSync = () => {
-    triggerSyncMutation({ 
-      syncType: 'quick' // Fetch 50 most recent activities
-    })
-  }
+    triggerSyncMutation({
+      syncType: 'quick', // Fetch 50 most recent activities
+    });
+  };
 
   const fullSync = () => {
-    triggerSyncMutation({ 
-      syncType: 'full' // Full historical sync with pagination
-    })
-  }
+    triggerSyncMutation({
+      syncType: 'full', // Full historical sync with pagination
+    });
+  };
 
   const customSync = (options: SyncOptions) => {
-    triggerSyncMutation(options)
-  }
+    triggerSyncMutation(options);
+  };
 
   const refreshStatus = () => {
-    refetchStatus()
-  }
+    refetchStatus();
+  };
 
-  const syncStatusInfo = formatSyncStatusInfo(syncStatus)
+  const syncStatusInfo = formatSyncStatusInfo(syncStatus);
 
   return {
     // Status
     syncStatus,
     isLoadingStatus,
     statusError,
-    
+
     // Sync controls
     quickSync,
     fullSync,
     customSync,
-    
+
     // Sync state
     isSyncing,
     syncError,
     syncResult,
-    
+
     // Manual controls
     refetchStatus,
     refreshStatus,
-    
+
     // Formatted sync info
-    syncStatusInfo
-  }
+    syncStatusInfo,
+  };
 }
 
 // Hook for getting formatted sync information
 export function useSyncStatusInfo() {
-  const { syncStatus } = useStravaSync()
-  return formatSyncStatusInfo(syncStatus)
-} 
+  const { syncStatus } = useStravaSync();
+  return formatSyncStatusInfo(syncStatus);
+}

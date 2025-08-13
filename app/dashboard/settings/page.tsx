@@ -1,17 +1,17 @@
-import { requireAuth } from '@/lib/auth/server'
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
-import { StravaConnectionStatus } from '@/components/strava/StravaConnectionStatus'
-import SyncDashboard from '@/components/dashboard/SyncDashboard'
-import UnitPreferences from '@/components/settings/UnitPreferences'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { User, Settings2, MapPin } from 'lucide-react'
-import { ProfileSettings } from '@/components/settings/ProfileSettings'
+import { requireAuth } from '@/lib/auth/server';
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import { StravaConnectionStatus } from '@/components/strava/StravaConnectionStatus';
+import SyncDashboard from '@/components/dashboard/SyncDashboard';
+import UnitPreferences from '@/components/settings/UnitPreferences';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Suspense } from 'react';
+import Link from 'next/link';
+import { User, Settings2, MapPin } from 'lucide-react';
+import { ProfileSettings } from '@/components/settings/ProfileSettings';
 
 export default async function SettingsPage() {
-  const user = await requireAuth()
+  const user = await requireAuth();
 
   return (
     <DashboardLayout user={user}>
@@ -24,7 +24,7 @@ export default async function SettingsPage() {
               Manage your account settings and integrations.
             </p>
           </div>
-          
+
           {/* User Info Section */}
           <div className="text-right space-y-1">
             <div className="text-sm">
@@ -35,14 +35,16 @@ export default async function SettingsPage() {
               </span>
             </div>
             <div className="text-xs text-muted-foreground">
-              Member since {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
+              Member since{' '}
+              {user.created_at
+                ? new Date(user.created_at).toLocaleDateString()
+                : 'Unknown'}
             </div>
           </div>
         </div>
 
         {/* Main Content Grid - More compact layout */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          
           <div className="xl:col-span-2 space-y-6">
             {/* Profile Settings - Full width */}
             <Suspense fallback={<ProfileSkeleton />}>
@@ -98,7 +100,8 @@ export default async function SettingsPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Manage location preferences for weather data and recommendations.
+                    Manage location preferences for weather data and
+                    recommendations.
                   </p>
                   <div className="text-xs text-muted-foreground space-y-1">
                     <div>• Save multiple locations (Home, Work, Gym)</div>
@@ -125,7 +128,7 @@ export default async function SettingsPage() {
         </div>
       </div>
     </DashboardLayout>
-  )
+  );
 }
 
 function IntegrationSkeleton() {
@@ -141,7 +144,7 @@ function IntegrationSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function UnitPreferencesSkeleton() {
@@ -157,7 +160,7 @@ function UnitPreferencesSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function SyncSkeleton() {
@@ -173,8 +176,8 @@ function SyncSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}
 
 function ProfileSkeleton() {
   return (
@@ -195,5 +198,5 @@ function ProfileSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

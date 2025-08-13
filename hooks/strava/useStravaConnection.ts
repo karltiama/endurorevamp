@@ -41,7 +41,7 @@ export function useStravaConnection(): UseStravaConnectionReturn {
     queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id],
     queryFn: async () => {
       if (!user) return null;
-      
+
       const stravaAuth = new StravaAuth(false);
       return await stravaAuth.getConnectionStatus(user.id);
     },
@@ -53,8 +53,8 @@ export function useStravaConnection(): UseStravaConnectionReturn {
   });
 
   const refreshStatus = useCallback(async () => {
-    await queryClient.invalidateQueries({ 
-      queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id] 
+    await queryClient.invalidateQueries({
+      queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id],
     });
     await refetch();
   }, [queryClient, user?.id, refetch]);
@@ -65,27 +65,29 @@ export function useStravaConnection(): UseStravaConnectionReturn {
     try {
       const stravaAuth = new StravaAuth(false);
       await stravaAuth.disconnectUser(user.id);
-      
+
       // Immediately update the cache to reflect disconnection
-      queryClient.setQueryData(
-        [STRAVA_CONNECTION_QUERY_KEY, user.id], 
-        { connected: false }
-      );
-      
+      queryClient.setQueryData([STRAVA_CONNECTION_QUERY_KEY, user.id], {
+        connected: false,
+      });
+
       // Also invalidate to force a fresh fetch
-      await queryClient.invalidateQueries({ 
-        queryKey: [STRAVA_CONNECTION_QUERY_KEY, user.id] 
+      await queryClient.invalidateQueries({
+        queryKey: [STRAVA_CONNECTION_QUERY_KEY, user.id],
       });
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to disconnect';
+      const errorMsg =
+        err instanceof Error ? err.message : 'Failed to disconnect';
       console.error('Error disconnecting from Strava:', err);
       throw new Error(errorMsg);
     }
   }, [user, queryClient]);
 
-  const error = queryError ? 
-    (queryError instanceof Error ? queryError.message : 'Failed to check connection status') : 
-    null;
+  const error = queryError
+    ? queryError instanceof Error
+      ? queryError.message
+      : 'Failed to check connection status'
+    : null;
 
   return {
     connectionStatus: connectionStatus || null,
@@ -97,4 +99,4 @@ export function useStravaConnection(): UseStravaConnectionReturn {
 }
 
 // Export the query key for use in other hooks
-export { STRAVA_CONNECTION_QUERY_KEY }; 
+export { STRAVA_CONNECTION_QUERY_KEY };

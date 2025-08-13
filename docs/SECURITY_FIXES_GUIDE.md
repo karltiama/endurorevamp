@@ -7,16 +7,19 @@ This guide addresses the RLS (Row Level Security) and function security issues t
 ## 🚨 Security Issues Identified
 
 ### 1. **Function Search Path Mutable Vulnerabilities**
+
 - **Issue**: SQL functions without `SECURITY DEFINER` and fixed `search_path`
 - **Risk**: Potential for search path manipulation attacks
 - **Functions Affected**: `update_updated_at_column`, `calculate_weekly_metrics`, `calculate_pace_from_speed`, `extract_time_components`
 
 ### 2. **Incomplete RLS Policies**
+
 - **Issue**: Some tables had RLS enabled but missing comprehensive policies
 - **Risk**: Data access control gaps
 - **Tables Affected**: All main tables needed policy updates
 
 ### 3. **Table Accessibility Issues**
+
 - **Issue**: Some tables existed but weren't accessible due to RLS configuration
 - **Risk**: Application functionality breaks
 - **Tables Affected**: `athlete_profiles`, `sync_state`, goal-related tables
@@ -47,6 +50,7 @@ This guide addresses the RLS (Row Level Security) and function security issues t
 3. **Execute and review results**
 
 Expected output:
+
 ```
 ✅ SECURED - All functions should show as secured
 ✅ RLS_ENABLED - All tables should have RLS enabled
@@ -58,6 +62,7 @@ Expected output:
 ### Function Security Fixes
 
 **Before:**
+
 ```sql
 -- Vulnerable function
 CREATE FUNCTION update_updated_at_column()
@@ -70,6 +75,7 @@ $$ LANGUAGE plpgsql;
 ```
 
 **After:**
+
 ```sql
 -- Secured function
 CREATE FUNCTION update_updated_at_column()
@@ -88,6 +94,7 @@ $$;
 ### RLS Policy Updates
 
 **Before:**
+
 ```sql
 -- Generic policy
 CREATE POLICY "Users can access own data" ON activities
@@ -95,6 +102,7 @@ CREATE POLICY "Users can access own data" ON activities
 ```
 
 **After:**
+
 ```sql
 -- Specific policies for each operation
 CREATE POLICY "activities_select_policy" ON activities
@@ -124,7 +132,9 @@ After applying the fixes, verify:
 ## 🔄 Ongoing Security Maintenance
 
 ### 1. **New Functions**
+
 When creating new functions, always include:
+
 ```sql
 CREATE FUNCTION your_function()
 RETURNS ...
@@ -137,7 +147,9 @@ $$;
 ```
 
 ### 2. **New Tables**
+
 When creating new tables, always:
+
 ```sql
 -- Enable RLS
 ALTER TABLE your_table ENABLE ROW LEVEL SECURITY;
@@ -149,6 +161,7 @@ CREATE POLICY "your_table_select_policy" ON your_table
 ```
 
 ### 3. **Regular Security Audits**
+
 - Run `sql/test-security-fixes.sql` monthly
 - Check Supabase security warnings regularly
 - Monitor for new security best practices
@@ -164,12 +177,14 @@ These security fixes have **minimal performance impact**:
 ## 🎯 What This Fixes in Your App
 
 ### Before the Fix:
+
 - ⚠️ Supabase security warnings
 - ⚠️ Some tables inaccessible
 - ⚠️ Potential data leakage between users
 - ⚠️ Function vulnerabilities
 
 ### After the Fix:
+
 - ✅ No security warnings
 - ✅ All tables accessible
 - ✅ Users can only see their own data
@@ -179,16 +194,21 @@ These security fixes have **minimal performance impact**:
 ## 🔧 Troubleshooting
 
 ### Issue: "Function does not exist"
+
 **Solution**: Some functions might not exist yet. The script uses `CREATE OR REPLACE` so it's safe to run.
 
 ### Issue: "Policy already exists"
+
 **Solution**: The script drops existing policies first, then recreates them.
 
 ### Issue: "Table does not exist"
+
 **Solution**: The script creates missing tables with `IF NOT EXISTS`.
 
 ### Issue: App stops working after fixes
-**Solution**: 
+
+**Solution**:
+
 1. Check your authentication is working
 2. Verify `auth.uid()` is not null in your app
 3. Run the verification script to see what's wrong
@@ -205,9 +225,10 @@ If you encounter issues:
 ## 🎉 Success!
 
 After applying these fixes, your Supabase database will be:
+
 - **Secure** - No more security warnings
 - **Performant** - Optimized for your app
 - **Maintainable** - Clear policies and documentation
 - **Production-ready** - Enterprise-grade security
 
-Your Next.js app with Strava integration is now ready for production with proper security measures in place! 
+Your Next.js app with Strava integration is now ready for production with proper security measures in place!

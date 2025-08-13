@@ -2,12 +2,20 @@ import { Metadata } from 'next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText, AlertTriangle, Shield, Users, Activity } from 'lucide-react';
+import {
+  ArrowLeft,
+  FileText,
+  AlertTriangle,
+  Shield,
+  Users,
+  Activity,
+} from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Terms of Service - EnduroRevamp',
-  description: 'Terms and conditions for using EnduroRevamp fitness application and services.',
+  description:
+    'Terms and conditions for using EnduroRevamp fitness application and services.',
 };
 
 export default function TermsOfServicePage() {
@@ -20,12 +28,14 @@ export default function TermsOfServicePage() {
             Back to App
           </Button>
         </Link>
-        
+
         <div className="flex items-center space-x-3 mb-4">
           <FileText className="w-8 h-8 text-blue-600" />
           <h1 className="text-3xl font-bold text-gray-900">Terms of Service</h1>
         </div>
-        <p className="text-gray-600">Last updated: {new Date().toLocaleDateString()}</p>
+        <p className="text-gray-600">
+          Last updated: {new Date().toLocaleDateString()}
+        </p>
       </div>
 
       <div className="space-y-6">
@@ -39,10 +49,15 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p>
-                             By accessing and using EnduroRevamp (&quot;the Service&quot;), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+              By accessing and using EnduroRevamp (&quot;the Service&quot;), you
+              accept and agree to be bound by the terms and provision of this
+              agreement. If you do not agree to abide by the above, please do
+              not use this service.
             </p>
             <p>
-                             These Terms of Service (&quot;Terms&quot;) govern your use of our website and services. Please read these Terms carefully, and contact us if you have any questions.
+              These Terms of Service (&quot;Terms&quot;) govern your use of our
+              website and services. Please read these Terms carefully, and
+              contact us if you have any questions.
             </p>
           </CardContent>
         </Card>
@@ -56,9 +71,7 @@ export default function TermsOfServicePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p>
-              EnduroRevamp is a fitness application that provides:
-            </p>
+            <p>EnduroRevamp is a fitness application that provides:</p>
             <ul className="list-disc list-inside space-y-2 text-gray-600">
               <li>Fitness activity tracking and analysis</li>
               <li>Training load calculation and recovery monitoring</li>
@@ -83,13 +96,16 @@ export default function TermsOfServicePage() {
             <div>
               <h3 className="font-semibold mb-2">Account Creation</h3>
               <p className="text-gray-600 mb-2">
-                To use certain features of the Service, you must create an account. You agree to:
+                To use certain features of the Service, you must create an
+                account. You agree to:
               </p>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
                 <li>Provide accurate and complete information</li>
                 <li>Maintain the security of your account credentials</li>
                 <li>Notify us immediately of any unauthorized use</li>
-                <li>Accept responsibility for all activities under your account</li>
+                <li>
+                  Accept responsibility for all activities under your account
+                </li>
               </ul>
             </div>
 
@@ -118,14 +134,28 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h3 className="font-semibold mb-2">You agree to use the Service only for lawful purposes and in accordance with these Terms. You agree not to:</h3>
+              <h3 className="font-semibold mb-2">
+                You agree to use the Service only for lawful purposes and in
+                accordance with these Terms. You agree not to:
+              </h3>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
-                <li>Use the Service in any way that violates applicable laws or regulations</li>
-                <li>Attempt to gain unauthorized access to the Service or its systems</li>
+                <li>
+                  Use the Service in any way that violates applicable laws or
+                  regulations
+                </li>
+                <li>
+                  Attempt to gain unauthorized access to the Service or its
+                  systems
+                </li>
                 <li>Interfere with or disrupt the Service or servers</li>
-                <li>Use the Service to transmit harmful, offensive, or inappropriate content</li>
+                <li>
+                  Use the Service to transmit harmful, offensive, or
+                  inappropriate content
+                </li>
                 <li>Reverse engineer, decompile, or disassemble the Service</li>
-                <li>Use automated systems to access the Service without permission</li>
+                <li>
+                  Use automated systems to access the Service without permission
+                </li>
                 <li>Share your account credentials with others</li>
               </ul>
             </div>
@@ -144,20 +174,30 @@ export default function TermsOfServicePage() {
             <div>
               <h3 className="font-semibold mb-2">Strava Integration</h3>
               <p className="text-gray-600 mb-2">
-                Our Service integrates with Strava. By connecting your Strava account:
+                Our Service integrates with Strava. By connecting your Strava
+                account:
               </p>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
-                <li>You agree to Strava&apos;s Terms of Service and Privacy Policy</li>
+                <li>
+                  You agree to Strava&apos;s Terms of Service and Privacy Policy
+                </li>
                 <li>You authorize us to access your Strava data</li>
-                <li>You can revoke access at any time through Strava settings</li>
-                <li>We are not responsible for Strava&apos;s services or data accuracy</li>
+                <li>
+                  You can revoke access at any time through Strava settings
+                </li>
+                <li>
+                  We are not responsible for Strava&apos;s services or data
+                  accuracy
+                </li>
               </ul>
             </div>
 
             <div>
               <h3 className="font-semibold mb-2">Weather Services</h3>
               <p className="text-gray-600 mb-2">
-                We use third-party weather services to provide location-based recommendations. These services have their own terms and privacy policies.
+                We use third-party weather services to provide location-based
+                recommendations. These services have their own terms and privacy
+                policies.
               </p>
             </div>
           </CardContent>
@@ -173,14 +213,20 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h3 className="font-semibold mb-2">Fitness and Health Disclaimer</h3>
+              <h3 className="font-semibold mb-2">
+                Fitness and Health Disclaimer
+              </h3>
               <p className="text-gray-600 mb-2">
-                The Service provides fitness information and recommendations, but:
+                The Service provides fitness information and recommendations,
+                but:
               </p>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
                 <li>We are not medical professionals</li>
                 <li>Information is for educational purposes only</li>
-                <li>Consult healthcare providers before starting new fitness programs</li>
+                <li>
+                  Consult healthcare providers before starting new fitness
+                  programs
+                </li>
                 <li>You are responsible for your own health and safety</li>
                 <li>We are not liable for injuries or health issues</li>
               </ul>
@@ -192,10 +238,14 @@ export default function TermsOfServicePage() {
                 We strive to provide reliable service, but:
               </p>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
-                <li>The Service is provided &quot;as is&quot; without warranties</li>
+                <li>
+                  The Service is provided &quot;as is&quot; without warranties
+                </li>
                 <li>We may modify or discontinue features at any time</li>
                 <li>Service may be temporarily unavailable for maintenance</li>
-                <li>We are not responsible for data loss or service interruptions</li>
+                <li>
+                  We are not responsible for data loss or service interruptions
+                </li>
               </ul>
             </div>
           </CardContent>
@@ -208,10 +258,15 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-gray-600">
-              The Service and its original content, features, and functionality are owned by EnduroRevamp and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.
+              The Service and its original content, features, and functionality
+              are owned by EnduroRevamp and are protected by international
+              copyright, trademark, patent, trade secret, and other intellectual
+              property laws.
             </p>
             <p className="text-gray-600">
-              You retain ownership of your personal data and content. By using the Service, you grant us a limited license to use your data to provide the Service.
+              You retain ownership of your personal data and content. By using
+              the Service, you grant us a limited license to use your data to
+              provide the Service.
             </p>
           </CardContent>
         </Card>
@@ -227,7 +282,8 @@ export default function TermsOfServicePage() {
               <Link href="/privacy" className="text-blue-600 hover:underline">
                 Privacy Policy
               </Link>
-              , which also governs your use of the Service, to understand our practices.
+              , which also governs your use of the Service, to understand our
+              practices.
             </p>
           </CardContent>
         </Card>
@@ -239,7 +295,12 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-600">
-              In no event shall EnduroRevamp, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your use of the Service.
+              In no event shall EnduroRevamp, nor its directors, employees,
+              partners, agents, suppliers, or affiliates, be liable for any
+              indirect, incidental, special, consequential, or punitive damages,
+              including without limitation, loss of profits, data, use,
+              goodwill, or other intangible losses, resulting from your use of
+              the Service.
             </p>
           </CardContent>
         </Card>
@@ -251,7 +312,10 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-600">
-              These Terms shall be interpreted and governed by the laws of [Your Jurisdiction], without regard to its conflict of law provisions. Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights.
+              These Terms shall be interpreted and governed by the laws of [Your
+              Jurisdiction], without regard to its conflict of law provisions.
+              Our failure to enforce any right or provision of these Terms will
+              not be considered a waiver of those rights.
             </p>
           </CardContent>
         </Card>
@@ -263,7 +327,11 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-600">
-              We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion.
+              We reserve the right, at our sole discretion, to modify or replace
+              these Terms at any time. If a revision is material, we will try to
+              provide at least 30 days notice prior to any new terms taking
+              effect. What constitutes a material change will be determined at
+              our sole discretion.
             </p>
           </CardContent>
         </Card>
@@ -275,21 +343,29 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-gray-600">
-              If you have any questions about these Terms of Service, please contact us:
+              If you have any questions about these Terms of Service, please
+              contact us:
             </p>
             <div className="space-y-2">
-              <p><strong>Email:</strong> legal@endurorevamp.com</p>
-              <p><strong>Support:</strong> Use the in-app support feature</p>
+              <p>
+                <strong>Email:</strong> legal@endurorevamp.com
+              </p>
+              <p>
+                <strong>Support:</strong> Use the in-app support feature
+              </p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <Separator className="my-8" />
-      
+
       <div className="text-center text-sm text-gray-500">
-        <p>These terms of service are effective as of {new Date().toLocaleDateString()}</p>
+        <p>
+          These terms of service are effective as of{' '}
+          {new Date().toLocaleDateString()}
+        </p>
       </div>
     </div>
   );
-} 
+}

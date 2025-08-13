@@ -23,6 +23,7 @@
 ### 1. **Extracted Skeleton Components**
 
 **Before:**
+
 ```typescript
 // Inline skeletons in dashboard page (lines 58-134)
 function TrainingReadinessSkeleton() {
@@ -38,6 +39,7 @@ function TrainingReadinessSkeleton() {
 ```
 
 **After:**
+
 ```typescript
 // Separate file: components/dashboard/DashboardSkeletons.tsx
 export function TrainingReadinessSkeleton() {
@@ -56,6 +58,7 @@ export function TrainingReadinessSkeleton() {
 ```
 
 **Benefits:**
+
 - ✅ **Reusable**: Can be imported anywhere
 - ✅ **Consistent**: Uses design system tokens (`bg-muted`, `Card` component)
 - ✅ **Maintainable**: Centralized skeleton styling
@@ -64,6 +67,7 @@ export function TrainingReadinessSkeleton() {
 ### 2. **Added Error Boundaries**
 
 **Before:**
+
 ```typescript
 <Suspense fallback={<TrainingReadinessSkeleton />}>
   <TrainingReadinessCard userId={user.id} />
@@ -71,6 +75,7 @@ export function TrainingReadinessSkeleton() {
 ```
 
 **After:**
+
 ```typescript
 <ErrorBoundary fallback={TrainingReadinessErrorFallback}>
   <Suspense fallback={<TrainingReadinessSkeleton />}>
@@ -80,6 +85,7 @@ export function TrainingReadinessSkeleton() {
 ```
 
 **Benefits:**
+
 - ✅ **Error Isolation**: One component failure doesn't break the entire dashboard
 - ✅ **Graceful Degradation**: Shows skeleton instead of crashing
 - ✅ **Better UX**: Users see loading states instead of error screens
@@ -88,6 +94,7 @@ export function TrainingReadinessSkeleton() {
 ### 3. **Improved Design System Integration**
 
 **Before:**
+
 ```typescript
 <div className="bg-white rounded-lg shadow p-6">
   <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
@@ -95,6 +102,7 @@ export function TrainingReadinessSkeleton() {
 ```
 
 **After:**
+
 ```typescript
 <Card>
   <CardContent className="p-6">
@@ -104,6 +112,7 @@ export function TrainingReadinessSkeleton() {
 ```
 
 **Benefits:**
+
 - ✅ **Consistent**: Uses your design system components
 - ✅ **Themeable**: Works with dark/light mode
 - ✅ **Maintainable**: Changes to Card component apply everywhere
@@ -120,7 +129,7 @@ export default async function DashboardPage() {
       {/* OAuth Handlers */}
       <StravaOAuthHandler />
       <DashboardOnboardingHandler />
-      
+
       <div className="space-y-6">
         {/* Header */}
         <div>
@@ -174,31 +183,37 @@ export default async function DashboardPage() {
 ## Best Practices Checklist
 
 ### ✅ **Server-Side Rendering**
+
 - [x] Server component with async data fetching
 - [x] Authentication check before rendering
 - [x] Proper error handling for auth failures
 
 ### ✅ **Loading States**
+
 - [x] Suspense boundaries for each major section
 - [x] Custom skeleton components that match actual content
 - [x] Consistent loading patterns across components
 
 ### ✅ **Error Handling**
+
 - [x] Error boundaries around each major section
 - [x] Graceful fallbacks that don't break the UI
 - [x] Error reporting in development mode
 
 ### ✅ **Component Organization**
+
 - [x] Extracted reusable skeleton components
 - [x] Clean separation of concerns
 - [x] Consistent prop patterns
 
 ### ✅ **Design System Integration**
+
 - [x] Uses design system components (`Card`, `CardContent`)
 - [x] Uses design tokens (`bg-muted`, `text-muted-foreground`)
 - [x] Consistent spacing and styling
 
 ### ✅ **Performance**
+
 - [x] Lazy loading with Suspense
 - [x] Isolated error boundaries prevent cascading failures
 - [x] Efficient re-renders with proper component boundaries
@@ -206,6 +221,7 @@ export default async function DashboardPage() {
 ## Next Steps for Further Improvement
 
 1. **Add Loading States for OAuth Handlers**
+
    ```typescript
    <Suspense fallback={<OAuthHandlerSkeleton />}>
      <StravaOAuthHandler />
@@ -213,6 +229,7 @@ export default async function DashboardPage() {
    ```
 
 2. **Add Retry Functionality**
+
    ```typescript
    function TrainingReadinessErrorFallback({ error, retry }: { error: Error; retry: () => void }) {
      return (
@@ -225,6 +242,7 @@ export default async function DashboardPage() {
    ```
 
 3. **Add Analytics for Error Tracking**
+
    ```typescript
    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
      // Send to analytics service
@@ -242,10 +260,11 @@ export default async function DashboardPage() {
 ## Summary
 
 The dashboard now follows React and Next.js best practices with:
+
 - **Robust error handling** with isolated error boundaries
 - **Consistent loading states** with reusable skeleton components
 - **Clean component organization** with proper separation of concerns
 - **Design system integration** using consistent tokens and components
 - **Performance optimizations** with proper Suspense boundaries
 
-This creates a more maintainable, user-friendly, and robust dashboard experience! 🚀 
+This creates a more maintainable, user-friendly, and robust dashboard experience! 🚀

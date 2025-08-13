@@ -32,16 +32,17 @@ export default function TestSyncStrategyPage() {
             <Alert>
               <Zap className="h-4 w-4" />
               <AlertDescription>
-                <strong>Quick Sync:</strong> Fetches your 50 most recent activities. 
-                Perfect for daily use and keeping your data fresh.
+                <strong>Quick Sync:</strong> Fetches your 50 most recent
+                activities. Perfect for daily use and keeping your data fresh.
               </AlertDescription>
             </Alert>
-            
+
             <Alert>
               <Database className="h-4 w-4" />
               <AlertDescription>
-                <strong>Full Sync:</strong> Downloads your entire activity history using pagination. 
-                Use this for initial setup or when you want all your data.
+                <strong>Full Sync:</strong> Downloads your entire activity
+                history using pagination. Use this for initial setup or when you
+                want all your data.
               </AlertDescription>
             </Alert>
           </div>
@@ -60,7 +61,8 @@ export default function TestSyncStrategyPage() {
           <CardContent>
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Sync your 50 most recent activities. Fast and efficient for regular use.
+                Sync your 50 most recent activities. Fast and efficient for
+                regular use.
               </p>
               <SyncButton />
             </div>
@@ -77,7 +79,8 @@ export default function TestSyncStrategyPage() {
           <CardContent>
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Download your complete activity history. This may take several minutes.
+                Download your complete activity history. This may take several
+                minutes.
               </p>
               <FullSyncButton />
             </div>
@@ -97,21 +100,31 @@ export default function TestSyncStrategyPage() {
               <div>{statusInfo.lastSyncText}</div>
             </div>
             <div>
-              <div className="font-medium text-muted-foreground">Activities</div>
+              <div className="font-medium text-muted-foreground">
+                Activities
+              </div>
               <div>{statusInfo.activityCount}</div>
             </div>
             <div>
-              <div className="font-medium text-muted-foreground">Today&apos;s Syncs</div>
-              <div>{statusInfo.todaySyncs} / {statusInfo.maxSyncs}</div>
+              <div className="font-medium text-muted-foreground">
+                Today&apos;s Syncs
+              </div>
+              <div>
+                {statusInfo.todaySyncs} / {statusInfo.maxSyncs}
+              </div>
             </div>
             <div>
               <div className="font-medium text-muted-foreground">Status</div>
-              <div className={statusInfo.canSync ? 'text-green-600' : 'text-red-600'}>
+              <div
+                className={
+                  statusInfo.canSync ? 'text-green-600' : 'text-red-600'
+                }
+              >
                 {statusInfo.canSync ? 'Ready' : 'Unavailable'}
               </div>
             </div>
           </div>
-          
+
           {statusInfo.syncDisabledReason && (
             <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-amber-800">
               <strong>Note:</strong> {statusInfo.syncDisabledReason}
@@ -121,4 +134,4 @@ export default function TestSyncStrategyPage() {
       </Card>
     </div>
   );
-} 
+}

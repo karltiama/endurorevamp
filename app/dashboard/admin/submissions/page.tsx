@@ -11,10 +11,13 @@ export const dynamic = 'force-dynamic';
 export default async function AdminSubmissionsPage() {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       redirect('/auth/login?message=Please log in to access admin features');
     }
@@ -30,7 +33,7 @@ export default async function AdminSubmissionsPage() {
       redirect('/dashboard?message=Access denied. Admin privileges required.');
     }
 
-      return (
+    return (
       <div className="p-6 max-w-7xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Form Submissions</h1>
@@ -54,7 +57,7 @@ function SubmissionsSkeleton() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[1, 2, 3].map((i) => (
+        {[1, 2, 3].map(i => (
           <Card key={i}>
             <CardContent className="p-6">
               <Skeleton className="h-8 w-16 mb-2" />
@@ -64,7 +67,7 @@ function SubmissionsSkeleton() {
         ))}
       </div>
       <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
+        {[1, 2, 3].map(i => (
           <Card key={i}>
             <CardContent className="p-6">
               <Skeleton className="h-6 w-48 mb-2" />
@@ -76,4 +79,4 @@ function SubmissionsSkeleton() {
       </div>
     </div>
   );
-} 
+}

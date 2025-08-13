@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react'
-import { HistoricalTrends } from '@/components/analytics/HistoricalTrends'
-import { Activity } from '@/lib/strava/types'
+import { render, screen } from '@testing-library/react';
+import { HistoricalTrends } from '@/components/analytics/HistoricalTrends';
+import { Activity } from '@/lib/strava/types';
 
 // Mock the useUnitPreferences hook
 jest.mock('@/hooks/useUnitPreferences', () => ({
@@ -8,10 +8,10 @@ jest.mock('@/hooks/useUnitPreferences', () => ({
     preferences: {
       distance: 'km',
       weight: 'kg',
-      temperature: 'celsius'
-    }
-  })
-}))
+      temperature: 'celsius',
+    },
+  }),
+}));
 
 const mockActivities: Activity[] = [
   {
@@ -32,7 +32,7 @@ const mockActivities: Activity[] = [
     average_heartrate: 150,
     max_heartrate: 170,
     average_watts: 200,
-    max_watts: 250
+    max_watts: 250,
   },
   {
     id: '2',
@@ -52,7 +52,7 @@ const mockActivities: Activity[] = [
     average_heartrate: 140,
     max_heartrate: 160,
     average_watts: 180,
-    max_watts: 300
+    max_watts: 300,
   },
   {
     id: '3',
@@ -72,33 +72,41 @@ const mockActivities: Activity[] = [
     average_heartrate: 155,
     max_heartrate: 175,
     average_watts: 220,
-    max_watts: 280
-  }
-]
+    max_watts: 280,
+  },
+];
 
 describe('HistoricalTrends', () => {
   it('renders empty state when no activities provided', () => {
-    render(<HistoricalTrends activities={[]} />)
-    
-    expect(screen.getByText('Historical Trends')).toBeInTheDocument()
-    expect(screen.getByText('No activities found to analyze trends')).toBeInTheDocument()
-    expect(screen.getByText('Sync your activities from Strava to see your progress')).toBeInTheDocument()
-  })
+    render(<HistoricalTrends activities={[]} />);
+
+    expect(screen.getByText('Historical Trends')).toBeInTheDocument();
+    expect(
+      screen.getByText('No activities found to analyze trends')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Sync your activities from Strava to see your progress')
+    ).toBeInTheDocument();
+  });
 
   it('renders trends when activities are provided', () => {
-    render(<HistoricalTrends activities={mockActivities} />)
-    
-    expect(screen.getByText('Historical Trends')).toBeInTheDocument()
-    expect(screen.getByText('Track your performance over time with interactive charts')).toBeInTheDocument()
-  })
+    render(<HistoricalTrends activities={mockActivities} />);
+
+    expect(screen.getByText('Historical Trends')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Track your performance over time with interactive charts'
+      )
+    ).toBeInTheDocument();
+  });
 
   it('displays chart container when data is available', () => {
-    render(<HistoricalTrends activities={mockActivities} />)
-    
+    render(<HistoricalTrends activities={mockActivities} />);
+
     // The chart should be rendered
-    const chartContainer = document.querySelector('.h-80')
-    expect(chartContainer).toBeInTheDocument()
-  })
+    const chartContainer = document.querySelector('.h-80');
+    expect(chartContainer).toBeInTheDocument();
+  });
 
   it('handles activities with missing data gracefully', () => {
     const incompleteActivities: Activity[] = [
@@ -114,20 +122,24 @@ describe('HistoricalTrends', () => {
         distance: 0, // No distance
         moving_time: 0, // No time
         elapsed_time: 0,
-        total_elevation_gain: 0
-      }
-    ]
+        total_elevation_gain: 0,
+      },
+    ];
 
-    render(<HistoricalTrends activities={incompleteActivities} />)
-    
+    render(<HistoricalTrends activities={incompleteActivities} />);
+
     // Should show the component structure but with empty chart
-    expect(screen.getByText('Historical Trends')).toBeInTheDocument()
-    expect(screen.getByText('Track your performance over time with interactive charts')).toBeInTheDocument()
-    
+    expect(screen.getByText('Historical Trends')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Track your performance over time with interactive charts'
+      )
+    ).toBeInTheDocument();
+
     // Chart container should still be present
-    const chartContainer = document.querySelector('.h-80')
-    expect(chartContainer).toBeInTheDocument()
-  })
+    const chartContainer = document.querySelector('.h-80');
+    expect(chartContainer).toBeInTheDocument();
+  });
 
   it('filters out activities with invalid data', () => {
     const mixedActivities: Activity[] = [
@@ -144,13 +156,13 @@ describe('HistoricalTrends', () => {
         distance: 0, // Invalid
         moving_time: 0, // Invalid
         elapsed_time: 0,
-        total_elevation_gain: 0
-      }
-    ]
+        total_elevation_gain: 0,
+      },
+    ];
 
-    render(<HistoricalTrends activities={mixedActivities} />)
-    
+    render(<HistoricalTrends activities={mixedActivities} />);
+
     // Should still show the chart and controls since we have valid activities
-    expect(screen.getByText('Historical Trends')).toBeInTheDocument()
-  })
-}) 
+    expect(screen.getByText('Historical Trends')).toBeInTheDocument();
+  });
+});

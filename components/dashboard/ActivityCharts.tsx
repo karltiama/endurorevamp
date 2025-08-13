@@ -1,9 +1,15 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Activity } from '@/lib/strava/types'
-import { useMemo } from 'react'
-import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { convertDistance, getDistanceUnit } from '@/lib/utils'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Activity } from '@/lib/strava/types';
+import { useMemo } from 'react';
+import { useUnitPreferences } from '@/hooks/useUnitPreferences';
+import { convertDistance, getDistanceUnit } from '@/lib/utils';
 import {
   Bar,
   ResponsiveContainer,
@@ -16,84 +22,95 @@ import {
   Cell,
   ComposedChart,
   Line,
-} from 'recharts'
-import { ActivityContributionCalendar } from './ActivityContributionCalendar'
-import { Button } from '@/components/ui/button'
-import { Settings, Activity as ActivityIcon } from 'lucide-react'
-import Link from 'next/link'
+} from 'recharts';
+import { ActivityContributionCalendar } from './ActivityContributionCalendar';
+import { Button } from '@/components/ui/button';
+import { Settings, Activity as ActivityIcon } from 'lucide-react';
+import Link from 'next/link';
 
 interface ActivityChartsProps {
-  activities: Activity[]
+  activities: Activity[];
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8']
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export function ActivityCharts({ activities }: ActivityChartsProps) {
-  const { preferences } = useUnitPreferences()
-  
-  const weeklyData = useMemo(() => {
-    if (!activities) return []
+  const { preferences } = useUnitPreferences();
 
-    const currentDate = new Date()
-    const weeks = []
-    
+  const weeklyData = useMemo(() => {
+    if (!activities) return [];
+
+    const currentDate = new Date();
+    const weeks = [];
+
     // Generate last 16 weeks
     for (let i = 15; i >= 0; i--) {
-      const weekStart = new Date(currentDate)
-      weekStart.setDate(currentDate.getDate() - (currentDate.getDay() + 7 * i))
-      weekStart.setHours(0, 0, 0, 0)
-      
-      const weekEnd = new Date(weekStart)
-      weekEnd.setDate(weekStart.getDate() + 6)
-      weekEnd.setHours(23, 59, 59, 999)
-      
-      let weeklyDistance = 0
-      let weeklyCount = 0
-      
+      const weekStart = new Date(currentDate);
+      weekStart.setDate(currentDate.getDate() - (currentDate.getDay() + 7 * i));
+      weekStart.setHours(0, 0, 0, 0);
+
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+
+      let weeklyDistance = 0;
+      let weeklyCount = 0;
+
       activities.forEach((activity: Activity) => {
-        const activityDate = new Date(activity.start_date)
+        const activityDate = new Date(activity.start_date);
         if (activityDate >= weekStart && activityDate <= weekEnd) {
-          weeklyDistance += activity.distance
-          weeklyCount++
+          weeklyDistance += activity.distance;
+          weeklyCount++;
         }
-      })
-      
+      });
+
       weeks.push({
         week: `Week ${16 - i}`,
-        weekStart: weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        weekEnd: weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        distance: Math.round(convertDistance(weeklyDistance, preferences.distance)),
+        weekStart: weekStart.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        }),
+        weekEnd: weekEnd.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        }),
+        distance: Math.round(
+          convertDistance(weeklyDistance, preferences.distance)
+        ),
         count: weeklyCount,
-        dateRange: `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-      })
+        dateRange: `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+      });
     }
-    
-    return weeks
-  }, [activities, preferences.distance])
+
+    return weeks;
+  }, [activities, preferences.distance]);
 
   const activityTypeData = useMemo(() => {
-    if (!activities) return []
+    if (!activities) return [];
 
-    const typeCounts = activities.reduce((acc, activity) => {
-      const type = activity.sport_type
-      acc[type] = (acc[type] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
+    const typeCounts = activities.reduce(
+      (acc, activity) => {
+        const type = activity.sport_type;
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     return Object.entries(typeCounts).map(([type, count]) => ({
       type,
-      count
-    }))
-  }, [activities])
-  
+      count,
+    }));
+  }, [activities]);
+
   console.log('ActivityCharts: Received activities prop', {
     activitiesCount: activities?.length || 0,
     sampleActivities: activities?.slice(0, 3).map(a => ({
       name: a.name,
       start_date: a.start_date,
-      start_date_local: a.start_date_local
-    }))
-  })
+      start_date_local: a.start_date_local,
+    })),
+  });
 
   // Show empty state if no activities
   if (!activities || activities.length === 0) {
@@ -101,7 +118,9 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
       <Card>
         <CardHeader>
           <CardTitle>Activity Analysis</CardTitle>
-          <CardDescription>View your activity data in different ways</CardDescription>
+          <CardDescription>
+            View your activity data in different ways
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-8 text-center">
@@ -110,10 +129,11 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
               No Activity Data
             </h3>
             <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              To see your activity charts and analytics, you need to sync your activities from Strava. 
-              Don&apos;t see your most recent activities? Make sure to sync in your settings.
+              To see your activity charts and analytics, you need to sync your
+              activities from Strava. Don&apos;t see your most recent
+              activities? Make sure to sync in your settings.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/dashboard/settings">
                 <Button className="bg-blue-600 hover:bg-blue-700">
@@ -122,7 +142,7 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
                 </Button>
               </Link>
             </div>
-            
+
             <div className="mt-4 text-sm text-gray-500">
               <ActivityIcon className="h-4 w-4 inline mr-1" />
               Your activity charts will appear here once synced
@@ -130,14 +150,16 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Activity Analysis</CardTitle>
-        <CardDescription>View your activity data in different ways</CardDescription>
+        <CardDescription>
+          View your activity data in different ways
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="weekly" className="w-full">
@@ -146,14 +168,17 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
             <TabsTrigger value="types">Activity Types</TabsTrigger>
             <TabsTrigger value="frequency">Activity Frequency</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="weekly" className="mt-4">
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={weeklyData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis 
-                    dataKey="week" 
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-muted"
+                  />
+                  <XAxis
+                    dataKey="week"
                     stroke="#888888"
                     fontSize={12}
                     tickLine={false}
@@ -165,7 +190,9 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(value) => `${value}${getDistanceUnit(preferences.distance)}`}
+                    tickFormatter={value =>
+                      `${value}${getDistanceUnit(preferences.distance)}`
+                    }
                   />
                   <YAxis
                     yAxisId="right"
@@ -174,12 +201,12 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(value) => `${value}`}
+                    tickFormatter={value => `${value}`}
                   />
                   <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
-                        const data = payload[0].payload
+                        const data = payload[0].payload;
                         return (
                           <div className="rounded-lg border bg-background p-2 shadow-sm">
                             <div className="space-y-2">
@@ -192,7 +219,8 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
                                     Distance
                                   </span>
                                   <span className="font-bold text-muted-foreground">
-                                    {data.distance}{getDistanceUnit(preferences.distance)}
+                                    {data.distance}
+                                    {getDistanceUnit(preferences.distance)}
                                   </span>
                                 </div>
                                 <div className="flex flex-col">
@@ -206,9 +234,9 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
                               </div>
                             </div>
                           </div>
-                        )
+                        );
                       }
-                      return null
+                      return null;
                     }}
                   />
                   <Bar
@@ -242,10 +270,15 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
                     cx="50%"
                     cy="50%"
                     outerRadius={150}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
                   >
                     {activityTypeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip
@@ -262,9 +295,9 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
                               </span>
                             </div>
                           </div>
-                        )
+                        );
                       }
-                      return null
+                      return null;
                     }}
                   />
                 </PieChart>
@@ -278,5 +311,5 @@ export function ActivityCharts({ activities }: ActivityChartsProps) {
         </Tabs>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

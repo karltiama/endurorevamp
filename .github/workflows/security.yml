@@ -3,7 +3,7 @@ name: Security Scan
 on:
   schedule:
     # Run security scans weekly
-    - cron: '0 2 * * 1'  # Every Monday at 2 AM UTC
+    - cron: '0 2 * * 1' # Every Monday at 2 AM UTC
   # Temporarily disabled for push/PR to avoid failures
   # push:
   #   branches: [ main, develop ]
@@ -18,168 +18,168 @@ jobs:
   dependency-scan:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run npm audit
-      run: npm audit --audit-level high || echo "⚠️ Security vulnerabilities found - review recommended"
-      continue-on-error: true
-      
-    - name: Run npm audit (JSON output)
-      run: npm audit --audit-level moderate --json > audit-report.json || echo "{}" > audit-report.json
-      
-    - name: Upload audit report
-      uses: actions/upload-artifact@v4
-      with:
-        name: npm-audit-report
-        path: audit-report.json
-        retention-days: 30
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level high || echo "⚠️ Security vulnerabilities found - review recommended"
+        continue-on-error: true
+
+      - name: Run npm audit (JSON output)
+        run: npm audit --audit-level moderate --json > audit-report.json || echo "{}" > audit-report.json
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: audit-report.json
+          retention-days: 30
 
   code-scan:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    # CodeQL Analysis (GitHub's security scanning)
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: javascript
-        queries: security-extended,security-and-quality
-      continue-on-error: true
-        
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
-      with:
-        category: "/language:javascript"
-      continue-on-error: true
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # CodeQL Analysis (GitHub's security scanning)
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: security-extended,security-and-quality
+        continue-on-error: true
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:javascript'
+        continue-on-error: true
 
   secret-scan:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        
-    - name: Run TruffleHog (secret scanner)
-      run: |
-        # Install TruffleHog if needed
-        pip install truffleHog
-        # Run secret scan
-        truffleHog --only-verified --fail . || echo "Secret scan completed"
-      continue-on-error: true
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog (secret scanner)
+        run: |
+          # Install TruffleHog if needed
+          pip install truffleHog
+          # Run secret scan
+          truffleHog --only-verified --fail . || echo "Secret scan completed"
+        continue-on-error: true
 
   security-summary:
     runs-on: ubuntu-latest
     needs: [dependency-scan, code-scan, secret-scan]
     if: always()
-    
+
     steps:
-    - name: Security Scan Summary
-      run: |
-        echo "🔒 Security Scan Results"
-        echo "======================="
-        
-        if [ "${{ needs.dependency-scan.result }}" == "success" ]; then
-          echo "✅ Dependency Scan: PASSED"
-        else
-          echo "⚠️ Dependency Scan: Issues detected"
-        fi
-        
-        if [ "${{ needs.code-scan.result }}" == "success" ]; then
-          echo "✅ Code Scan: PASSED"
-        else
-          echo "⚠️ Code Scan: Issues detected"
-        fi
-        
-        if [ "${{ needs.secret-scan.result }}" == "success" ]; then
-          echo "✅ Secret Scan: PASSED"
-        else
-          echo "⚠️ Secret Scan: Issues detected"
-        fi
-        
-        echo ""
-        echo "📋 Recommendations:"
-        echo "- Review any detected vulnerabilities"
-        echo "- Update dependencies if needed"
-        echo "- Check for exposed secrets"
-        echo "- Monitor security alerts"
-        
-    - name: Create Security Issue
-      if: |
-        needs.dependency-scan.result == 'failure' ||
-        needs.code-scan.result == 'failure' ||
-        needs.secret-scan.result == 'failure'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const title = `🔒 Security Scan Alert - ${new Date().toISOString().split('T')[0]}`;
-          
-          let body = `## Security Scan Results
-          
-          **Scan Date**: ${new Date().toISOString()}
-          **Trigger**: ${context.eventName}
-          
-          ### Results:
-          - **Dependency Scan**: ${{ needs.dependency-scan.result == 'success' && '✅ PASSED' || '❌ FAILED' }}
-          - **Code Scan**: ${{ needs.code-scan.result == 'success' && '✅ PASSED' || '❌ FAILED' }}
-          - **Secret Scan**: ${{ needs.secret-scan.result == 'success' && '✅ PASSED' || '❌ FAILED' }}
-          
-          ### Next Steps:
-          1. Review the scan logs for details
-          2. Address any detected vulnerabilities
-          3. Update dependencies if needed
-          4. Check for exposed secrets
-          
-          [View Scan Logs](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
-          
-          // Check if issue already exists
-          const { data: issues } = await github.rest.issues.listForRepo({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            state: 'open',
-            labels: ['security', 'automated']
-          });
-          
-          const existingIssue = issues.find(issue => 
-            issue.title.includes('Security Scan Alert') &&
-            issue.title.includes(new Date().toISOString().split('T')[0])
-          );
-          
-          if (!existingIssue) {
-            await github.rest.issues.create({
+      - name: Security Scan Summary
+        run: |
+          echo "🔒 Security Scan Results"
+          echo "======================="
+
+          if [ "${{ needs.dependency-scan.result }}" == "success" ]; then
+            echo "✅ Dependency Scan: PASSED"
+          else
+            echo "⚠️ Dependency Scan: Issues detected"
+          fi
+
+          if [ "${{ needs.code-scan.result }}" == "success" ]; then
+            echo "✅ Code Scan: PASSED"
+          else
+            echo "⚠️ Code Scan: Issues detected"
+          fi
+
+          if [ "${{ needs.secret-scan.result }}" == "success" ]; then
+            echo "✅ Secret Scan: PASSED"
+          else
+            echo "⚠️ Secret Scan: Issues detected"
+          fi
+
+          echo ""
+          echo "📋 Recommendations:"
+          echo "- Review any detected vulnerabilities"
+          echo "- Update dependencies if needed"
+          echo "- Check for exposed secrets"
+          echo "- Monitor security alerts"
+
+      - name: Create Security Issue
+        if: |
+          needs.dependency-scan.result == 'failure' ||
+          needs.code-scan.result == 'failure' ||
+          needs.secret-scan.result == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🔒 Security Scan Alert - ${new Date().toISOString().split('T')[0]}`;
+
+            let body = `## Security Scan Results
+
+            **Scan Date**: ${new Date().toISOString()}
+            **Trigger**: ${context.eventName}
+
+            ### Results:
+            - **Dependency Scan**: ${{ needs.dependency-scan.result == 'success' && '✅ PASSED' || '❌ FAILED' }}
+            - **Code Scan**: ${{ needs.code-scan.result == 'success' && '✅ PASSED' || '❌ FAILED' }}
+            - **Secret Scan**: ${{ needs.secret-scan.result == 'success' && '✅ PASSED' || '❌ FAILED' }}
+
+            ### Next Steps:
+            1. Review the scan logs for details
+            2. Address any detected vulnerabilities
+            3. Update dependencies if needed
+            4. Check for exposed secrets
+
+            [View Scan Logs](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+
+            // Check if issue already exists
+            const { data: issues } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: title,
-              body: body,
-              labels: ['security', 'automated', 'needs-review']
+              state: 'open',
+              labels: ['security', 'automated']
             });
-          } 
+
+            const existingIssue = issues.find(issue => 
+              issue.title.includes('Security Scan Alert') &&
+              issue.title.includes(new Date().toISOString().split('T')[0])
+            );
+
+            if (!existingIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['security', 'automated', 'needs-review']
+              });
+            }

@@ -53,7 +53,9 @@ export default function TestFullSyncPage() {
             <ul className="list-disc list-inside text-muted-foreground space-y-1">
               <li>Fetches ALL activities using pagination</li>
               <li>May take several minutes for users with many activities</li>
-              <li>Respects Strava API rate limits (1 second delay between pages)</li>
+              <li>
+                Respects Strava API rate limits (1 second delay between pages)
+              </li>
               <li>Uses 1 sync from daily limit</li>
               <li>Only adds new activities to database (no duplicates)</li>
             </ul>
@@ -63,7 +65,9 @@ export default function TestFullSyncPage() {
             <h3 className="font-medium">Rate Limits:</h3>
             <ul className="list-disc list-inside text-muted-foreground space-y-1">
               <li>5 syncs per day maximum</li>
-              <li>1 hour cooldown between syncs (if no new activities found)</li>
+              <li>
+                1 hour cooldown between syncs (if no new activities found)
+              </li>
               <li>Strava API: 600 requests per 15 minutes</li>
             </ul>
           </div>
@@ -71,4 +75,4 @@ export default function TestFullSyncPage() {
       </Card>
     </div>
   );
-} 
+}

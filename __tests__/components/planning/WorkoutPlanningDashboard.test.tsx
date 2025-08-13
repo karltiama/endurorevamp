@@ -1,29 +1,29 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { EnhancedWorkoutPlanningDashboard } from '@/components/planning/EnhancedWorkoutPlanningDashboard'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { EnhancedWorkoutPlanningDashboard } from '@/components/planning/EnhancedWorkoutPlanningDashboard';
 
 // Mock the hooks
-const mockUseSynchronizedTodaysWorkout = jest.fn()
-const mockUseWorkoutPlanManager = jest.fn()
-const mockUseWorkoutPlanAnalytics = jest.fn()
+const mockUseSynchronizedTodaysWorkout = jest.fn();
+const mockUseWorkoutPlanManager = jest.fn();
+const mockUseWorkoutPlanAnalytics = jest.fn();
 
 jest.mock('@/hooks/useEnhancedWorkoutPlanning', () => ({
   useSynchronizedTodaysWorkout: () => mockUseSynchronizedTodaysWorkout(),
   useWorkoutPlanManager: () => mockUseWorkoutPlanManager(),
-  useWorkoutPlanAnalytics: () => mockUseWorkoutPlanAnalytics()
-}))
+  useWorkoutPlanAnalytics: () => mockUseWorkoutPlanAnalytics(),
+}));
 
 jest.mock('@/hooks/useUnitPreferences', () => ({
   useUnitPreferences: () => ({
-    preferences: { distance: 'km', pace: 'min/km' }
-  })
-}))
+    preferences: { distance: 'km', pace: 'min/km' },
+  }),
+}));
 
 // Mock fetch for API calls
-global.fetch = jest.fn()
+global.fetch = jest.fn();
 
 describe('EnhancedWorkoutPlanningDashboard', () => {
-  let queryClient: QueryClient
+  let queryClient: QueryClient;
 
   beforeEach(() => {
     queryClient = new QueryClient({
@@ -31,7 +31,7 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
         queries: { retry: false },
         mutations: { retry: false },
       },
-    })
+    });
 
     // Mock workout plan analytics
     mockUseWorkoutPlanAnalytics.mockReturnValue({
@@ -43,19 +43,19 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
       intensityDistribution: { low: 1, moderate: 1, high: 0 },
       sportDistribution: { Run: 2 },
       periodizationPhase: 'base',
-      recommendations: []
-    })
+      recommendations: [],
+    });
 
     // Mock fetch
-    ;(global.fetch as jest.Mock).mockResolvedValue({
+    (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      json: async () => ({ success: true })
-    })
-  })
+      json: async () => ({ success: true }),
+    });
+  });
 
   afterEach(() => {
-    jest.clearAllMocks()
-  })
+    jest.clearAllMocks();
+  });
 
   const mockWorkoutPlan = {
     id: 'test-plan',
@@ -73,7 +73,7 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
         reasoning: 'Easy recovery run',
         instructions: ['Warm up', 'Easy pace', 'Cool down'],
         tips: ['Stay hydrated'],
-        alternatives: []
+        alternatives: [],
       },
       1: null, // Rest day
       2: {
@@ -88,61 +88,61 @@ describe('EnhancedWorkoutPlanningDashboard', () => {
         reasoning: 'Tempo workout',
         instructions: ['Warm up', 'Tempo pace', 'Cool down'],
         tips: ['Focus on form'],
-        alternatives: []
-      }
+        alternatives: [],
+      },
     },
     totalTSS: 150,
     totalDistance: 25,
     totalTime: 75,
     periodizationPhase: 'base',
-    isEditable: true
-  }
+    isEditable: true,
+  };
 
   it('renders edit plan button when plan exists', () => {
     mockUseSynchronizedTodaysWorkout.mockReturnValue({
       todaysWorkout: null,
       weeklyPlan: mockWorkoutPlan,
       isLoading: false,
-      hasData: true
-    })
+      hasData: true,
+    });
 
     mockUseWorkoutPlanManager.mockReturnValue({
       weeklyPlan: mockWorkoutPlan,
       isLoading: false,
       saveWorkoutPlan: jest.fn(),
-      updateWeeklyPlan: jest.fn()
-    })
+      updateWeeklyPlan: jest.fn(),
+    });
 
     render(
       <QueryClientProvider client={queryClient}>
         <EnhancedWorkoutPlanningDashboard userId="test-user" />
       </QueryClientProvider>
-    )
+    );
 
-    expect(screen.getByText('Edit Plan')).toBeInTheDocument()
-  })
+    expect(screen.getByText('Edit Plan')).toBeInTheDocument();
+  });
 
   it('does not show edit button when no plan exists', () => {
     mockUseSynchronizedTodaysWorkout.mockReturnValue({
       todaysWorkout: null,
       weeklyPlan: null,
       isLoading: false,
-      hasData: true
-    })
+      hasData: true,
+    });
 
     mockUseWorkoutPlanManager.mockReturnValue({
       weeklyPlan: null,
       isLoading: false,
       saveWorkoutPlan: jest.fn(),
-      updateWeeklyPlan: jest.fn()
-    })
+      updateWeeklyPlan: jest.fn(),
+    });
 
     render(
       <QueryClientProvider client={queryClient}>
         <EnhancedWorkoutPlanningDashboard userId="test-user" />
       </QueryClientProvider>
-    )
+    );
 
-    expect(screen.queryByText('Edit Plan')).not.toBeInTheDocument()
-  })
-}) 
+    expect(screen.queryByText('Edit Plan')).not.toBeInTheDocument();
+  });
+});

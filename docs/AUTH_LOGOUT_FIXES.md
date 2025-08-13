@@ -17,21 +17,24 @@ Your application was experiencing automatic logouts due to several issues in the
 **File: `providers/AuthProvider.tsx`**
 
 **Before:**
+
 ```typescript
 // Refresh the page when auth state changes
-router.refresh()
+router.refresh();
 ```
 
 **After:**
+
 ```typescript
 // Only refresh on specific events, not all auth changes
 if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
   // Use replace instead of refresh to avoid full page reload
-  router.replace(window.location.pathname)
+  router.replace(window.location.pathname);
 }
 ```
 
 **Benefits:**
+
 - ✅ No more full page refreshes on every auth state change
 - ✅ Smoother user experience
 - ✅ Prevents unnecessary re-authentication
@@ -43,31 +46,38 @@ if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
 ```typescript
 // Session keep-alive to prevent automatic logouts
 const startKeepAlive = () => {
-  stopKeepAlive() // Clear any existing interval
-  
+  stopKeepAlive(); // Clear any existing interval
+
   // Refresh session every 30 minutes to prevent expiration
-  keepAliveInterval.current = setInterval(async () => {
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession()
-      if (error) {
-        console.error('Keep-alive session check failed:', error)
-        return
+  keepAliveInterval.current = setInterval(
+    async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Keep-alive session check failed:', error);
+          return;
+        }
+
+        if (session) {
+          console.log('🔐 Keep-alive: Session refreshed');
+        } else {
+          console.log('🔐 Keep-alive: No active session, stopping keep-alive');
+          stopKeepAlive();
+        }
+      } catch (error) {
+        console.error('Keep-alive error:', error);
       }
-      
-      if (session) {
-        console.log('🔐 Keep-alive: Session refreshed')
-      } else {
-        console.log('🔐 Keep-alive: No active session, stopping keep-alive')
-        stopKeepAlive()
-      }
-    } catch (error) {
-      console.error('Keep-alive error:', error)
-    }
-  }, 30 * 60 * 1000) // 30 minutes
-}
+    },
+    30 * 60 * 1000
+  ); // 30 minutes
+};
 ```
 
 **Benefits:**
+
 - ✅ Prevents session expiration
 - ✅ Automatically refreshes sessions in background
 - ✅ Users stay logged in longer
@@ -77,12 +87,14 @@ const startKeepAlive = () => {
 **File: `lib/strava/auth.ts`**
 
 **Before:**
+
 ```typescript
 // If refresh fails, remove the invalid tokens
 await this.disconnectUser(userId);
 ```
 
 **After:**
+
 ```typescript
 // Don't automatically disconnect user on network errors or temporary failures
 // Only disconnect on permanent token issues
@@ -92,6 +104,7 @@ if (error instanceof Error && error.message.includes('invalid_grant')) {
 ```
 
 **Benefits:**
+
 - ✅ Users aren't disconnected on temporary network issues
 - ✅ Only disconnects on permanent token problems
 - ✅ Better error handling and user experience
@@ -101,12 +114,14 @@ if (error instanceof Error && error.message.includes('invalid_grant')) {
 **File: `hooks/strava/useStravaToken.ts`**
 
 **Before:**
+
 ```typescript
 staleTime: 5 * 60 * 1000, // 5 minutes - too aggressive
 gcTime: 10 * 60 * 1000, // 10 minutes - too aggressive
 ```
 
 **After:**
+
 ```typescript
 staleTime: 15 * 60 * 1000, // 15 minutes - increased from 5 minutes
 gcTime: 30 * 60 * 1000, // 30 minutes - increased from 10 minutes
@@ -115,6 +130,7 @@ retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Expo
 ```
 
 **Benefits:**
+
 - ✅ Less frequent refetching
 - ✅ Reduced race conditions
 - ✅ Better performance and stability
@@ -124,39 +140,42 @@ retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Expo
 **File: `app/api/auth/strava/token/route.ts`**
 
 **Before:**
+
 ```typescript
 // If refresh fails, remove the invalid tokens
-await supabase
-  .from('strava_tokens')
-  .delete()
-  .eq('user_id', user.id)
+await supabase.from('strava_tokens').delete().eq('user_id', user.id);
 ```
 
 **After:**
+
 ```typescript
 // Only remove tokens on specific error types, not all failures
 if (refreshResponse.status === 400 && errorText.includes('invalid_grant')) {
   console.log('🔄 Invalid refresh token, removing from database');
-  await supabase
-    .from('strava_tokens')
-    .delete()
-    .eq('user_id', user.id)
-  
-  return NextResponse.json({
-    success: false,
-    error: 'Token refresh failed. Please reconnect your Strava account.'
-  }, { status: refreshResponse.status })
+  await supabase.from('strava_tokens').delete().eq('user_id', user.id);
+
+  return NextResponse.json(
+    {
+      success: false,
+      error: 'Token refresh failed. Please reconnect your Strava account.',
+    },
+    { status: refreshResponse.status }
+  );
 }
 
 // For other errors, return the error but don't disconnect user
-return NextResponse.json({
-  success: false,
-  error: `Token refresh failed: ${refreshResponse.status} - ${errorText}`,
-  retryable: true
-}, { status: refreshResponse.status })
+return NextResponse.json(
+  {
+    success: false,
+    error: `Token refresh failed: ${refreshResponse.status} - ${errorText}`,
+    retryable: true,
+  },
+  { status: refreshResponse.status }
+);
 ```
 
 **Benefits:**
+
 - ✅ Distinguishes between permanent and temporary failures
 - ✅ Provides retryable error information
 - ✅ Better error handling for different failure types
@@ -166,21 +185,23 @@ return NextResponse.json({
 **File: `middleware.ts`**
 
 **Before:**
+
 ```typescript
 // Get user (more secure than getSession)
 const {
   data: { user },
-} = await supabase.auth.getUser()
+} = await supabase.auth.getUser();
 ```
 
 **After:**
+
 ```typescript
 try {
   // Get user (more secure than getSession)
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   // Log authentication status for debugging
   if (process.env.NODE_ENV === 'development') {
@@ -188,24 +209,24 @@ try {
       path: request.nextUrl.pathname,
       hasUser: !!user,
       userId: user?.id?.slice(0, 8) + '...',
-      error: userError?.message
-    })
+      error: userError?.message,
+    });
   }
-  
+
   // ... rest of middleware logic
-  
 } catch (error) {
-  console.error('❌ Middleware error:', error)
-  
+  console.error('❌ Middleware error:', error);
+
   // On middleware errors, allow the request to continue rather than blocking
   // This prevents authentication errors from completely breaking the app
   if (process.env.NODE_ENV === 'development') {
-    console.warn('⚠️ Middleware error, allowing request to continue')
+    console.warn('⚠️ Middleware error, allowing request to continue');
   }
 }
 ```
 
 **Benefits:**
+
 - ✅ Better error logging and debugging
 - ✅ Prevents middleware errors from breaking authentication
 - ✅ More robust error handling

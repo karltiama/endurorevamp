@@ -12,10 +12,10 @@ Weight training currently uses a **0.8 multiplier** in our TRIMP/TSS calculation
 
 ```typescript
 const SPORT_MULTIPLIERS = {
-  'Run': 1.0,           // Baseline reference
-  'WeightTraining': 0.8, // 80% of running intensity
+  Run: 1.0, // Baseline reference
+  WeightTraining: 0.8, // 80% of running intensity
   // ... other sports
-}
+};
 ```
 
 ### Enhanced Weight Training Classification
@@ -24,13 +24,13 @@ We've implemented a more sophisticated classification system based on exercise t
 
 ```typescript
 const WEIGHT_TRAINING_MULTIPLIERS = {
-  'strength': 0.7,      // Low rep, high intensity (1-5 reps)
-  'hypertrophy': 0.8,   // Moderate rep range (6-12 reps)
-  'endurance': 0.9,     // High rep, low intensity (15+ reps)
-  'power': 0.75,        // Explosive movements
-  'circuit': 1.0,       // High intensity circuit training
-  'default': 0.8
-}
+  strength: 0.7, // Low rep, high intensity (1-5 reps)
+  hypertrophy: 0.8, // Moderate rep range (6-12 reps)
+  endurance: 0.9, // High rep, low intensity (15+ reps)
+  power: 0.75, // Explosive movements
+  circuit: 1.0, // High intensity circuit training
+  default: 0.8,
+};
 ```
 
 ## Scientific Basis
@@ -43,7 +43,7 @@ Our multipliers are based on established metabolic equivalent (MET) research:
 - **Weight Training**: ~6-8 METs (60-80% of running)
 - **Circuit Training**: ~8-10 METs (80-100% of running)
 
-*Source: Compendium of Physical Activities (Ainsworth et al., 2011)*
+_Source: Compendium of Physical Activities (Ainsworth et al., 2011)_
 
 ### 2. **Heart Rate Response Patterns**
 
@@ -69,16 +69,16 @@ Weight training has different recovery characteristics:
 calculateWeightTrainingLoad(activity: ActivityWithTrainingData): number {
   // Base calculation using heart rate
   let baseLoad = duration * hrRatio * neuromuscularFactor
-  
+
   // Exercise type classification
   const exerciseType = determineWeightTrainingType(activity)
   const typeMultiplier = WEIGHT_TRAINING_MULTIPLIERS[exerciseType]
-  
+
   // RPE-based intensity adjustment
   if (activity.perceived_exertion) {
     intensityMultiplier = 0.5 + (activity.perceived_exertion / 10) * 0.8
   }
-  
+
   return baseLoad * typeMultiplier * intensityMultiplier
 }
 ```
@@ -131,6 +131,7 @@ Our methodology is comparable to industry standards:
 ### 1. **Accurate Activity Naming**
 
 Use descriptive names for better classification:
+
 - "Heavy Squats 3x5" → classified as strength
 - "Circuit Training HIIT" → classified as circuit
 - "Light Endurance Sets 15+" → classified as endurance
@@ -138,6 +139,7 @@ Use descriptive names for better classification:
 ### 2. **RPE Logging**
 
 Log perceived exertion for more accurate load calculation:
+
 - RPE 1-3: Light intensity
 - RPE 4-6: Moderate intensity
 - RPE 7-8: High intensity
@@ -146,6 +148,7 @@ Log perceived exertion for more accurate load calculation:
 ### 3. **Recovery Monitoring**
 
 Weight training requires different recovery considerations:
+
 - Allow 48-72 hours between same muscle group training
 - Monitor neuromuscular fatigue vs cardiovascular fatigue
 - Consider exercise selection impact on overall load
@@ -155,6 +158,7 @@ Weight training requires different recovery considerations:
 ### 1. **Combined Training Load**
 
 Weight training contributes to overall training stress:
+
 - Acute Training Load (ATL): 7-day average
 - Chronic Training Load (CTL): 42-day average
 - Training Stress Balance (TSB): CTL - ATL
@@ -162,6 +166,7 @@ Weight training contributes to overall training stress:
 ### 2. **Recovery Recommendations**
 
 The system provides context-aware recommendations:
+
 - High weight training load → suggest active recovery
 - Low weight training load → suggest intensity training
 - Balanced load → suggest maintenance training
@@ -169,6 +174,7 @@ The system provides context-aware recommendations:
 ### 3. **Performance Tracking**
 
 Weight training load is integrated with:
+
 - Training readiness scores
 - Recovery time estimates
 - Performance trend analysis
@@ -178,8 +184,9 @@ Weight training load is integrated with:
 Our weight training integration is **scientifically sound** and based on established sports science research. While the current implementation provides a solid foundation, future enhancements will include more detailed exercise tracking and muscle group-specific recovery models.
 
 The system successfully balances:
+
 - **Scientific Accuracy**: Based on peer-reviewed research
 - **Practical Usability**: Simple to understand and implement
 - **Professional Standards**: Comparable to industry-leading tools
 
-This approach ensures that weight training is properly accounted for in overall training load analysis while maintaining the scientific rigor of our training load system. 
+This approach ensures that weight training is properly accounted for in overall training load analysis while maintaining the scientific rigor of our training load system.

@@ -5,8 +5,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { UserGoal, GoalProgress } from '@/types/goals';
-import { 
-  TrendingUp, 
+import {
+  TrendingUp,
   TrendingDown,
   Target,
   Calendar,
@@ -14,7 +14,7 @@ import {
   Award,
   Lightbulb,
   Activity,
-  Clock
+  Clock,
 } from 'lucide-react';
 
 interface GoalInsightsProps {
@@ -23,7 +23,11 @@ interface GoalInsightsProps {
   weeklyData?: Array<{ week: string; value: number }>;
 }
 
-export function GoalInsights({ goal, recentProgress = [], weeklyData = [] }: GoalInsightsProps) {
+export function GoalInsights({
+  goal,
+  recentProgress = [],
+  weeklyData = [],
+}: GoalInsightsProps) {
   const insights = calculateDetailedInsights(goal, recentProgress, weeklyData);
 
   return (
@@ -39,19 +43,27 @@ export function GoalInsights({ goal, recentProgress = [], weeklyData = [] }: Goa
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{insights.currentStreak}</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {insights.currentStreak}
+              </div>
               <div className="text-sm text-muted-foreground">Day Streak</div>
             </div>
             <div className="text-center p-3 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{insights.weeklyAverage}</div>
+              <div className="text-2xl font-bold text-green-600">
+                {insights.weeklyAverage}
+              </div>
               <div className="text-sm text-muted-foreground">Weekly Avg</div>
             </div>
             <div className="text-center p-3 bg-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">{insights.bestWeek}</div>
+              <div className="text-2xl font-bold text-purple-600">
+                {insights.bestWeek}
+              </div>
               <div className="text-sm text-muted-foreground">Best Week</div>
             </div>
             <div className="text-center p-3 bg-orange-50 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">{insights.improvementRate}</div>
+              <div className="text-2xl font-bold text-orange-600">
+                {insights.improvementRate}
+              </div>
               <div className="text-sm text-muted-foreground">Improvement</div>
             </div>
           </div>
@@ -67,11 +79,16 @@ export function GoalInsights({ goal, recentProgress = [], weeklyData = [] }: Goa
                 <BarChart3 className="h-5 w-5 text-gray-500" />
               )}
               <span className="font-medium">
-                {insights.trend === 'improving' ? 'Improving Trend' : 
-                 insights.trend === 'declining' ? 'Declining Trend' : 'Stable Performance'}
+                {insights.trend === 'improving'
+                  ? 'Improving Trend'
+                  : insights.trend === 'declining'
+                    ? 'Declining Trend'
+                    : 'Stable Performance'}
               </span>
             </div>
-            <Badge variant={insights.trend === 'improving' ? 'default' : 'secondary'}>
+            <Badge
+              variant={insights.trend === 'improving' ? 'default' : 'secondary'}
+            >
               {insights.trendDescription}
             </Badge>
           </div>
@@ -89,8 +106,12 @@ export function GoalInsights({ goal, recentProgress = [], weeklyData = [] }: Goa
         <CardContent className="space-y-4">
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Current vs Target</span>
-              <span className="font-medium">{insights.progressPercentage}% complete</span>
+              <span className="text-sm text-muted-foreground">
+                Current vs Target
+              </span>
+              <span className="font-medium">
+                {insights.progressPercentage}% complete
+              </span>
             </div>
             <Progress value={insights.progressPercentage} className="h-2" />
           </div>
@@ -98,22 +119,33 @@ export function GoalInsights({ goal, recentProgress = [], weeklyData = [] }: Goa
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <div className="text-muted-foreground">Days Remaining</div>
-              <div className="text-lg font-semibold">{insights.daysRemaining || 'Ongoing'}</div>
+              <div className="text-lg font-semibold">
+                {insights.daysRemaining || 'Ongoing'}
+              </div>
             </div>
             <div>
               <div className="text-muted-foreground">Required Weekly Rate</div>
-              <div className="text-lg font-semibold">{insights.requiredWeeklyRate}</div>
+              <div className="text-lg font-semibold">
+                {insights.requiredWeeklyRate}
+              </div>
             </div>
             <div>
               <div className="text-muted-foreground">Projected Completion</div>
-              <div className="text-lg font-semibold">{insights.projectedCompletion}</div>
+              <div className="text-lg font-semibold">
+                {insights.projectedCompletion}
+              </div>
             </div>
             <div>
               <div className="text-muted-foreground">Success Probability</div>
-              <div className={`text-lg font-semibold ${
-                insights.successProbability >= 80 ? 'text-green-600' :
-                insights.successProbability >= 60 ? 'text-yellow-600' : 'text-red-600'
-              }`}>
+              <div
+                className={`text-lg font-semibold ${
+                  insights.successProbability >= 80
+                    ? 'text-green-600'
+                    : insights.successProbability >= 60
+                      ? 'text-yellow-600'
+                      : 'text-red-600'
+                }`}
+              >
                 {insights.successProbability}%
               </div>
             </div>
@@ -131,11 +163,16 @@ export function GoalInsights({ goal, recentProgress = [], weeklyData = [] }: Goa
         </CardHeader>
         <CardContent className="space-y-3">
           {insights.recommendations.map((rec, index) => (
-            <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+            <div
+              key={index}
+              className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg"
+            >
               <rec.icon className={`h-5 w-5 mt-0.5 ${rec.color}`} />
               <div>
                 <div className="font-medium text-sm">{rec.title}</div>
-                <div className="text-sm text-muted-foreground">{rec.description}</div>
+                <div className="text-sm text-muted-foreground">
+                  {rec.description}
+                </div>
               </div>
             </div>
           ))}
@@ -154,10 +191,15 @@ export function GoalInsights({ goal, recentProgress = [], weeklyData = [] }: Goa
           <CardContent>
             <div className="space-y-2">
               {recentProgress.slice(0, 5).map((progress, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                >
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{formatDate(progress.activity_date)}</span>
+                    <span className="text-sm">
+                      {formatDate(progress.activity_date)}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">
@@ -180,17 +222,22 @@ export function GoalInsights({ goal, recentProgress = [], weeklyData = [] }: Goa
 }
 
 function calculateDetailedInsights(
-  goal: UserGoal, 
-  recentProgress: GoalProgress[], 
+  goal: UserGoal,
+  recentProgress: GoalProgress[],
   weeklyData: Array<{ week: string; value: number }>
 ) {
   const now = new Date();
   const goalStartDate = new Date(goal.created_at);
-  const daysActive = Math.max(1, Math.floor((now.getTime() - goalStartDate.getTime()) / (24 * 60 * 60 * 1000)));
+  const daysActive = Math.max(
+    1,
+    Math.floor(
+      (now.getTime() - goalStartDate.getTime()) / (24 * 60 * 60 * 1000)
+    )
+  );
   const weeksActive = Math.max(1, Math.floor(daysActive / 7));
 
   // Basic calculations
-  const progressPercentage = goal.target_value 
+  const progressPercentage = goal.target_value
     ? Math.min(100, (goal.current_progress / goal.target_value) * 100)
     : 0;
 
@@ -203,27 +250,39 @@ function calculateDetailedInsights(
   const trend = calculateTrend(weeklyData);
 
   // Best week calculation
-  const bestWeek = weeklyData.length > 0 
-    ? Math.max(...weeklyData.map(w => w.value))
-    : weeklyAverage;
+  const bestWeek =
+    weeklyData.length > 0
+      ? Math.max(...weeklyData.map(w => w.value))
+      : weeklyAverage;
 
   // Improvement rate
   const improvementRate = calculateImprovementRate(weeklyData);
 
   // Days remaining (if target date exists)
-  const daysRemaining = goal.target_date 
-    ? Math.max(0, Math.floor((new Date(goal.target_date).getTime() - now.getTime()) / (24 * 60 * 60 * 1000)))
+  const daysRemaining = goal.target_date
+    ? Math.max(
+        0,
+        Math.floor(
+          (new Date(goal.target_date).getTime() - now.getTime()) /
+            (24 * 60 * 60 * 1000)
+        )
+      )
     : null;
 
   // Required weekly rate to achieve goal
-  const remainingProgress = goal.target_value ? goal.target_value - goal.current_progress : 0;
-  const remainingWeeks = daysRemaining ? Math.max(1, Math.floor(daysRemaining / 7)) : 52;
+  const remainingProgress = goal.target_value
+    ? goal.target_value - goal.current_progress
+    : 0;
+  const remainingWeeks = daysRemaining
+    ? Math.max(1, Math.floor(daysRemaining / 7))
+    : 52;
   const requiredWeeklyRate = remainingProgress / remainingWeeks;
 
   // Projected completion
-  const projectedCompletion = weeklyAverage > 0 
-    ? formatProjectedCompletion(remainingProgress / weeklyAverage * 7)
-    : 'Unable to calculate';
+  const projectedCompletion =
+    weeklyAverage > 0
+      ? formatProjectedCompletion((remainingProgress / weeklyAverage) * 7)
+      : 'Unable to calculate';
 
   // Success probability
   const successProbability = calculateSuccessProbability(
@@ -239,7 +298,7 @@ function calculateDetailedInsights(
     trend,
     weeklyAverage,
     requiredWeeklyRate,
-    successProbability
+    successProbability,
   });
 
   return {
@@ -254,14 +313,16 @@ function calculateDetailedInsights(
     requiredWeeklyRate: `${requiredWeeklyRate.toFixed(1)} ${goal.target_unit}`,
     projectedCompletion,
     successProbability,
-    recommendations
+    recommendations,
   };
 }
 
 function calculateStreak(recentProgress: GoalProgress[]): number {
   // Simplified streak calculation - count consecutive days with progress
-  const sortedProgress = recentProgress
-    .sort((a, b) => new Date(b.activity_date).getTime() - new Date(a.activity_date).getTime());
+  const sortedProgress = recentProgress.sort(
+    (a, b) =>
+      new Date(b.activity_date).getTime() - new Date(a.activity_date).getTime()
+  );
 
   let streak = 0;
   const currentDate = new Date();
@@ -295,20 +356,32 @@ function calculateTrend(weeklyData: Array<{ week: string; value: number }>) {
   }
 
   const recentAvg = recent.reduce((sum, w) => sum + w.value, 0) / recent.length;
-  const earlierAvg = earlier.reduce((sum, w) => sum + w.value, 0) / earlier.length;
+  const earlierAvg =
+    earlier.reduce((sum, w) => sum + w.value, 0) / earlier.length;
 
   const change = ((recentAvg - earlierAvg) / earlierAvg) * 100;
 
   if (change > 10) {
-    return { direction: 'improving' as const, description: `+${change.toFixed(1)}% vs previous period` };
+    return {
+      direction: 'improving' as const,
+      description: `+${change.toFixed(1)}% vs previous period`,
+    };
   } else if (change < -10) {
-    return { direction: 'declining' as const, description: `${change.toFixed(1)}% vs previous period` };
+    return {
+      direction: 'declining' as const,
+      description: `${change.toFixed(1)}% vs previous period`,
+    };
   } else {
-    return { direction: 'stable' as const, description: 'Consistent performance' };
+    return {
+      direction: 'stable' as const,
+      description: 'Consistent performance',
+    };
   }
 }
 
-function calculateImprovementRate(weeklyData: Array<{ week: string; value: number }>): number {
+function calculateImprovementRate(
+  weeklyData: Array<{ week: string; value: number }>
+): number {
   if (weeklyData.length < 2) return 0;
 
   const first = weeklyData[0].value;
@@ -336,13 +409,16 @@ function calculateSuccessProbability(
   return 25;
 }
 
-function generateRecommendations(goal: UserGoal, metrics: {
-  progressPercentage: number;
-  trend: { direction: string };
-  weeklyAverage: number;
-  requiredWeeklyRate: number;
-  successProbability: number;
-}) {
+function generateRecommendations(
+  goal: UserGoal,
+  metrics: {
+    progressPercentage: number;
+    trend: { direction: string };
+    weeklyAverage: number;
+    requiredWeeklyRate: number;
+    successProbability: number;
+  }
+) {
   const recommendations = [];
 
   // Performance-based recommendations
@@ -351,7 +427,8 @@ function generateRecommendations(goal: UserGoal, metrics: {
       icon: Target,
       color: 'text-red-500',
       title: 'Start Small',
-      description: 'Break this goal into smaller weekly targets to build momentum and consistency.'
+      description:
+        'Break this goal into smaller weekly targets to build momentum and consistency.',
     });
   }
 
@@ -360,7 +437,8 @@ function generateRecommendations(goal: UserGoal, metrics: {
       icon: TrendingUp,
       color: 'text-orange-500',
       title: 'Reverse the Trend',
-      description: 'Your progress has been declining. Consider adjusting your training schedule or reducing the target temporarily.'
+      description:
+        'Your progress has been declining. Consider adjusting your training schedule or reducing the target temporarily.',
     });
   }
 
@@ -369,7 +447,8 @@ function generateRecommendations(goal: UserGoal, metrics: {
       icon: Clock,
       color: 'text-yellow-500',
       title: 'Adjust Expectations',
-      description: 'Based on current progress, consider extending the timeline or reducing the target to maintain motivation.'
+      description:
+        'Based on current progress, consider extending the timeline or reducing the target to maintain motivation.',
     });
   }
 
@@ -378,7 +457,8 @@ function generateRecommendations(goal: UserGoal, metrics: {
       icon: Award,
       color: 'text-green-500',
       title: 'Ahead of Schedule',
-      description: 'Great work! You\'re exceeding your target pace. Consider setting a more ambitious goal.'
+      description:
+        "Great work! You're exceeding your target pace. Consider setting a more ambitious goal.",
     });
   }
 
@@ -388,7 +468,8 @@ function generateRecommendations(goal: UserGoal, metrics: {
       icon: Calendar,
       color: 'text-blue-500',
       title: 'Schedule Consistency',
-      description: 'Plan your runs for specific days of the week to build a sustainable routine.'
+      description:
+        'Plan your runs for specific days of the week to build a sustainable routine.',
     });
   }
 
@@ -405,6 +486,6 @@ function formatProjectedCompletion(daysToComplete: number): string {
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   });
-} 
+}

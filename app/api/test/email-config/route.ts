@@ -7,7 +7,7 @@ export async function GET() {
       fromEmail: process.env.FROM_EMAIL || '❌ Not set',
       adminEmail: process.env.ADMIN_EMAIL || '❌ Not set',
       resendDomain: process.env.RESEND_DOMAIN || '❌ Not set',
-      nodeEnv: process.env.NODE_ENV || 'development'
+      nodeEnv: process.env.NODE_ENV || 'development',
     };
 
     const recommendations = [];
@@ -35,13 +35,16 @@ export async function GET() {
         '1. Sign up at resend.com and get your API key',
         '2. Add your domain in Resend dashboard',
         '3. Update your .env.local with the configuration above',
-        '4. Test your setup at /test-email'
-      ]
+        '4. Test your setup at /test-email',
+      ],
     });
   } catch (error) {
-    return NextResponse.json({ 
-      error: 'Failed to check configuration',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Failed to check configuration',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }

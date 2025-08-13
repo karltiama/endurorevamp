@@ -3,7 +3,14 @@ export interface GoalType {
   name: string; // Primary key (was 'id' before migration)
   display_name: string;
   description: string;
-  category: 'distance' | 'pace' | 'frequency' | 'duration' | 'elevation' | 'heart_rate' | 'event';
+  category:
+    | 'distance'
+    | 'pace'
+    | 'frequency'
+    | 'duration'
+    | 'elevation'
+    | 'heart_rate'
+    | 'event';
   metric_type: string; // e.g., 'total_distance', 'average_pace', 'run_count', etc.
   unit?: string; // km, miles, min/km, min/mile, bpm, m, ft, count, minutes, hours
   target_guidance?: string; // Guidance for setting realistic targets
@@ -70,15 +77,15 @@ export interface UpdateOnboardingRequest {
 // Goal-specific data types
 export interface GoalData {
   notes?: string;
-  
+
   // Dashboard display settings
   show_on_dashboard?: boolean; // Whether this goal appears on the dashboard
   dashboard_priority?: number; // Order priority on dashboard (1-3)
-  
+
   // Context and creation metadata
   creation_context?: 'manual' | 'suggestion' | 'onboarding' | 'dashboard';
   is_onboarding_goal?: boolean;
-  
+
   // Suggestion-specific data
   from_suggestion?: boolean;
   suggestion_id?: string;
@@ -89,11 +96,11 @@ export interface GoalData {
   success_probability?: number;
   required_commitment?: 'low' | 'medium' | 'high';
   warnings?: string[];
-  
+
   // Pace-specific data
   target_pace_seconds?: number; // Target pace in seconds per km
   distance_range?: [number, number]; // Distance range for pace goals (e.g., [4.5, 5.5] for 5K)
-  
+
   // Heart rate specific data
   target_zones?: number[]; // HR zones to target (e.g., [1, 2] for aerobic base)
   zone_ranges?: {
@@ -103,13 +110,13 @@ export interface GoalData {
     zone_4?: [number, number];
     zone_5?: [number, number];
   };
-  
+
   // Frequency-specific data
   target_frequency?: number; // Number of runs per week/month
-  
+
   // Elevation-specific data
   elevation_preference?: 'flat' | 'hilly' | 'mixed';
-  
+
   // General metadata
   difficulty_level?: 'beginner' | 'intermediate' | 'advanced';
   estimated_weeks?: number; // Estimated time to complete goal
@@ -337,4 +344,4 @@ export interface DistanceGoalData {
   monthlyTarget?: number;
   unit: 'km' | 'miles';
   startDate?: string;
-} 
+}

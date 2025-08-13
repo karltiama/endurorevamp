@@ -2,7 +2,13 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/providers/AuthProvider';
@@ -29,9 +35,9 @@ export function SyncDebugger() {
   ]);
 
   const updateStep = (index: number, updates: Partial<DebugStep>) => {
-    setSteps(prev => prev.map((step, i) => 
-      i === index ? { ...step, ...updates } : step
-    ));
+    setSteps(prev =>
+      prev.map((step, i) => (i === index ? { ...step, ...updates } : step))
+    );
   };
 
   const runDiagnostics = async () => {
@@ -41,7 +47,7 @@ export function SyncDebugger() {
     }
 
     setIsRunning(true);
-    
+
     try {
       // Step 1: Authentication Check
       updateStep(0, { status: 'running' });
@@ -49,75 +55,93 @@ export function SyncDebugger() {
         updateStep(0, { status: 'error', message: 'No authenticated user' });
         return;
       }
-      updateStep(0, { status: 'success', message: `User: ${user.id}`, data: { userId: user.id } });
+      updateStep(0, {
+        status: 'success',
+        message: `User: ${user.id}`,
+        data: { userId: user.id },
+      });
 
       // Step 2: Token Validation
       updateStep(1, { status: 'running' });
       const stravaAuth = new StravaAuth(false);
-      
+
       try {
         const tokens = await stravaAuth.getTokens(user.id);
         if (!tokens) {
-          updateStep(1, { status: 'error', message: 'No Strava tokens found - account not connected' });
+          updateStep(1, {
+            status: 'error',
+            message: 'No Strava tokens found - account not connected',
+          });
           return;
         }
 
         const accessToken = await stravaAuth.getValidAccessToken(user.id);
         if (!accessToken) {
-          updateStep(1, { status: 'error', message: 'Invalid or expired tokens' });
+          updateStep(1, {
+            status: 'error',
+            message: 'Invalid or expired tokens',
+          });
           return;
         }
 
-        updateStep(1, { 
-          status: 'success', 
+        updateStep(1, {
+          status: 'success',
           message: 'Valid access token found',
-          data: { 
+          data: {
             expiresAt: tokens.expires_at,
-            athleteId: tokens.strava_athlete_id 
-          }
+            athleteId: tokens.strava_athlete_id,
+          },
         });
 
         // Step 3: Connection Status
         updateStep(2, { status: 'running' });
         const connectionStatus = await stravaAuth.getConnectionStatus(user.id);
-        updateStep(2, { 
+        updateStep(2, {
           status: connectionStatus.connected ? 'success' : 'error',
-          message: connectionStatus.connected ? 'Connected to Strava' : 'Not connected to Strava',
-          data: connectionStatus
+          message: connectionStatus.connected
+            ? 'Connected to Strava'
+            : 'Not connected to Strava',
+          data: connectionStatus,
         });
 
         // Step 4: Strava API Test
         updateStep(3, { status: 'running' });
         try {
-          const response = await fetch('https://www.strava.com/api/v3/athlete', {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-            },
-          });
+          const response = await fetch(
+            'https://www.strava.com/api/v3/athlete',
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
 
           if (!response.ok) {
-            updateStep(3, { 
-              status: 'error', 
-              message: `Strava API error: ${response.status} ${response.statusText}` 
+            updateStep(3, {
+              status: 'error',
+              message: `Strava API error: ${response.status} ${response.statusText}`,
             });
             return;
           }
 
           const athlete = await response.json();
-          updateStep(3, { 
-            status: 'success', 
+          updateStep(3, {
+            status: 'success',
             message: 'Strava API accessible',
-            data: { 
+            data: {
               athleteName: `${athlete.firstname} ${athlete.lastname}`,
-              athleteId: athlete.id
-            }
+              athleteId: athlete.id,
+            },
           });
 
           // Step 5: Sync Process Test
           updateStep(4, { status: 'running' });
           try {
-            console.log('🚀 Starting sync process test with access token:', accessToken ? 'Present' : 'Missing');
-            
+            console.log(
+              '🚀 Starting sync process test with access token:',
+              accessToken ? 'Present' : 'Missing'
+            );
+
             // Call the API route instead of using StravaActivitySync directly
             console.log('📡 Calling sync API route...');
             const syncResponse = await fetch('/api/strava/sync', {
@@ -127,57 +151,60 @@ export function SyncDebugger() {
               },
               body: JSON.stringify({
                 maxActivities: 5, // Small test
-                forceRefresh: false
-              })
+                forceRefresh: false,
+              }),
             });
-            
+
             console.log('📡 Sync API response status:', syncResponse.status);
             const result = await syncResponse.json();
             console.log('🎉 Sync API response:', result);
 
-            updateStep(4, { 
+            updateStep(4, {
               status: result.success ? 'success' : 'error',
-              message: result.success 
+              message: result.success
                 ? `Sync completed: ${result.data?.activitiesProcessed || 0} activities processed (${result.data?.newActivities || 0} new, ${result.data?.updatedActivities || 0} updated)`
                 : `Sync failed: ${result.message || result.errors?.join(', ') || 'Unknown error'}`,
-              data: result
+              data: result,
             });
-
           } catch (syncError) {
             console.error('❌ Detailed sync error:', syncError);
             console.error('❌ Error type:', typeof syncError);
-            console.error('❌ Error constructor:', syncError?.constructor?.name);
-            console.error('❌ Error stack:', syncError instanceof Error ? syncError.stack : 'No stack trace');
-            
-            const errorMessage = syncError instanceof Error 
-              ? syncError.message 
-              : `Unknown error: ${JSON.stringify(syncError)}`;
-              
-            updateStep(4, { 
-              status: 'error', 
+            console.error(
+              '❌ Error constructor:',
+              syncError?.constructor?.name
+            );
+            console.error(
+              '❌ Error stack:',
+              syncError instanceof Error ? syncError.stack : 'No stack trace'
+            );
+
+            const errorMessage =
+              syncError instanceof Error
+                ? syncError.message
+                : `Unknown error: ${JSON.stringify(syncError)}`;
+
+            updateStep(4, {
+              status: 'error',
               message: `Sync error: ${errorMessage}`,
               data: {
                 errorType: typeof syncError,
                 errorConstructor: syncError?.constructor?.name,
-                fullError: syncError
-              }
+                fullError: syncError,
+              },
             });
           }
-
         } catch (apiError) {
-          updateStep(3, { 
-            status: 'error', 
-            message: `API test failed: ${apiError instanceof Error ? apiError.message : 'Unknown error'}` 
+          updateStep(3, {
+            status: 'error',
+            message: `API test failed: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`,
           });
         }
-
       } catch (authError) {
-        updateStep(1, { 
-          status: 'error', 
-          message: `Auth error: ${authError instanceof Error ? authError.message : 'Unknown error'}` 
+        updateStep(1, {
+          status: 'error',
+          message: `Auth error: ${authError instanceof Error ? authError.message : 'Unknown error'}`,
         });
       }
-
     } catch (error) {
       console.error('Diagnostics failed:', error);
     } finally {
@@ -220,8 +247,8 @@ export function SyncDebugger() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Button 
-          onClick={runDiagnostics} 
+        <Button
+          onClick={runDiagnostics}
           disabled={isRunning || !user}
           className="w-full"
         >
@@ -246,7 +273,11 @@ export function SyncDebugger() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{step.name}</span>
-                    <Badge variant={step.status === 'success' ? 'default' : 'secondary'}>
+                    <Badge
+                      variant={
+                        step.status === 'success' ? 'default' : 'secondary'
+                      }
+                    >
                       {step.status}
                     </Badge>
                   </div>
@@ -255,11 +286,13 @@ export function SyncDebugger() {
                   )}
                 </div>
               </div>
-              
+
               {step.data && (
                 <div className="mt-3 p-3 bg-white rounded border text-xs">
                   <details>
-                    <summary className="cursor-pointer font-medium">View Details</summary>
+                    <summary className="cursor-pointer font-medium">
+                      View Details
+                    </summary>
                     <pre className="mt-2 overflow-auto text-xs">
                       {JSON.stringify(step.data, null, 2)}
                     </pre>
@@ -273,10 +306,11 @@ export function SyncDebugger() {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            This tool will help identify where your sync process is failing. Run diagnostics to see detailed information about each step.
+            This tool will help identify where your sync process is failing. Run
+            diagnostics to see detailed information about each step.
           </AlertDescription>
         </Alert>
       </CardContent>
     </Card>
   );
-} 
+}

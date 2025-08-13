@@ -1,6 +1,12 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, AlertCircle, Info } from 'lucide-react';
 
@@ -28,10 +34,9 @@ export function EnvChecker() {
               <span className="font-medium">Client ID</span>
             </div>
             <div className="text-sm text-gray-600">
-              {hasClientId ? 
-                `Configured (${clientId?.substring(0, 8)}...)` :
-                'Not configured'
-              }
+              {hasClientId
+                ? `Configured (${clientId?.substring(0, 8)}...)`
+                : 'Not configured'}
             </div>
           </div>
 
@@ -50,16 +55,34 @@ export function EnvChecker() {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>Missing Configuration:</strong> 
+              <strong>Missing Configuration:</strong>
               <div className="mt-2">
-                <p>You need to set up your Strava OAuth environment variables:</p>
+                <p>
+                  You need to set up your Strava OAuth environment variables:
+                </p>
                 <ol className="mt-2 list-decimal list-inside space-y-1 text-sm">
-                  <li>Go to <a href="https://www.strava.com/settings/api" className="underline text-blue-600" target="_blank" rel="noopener noreferrer">Strava API Settings</a></li>
-                  <li>Create a Strava application if you haven&apos;t already</li>
-                  <li>Add these to your <code className="bg-gray-100 px-1 rounded">.env.local</code> file:</li>
+                  <li>
+                    Go to{' '}
+                    <a
+                      href="https://www.strava.com/settings/api"
+                      className="underline text-blue-600"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Strava API Settings
+                    </a>
+                  </li>
+                  <li>
+                    Create a Strava application if you haven&apos;t already
+                  </li>
+                  <li>
+                    Add these to your{' '}
+                    <code className="bg-gray-100 px-1 rounded">.env.local</code>{' '}
+                    file:
+                  </li>
                 </ol>
                 <pre className="mt-2 p-2 bg-gray-100 rounded text-xs">
-{`NEXT_PUBLIC_STRAVA_CLIENT_ID=your_client_id_here
+                  {`NEXT_PUBLIC_STRAVA_CLIENT_ID=your_client_id_here
 STRAVA_CLIENT_SECRET=your_client_secret_here
 NEXT_PUBLIC_STRAVA_REDIRECT_URI=http://localhost:3000/dashboard`}
                 </pre>
@@ -72,11 +95,20 @@ NEXT_PUBLIC_STRAVA_REDIRECT_URI=http://localhost:3000/dashboard`}
           <Alert>
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              Environment variables appear to be configured correctly. If you&apos;re still having issues, check:
+              Environment variables appear to be configured correctly. If
+              you&apos;re still having issues, check:
               <ul className="mt-2 list-disc list-inside space-y-1 text-sm">
-                <li>Your Strava app&apos;s Authorization Callback Domain is set to your domain</li>
-                <li>Your STRAVA_CLIENT_SECRET is correctly set in .env.local</li>
-                <li>You&apos;ve restarted the development server after adding env vars</li>
+                <li>
+                  Your Strava app&apos;s Authorization Callback Domain is set to
+                  your domain
+                </li>
+                <li>
+                  Your STRAVA_CLIENT_SECRET is correctly set in .env.local
+                </li>
+                <li>
+                  You&apos;ve restarted the development server after adding env
+                  vars
+                </li>
               </ul>
             </AlertDescription>
           </Alert>
@@ -84,4 +116,4 @@ NEXT_PUBLIC_STRAVA_REDIRECT_URI=http://localhost:3000/dashboard`}
       </CardContent>
     </Card>
   );
-} 
+}

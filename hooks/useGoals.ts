@@ -1,15 +1,15 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  GoalType, 
-  UserGoal, 
-  CreateGoalRequest, 
+import {
+  GoalType,
+  UserGoal,
+  CreateGoalRequest,
   UserOnboarding,
   UserStats,
   GetGoalTypesResponse,
   GetUserGoalsResponse,
-  CreateGoalResponse
+  CreateGoalResponse,
 } from '@/types/goals';
 import { DynamicGoalSuggestion } from '@/lib/goals/dynamic-suggestions';
 
@@ -31,15 +31,15 @@ export interface UnifiedGoalCreationData {
   timePeriod?: 'weekly' | 'monthly' | 'single_activity' | 'ongoing';
   notes?: string;
   priority?: number;
-  
+
   // Context-specific data
   context?: 'manual' | 'suggestion' | 'onboarding' | 'dashboard';
   suggestion?: DynamicGoalSuggestion; // For suggestion-based goals
-  
+
   // Dashboard-specific data
   showOnDashboard?: boolean;
   dashboardPriority?: number;
-  
+
   // Onboarding-specific data
   isOnboardingGoal?: boolean;
 }
@@ -50,17 +50,17 @@ export const useGoalTypes = () => {
     queryKey: goalQueryKeys.goalTypes,
     queryFn: async (): Promise<GoalType[]> => {
       const response = await fetch('/api/goals/types');
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch goal types');
       }
-      
+
       const data: GetGoalTypesResponse = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Failed to fetch goal types');
       }
-      
+
       return data.goalTypes;
     },
   });
@@ -70,23 +70,27 @@ export const useGoalTypes = () => {
 export const useUserGoals = () => {
   return useQuery({
     queryKey: goalQueryKeys.userGoals,
-    queryFn: async (): Promise<{ goals: UserGoal[]; onboarding: UserOnboarding | null; userStats?: UserStats }> => {
+    queryFn: async (): Promise<{
+      goals: UserGoal[];
+      onboarding: UserOnboarding | null;
+      userStats?: UserStats;
+    }> => {
       const response = await fetch('/api/goals');
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch user goals');
       }
-      
+
       const data: GetUserGoalsResponse = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Failed to fetch user goals');
       }
-      
+
       return {
         goals: data.goals,
         onboarding: data.onboarding || null,
-        userStats: data.userStats
+        userStats: data.userStats,
       };
     },
   });
@@ -95,7 +99,7 @@ export const useUserGoals = () => {
 // Unified goal creation hook
 export const useUnifiedGoalCreation = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (data: UnifiedGoalCreationData): Promise<UserGoal> => {
       // Convert unified data to API format
@@ -107,17 +111,17 @@ export const useUnifiedGoalCreation = () => {
         time_period: data.timePeriod,
         goal_data: {
           notes: data.notes || '',
-          
+
           // Context-specific data
           creation_context: data.context || 'manual',
-          
+
           // Dashboard display settings
           show_on_dashboard: data.showOnDashboard || false,
           dashboard_priority: data.dashboardPriority,
-          
+
           // Onboarding marker
           ...(data.isOnboardingGoal && { is_onboarding_goal: true }),
-          
+
           // Suggestion-specific data
           ...(data.suggestion && {
             from_suggestion: true,
@@ -126,15 +130,20 @@ export const useUnifiedGoalCreation = () => {
             suggestion_reasoning: data.suggestion.reasoning,
             suggestion_strategies: data.suggestion.strategies,
             suggestion_benefits: data.suggestion.benefits,
-            difficulty_level: data.suggestion.difficulty === 'conservative' ? 'beginner' as const : 
-                             data.suggestion.difficulty === 'moderate' ? 'intermediate' as const : 
-                             'advanced' as const,
+            difficulty_level:
+              data.suggestion.difficulty === 'conservative'
+                ? ('beginner' as const)
+                : data.suggestion.difficulty === 'moderate'
+                  ? ('intermediate' as const)
+                  : ('advanced' as const),
             success_probability: data.suggestion.successProbability,
             required_commitment: data.suggestion.requiredCommitment,
-            ...(data.suggestion.warnings && { warnings: data.suggestion.warnings })
-          })
+            ...(data.suggestion.warnings && {
+              warnings: data.suggestion.warnings,
+            }),
+          }),
         },
-        priority: data.priority || 1
+        priority: data.priority || 1,
       };
 
       const response = await fetch('/api/goals', {
@@ -144,18 +153,18 @@ export const useUnifiedGoalCreation = () => {
         },
         body: JSON.stringify(goalData),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to create goal');
       }
-      
+
       const result: CreateGoalResponse = await response.json();
-      
+
       if (!result.success) {
         throw new Error(result.error || 'Failed to create goal');
       }
-      
+
       return result.goal;
     },
     onSuccess: () => {
@@ -168,7 +177,7 @@ export const useUnifiedGoalCreation = () => {
 // Legacy create goal hook (for backwards compatibility)
 export const useCreateGoal = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (goalData: CreateGoalRequest): Promise<UserGoal> => {
       const response = await fetch('/api/goals', {
@@ -178,18 +187,18 @@ export const useCreateGoal = () => {
         },
         body: JSON.stringify(goalData),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to create goal');
       }
-      
+
       const data: CreateGoalResponse = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Failed to create goal');
       }
-      
+
       return data.goal;
     },
     onSuccess: () => {
@@ -202,11 +211,11 @@ export const useCreateGoal = () => {
 // Batch goal creation for onboarding
 export const useCreateMultipleGoals = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (goals: CreateGoalRequest[]): Promise<UserGoal[]> => {
       const createdGoals: UserGoal[] = [];
-      
+
       // Create goals sequentially to handle potential errors
       for (const goalData of goals) {
         const response = await fetch('/api/goals', {
@@ -216,21 +225,21 @@ export const useCreateMultipleGoals = () => {
           },
           body: JSON.stringify(goalData),
         });
-        
+
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || 'Failed to create goal');
         }
-        
+
         const data: CreateGoalResponse = await response.json();
-        
+
         if (!data.success) {
           throw new Error(data.error || 'Failed to create goal');
         }
-        
+
         createdGoals.push(data.goal);
       }
-      
+
       return createdGoals;
     },
     onSuccess: () => {
@@ -243,9 +252,15 @@ export const useCreateMultipleGoals = () => {
 // Update goal hook
 export const useUpdateGoal = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ goalId, updates }: { goalId: string; updates: Partial<UserGoal> }): Promise<UserGoal> => {
+    mutationFn: async ({
+      goalId,
+      updates,
+    }: {
+      goalId: string;
+      updates: Partial<UserGoal>;
+    }): Promise<UserGoal> => {
       const response = await fetch(`/api/goals/${goalId}`, {
         method: 'PATCH',
         headers: {
@@ -253,18 +268,18 @@ export const useUpdateGoal = () => {
         },
         body: JSON.stringify(updates),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to update goal');
       }
-      
+
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Failed to update goal');
       }
-      
+
       return data.goal;
     },
     onSuccess: () => {
@@ -277,20 +292,20 @@ export const useUpdateGoal = () => {
 // Delete goal hook
 export const useDeleteGoal = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (goalId: string): Promise<void> => {
       const response = await fetch(`/api/goals/${goalId}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to delete goal');
       }
-      
+
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Failed to delete goal');
       }
@@ -306,16 +321,18 @@ export const useDeleteGoal = () => {
 export const useCreateGoalFromSuggestion = () => {
   const unifiedCreation = useUnifiedGoalCreation();
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (suggestion: DynamicGoalSuggestion): Promise<UserGoal> => {
+    mutationFn: async (
+      suggestion: DynamicGoalSuggestion
+    ): Promise<UserGoal> => {
       return unifiedCreation.mutateAsync({
         goalTypeId: suggestion.goalType.name,
         targetValue: suggestion.suggestedTarget,
         targetUnit: suggestion.targetUnit,
         context: 'suggestion',
         suggestion: suggestion,
-        notes: `AI Suggestion: ${suggestion.reasoning}\n\nStrategies: ${suggestion.strategies.join(', ')}`
+        notes: `AI Suggestion: ${suggestion.reasoning}\n\nStrategies: ${suggestion.strategies.join(', ')}`,
       });
     },
     onSuccess: () => {
@@ -328,13 +345,15 @@ export const useCreateGoalFromSuggestion = () => {
 export const useCreateDashboardGoal = () => {
   const unifiedCreation = useUnifiedGoalCreation();
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (data: UnifiedGoalCreationData & { showOnDashboard: true }): Promise<UserGoal> => {
+    mutationFn: async (
+      data: UnifiedGoalCreationData & { showOnDashboard: true }
+    ): Promise<UserGoal> => {
       return unifiedCreation.mutateAsync({
         ...data,
         context: 'dashboard',
-        showOnDashboard: true
+        showOnDashboard: true,
       });
     },
     onSuccess: () => {
@@ -348,64 +367,72 @@ export const useCreateDashboardGoal = () => {
 export const useGoalManagement = () => {
   const { data: goalsData } = useUserGoals();
   const updateGoal = useUpdateGoal();
-  
-  const toggleDashboardGoal = async (goalId: string, showOnDashboard: boolean, priority?: number) => {
+
+  const toggleDashboardGoal = async (
+    goalId: string,
+    showOnDashboard: boolean,
+    priority?: number
+  ) => {
     return updateGoal.mutateAsync({
       goalId,
       updates: {
         goal_data: {
           show_on_dashboard: showOnDashboard,
-          dashboard_priority: priority
-        }
-      }
+          dashboard_priority: priority,
+        },
+      },
     });
   };
-  
+
   const getDashboardGoals = () => {
-    return goalsData?.goals?.filter(goal => 
-      goal.is_active && goal.goal_data?.show_on_dashboard
-    ).sort((a, b) => {
-      const aPriority = a.goal_data?.dashboard_priority || 999;
-      const bPriority = b.goal_data?.dashboard_priority || 999;
-      return aPriority - bPriority;
-    }) || [];
+    return (
+      goalsData?.goals
+        ?.filter(goal => goal.is_active && goal.goal_data?.show_on_dashboard)
+        .sort((a, b) => {
+          const aPriority = a.goal_data?.dashboard_priority || 999;
+          const bPriority = b.goal_data?.dashboard_priority || 999;
+          return aPriority - bPriority;
+        }) || []
+    );
   };
-  
+
   const getGoalsByContext = (context: string) => {
-    return goalsData?.goals?.filter(goal => 
-      goal.goal_data?.creation_context === context
-    ) || [];
+    return (
+      goalsData?.goals?.filter(
+        goal => goal.goal_data?.creation_context === context
+      ) || []
+    );
   };
-  
+
   const getSuggestionGoals = () => {
-    return goalsData?.goals?.filter(goal => 
-      goal.goal_data?.from_suggestion
-    ) || [];
+    return (
+      goalsData?.goals?.filter(goal => goal.goal_data?.from_suggestion) || []
+    );
   };
-  
+
   return {
     goals: goalsData?.goals || [],
     toggleDashboardGoal,
     getDashboardGoals,
     getGoalsByContext,
     getSuggestionGoals,
-    isLoading: updateGoal.isPending
+    isLoading: updateGoal.isPending,
   };
-}; 
+};
 
 // Onboarding status hook - used by onboarding components
 export const useOnboardingStatus = () => {
   const { data: goalsData, isLoading, error } = useUserGoals();
-  
+
   const onboarding = goalsData?.onboarding || null;
   const hasCompletedOnboarding = onboarding?.completed_at != null;
   const currentStep = onboarding?.current_step || 'goals';
-  
+
   return {
     onboarding,
     hasCompletedOnboarding,
     currentStep,
     isLoading,
-    error
+    error,
   };
-}; 
+};

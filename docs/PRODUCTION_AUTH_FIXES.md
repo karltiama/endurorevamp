@@ -7,9 +7,11 @@ Your automatic logout issues **only occur in production** (`endurostats.vercel.a
 ## 🔍 **Root Causes (Production-Specific)**
 
 ### **1. Missing Environment Variables in Vercel**
+
 The most common cause of production-only auth issues.
 
 **Check in Vercel Dashboard:**
+
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Select your `endurostats` project
 3. Go to **Settings** → **Environment Variables**
@@ -29,9 +31,11 @@ NEXT_PUBLIC_STRAVA_REDIRECT_URI=https://endurostats.vercel.app/dashboard
 ```
 
 ### **2. Incorrect Supabase Configuration**
+
 Production Supabase settings might differ from development.
 
 **Check in Supabase Dashboard:**
+
 1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
 2. Select your project
 3. Go to **Authentication** → **URL Configuration**
@@ -39,24 +43,28 @@ Production Supabase settings might differ from development.
 
 ```
 Site URL: https://endurostats.vercel.app
-Redirect URLs: 
+Redirect URLs:
 - https://endurostats.vercel.app/auth/callback
 - https://endurostats.vercel.app/dashboard
 ```
 
 ### **3. Cookie Domain/Path Issues**
+
 Production cookies might not be set correctly.
 
 **Check in Browser DevTools:**
+
 1. Open your live site
 2. Go to **Application** → **Cookies**
 3. Look for cookies starting with `sb-` (Supabase)
 4. Verify domain is `endurostats.vercel.app`
 
 ### **4. HTTPS vs HTTP Protocol Mismatches**
+
 Mixed content can break authentication.
 
 **Check:**
+
 - All URLs use `https://`
 - No mixed HTTP/HTTPS content
 - Supabase project uses HTTPS
@@ -102,10 +110,12 @@ Add this component to your dashboard to debug production issues:
 
 ```tsx
 // In your dashboard page
-import { ProductionDebugger } from '@/components/ProductionDebugger'
+import { ProductionDebugger } from '@/components/ProductionDebugger';
 
 // Add this somewhere in your dashboard
-{process.env.NODE_ENV === 'production' && <ProductionDebugger />}
+{
+  process.env.NODE_ENV === 'production' && <ProductionDebugger />;
+}
 ```
 
 ### **Step 5: Check Browser Console in Production**
@@ -119,6 +129,7 @@ import { ProductionDebugger } from '@/components/ProductionDebugger'
 ## 🧪 **Testing Production Fixes**
 
 ### **Test 1: Environment Variable Check**
+
 ```bash
 # In your production site console, run:
 console.log('Environment check:', {
@@ -130,12 +141,14 @@ console.log('Environment check:', {
 ```
 
 ### **Test 2: Authentication Flow Test**
+
 1. Clear all cookies and storage
 2. Try to login
 3. Check console for errors
 4. Verify cookies are set correctly
 
 ### **Test 3: Strava Connection Test**
+
 1. Try connecting to Strava
 2. Check if OAuth redirect works
 3. Verify tokens are stored
@@ -153,8 +166,8 @@ console.log('🔐 Production auth state change:', {
   hasUser: !!session?.user,
   userId: session?.user?.id?.slice(0, 8) + '...',
   timestamp: new Date().toISOString(),
-  url: window.location.href
-})
+  url: window.location.href,
+});
 ```
 
 ### **Check Vercel Function Logs**
@@ -177,18 +190,22 @@ npm run build
 ## 🚨 **Common Production-Specific Issues**
 
 ### **Issue 1: Environment Variables Not Loading**
+
 **Symptoms:** `undefined` values in production
 **Fix:** Redeploy after setting environment variables
 
 ### **Issue 2: Cookie Domain Mismatch**
+
 **Symptoms:** Authentication state not persisting
 **Fix:** Check Supabase URL configuration
 
 ### **Issue 3: CORS Errors**
+
 **Symptoms:** API calls failing in production
 **Fix:** Verify Supabase CORS settings
 
 ### **Issue 4: Mixed Content**
+
 **Symptoms:** HTTPS warnings, auth breaking
 **Fix:** Ensure all URLs use HTTPS
 
@@ -222,6 +239,7 @@ vercel logs
 ## 🔍 **Monitoring Production**
 
 ### **Add Error Tracking**
+
 Consider adding Sentry or similar for production error monitoring:
 
 ```bash
@@ -229,6 +247,7 @@ npm install @sentry/nextjs
 ```
 
 ### **Health Check Endpoint**
+
 Create a simple health check to verify authentication:
 
 ```typescript
@@ -238,8 +257,8 @@ export async function GET() {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
-    hasSupabase: !!process.env.NEXT_PUBLIC_SUPABASE_URL
-  })
+    hasSupabase: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+  });
 }
 ```
 

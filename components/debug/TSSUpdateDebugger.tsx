@@ -1,26 +1,26 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, Calculator, CheckCircle, AlertCircle } from 'lucide-react'
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2, Calculator, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface TSSUpdateResult {
-  success: boolean
-  action: string
-  updated: number
-  errors: number
+  success: boolean;
+  action: string;
+  updated: number;
+  errors: number;
 }
 
 export function TSSUpdateDebugger() {
-  const [isUpdating, setIsUpdating] = useState(false)
-  const [result, setResult] = useState<TSSUpdateResult | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [result, setResult] = useState<TSSUpdateResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const updateTSS = async () => {
-    setIsUpdating(true)
-    setError(null)
-    setResult(null)
+    setIsUpdating(true);
+    setError(null);
+    setResult(null);
 
     try {
       const response = await fetch('/api/strava/sync', {
@@ -29,23 +29,23 @@ export function TSSUpdateDebugger() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          action: 'update-tss'
-        })
-      })
+          action: 'update-tss',
+        }),
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (response.ok) {
-        setResult(data)
+        setResult(data);
       } else {
-        setError(data.error || 'Failed to update TSS')
+        setError(data.error || 'Failed to update TSS');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   return (
     <Card>
@@ -57,17 +57,17 @@ export function TSSUpdateDebugger() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-sm text-gray-600">
-          <p>This will calculate and store Training Stress Score (TSS) for all activities that don&apos;t have it yet.</p>
+          <p>
+            This will calculate and store Training Stress Score (TSS) for all
+            activities that don&apos;t have it yet.
+          </p>
           <p className="mt-2 text-xs">
-            TSS is calculated using heart rate data, power data, or duration-based estimation.
+            TSS is calculated using heart rate data, power data, or
+            duration-based estimation.
           </p>
         </div>
 
-        <Button 
-          onClick={updateTSS} 
-          disabled={isUpdating}
-          className="w-full"
-        >
+        <Button onClick={updateTSS} disabled={isUpdating} className="w-full">
           {isUpdating ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -90,7 +90,9 @@ export function TSSUpdateDebugger() {
             <div className="mt-2 text-sm text-green-700">
               <p>✅ Updated: {result.updated} activities</p>
               {result.errors > 0 && (
-                <p className="text-orange-600">⚠️ Errors: {result.errors} activities</p>
+                <p className="text-orange-600">
+                  ⚠️ Errors: {result.errors} activities
+                </p>
               )}
             </div>
           </div>
@@ -107,5 +109,5 @@ export function TSSUpdateDebugger() {
         )}
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

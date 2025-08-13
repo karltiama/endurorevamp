@@ -3,39 +3,67 @@
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { ExternalLink, Mail, MessageSquare, Github, Globe, FileText, Heart, Activity } from 'lucide-react';
+import {
+  ExternalLink,
+  Mail,
+  MessageSquare,
+  Github,
+  Globe,
+  FileText,
+  Heart,
+  Activity,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
 // Import tech stack icons from react-icons
-import { 
-  SiNextdotjs, 
-  SiTypescript, 
-  SiReact, 
-  SiSupabase, 
-  SiReactquery, 
-  SiTailwindcss 
+import {
+  SiNextdotjs,
+  SiTypescript,
+  SiReact,
+  SiSupabase,
+  SiReactquery,
+  SiTailwindcss,
 } from 'react-icons/si';
 
 export function AppFooter() {
   const pathname = usePathname();
-  const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
-  const [suggestionForm, setSuggestionForm] = useState({ title: '', description: '' });
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    message: '',
+  });
+  const [suggestionForm, setSuggestionForm] = useState({
+    title: '',
+    description: '',
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Check if we're on a dashboard page to apply sidebar-aware styling
   const isDashboardPage = pathname?.startsWith('/dashboard');
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       const response = await fetch('/api/submissions', {
         method: 'POST',
@@ -45,8 +73,8 @@ export function AppFooter() {
           name: contactForm.name,
           email: contactForm.email,
           message: contactForm.message,
-          category: 'general_inquiry'
-        })
+          category: 'general_inquiry',
+        }),
       });
 
       if (response.ok) {
@@ -66,7 +94,7 @@ export function AppFooter() {
   const handleSuggestionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       const response = await fetch('/api/submissions', {
         method: 'POST',
@@ -75,8 +103,8 @@ export function AppFooter() {
           type: 'suggestion',
           title: suggestionForm.title,
           description: suggestionForm.description,
-          category: 'feature_request'
-        })
+          category: 'feature_request',
+        }),
       });
 
       if (response.ok) {
@@ -94,12 +122,13 @@ export function AppFooter() {
   };
 
   return (
-    <footer className={`bg-gray-900 text-white border-t border-gray-800 mt-auto transition-[margin-left] duration-200 ease-linear ${
-      isDashboardPage ? 'md:ml-[3rem]' : ''
-    }`}>
+    <footer
+      className={`bg-gray-900 text-white border-t border-gray-800 mt-auto transition-[margin-left] duration-200 ease-linear ${
+        isDashboardPage ? 'md:ml-[3rem]' : ''
+      }`}
+    >
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          
           {/* Contact & Support */}
           <div className="space-y-4">
             {/* Enduro Stats Branding */}
@@ -108,14 +137,21 @@ export function AppFooter() {
               <span className="text-2xl font-bold">Enduro Stats</span>
             </div>
             <p className="text-gray-400 mb-4">
-              Unlock deeper insights from your Strava data and take your running to the next level.
+              Unlock deeper insights from your Strava data and take your running
+              to the next level.
             </p>
-            
-            <h3 className="text-lg font-semibold text-white">Contact & Support</h3>
+
+            <h3 className="text-lg font-semibold text-white">
+              Contact & Support
+            </h3>
             <div className="space-y-3">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full justify-start text-gray-300 border-gray-700 hover:bg-gray-800 hover:text-white">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start text-gray-300 border-gray-700 hover:bg-gray-800 hover:text-white"
+                  >
                     <Mail className="w-4 h-4 mr-2" />
                     Contact Us
                   </Button>
@@ -124,7 +160,8 @@ export function AppFooter() {
                   <DialogHeader>
                     <DialogTitle>Contact Us</DialogTitle>
                     <DialogDescription>
-                      Send us a message and we&apos;ll get back to you as soon as possible.
+                      Send us a message and we&apos;ll get back to you as soon
+                      as possible.
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleContactSubmit} className="space-y-4">
@@ -133,7 +170,12 @@ export function AppFooter() {
                       <Input
                         id="name"
                         value={contactForm.name}
-                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                        onChange={e =>
+                          setContactForm({
+                            ...contactForm,
+                            name: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -143,7 +185,12 @@ export function AppFooter() {
                         id="email"
                         type="email"
                         value={contactForm.email}
-                        onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                        onChange={e =>
+                          setContactForm({
+                            ...contactForm,
+                            email: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -152,11 +199,20 @@ export function AppFooter() {
                       <Textarea
                         id="message"
                         value={contactForm.message}
-                        onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                        onChange={e =>
+                          setContactForm({
+                            ...contactForm,
+                            message: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
-                    <Button type="submit" disabled={isSubmitting} className="w-full">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full"
+                    >
                       {isSubmitting ? 'Sending...' : 'Send Message'}
                     </Button>
                   </form>
@@ -165,7 +221,11 @@ export function AppFooter() {
 
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full justify-start text-gray-300 border-gray-700 hover:bg-gray-800 hover:text-white">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start text-gray-300 border-gray-700 hover:bg-gray-800 hover:text-white"
+                  >
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Suggest Feature
                   </Button>
@@ -174,7 +234,8 @@ export function AppFooter() {
                   <DialogHeader>
                     <DialogTitle>Suggest a Feature</DialogTitle>
                     <DialogDescription>
-                      Have an idea for a new feature? We&apos;d love to hear about it!
+                      Have an idea for a new feature? We&apos;d love to hear
+                      about it!
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleSuggestionSubmit} className="space-y-4">
@@ -183,7 +244,12 @@ export function AppFooter() {
                       <Input
                         id="title"
                         value={suggestionForm.title}
-                        onChange={(e) => setSuggestionForm({ ...suggestionForm, title: e.target.value })}
+                        onChange={e =>
+                          setSuggestionForm({
+                            ...suggestionForm,
+                            title: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -192,12 +258,21 @@ export function AppFooter() {
                       <Textarea
                         id="description"
                         value={suggestionForm.description}
-                        onChange={(e) => setSuggestionForm({ ...suggestionForm, description: e.target.value })}
+                        onChange={e =>
+                          setSuggestionForm({
+                            ...suggestionForm,
+                            description: e.target.value,
+                          })
+                        }
                         placeholder="Describe the feature you'd like to see..."
                         required
                       />
                     </div>
-                    <Button type="submit" disabled={isSubmitting} className="w-full">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full"
+                    >
                       {isSubmitting ? 'Submitting...' : 'Submit Suggestion'}
                     </Button>
                   </form>
@@ -214,13 +289,15 @@ export function AppFooter() {
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start text-gray-400 hover:text-white hover:bg-gray-800"
-                onClick={() => window.open('https://github.com/karltiama', '_blank')}
+                onClick={() =>
+                  window.open('https://github.com/karltiama', '_blank')
+                }
               >
                 <Github className="w-4 h-4 mr-2" />
                 GitHub
                 <ExternalLink className="w-3 h-3 ml-auto" />
               </Button>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -231,12 +308,17 @@ export function AppFooter() {
                 Personal Website
                 <ExternalLink className="w-3 h-3 ml-auto" />
               </Button>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start text-gray-400 hover:text-white hover:bg-gray-800"
-                onClick={() => window.open('https://www.karltiama.dev/blog/enduro-refactor', '_blank')}
+                onClick={() =>
+                  window.open(
+                    'https://www.karltiama.dev/blog/enduro-refactor',
+                    '_blank'
+                  )
+                }
               >
                 <FileText className="w-4 h-4 mr-2" />
                 Behind the Scenes: Building Enduro Stats
@@ -245,109 +327,121 @@ export function AppFooter() {
             </div>
           </div>
 
-                     <div className="space-y-4">
-             <h3 className="text-lg font-semibold text-white">App Info</h3>
-             <div className="space-y-2 text-sm text-gray-400">
-               <p><strong>Version:</strong> 2.0.0</p>
-               <div className="flex items-center space-x-2">
-                 <span className="font-semibold">Built with:</span>
-                 <div className="flex space-x-2">
-                                       <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="cursor-pointer hover:scale-110 transition-transform">
-                            <SiNextdotjs className="w-6 h-6" />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Next.js 15</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="cursor-pointer hover:scale-110 transition-transform">
-                            <SiTypescript className="w-6 h-6" />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>TypeScript</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="cursor-pointer hover:scale-110 transition-transform">
-                            <SiReact className="w-6 h-6" />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>React 19</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="cursor-pointer hover:scale-110 transition-transform">
-                            <SiSupabase className="w-6 h-6" />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Supabase</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="cursor-pointer hover:scale-110 transition-transform">
-                            <SiReactquery className="w-6 h-6" />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>React Query</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="cursor-pointer hover:scale-110 transition-transform">
-                            <SiTailwindcss className="w-6 h-6" />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Tailwind CSS</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                 </div>
-               </div>
-               <p><strong>Last updated:</strong> {new Date().toLocaleDateString()}</p>
-             </div>
-             <div className="space-y-2">
-               <Button variant="link" size="sm" className="h-auto text-sm text-gray-400 hover:text-white" asChild>
-                 <Link href="/privacy">Privacy Policy</Link>
-               </Button>
-               <Button variant="link" size="sm" className="h-auto text-sm text-gray-400 hover:text-white" asChild>
-                 <Link href="/terms">Terms of Service</Link>
-               </Button>
-             </div>
-           </div>
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-white">App Info</h3>
+            <div className="space-y-2 text-sm text-gray-400">
+              <p>
+                <strong>Version:</strong> 2.0.0
+              </p>
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold">Built with:</span>
+                <div className="flex space-x-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="cursor-pointer hover:scale-110 transition-transform">
+                          <SiNextdotjs className="w-6 h-6" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Next.js 15</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
-          
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="cursor-pointer hover:scale-110 transition-transform">
+                          <SiTypescript className="w-6 h-6" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>TypeScript</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="cursor-pointer hover:scale-110 transition-transform">
+                          <SiReact className="w-6 h-6" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>React 19</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="cursor-pointer hover:scale-110 transition-transform">
+                          <SiSupabase className="w-6 h-6" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Supabase</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="cursor-pointer hover:scale-110 transition-transform">
+                          <SiReactquery className="w-6 h-6" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>React Query</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="cursor-pointer hover:scale-110 transition-transform">
+                          <SiTailwindcss className="w-6 h-6" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Tailwind CSS</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+              <p>
+                <strong>Last updated:</strong> {new Date().toLocaleDateString()}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto text-sm text-gray-400 hover:text-white"
+                asChild
+              >
+                <Link href="/privacy">Privacy Policy</Link>
+              </Button>
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto text-sm text-gray-400 hover:text-white"
+                asChild
+              >
+                <Link href="/terms">Terms of Service</Link>
+              </Button>
+            </div>
+          </div>
         </div>
 
         <Separator className="my-6 bg-gray-800" />
-        
+
         {/* Bottom Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-400">
           <div className="flex items-center space-x-2">
@@ -361,4 +455,4 @@ export function AppFooter() {
       </div>
     </footer>
   );
-} 
+}

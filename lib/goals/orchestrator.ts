@@ -1,6 +1,6 @@
 /**
  * Goals Orchestrator Service
- * 
+ *
  * This service provides a unified interface for all goal-related operations
  * across the application, ensuring consistency and eliminating duplication.
  */
@@ -75,7 +75,9 @@ export class GoalOrchestrator {
 
   constructor(options: GoalOrchestratorOptions) {
     this.userId = options.userId;
-    this.supabase = options.supabase || (null as unknown as Awaited<ReturnType<typeof createClient>>); // Will be initialized in init()
+    this.supabase =
+      options.supabase ||
+      (null as unknown as Awaited<ReturnType<typeof createClient>>); // Will be initialized in init()
   }
 
   async init(): Promise<void> {
@@ -87,10 +89,12 @@ export class GoalOrchestrator {
   async getUserGoals(): Promise<UserGoal[]> {
     const { data, error } = await this.supabase
       .from('user_goals')
-      .select(`
+      .select(
+        `
         *,
         goal_types (*)
-      `)
+      `
+      )
       .eq('user_id', this.userId)
       .eq('is_active', true)
       .order('priority', { ascending: true });
@@ -121,7 +125,7 @@ export class GoalOrchestrator {
         is_active: true,
         is_completed: false,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -139,7 +143,7 @@ export class GoalOrchestrator {
       .from('user_goals')
       .update({
         current_progress: progress,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', goalId)
       .eq('user_id', this.userId);
@@ -154,7 +158,7 @@ export class GoalOrchestrator {
 
   async calculateGoalProgress(goal: UserGoal): Promise<GoalCalculationResult> {
     // This is a simplified calculation - in a real app, you'd calculate based on activities
-    const progressPercentage = goal.target_value 
+    const progressPercentage = goal.target_value
       ? Math.min(100, (goal.current_progress / goal.target_value) * 100)
       : 0;
 
@@ -163,7 +167,7 @@ export class GoalOrchestrator {
       currentProgress: goal.current_progress,
       progressPercentage,
       isCompleted: goal.is_completed,
-      lastUpdated: goal.updated_at
+      lastUpdated: goal.updated_at,
     };
   }
 
@@ -178,7 +182,7 @@ export class GoalOrchestrator {
         target: 25,
         unit: 'km',
         priority: 'high',
-        reasoning: 'Start with a conservative weekly distance goal'
+        reasoning: 'Start with a conservative weekly distance goal',
       },
       {
         id: 'weekly-frequency',
@@ -188,8 +192,8 @@ export class GoalOrchestrator {
         target: 3,
         unit: 'runs/week',
         priority: 'high',
-        reasoning: 'Consistency is key to long-term progress'
-      }
+        reasoning: 'Consistency is key to long-term progress',
+      },
     ];
 
     return suggestions;
@@ -231,7 +235,7 @@ export class GoalOrchestrator {
       .update({
         is_completed: true,
         completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', goalId)
       .eq('user_id', this.userId);
@@ -245,7 +249,10 @@ export class GoalOrchestrator {
   }
 
   // Static methods for API-based operations
-  static async createGoal(goalData: CreateGoalRequest, context?: GoalCreationContext): Promise<UserGoal> {
+  static async createGoal(
+    goalData: CreateGoalRequest,
+    context?: GoalCreationContext
+  ): Promise<UserGoal> {
     const response = await fetch('/api/goals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -255,9 +262,9 @@ export class GoalOrchestrator {
           ...goalData.goal_data,
           creation_context: context?.type || 'manual',
           creation_source: context?.source || 'unknown',
-          created_at: new Date().toISOString()
-        }
-      })
+          created_at: new Date().toISOString(),
+        },
+      }),
     });
 
     if (!response.ok) {
@@ -269,9 +276,12 @@ export class GoalOrchestrator {
     return result.goal;
   }
 
-  static async createGoalFromSuggestion(suggestion: DynamicGoalSuggestion, customizations?: Partial<CreateGoalRequest>): Promise<UserGoal> {
+  static async createGoalFromSuggestion(
+    suggestion: DynamicGoalSuggestion,
+    customizations?: Partial<CreateGoalRequest>
+  ): Promise<UserGoal> {
     const goalData: CreateGoalRequest = {
-              goal_type_id: suggestion.goalType.name,
+      goal_type_id: suggestion.goalType.name,
       target_value: suggestion.suggestedTarget,
       target_unit: suggestion.targetUnit,
       time_period: 'ongoing',
@@ -279,19 +289,27 @@ export class GoalOrchestrator {
         from_suggestion: true,
         suggestion_id: suggestion.id,
         suggestion_reasoning: suggestion.reasoning,
-        difficulty_level: suggestion.difficulty === 'conservative' ? 'beginner' : 
-                         suggestion.difficulty === 'moderate' ? 'intermediate' : 'advanced',
+        difficulty_level:
+          suggestion.difficulty === 'conservative'
+            ? 'beginner'
+            : suggestion.difficulty === 'moderate'
+              ? 'intermediate'
+              : 'advanced',
         success_probability: suggestion.successProbability,
         warnings: suggestion.warnings || [],
-        ...customizations?.goal_data
+        ...customizations?.goal_data,
       },
-      ...customizations
+      ...customizations,
     };
 
     return this.createGoal(goalData, { type: 'suggestion', source: 'ai' });
   }
 
-  static async updateGoal(goalId: string, updates: Partial<UserGoal>, context?: GoalUpdateContext): Promise<UserGoal> {
+  static async updateGoal(
+    goalId: string,
+    updates: Partial<UserGoal>,
+    context?: GoalUpdateContext
+  ): Promise<UserGoal> {
     const response = await fetch(`/api/goals/${goalId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -301,9 +319,9 @@ export class GoalOrchestrator {
           ...updates.goal_data,
           last_update_context: context?.updateType,
           last_update_reason: context?.reason,
-          last_updated: new Date().toISOString()
-        }
-      })
+          last_updated: new Date().toISOString(),
+        },
+      }),
     });
 
     if (!response.ok) {
@@ -315,7 +333,10 @@ export class GoalOrchestrator {
     return result.goal;
   }
 
-  static async manageDashboardGoals(goalIds: string[], userId: string): Promise<UserGoal[]> {
+  static async manageDashboardGoals(
+    goalIds: string[],
+    userId: string
+  ): Promise<UserGoal[]> {
     if (goalIds.length > 3) {
       throw new Error('Maximum 3 dashboard goals allowed');
     }
@@ -323,7 +344,7 @@ export class GoalOrchestrator {
     const response = await fetch('/api/goals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ goalIds, userId })
+      body: JSON.stringify({ goalIds, userId }),
     });
 
     if (!response.ok) {
@@ -337,7 +358,7 @@ export class GoalOrchestrator {
 
   static async getGoalAnalytics(userId: string): Promise<GoalAnalytics> {
     const response = await fetch(`/api/goals/analytics?userId=${userId}`);
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to fetch goal analytics');
@@ -347,9 +368,11 @@ export class GoalOrchestrator {
     return result.analytics || result;
   }
 
-  static async getGoalRecommendations(userId: string): Promise<GoalRecommendation[]> {
+  static async getGoalRecommendations(
+    userId: string
+  ): Promise<GoalRecommendation[]> {
     const response = await fetch(`/api/goals/recommendations?userId=${userId}`);
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to fetch goal recommendations');
@@ -359,7 +382,10 @@ export class GoalOrchestrator {
     return result.recommendations || result;
   }
 
-  static validateGoalData(goalData: CreateGoalRequest): { isValid: boolean; errors: string[] } {
+  static validateGoalData(goalData: CreateGoalRequest): {
+    isValid: boolean;
+    errors: string[];
+  } {
     const errors: string[] = [];
 
     if (!goalData.goal_type_id) {
@@ -380,15 +406,18 @@ export class GoalOrchestrator {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
-  static async bulkUpdateGoals(updates: Array<{ goalId: string; updates: Partial<UserGoal> }>, context?: GoalUpdateContext): Promise<UserGoal[]> {
+  static async bulkUpdateGoals(
+    updates: Array<{ goalId: string; updates: Partial<UserGoal> }>,
+    context?: GoalUpdateContext
+  ): Promise<UserGoal[]> {
     const response = await fetch('/api/goals/bulk-update', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ updates, context })
+      body: JSON.stringify({ updates, context }),
     });
 
     if (!response.ok) {
@@ -404,7 +433,7 @@ export class GoalOrchestrator {
     const response = await fetch('/api/goals/archive-completed', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId })
+      body: JSON.stringify({ userId }),
     });
 
     if (!response.ok) {
@@ -418,7 +447,7 @@ export class GoalOrchestrator {
 
   static async getGoalInsights(goalId: string): Promise<unknown> {
     const response = await fetch(`/api/goals/${goalId}/insights`);
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to fetch goal insights');
@@ -427,4 +456,4 @@ export class GoalOrchestrator {
     const result = await response.json();
     return result.insights || result;
   }
-} 
+}

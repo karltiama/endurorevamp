@@ -1,78 +1,88 @@
-'use client'
+'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  Loader2, 
-  Calendar, 
-  Timer, 
-  Activity as ActivityIcon, 
-  MapPin, 
-  Heart, 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Loader2,
+  Calendar,
+  Timer,
+  Activity as ActivityIcon,
+  MapPin,
+  Heart,
   Zap,
   AlertCircle,
-  RefreshCw
-} from 'lucide-react'
-import { useUserActivities } from '@/hooks/use-user-activities'
-import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { formatDistance, formatStravaDateTime } from '@/lib/utils'
-import { Activity } from '@/lib/strava/types'
-import { Button } from '@/components/ui/button'
+  RefreshCw,
+} from 'lucide-react';
+import { useUserActivities } from '@/hooks/use-user-activities';
+import { useUnitPreferences } from '@/hooks/useUnitPreferences';
+import { formatDistance, formatStravaDateTime } from '@/lib/utils';
+import { Activity } from '@/lib/strava/types';
+import { Button } from '@/components/ui/button';
 
 interface ActivitiesDashboardProps {
-  userId: string // Changed from accessToken to userId for database queries
+  userId: string; // Changed from accessToken to userId for database queries
 }
 
 export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
   // Use database instead of API - much faster and no rate limits!
-  const { 
-    data: allActivities, 
-    isLoading, 
+  const {
+    data: allActivities,
+    isLoading,
     error,
     refetch,
-    isRefetching 
-  } = useUserActivities(userId)
+    isRefetching,
+  } = useUserActivities(userId);
 
   // Client-side filtering to get recent activities (last 10)
-  const activities = allActivities?.slice(0, 10) || []
+  const activities = allActivities?.slice(0, 10) || [];
 
   // Format duration from seconds to readable format
   const formatDuration = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`
-    }
-    return `${minutes}m`
-  }
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
 
-  const { preferences } = useUnitPreferences()
-  
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
+  const { preferences } = useUnitPreferences();
+
   // Format distance from meters to km/miles
   const formatDistanceWithUnits = (meters: number): string => {
-    return formatDistance(meters, preferences.distance)
-  }
+    return formatDistance(meters, preferences.distance);
+  };
 
   // Format speed from m/s to km/h or mph
   const formatSpeed = (metersPerSecond: number): string => {
-    const kmh = metersPerSecond * 3.6
+    const kmh = metersPerSecond * 3.6;
     if (preferences.distance === 'miles') {
-      const mph = kmh * 0.621371
-      return `${mph % 1 === 0 ? mph.toFixed(0) : mph.toFixed(1)} mph`
+      const mph = kmh * 0.621371;
+      return `${mph % 1 === 0 ? mph.toFixed(0) : mph.toFixed(1)} mph`;
     }
-    return `${kmh % 1 === 0 ? kmh.toFixed(0) : kmh.toFixed(1)} km/h`
-  }
+    return `${kmh % 1 === 0 ? kmh.toFixed(0) : kmh.toFixed(1)} km/h`;
+  };
 
   // Format date to readable format using proper timezone handling
   const formatDate = (dateString: string): string => {
-    return formatStravaDateTime(dateString)
-  }
+    return formatStravaDateTime(dateString);
+  };
 
   // Get activity type color - handle both sport_type and activity_type
   const getActivityTypeColor = (activity: Activity): string => {
-    const type = (activity.sport_type || activity.activity_type || '').toLowerCase()
+    const type = (
+      activity.sport_type ||
+      activity.activity_type ||
+      ''
+    ).toLowerCase();
     switch (type) {
       case 'ride':
       case 'virtualride':
@@ -81,16 +91,16 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
       case 'gravelride':
       case 'handcycle':
       case 'velomobile':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 text-blue-800';
       case 'run':
       case 'virtualrun':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800';
       case 'swim':
-        return 'bg-cyan-100 text-cyan-800'
+        return 'bg-cyan-100 text-cyan-800';
       case 'hike':
-        return 'bg-orange-100 text-orange-800'
+        return 'bg-orange-100 text-orange-800';
       case 'walk':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800';
       case 'workout':
       case 'weighttraining':
       case 'crossfit':
@@ -98,11 +108,11 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
       case 'pilates':
       case 'stretching':
       case 'strengthtraining':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-purple-100 text-purple-800';
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
   // Loading state
   if (isLoading) {
@@ -133,7 +143,7 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   // Error state
@@ -153,12 +163,14 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              {error instanceof Error ? error.message : 'Failed to load activities from database'}
+              {error instanceof Error
+                ? error.message
+                : 'Failed to load activities from database'}
             </AlertDescription>
           </Alert>
           <div className="mt-4 space-y-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => refetch()}
               disabled={isRefetching}
             >
@@ -175,7 +187,7 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   // Empty state
@@ -194,19 +206,22 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
         <CardContent>
           <div className="text-center py-8">
             <ActivityIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No activities found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No activities found
+            </h3>
             <div className="space-y-2">
               <p className="text-gray-500">
                 No activities found in your database.
               </p>
               <p className="text-sm text-blue-600">
-                💡 Click &quot;Sync Strava Data&quot; to load your activities from Strava.
+                💡 Click &quot;Sync Strava Data&quot; to load your activities
+                from Strava.
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   // Success state with activities
@@ -226,8 +241,8 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
               📊 Database source ({allActivities?.length || 0} total activities)
             </div>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => refetch()}
             disabled={isRefetching}
@@ -242,41 +257,54 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {activities.map((activity) => {
-            const activityType = activity.sport_type || activity.activity_type || 'Activity'
-            
+          {activities.map(activity => {
+            const activityType =
+              activity.sport_type || activity.activity_type || 'Activity';
+
             return (
-              <div key={activity.strava_activity_id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+              <div
+                key={activity.strava_activity_id}
+                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <Badge variant="secondary" className={getActivityTypeColor(activity)}>
+                      <Badge
+                        variant="secondary"
+                        className={getActivityTypeColor(activity)}
+                      >
                         {activityType}
                       </Badge>
-                      <h3 className="font-semibold text-lg truncate">{activity.name}</h3>
+                      <h3 className="font-semibold text-lg truncate">
+                        {activity.name}
+                      </h3>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       {/* Distance */}
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-gray-500" />
-                        <span>{formatDistanceWithUnits(activity.distance)}</span>
+                        <span>
+                          {formatDistanceWithUnits(activity.distance)}
+                        </span>
                       </div>
-                      
+
                       {/* Duration */}
                       <div className="flex items-center gap-2">
                         <Timer className="h-4 w-4 text-gray-500" />
                         <span>{formatDuration(activity.moving_time)}</span>
                       </div>
-                      
+
                       {/* Heart Rate */}
                       {activity.average_heartrate && (
                         <div className="flex items-center gap-2">
                           <Heart className="h-4 w-4 text-red-500" />
-                          <span>{Math.round(activity.average_heartrate)} bpm</span>
+                          <span>
+                            {Math.round(activity.average_heartrate)} bpm
+                          </span>
                         </div>
                       )}
-                      
+
                       {/* Power */}
                       {activity.average_watts && (
                         <div className="flex items-center gap-2">
@@ -284,7 +312,7 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
                           <span>{Math.round(activity.average_watts)}w</span>
                         </div>
                       )}
-                      
+
                       {/* Speed */}
                       {activity.average_speed && (
                         <div className="flex items-center gap-2">
@@ -292,17 +320,18 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
                           <span>{formatSpeed(activity.average_speed)}</span>
                         </div>
                       )}
-                      
+
                       {/* Elevation */}
-                      {activity.total_elevation_gain && activity.total_elevation_gain > 0 && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-500">↗</span>
-                          <span>{activity.total_elevation_gain}m</span>
-                        </div>
-                      )}
+                      {activity.total_elevation_gain &&
+                        activity.total_elevation_gain > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-500">↗</span>
+                            <span>{activity.total_elevation_gain}m</span>
+                          </div>
+                        )}
                     </div>
                   </div>
-                  
+
                   <div className="text-right text-sm text-gray-500 ml-4">
                     <div className="flex items-center gap-1 mb-1">
                       <Calendar className="h-4 w-4" />
@@ -314,10 +343,10 @@ export function ActivitiesDashboard({ userId }: ActivitiesDashboardProps) {
                   </div>
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

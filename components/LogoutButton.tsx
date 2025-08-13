@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { useAuth } from '@/providers/AuthProvider'
+import { useAuth } from '@/providers/AuthProvider';
 
 export default function LogoutButton() {
-  const { signOut, isLoading } = useAuth()
+  const { signOut, isLoading } = useAuth();
 
   return (
     <button
@@ -13,5 +13,5 @@ export default function LogoutButton() {
     >
       {isLoading ? 'Signing out...' : 'Sign out'}
     </button>
-  )
-} 
+  );
+}

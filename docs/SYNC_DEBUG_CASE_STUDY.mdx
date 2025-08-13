@@ -1,6 +1,6 @@
 # The Great Strava Sync Debug: A 2-Day Journey 🕵️‍♂️
 
-*A case study in database constraints, data type mismatches, and the hidden complexity of database triggers*
+_A case study in database constraints, data type mismatches, and the hidden complexity of database triggers_
 
 ## 🚨 The Problem
 
@@ -11,71 +11,82 @@ New Strava activities weren't syncing, while old activities worked perfectly. Th
 ## 🔍 Error #1: Unique Constraint Mismatch
 
 **Error Code:** `42P10`
+
 ```
 "there is no unique or exclusion constraint matching the ON CONFLICT specification"
 ```
 
 ### The Investigation
+
 - Sync code was using `onConflict: 'strava_activity_id'`
 - But the actual database only had a single-column unique constraint
 - Multi-user app needed per-user activity deduplication
 
 ### The Root Cause
+
 ```sql
 -- Expected constraint
 UNIQUE (user_id, strava_activity_id)
 
--- Actual constraint  
+-- Actual constraint
 UNIQUE (strava_activity_id)  -- Single column only
 ```
 
 ### The Fix
+
 1. **Updated database schema** with composite constraint:
+
 ```sql
-ALTER TABLE activities 
+ALTER TABLE activities
 DROP CONSTRAINT IF EXISTS activities_strava_activity_id_key;
 
-ALTER TABLE activities 
-ADD CONSTRAINT activities_user_strava_activity_unique 
+ALTER TABLE activities
+ADD CONSTRAINT activities_user_strava_activity_unique
 UNIQUE (user_id, strava_activity_id);
 ```
 
 2. **Updated sync code** to use correct constraint:
+
 ```typescript
-.upsert(activityData, { 
+.upsert(activityData, {
   onConflict: 'user_id,strava_activity_id', // Fixed
-  ignoreDuplicates: false 
+  ignoreDuplicates: false
 })
 ```
 
 ---
 
-## 🔍 Error #2: Integer Type Mismatch  
+## 🔍 Error #2: Integer Type Mismatch
 
 **Error Code:** `22P02`
+
 ```
 "invalid input syntax for type integer: \"216.7\""
 ```
 
 ### The Investigation
+
 - Database expected `INTEGER` for power/heart rate fields
 - Strava API returned decimal values like `216.7`
 - Old activities had different data precision
 
 ### The Root Cause
+
 ```typescript
 // Database schema
 average_watts INTEGER,
 max_watts INTEGER,
 average_heartrate INTEGER,
 
-// Strava API response  
+// Strava API response
 average_watts: 216.7,  // Decimal!
 max_watts: 262.3,      // Decimal!
 ```
 
 ### The Fix
+
 Created `safeInteger()` helper to round decimal values:
+
 ```typescript
 function safeInteger(value: any): number | null {
   const result = safeNumber(value)
@@ -91,27 +102,31 @@ max_watts: safeInteger(activity.max_watts),
 
 ## 🔍 Error #3: The Phantom Pace String
 
-**Error Code:** `22P02`  
+**Error Code:** `22P02`
+
 ```
 "invalid input syntax for type numeric: \"07:04 /km\""
 ```
 
-### The Investigation  
+### The Investigation
+
 - Processed data looked perfect: `"average_pace": 424` (numeric)
 - But error still mentioned `"07:04 /km"` string
 - No pace strings visible in our data processing
 
 ### The Eureka Moment 💡
+
 **Database triggers were the culprit!**
 
 ```sql
 -- Hidden trigger running BEFORE INSERT/UPDATE
-CREATE TRIGGER calculate_activity_metrics 
+CREATE TRIGGER calculate_activity_metrics
   BEFORE INSERT OR UPDATE ON activities
   FOR EACH ROW EXECUTE FUNCTION extract_time_components();
 ```
 
 ### The Root Cause
+
 The trigger was calling a function that **overwrote** our clean numeric data:
 
 ```sql
@@ -126,7 +141,9 @@ RETURN LPAD(minutes::TEXT, 2, '0') || ':' || LPAD(seconds::TEXT, 2, '0') || ' /k
 ```
 
 ### The Fix
+
 Fixed the database function to return numeric seconds:
+
 ```sql
 -- Before: Returned "07:04 /km" (TEXT)
 -- After: Returns 424.52 (NUMERIC)
@@ -146,32 +163,38 @@ $$;
 ## 🔍 Error #4: The Overzealous Filter
 
 **Error Code:** `23502`
+
 ```
 "null value in column \"start_date\" violates not-null constraint"
 ```
 
 ### The Investigation
+
 - Raw Strava data had valid timestamp: `"2025-06-16T21:21:08Z"`
 - But database received `NULL` for start_date
 
 ### The Root Cause
+
 Our safety filter was **too aggressive**:
+
 ```typescript
 // Bad filter - removed ANY string with colons
 if (value.includes(':')) {
-  return false  // Removed timestamps! 
+  return false; // Removed timestamps!
 }
 ```
 
 The filter removed `"2025-06-16T21:21:08Z"` because it contains colons!
 
 ### The Fix
+
 Made the filter **precise** to only target actual pace strings:
+
 ```typescript
 // Precise regex for pace patterns only
-const pacePattern = /\d{1,2}:\d{2}\s*\/\s*(km|mi|mile)/i
+const pacePattern = /\d{1,2}:\d{2}\s*\/\s*(km|mi|mile)/i;
 if (pacePattern.test(value)) {
-  return false  // Only removes "07:04 /km" patterns
+  return false; // Only removes "07:04 /km" patterns
 }
 ```
 
@@ -180,26 +203,31 @@ if (pacePattern.test(value)) {
 ## 🎯 Key Lessons Learned
 
 ### 1. **Database Triggers are Silent Assassins**
+
 - Code looked perfect, but hidden triggers modified data
 - Always check for triggers when debugging data issues
 - Document trigger behavior and purpose
 
-### 2. **Data Type Consistency is Critical** 
+### 2. **Data Type Consistency is Critical**
+
 - Match API response types to database schema exactly
 - Create type-safe conversion helpers
 - Test with real API data, not mock data
 
 ### 3. **Constraint Documentation Matters**
+
 - Actual schema != expected schema
 - Always verify constraints with SQL queries
 - Update documentation when schema changes
 
 ### 4. **Safety Filters Need Precision**
+
 - Overly broad filters cause new problems
 - Use specific regex patterns instead of simple string matching
 - Test filters with real data edge cases
 
 ### 5. **Why Old vs New Data Behaved Differently**
+
 - **Database triggers** were added after old data was inserted
 - **API evolution** - newer activities had different field precision
 - **Schema evolution** - constraints changed over time
@@ -209,7 +237,7 @@ if (pacePattern.test(value)) {
 ## 🛠️ The Complete Fix Summary
 
 1. ✅ **Fixed unique constraint** - Composite `(user_id, strava_activity_id)`
-2. ✅ **Added safeInteger()** - Round decimals for integer fields  
+2. ✅ **Added safeInteger()** - Round decimals for integer fields
 3. ✅ **Fixed database function** - Return numeric values, not strings
 4. ✅ **Refined safety filter** - Precise pace pattern matching only
 5. ✅ **Enhanced logging** - Better debugging for future issues
@@ -217,7 +245,7 @@ if (pacePattern.test(value)) {
 ## 🎉 Result
 
 - ✅ All sync errors resolved
-- ✅ New activities sync successfully  
+- ✅ New activities sync successfully
 - ✅ Data integrity maintained
 - ✅ No breaking changes to existing data
 
@@ -226,11 +254,11 @@ if (pacePattern.test(value)) {
 ## 🔧 Debug Tools Created
 
 - `fix_unique_constraint.sql` - Schema constraint fixes
-- `fix_pace_function.sql` - Database function corrections  
+- `fix_pace_function.sql` - Database function corrections
 - `DEBUG_SCHEMA_CHECK.sql` - Schema analysis queries
 - Enhanced logging in sync components
 
-*Total debugging time: 2 days*  
-*Error codes conquered: 4*  
-*Database triggers tamed: 1*  
-*Coffee consumed: Immeasurable ☕* 
+_Total debugging time: 2 days_  
+_Error codes conquered: 4_  
+_Database triggers tamed: 1_  
+_Coffee consumed: Immeasurable ☕_

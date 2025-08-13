@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { Button } from '@/components/ui/button'
-import { 
-  Dumbbell, 
-  Clock, 
-  TrendingUp, 
-  Zap, 
-  Heart, 
-  Target, 
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import {
+  Dumbbell,
+  Clock,
+  TrendingUp,
+  Zap,
+  Heart,
+  Target,
   Calendar,
   Info,
   Edit3,
@@ -21,68 +21,111 @@ import {
   Thermometer,
   CloudRain,
   Wind,
-  Sun
-} from 'lucide-react'
-import { useWorkoutPlanManager, useWorkoutPlanAnalytics, useSynchronizedTodaysWorkout } from '@/hooks/useEnhancedWorkoutPlanning'
-import { useUnitPreferences } from '@/hooks/useUnitPreferences'
-import { useWeather } from '@/hooks/useWeather'
-import { useLocation } from '@/hooks/useLocation'
-import { WorkoutPlanEditorModal } from './WorkoutPlanEditorModal'
-import { DynamicWorkoutContent } from '@/lib/training/dynamic-workout-content'
-import { formatTemperature, formatWindSpeed } from '@/lib/utils'
+  Sun,
+} from 'lucide-react';
+import {
+  useWorkoutPlanManager,
+  useWorkoutPlanAnalytics,
+  useSynchronizedTodaysWorkout,
+} from '@/hooks/useEnhancedWorkoutPlanning';
+import { useUnitPreferences } from '@/hooks/useUnitPreferences';
+import { useWeather } from '@/hooks/useWeather';
+import { useLocation } from '@/hooks/useLocation';
+import { WorkoutPlanEditorModal } from './WorkoutPlanEditorModal';
+import { DynamicWorkoutContent } from '@/lib/training/dynamic-workout-content';
+import { formatTemperature, formatWindSpeed } from '@/lib/utils';
 
-import type { EnhancedWorkoutRecommendation, WeeklyWorkoutPlan } from '@/lib/training/enhanced-workout-planning'
-import type { WeatherData, WeatherImpact } from '@/lib/weather/types'
+import type {
+  EnhancedWorkoutRecommendation,
+  WeeklyWorkoutPlan,
+} from '@/lib/training/enhanced-workout-planning';
+import type { WeatherData, WeatherImpact } from '@/lib/weather/types';
 
 interface EnhancedWorkoutPlanningDashboardProps {
-  userId: string
-  className?: string
+  userId: string;
+  className?: string;
 }
 
 interface WeatherWorkoutContextProps {
-  weather: WeatherData
-  impact: WeatherImpact | null
-  optimalTime: { time: string; reason: string } | null
-  workout: EnhancedWorkoutRecommendation
+  weather: WeatherData;
+  impact: WeatherImpact | null;
+  optimalTime: { time: string; reason: string } | null;
+  workout: EnhancedWorkoutRecommendation;
 }
 
-export function EnhancedWorkoutPlanningDashboard({ userId, className }: EnhancedWorkoutPlanningDashboardProps) {
+export function EnhancedWorkoutPlanningDashboard({
+  userId,
+  className,
+}: EnhancedWorkoutPlanningDashboardProps) {
   // Use the synchronized hook to ensure today's workout always matches the weekly plan
-  const { 
-    todaysWorkout, 
-    weeklyPlan, 
-    isLoading: isLoadingTodaysWorkout, 
-    hasData 
-  } = useSynchronizedTodaysWorkout(userId)
+  const {
+    todaysWorkout,
+    weeklyPlan,
+    isLoading: isLoadingTodaysWorkout,
+    hasData,
+  } = useSynchronizedTodaysWorkout(userId);
 
-  const { saveWorkoutPlan, resetToRecommended } = useWorkoutPlanManager(userId)
-  const analytics = useWorkoutPlanAnalytics(weeklyPlan)
-  const [isEditorOpen, setIsEditorOpen] = useState(false)
-  const [, setIsResetting] = useState(false)
+  const { saveWorkoutPlan, resetToRecommended } = useWorkoutPlanManager(userId);
+  const analytics = useWorkoutPlanAnalytics(weeklyPlan);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [, setIsResetting] = useState(false);
 
   // Weather integration
-  const { location, isLoading: locationLoading } = useLocation()
-  const { weather, impact, optimalTime, isLoading: weatherLoading } = useWeather({ 
-    lat: location.lat, 
+  const { location, isLoading: locationLoading } = useLocation();
+  const {
+    weather,
+    impact,
+    optimalTime,
+    isLoading: weatherLoading,
+  } = useWeather({
+    lat: location.lat,
     lon: location.lon,
-    enabled: !locationLoading
-  })
+    enabled: !locationLoading,
+  });
 
   // Debug logging for weekly plan changes
-  console.log('EnhancedWorkoutPlanningDashboard: weeklyPlan updated:', weeklyPlan?.id, weeklyPlan?.weekStart)
-  console.log('EnhancedWorkoutPlanningDashboard: workouts count:', Object.values(weeklyPlan?.workouts || {}).filter(w => w !== null).length)
-  console.log('EnhancedWorkoutPlanningDashboard: todaysWorkout:', todaysWorkout?.type, todaysWorkout?.sport, todaysWorkout?.duration)
-  console.log('EnhancedWorkoutPlanningDashboard: isEditorOpen:', isEditorOpen)
-  
+  console.log(
+    'EnhancedWorkoutPlanningDashboard: weeklyPlan updated:',
+    weeklyPlan?.id,
+    weeklyPlan?.weekStart
+  );
+  console.log(
+    'EnhancedWorkoutPlanningDashboard: workouts count:',
+    Object.values(weeklyPlan?.workouts || {}).filter(w => w !== null).length
+  );
+  console.log(
+    'EnhancedWorkoutPlanningDashboard: todaysWorkout:',
+    todaysWorkout?.type,
+    todaysWorkout?.sport,
+    todaysWorkout?.duration
+  );
+  console.log('EnhancedWorkoutPlanningDashboard: isEditorOpen:', isEditorOpen);
+
   // Ensure today's workout matches the weekly plan
-  const today = new Date().getDay()
-  const expectedTodaysWorkout = weeklyPlan?.workouts[today]
-  const todaysWorkoutMatchesPlan = todaysWorkout?.id === expectedTodaysWorkout?.id
-  
-  console.log('EnhancedWorkoutPlanningDashboard: Today is day', today, 'of week')
-  console.log('EnhancedWorkoutPlanningDashboard: Expected today\'s workout:', expectedTodaysWorkout?.type, expectedTodaysWorkout?.sport)
-  console.log('EnhancedWorkoutPlanningDashboard: Actual today\'s workout:', todaysWorkout?.type, todaysWorkout?.sport)
-  console.log('EnhancedWorkoutPlanningDashboard: Workouts match:', todaysWorkoutMatchesPlan)
+  const today = new Date().getDay();
+  const expectedTodaysWorkout = weeklyPlan?.workouts[today];
+  const todaysWorkoutMatchesPlan =
+    todaysWorkout?.id === expectedTodaysWorkout?.id;
+
+  console.log(
+    'EnhancedWorkoutPlanningDashboard: Today is day',
+    today,
+    'of week'
+  );
+  console.log(
+    "EnhancedWorkoutPlanningDashboard: Expected today's workout:",
+    expectedTodaysWorkout?.type,
+    expectedTodaysWorkout?.sport
+  );
+  console.log(
+    "EnhancedWorkoutPlanningDashboard: Actual today's workout:",
+    todaysWorkout?.type,
+    todaysWorkout?.sport
+  );
+  console.log(
+    'EnhancedWorkoutPlanningDashboard: Workouts match:',
+    todaysWorkoutMatchesPlan
+  );
 
   if (!hasData) {
     return (
@@ -98,61 +141,62 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
             <div className="text-center py-8 text-muted-foreground">
               <Dumbbell className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No training data available</p>
-              <p className="text-sm">Sync some activities and set goals to get personalized workout recommendations</p>
+              <p className="text-sm">
+                Sync some activities and set goals to get personalized workout
+                recommendations
+              </p>
             </div>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   const handlePlanUpdate = async (updatedPlan: WeeklyWorkoutPlan) => {
     try {
-      console.log('handlePlanUpdate: Starting plan update')
-      const result = await saveWorkoutPlan(updatedPlan)
-      
+      console.log('handlePlanUpdate: Starting plan update');
+      const result = await saveWorkoutPlan(updatedPlan);
+
       if (result.success) {
-        console.log('handlePlanUpdate: Plan updated successfully')
+        console.log('handlePlanUpdate: Plan updated successfully');
         // The queries should be automatically invalidated by saveWorkoutPlan
         // You could add a toast notification here
       } else {
-        console.error('handlePlanUpdate: Failed to update plan:', result.error)
+        console.error('handlePlanUpdate: Failed to update plan:', result.error);
         // You could add an error toast notification here
       }
     } catch (error) {
-      console.error('handlePlanUpdate: Error updating plan:', error)
+      console.error('handlePlanUpdate: Error updating plan:', error);
       // You could add an error toast notification here
     }
-  }
+  };
 
   const handleResetToRecommended = async () => {
-    setIsResetting(true)
+    setIsResetting(true);
     try {
-      const result = await resetToRecommended()
+      const result = await resetToRecommended();
       if (result.success) {
         // You could add a toast notification here
-        console.log('Plan reset to recommended successfully')
+        console.log('Plan reset to recommended successfully');
         // Close the modal to ensure fresh data when reopened
-        setIsEditorOpen(false)
+        setIsEditorOpen(false);
         // React Query will automatically refetch the data after invalidation
-        return result
+        return result;
       } else {
-        console.error('Failed to reset plan:', result.error)
-        return result
+        console.error('Failed to reset plan:', result.error);
+        return result;
       }
     } catch (error) {
-      console.error('Failed to reset plan:', error)
-      return { success: false, error }
+      console.error('Failed to reset plan:', error);
+      return { success: false, error };
     } finally {
-      setIsResetting(false)
+      setIsResetting(false);
     }
-  }
+  };
 
   return (
     <TooltipProvider>
       <div className={`space-y-6 ${className}`}>
-
-        
         {/* Today's Workout Recommendation */}
         <Card>
           <CardHeader>
@@ -179,14 +223,14 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
               <div className="space-y-4">
                 {/* Weather Context Section */}
                 {weather && !weatherLoading && (
-                  <WeatherWorkoutContext 
-                    weather={weather} 
-                    impact={impact} 
+                  <WeatherWorkoutContext
+                    weather={weather}
+                    impact={impact}
                     optimalTime={optimalTime}
                     workout={todaysWorkout}
                   />
                 )}
-                
+
                 <EnhancedTodaysWorkoutCard workout={todaysWorkout} />
               </div>
             ) : (
@@ -209,8 +253,11 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      console.log('EnhancedWorkoutPlanningDashboard: Opening editor with plan:', weeklyPlan.id)
-                      setIsEditorOpen(true)
+                      console.log(
+                        'EnhancedWorkoutPlanningDashboard: Opening editor with plan:',
+                        weeklyPlan.id
+                      );
+                      setIsEditorOpen(true);
                     }}
                     className="flex items-center gap-1"
                   >
@@ -236,7 +283,9 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
               <div className="text-center py-4 text-muted-foreground">
                 <Calendar className="h-8 w-8 mx-auto mb-2" />
                 <p>No weekly plan available</p>
-                <p className="text-sm">Complete more activities to generate a weekly plan</p>
+                <p className="text-sm">
+                  Complete more activities to generate a weekly plan
+                </p>
               </div>
             )}
           </CardContent>
@@ -259,7 +308,9 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
                 </div>
                 <div>
                   <p className="text-muted-foreground">Total TSS</p>
-                  <p className="font-semibold">{Math.round(analytics.totalTSS)}</p>
+                  <p className="font-semibold">
+                    {Math.round(analytics.totalTSS)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Periodization</p>
@@ -271,13 +322,22 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
                   <p className="text-muted-foreground">Intensity Balance</p>
                   <div className="flex gap-1">
                     <Badge variant="outline" className="text-xs">
-                      {('low' in analytics.intensityDistribution ? analytics.intensityDistribution.low : 0)} Low
+                      {'low' in analytics.intensityDistribution
+                        ? analytics.intensityDistribution.low
+                        : 0}{' '}
+                      Low
                     </Badge>
                     <Badge variant="outline" className="text-xs">
-                      {('moderate' in analytics.intensityDistribution ? analytics.intensityDistribution.moderate : 0)} Mod
+                      {'moderate' in analytics.intensityDistribution
+                        ? analytics.intensityDistribution.moderate
+                        : 0}{' '}
+                      Mod
                     </Badge>
                     <Badge variant="outline" className="text-xs">
-                      {('high' in analytics.intensityDistribution ? analytics.intensityDistribution.high : 0)} High
+                      {'high' in analytics.intensityDistribution
+                        ? analytics.intensityDistribution.high
+                        : 0}{' '}
+                      High
                     </Badge>
                   </div>
                 </div>
@@ -288,12 +348,19 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
                 <div className="mt-4 space-y-2">
                   <h4 className="font-medium text-sm">Recommendations</h4>
                   {analytics.recommendations.map((rec, index) => (
-                    <div key={index} className="flex items-start gap-2 p-2 rounded-lg bg-muted/50">
-                      <div className={`w-2 h-2 rounded-full mt-2 ${
-                        rec.type === 'warning' ? 'bg-orange-500' :
-                        rec.type === 'success' ? 'bg-green-500' :
-                        'bg-blue-500'
-                      }`} />
+                    <div
+                      key={index}
+                      className="flex items-start gap-2 p-2 rounded-lg bg-muted/50"
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full mt-2 ${
+                          rec.type === 'warning'
+                            ? 'bg-orange-500'
+                            : rec.type === 'success'
+                              ? 'bg-green-500'
+                              : 'bg-blue-500'
+                        }`}
+                      />
                       <p className="text-sm">{rec.message}</p>
                     </div>
                   ))}
@@ -315,24 +382,30 @@ export function EnhancedWorkoutPlanningDashboard({ userId, className }: Enhanced
         )}
       </div>
     </TooltipProvider>
-  )
+  );
 }
 
-function WeeklyPlanGrid({ workouts }: { workouts: { [dayOfWeek: number]: EnhancedWorkoutRecommendation | null } }) {
-  const { preferences: unitPreferences } = useUnitPreferences()
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const today = new Date().getDay()
+function WeeklyPlanGrid({
+  workouts,
+}: {
+  workouts: { [dayOfWeek: number]: EnhancedWorkoutRecommendation | null };
+}) {
+  const { preferences: unitPreferences } = useUnitPreferences();
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const today = new Date().getDay();
 
   return (
     <div className="grid grid-cols-7 gap-2">
       {dayNames.map((dayName, index) => {
-        const workout = workouts[index]
-        const isToday = index === today
-        
+        const workout = workouts[index];
+        const isToday = index === today;
+
         return (
           <div key={index} className="text-center">
             <div className="relative">
-              <p className={`text-sm font-medium mb-2 ${isToday ? 'text-primary font-semibold' : ''}`}>
+              <p
+                className={`text-sm font-medium mb-2 ${isToday ? 'text-primary font-semibold' : ''}`}
+              >
                 {dayName}
               </p>
               {isToday && (
@@ -341,10 +414,12 @@ function WeeklyPlanGrid({ workouts }: { workouts: { [dayOfWeek: number]: Enhance
                 </div>
               )}
             </div>
-            
-            <div className={`p-2 border rounded-lg min-h-[80px] flex flex-col items-center justify-center ${
-              isToday ? 'bg-primary/10 border-primary/20' : 'bg-card'
-            }`}>
+
+            <div
+              className={`p-2 border rounded-lg min-h-[80px] flex flex-col items-center justify-center ${
+                isToday ? 'bg-primary/10 border-primary/20' : 'bg-card'
+              }`}
+            >
               {workout ? (
                 <>
                   <div className="text-xs font-medium capitalize mb-1">
@@ -358,16 +433,15 @@ function WeeklyPlanGrid({ workouts }: { workouts: { [dayOfWeek: number]: Enhance
                   </div>
                   {workout.distance && (
                     <div className="text-xs text-muted-foreground">
-                      {unitPreferences.distance === 'miles' 
+                      {unitPreferences.distance === 'miles'
                         ? (() => {
-                            const miles = workout.distance * 0.621371
-                            return `${miles % 1 === 0 ? miles.toFixed(0) : miles.toFixed(1)} mi`
+                            const miles = workout.distance * 0.621371;
+                            return `${miles % 1 === 0 ? miles.toFixed(0) : miles.toFixed(1)} mi`;
                           })()
                         : (() => {
-                            const km = workout.distance
-                            return `${km % 1 === 0 ? km.toFixed(0) : km.toFixed(1)} km`
-                          })()
-                      }
+                            const km = workout.distance;
+                            return `${km % 1 === 0 ? km.toFixed(0) : km.toFixed(1)} km`;
+                          })()}
                     </div>
                   )}
                 </>
@@ -376,91 +450,101 @@ function WeeklyPlanGrid({ workouts }: { workouts: { [dayOfWeek: number]: Enhance
               )}
             </div>
           </div>
-        )
-      }      )}
+        );
+      })}
     </div>
-  )
+  );
 }
 
-function WeatherWorkoutContext({ weather, impact, optimalTime, workout }: WeatherWorkoutContextProps) {
-  const { preferences } = useUnitPreferences()
-  const { current } = weather
+function WeatherWorkoutContext({
+  weather,
+  impact,
+  optimalTime,
+  workout,
+}: WeatherWorkoutContextProps) {
+  const { preferences } = useUnitPreferences();
+  const { current } = weather;
 
   const getWeatherIcon = (condition: string) => {
     switch (condition.toLowerCase()) {
       case 'clear':
-        return <Sun className="h-4 w-4 text-yellow-500" />
+        return <Sun className="h-4 w-4 text-yellow-500" />;
       case 'rain':
       case 'drizzle':
-        return <CloudRain className="h-4 w-4 text-blue-500" />
+        return <CloudRain className="h-4 w-4 text-blue-500" />;
       case 'snow':
-        return <CloudRain className="h-4 w-4 text-blue-300" />
+        return <CloudRain className="h-4 w-4 text-blue-300" />;
       case 'clouds':
-        return <CloudRain className="h-4 w-4 text-gray-500" />
+        return <CloudRain className="h-4 w-4 text-gray-500" />;
       default:
-        return <Thermometer className="h-4 w-4" />
+        return <Thermometer className="h-4 w-4" />;
     }
-  }
+  };
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
       case 'high':
-        return 'bg-red-100 text-red-800 border-red-200'
+        return 'bg-red-100 text-red-800 border-red-200';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'low':
-        return 'bg-green-100 text-green-800 border-green-200'
+        return 'bg-green-100 text-green-800 border-green-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
-  }
+  };
 
-  const calculateRunningScore = (temp: number, humidity: number, wind: number, precip: number) => {
-    let score = 100
+  const calculateRunningScore = (
+    temp: number,
+    humidity: number,
+    wind: number,
+    precip: number
+  ) => {
+    let score = 100;
 
     // Temperature scoring (optimal: 10-15°C)
     if (temp < 5 || temp > 25) {
-      score -= 30
+      score -= 30;
     } else if (temp < 10 || temp > 20) {
-      score -= 15
+      score -= 15;
     }
 
     // Humidity scoring (optimal: 40-60%)
     if (humidity > 80) {
-      score -= 20
+      score -= 20;
     } else if (humidity > 70) {
-      score -= 10
+      score -= 10;
     }
 
     // Wind scoring (optimal: < 15 km/h)
     if (wind > 25) {
-      score -= 25
+      score -= 25;
     } else if (wind > 15) {
-      score -= 10
+      score -= 10;
     }
 
     // Precipitation scoring
     if (precip > 2) {
-      score -= 30
+      score -= 30;
     } else if (precip > 0.5) {
-      score -= 15
+      score -= 15;
     }
 
-    return Math.max(0, score)
-  }
+    return Math.max(0, score);
+  };
 
   const runningScore = calculateRunningScore(
     current.temperature,
     current.humidity,
     current.windSpeed,
     current.precipitation
-  )
+  );
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600'
-    if (score >= 60) return 'text-yellow-600'
-    return 'text-red-600'
-  }
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
 
   // const getScoreText = (score: number) => {
   //   if (score >= 80) return 'Excellent'
@@ -494,17 +578,19 @@ function WeatherWorkoutContext({ weather, impact, optimalTime, workout }: Weathe
             {formatTemperature(current.temperature, preferences.temperature)}
           </span>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <CloudRain className="h-4 w-4 text-blue-500" />
           <span className="text-sm">{current.humidity}%</span>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Wind className="h-4 w-4 text-gray-500" />
-          <span className="text-sm">{formatWindSpeed(current.windSpeed, preferences.windSpeed)}</span>
+          <span className="text-sm">
+            {formatWindSpeed(current.windSpeed, preferences.windSpeed)}
+          </span>
         </div>
-        
+
         {current.precipitation > 0 && (
           <div className="flex items-center gap-2">
             <CloudRain className="h-4 w-4 text-blue-500" />
@@ -517,12 +603,14 @@ function WeatherWorkoutContext({ weather, impact, optimalTime, workout }: Weathe
       {impact && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-blue-700">Impact on {workout.sport}</span>
+            <span className="text-sm font-medium text-blue-700">
+              Impact on {workout.sport}
+            </span>
             <Badge variant="outline" className={getRiskColor(impact.risk)}>
               {impact.risk} risk
             </Badge>
           </div>
-          
+
           {impact.recommendations.length > 0 && (
             <div className="space-y-1">
               {impact.recommendations.slice(0, 2).map((rec, index) => (
@@ -541,49 +629,52 @@ function WeatherWorkoutContext({ weather, impact, optimalTime, workout }: Weathe
         <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-green-600" />
-            <span className="text-sm font-medium text-green-700">Best Time Today:</span>
+            <span className="text-sm font-medium text-green-700">
+              Best Time Today:
+            </span>
             <span className="text-sm text-green-600">{optimalTime.time}</span>
           </div>
           <p className="text-xs text-green-600 mt-1">{optimalTime.reason}</p>
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function RecoveryDayCard() {
   // Get current time to suggest appropriate activities
-  const now = new Date()
-  const hour = now.getHours()
-  
+  const now = new Date();
+  const hour = now.getHours();
+
   // Suggest different activities based on time of day
   const getSuggestedActivity = () => {
     if (hour < 12) {
       return {
         activity: 'Morning Walk',
         duration: 20,
-        description: 'Start your day with a gentle walk to boost energy and mood',
-        icon: TrendingUp
-      }
+        description:
+          'Start your day with a gentle walk to boost energy and mood',
+        icon: TrendingUp,
+      };
     } else if (hour < 17) {
       return {
         activity: 'Afternoon Stroll',
         duration: 30,
         description: 'Take a break and enjoy some light movement',
-        icon: Heart
-      }
+        icon: Heart,
+      };
     } else {
       return {
         activity: 'Evening Walk',
         duration: 25,
         description: 'Wind down with a relaxing evening walk',
-        icon: Moon
-      }
+        icon: Moon,
+      };
     }
-  }
-  
-  const suggestedActivity = getSuggestedActivity()
-  const ActivityIcon = suggestedActivity.icon
+  };
+
+  const suggestedActivity = getSuggestedActivity();
+  const ActivityIcon = suggestedActivity.icon;
 
   return (
     <div className="space-y-4">
@@ -594,7 +685,9 @@ function RecoveryDayCard() {
             <Heart className="h-5 w-5 text-green-600" />
             <div>
               <h3 className="font-semibold text-green-800">Recovery Day</h3>
-              <p className="text-sm text-green-700">Your body needs rest to adapt and grow stronger</p>
+              <p className="text-sm text-green-700">
+                Your body needs rest to adapt and grow stronger
+              </p>
             </div>
           </div>
           <Badge variant="outline" className="text-green-700 border-green-300">
@@ -605,7 +698,9 @@ function RecoveryDayCard() {
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-green-700 font-medium">Recovery Focus</p>
+              <p className="text-sm text-green-700 font-medium">
+                Recovery Focus
+              </p>
               <p className="text-sm text-green-600">Active rest & mobility</p>
             </div>
             <div>
@@ -623,7 +718,9 @@ function RecoveryDayCard() {
             <ActivityIcon className="h-5 w-5 text-blue-500" />
             <div>
               <h4 className="font-semibold">{suggestedActivity.activity}</h4>
-              <p className="text-sm text-muted-foreground">{suggestedActivity.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {suggestedActivity.description}
+              </p>
             </div>
           </div>
           <Badge variant="secondary" className="text-xs">
@@ -671,49 +768,67 @@ function RecoveryDayCard() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-function EnhancedTodaysWorkoutCard({ workout }: { workout: EnhancedWorkoutRecommendation }) {
-  const { preferences: unitPreferences } = useUnitPreferences()
+function EnhancedTodaysWorkoutCard({
+  workout,
+}: {
+  workout: EnhancedWorkoutRecommendation;
+}) {
+  const { preferences: unitPreferences } = useUnitPreferences();
 
   // Generate dynamic content based on workout characteristics
   const getTimeOfDay = () => {
-    const hour = new Date().getHours()
-    if (hour < 12) return 'morning'
-    if (hour < 17) return 'afternoon'
-    return 'evening'
-  }
+    const hour = new Date().getHours();
+    if (hour < 12) return 'morning';
+    if (hour < 17) return 'afternoon';
+    return 'evening';
+  };
 
   const dynamicContent = DynamicWorkoutContent.generateDynamicContent(workout, {
-    timeOfDay: getTimeOfDay()
-  })
+    timeOfDay: getTimeOfDay(),
+  });
 
   const getWorkoutTypeIcon = (type: string) => {
     switch (type) {
-      case 'recovery': return Heart
-      case 'easy': return TrendingUp
-      case 'tempo': return Zap
-      case 'threshold': return Target
-      case 'long': return Clock
-      case 'strength': return Dumbbell
-      case 'interval': return Zap
-      case 'fartlek': return TrendingUp
-      case 'hill': return TrendingUp
-      default: return Dumbbell
+      case 'recovery':
+        return Heart;
+      case 'easy':
+        return TrendingUp;
+      case 'tempo':
+        return Zap;
+      case 'threshold':
+        return Target;
+      case 'long':
+        return Clock;
+      case 'strength':
+        return Dumbbell;
+      case 'interval':
+        return Zap;
+      case 'fartlek':
+        return TrendingUp;
+      case 'hill':
+        return TrendingUp;
+      default:
+        return Dumbbell;
     }
-  }
+  };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'beginner': return 'text-green-600 bg-green-50 border-green-200'
-      case 'intermediate': return 'text-blue-600 bg-blue-50 border-blue-200'
-      case 'advanced': return 'text-purple-600 bg-purple-50 border-purple-200'
-      default: return 'text-gray-600 bg-gray-50 border-gray-200'
+      case 'beginner':
+        return 'text-green-600 bg-green-50 border-green-200';
+      case 'intermediate':
+        return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'advanced':
+        return 'text-purple-600 bg-purple-50 border-purple-200';
+      default:
+        return 'text-gray-600 bg-gray-50 border-gray-200';
     }
-  }
+  };
 
-  const WorkoutIcon = getWorkoutTypeIcon(workout.type)
+  const WorkoutIcon = getWorkoutTypeIcon(workout.type);
 
   return (
     <div className="space-y-4">
@@ -723,7 +838,9 @@ function EnhancedTodaysWorkoutCard({ workout }: { workout: EnhancedWorkoutRecomm
           <div className="flex items-center gap-2">
             <WorkoutIcon className="h-5 w-5 text-primary" />
             <div>
-              <h3 className="font-semibold capitalize">{workout.type} {workout.sport}</h3>
+              <h3 className="font-semibold capitalize">
+                {workout.type} {workout.sport}
+              </h3>
               <p className="text-sm text-muted-foreground">{workout.sport}</p>
             </div>
           </div>
@@ -731,7 +848,10 @@ function EnhancedTodaysWorkoutCard({ workout }: { workout: EnhancedWorkoutRecomm
             <Badge variant="outline" className="capitalize">
               {workout.type}
             </Badge>
-            <Badge variant="outline" className={`capitalize ${getDifficultyColor(workout.difficulty)}`}>
+            <Badge
+              variant="outline"
+              className={`capitalize ${getDifficultyColor(workout.difficulty)}`}
+            >
               {workout.difficulty}
             </Badge>
           </div>
@@ -746,23 +866,24 @@ function EnhancedTodaysWorkoutCard({ workout }: { workout: EnhancedWorkoutRecomm
             <p className="text-sm text-muted-foreground">Intensity</p>
             <div className="flex items-center gap-2">
               <Progress value={workout.intensity * 10} className="flex-1" />
-              <span className="text-sm font-medium">{workout.intensity}/10</span>
+              <span className="text-sm font-medium">
+                {workout.intensity}/10
+              </span>
             </div>
           </div>
           {workout.distance && (
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Distance</p>
               <p className="font-semibold">
-                {unitPreferences.distance === 'miles' 
+                {unitPreferences.distance === 'miles'
                   ? (() => {
-                      const miles = workout.distance * 0.621371
-                      return `${miles % 1 === 0 ? miles.toFixed(0) : miles.toFixed(1)} mi`
+                      const miles = workout.distance * 0.621371;
+                      return `${miles % 1 === 0 ? miles.toFixed(0) : miles.toFixed(1)} mi`;
                     })()
                   : (() => {
-                      const km = workout.distance
-                      return `${km % 1 === 0 ? km.toFixed(0) : km.toFixed(1)} km`
-                    })()
-                }
+                      const km = workout.distance;
+                      return `${km % 1 === 0 ? km.toFixed(0) : km.toFixed(1)} km`;
+                    })()}
               </p>
             </div>
           )}
@@ -771,8 +892,6 @@ function EnhancedTodaysWorkoutCard({ workout }: { workout: EnhancedWorkoutRecomm
             <p className="font-semibold">{workout.energyCost}/10</p>
           </div>
         </div>
-
-
 
         {workout.goalAlignment && (
           <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-sm">
@@ -790,13 +909,16 @@ function EnhancedTodaysWorkoutCard({ workout }: { workout: EnhancedWorkoutRecomm
               <Info className="h-4 w-4" />
               <span className="font-medium">Weather Note:</span>
             </div>
-            <p className="text-yellow-600 mt-1">{workout.weatherConsideration}</p>
+            <p className="text-yellow-600 mt-1">
+              {workout.weatherConsideration}
+            </p>
           </div>
         )}
       </div>
 
       {/* Dynamic Instructions and Tips */}
-      {(dynamicContent.instructions.length > 0 || dynamicContent.tips.length > 0) && (
+      {(dynamicContent.instructions.length > 0 ||
+        dynamicContent.tips.length > 0) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Instructions */}
           {dynamicContent.instructions.length > 0 && (
@@ -839,8 +961,10 @@ function EnhancedTodaysWorkoutCard({ workout }: { workout: EnhancedWorkoutRecomm
       )}
 
       {/* Dynamic Modifications */}
-      {(dynamicContent.modifications.easier || dynamicContent.modifications.harder || 
-        dynamicContent.modifications.shorter || dynamicContent.modifications.longer) && (
+      {(dynamicContent.modifications.easier ||
+        dynamicContent.modifications.harder ||
+        dynamicContent.modifications.shorter ||
+        dynamicContent.modifications.longer) && (
         <div className="p-3 border rounded-lg bg-orange-50/50">
           <h4 className="font-medium mb-2 text-orange-700 flex items-center gap-2">
             <Edit3 className="h-4 w-4" />
@@ -850,25 +974,33 @@ function EnhancedTodaysWorkoutCard({ workout }: { workout: EnhancedWorkoutRecomm
             {dynamicContent.modifications.easier && (
               <div className="p-2 border rounded bg-green-50 border-green-200">
                 <p className="font-medium text-green-700 text-xs">Easier</p>
-                <p className="text-green-600 text-xs">{dynamicContent.modifications.easier}</p>
+                <p className="text-green-600 text-xs">
+                  {dynamicContent.modifications.easier}
+                </p>
               </div>
             )}
             {dynamicContent.modifications.harder && (
               <div className="p-2 border rounded bg-red-50 border-red-200">
                 <p className="font-medium text-red-700 text-xs">Harder</p>
-                <p className="text-red-600 text-xs">{dynamicContent.modifications.harder}</p>
+                <p className="text-red-600 text-xs">
+                  {dynamicContent.modifications.harder}
+                </p>
               </div>
             )}
             {dynamicContent.modifications.shorter && (
               <div className="p-2 border rounded bg-blue-50 border-blue-200">
                 <p className="font-medium text-blue-700 text-xs">Shorter</p>
-                <p className="text-blue-600 text-xs">{dynamicContent.modifications.shorter}</p>
+                <p className="text-blue-600 text-xs">
+                  {dynamicContent.modifications.shorter}
+                </p>
               </div>
             )}
             {dynamicContent.modifications.longer && (
               <div className="p-2 border rounded bg-purple-50 border-purple-200">
                 <p className="font-medium text-purple-700 text-xs">Longer</p>
-                <p className="text-purple-600 text-xs">{dynamicContent.modifications.longer}</p>
+                <p className="text-purple-600 text-xs">
+                  {dynamicContent.modifications.longer}
+                </p>
               </div>
             )}
           </div>
@@ -883,7 +1015,7 @@ function EnhancedTodaysWorkoutCard({ workout }: { workout: EnhancedWorkoutRecomm
             Alternative Workouts
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {workout.alternatives.map((alt) => (
+            {workout.alternatives.map(alt => (
               <div key={alt.id} className="p-2 border rounded bg-white/50">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1">
@@ -903,5 +1035,5 @@ function EnhancedTodaysWorkoutCard({ workout }: { workout: EnhancedWorkoutRecomm
         </div>
       )}
     </div>
-  )
-} 
+  );
+}

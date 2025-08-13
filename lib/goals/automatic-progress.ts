@@ -14,33 +14,37 @@ interface GoalProgressRecord {
 }
 
 export class AutomaticGoalProgress {
-  
   /**
    * Update goal progress after an activity is synced
    * This is the main function called during activity sync
    */
   static async updateProgressFromActivity(
-    userId: string, 
+    userId: string,
     activity: Activity
   ): Promise<void> {
     try {
-
-
       // Call the database function to update all relevant goals
       // Function signature: update_goal_progress_from_activity(p_activity_date, p_activity_distance, p_activity_id, p_user_id)
-      const { error } = await supabase.rpc('update_goal_progress_from_activity', {
-        p_activity_date: new Date(activity.start_date).toISOString().split('T')[0],
-        p_activity_distance: (activity.distance || 0) / 1000, // Convert meters to km
-        p_activity_id: activity.strava_activity_id.toString(),
-        p_user_id: userId
-      });
+      const { error } = await supabase.rpc(
+        'update_goal_progress_from_activity',
+        {
+          p_activity_date: new Date(activity.start_date)
+            .toISOString()
+            .split('T')[0],
+          p_activity_distance: (activity.distance || 0) / 1000, // Convert meters to km
+          p_activity_id: activity.strava_activity_id.toString(),
+          p_user_id: userId,
+        }
+      );
 
       if (error) {
         console.error('Error updating goal progress:', error);
         throw error;
       }
 
-      console.log(`✅ Updated goal progress for activity ${activity.strava_activity_id}`);
+      console.log(
+        `✅ Updated goal progress for activity ${activity.strava_activity_id}`
+      );
     } catch (error) {
       console.error('Failed to update goal progress from activity:', error);
       // Don't throw - we don't want to fail the sync if goal update fails
@@ -65,12 +69,12 @@ export class AutomaticGoalProgress {
       // Reset all goal progress to zero
       const { error: resetError } = await supabase
         .from('user_goals')
-        .update({ 
-          current_progress: 0, 
+        .update({
+          current_progress: 0,
           best_result: null,
           is_completed: false,
           completed_at: null,
-          last_progress_update: null
+          last_progress_update: null,
         })
         .eq('user_id', userId)
         .eq('is_active', true);
@@ -101,7 +105,9 @@ export class AutomaticGoalProgress {
         await this.updateProgressFromActivity(userId, activity as Activity);
       }
 
-      console.log(`✅ Recalculated progress for ${activities?.length || 0} activities`);
+      console.log(
+        `✅ Recalculated progress for ${activities?.length || 0} activities`
+      );
     } catch (error) {
       console.error('Failed to recalculate goal progress:', error);
       throw error;
@@ -115,46 +121,50 @@ export class AutomaticGoalProgress {
   static async getQuantifiableGoals(userId: string) {
     const { data: goals, error } = await supabase
       .from('user_goals')
-      .select(`
+      .select(
+        `
         *,
         goal_type:goal_types(*)
-      `)
+      `
+      )
       .eq('user_id', userId)
       .eq('is_active', true);
 
     if (error) throw error;
 
-    const quantifiable = goals?.filter((goal: UserGoal & { goal_type?: GoalType }) => {
-      const metricType = goal.goal_type?.metric_type;
-      
-      // These metrics can be automatically calculated from activity data
-      const autoTrackableMetrics = [
-        'total_distance',      // Weekly/monthly distance goals
-        'max_distance',        // Longest run goals
-        'average_pace',        // Pace improvement goals
-        'run_count',          // Frequency goals (runs per week/month)
-        'total_time',         // Time-based goals (hours per week)
-        'max_duration',       // Longest run duration
-        'total_elevation',    // Elevation gain goals
-        'elevation_per_km'    // Hill training consistency
-      ];
+    const quantifiable =
+      goals?.filter((goal: UserGoal & { goal_type?: GoalType }) => {
+        const metricType = goal.goal_type?.metric_type;
 
-      return metricType && autoTrackableMetrics.includes(metricType);
-    }) || [];
+        // These metrics can be automatically calculated from activity data
+        const autoTrackableMetrics = [
+          'total_distance', // Weekly/monthly distance goals
+          'max_distance', // Longest run goals
+          'average_pace', // Pace improvement goals
+          'run_count', // Frequency goals (runs per week/month)
+          'total_time', // Time-based goals (hours per week)
+          'max_duration', // Longest run duration
+          'total_elevation', // Elevation gain goals
+          'elevation_per_km', // Hill training consistency
+        ];
 
-    const manual = goals?.filter((goal: UserGoal & { goal_type?: GoalType }) => {
-      const metricType = goal.goal_type?.metric_type;
-      
-      // These require manual input or special data
-      const manualMetrics = [
-        'zone_2_time',        // Requires HR zone data
-        'zone_4_time',        // Requires HR zone data
-        'race_time',          // Event-specific goals
-        'weight_loss'         // Non-activity goals
-      ];
+        return metricType && autoTrackableMetrics.includes(metricType);
+      }) || [];
 
-      return metricType && manualMetrics.includes(metricType);
-    }) || [];
+    const manual =
+      goals?.filter((goal: UserGoal & { goal_type?: GoalType }) => {
+        const metricType = goal.goal_type?.metric_type;
+
+        // These require manual input or special data
+        const manualMetrics = [
+          'zone_2_time', // Requires HR zone data
+          'zone_4_time', // Requires HR zone data
+          'race_time', // Event-specific goals
+          'weight_loss', // Non-activity goals
+        ];
+
+        return metricType && manualMetrics.includes(metricType);
+      }) || [];
 
     return {
       quantifiable,
@@ -163,8 +173,10 @@ export class AutomaticGoalProgress {
         total: goals?.length || 0,
         autoTracked: quantifiable.length,
         manualTracked: manual.length,
-        autoTrackingPercentage: goals?.length ? Math.round((quantifiable.length / goals.length) * 100) : 0
-      }
+        autoTrackingPercentage: goals?.length
+          ? Math.round((quantifiable.length / goals.length) * 100)
+          : 0,
+      },
     };
   }
 
@@ -175,11 +187,13 @@ export class AutomaticGoalProgress {
   static async getCurrentPeriodProgress(userId: string, goalId: string) {
     const { data: goal, error } = await supabase
       .from('user_goals')
-      .select(`
+      .select(
+        `
         *,
         goal_type:goal_types(*),
         goal_progress(*)
-      `)
+      `
+      )
       .eq('id', goalId)
       .eq('user_id', userId)
       .single();
@@ -189,17 +203,21 @@ export class AutomaticGoalProgress {
     if (!goal) return null;
 
     const now = new Date();
-    const startOfPeriod = goal.time_period === 'weekly' 
-      ? this.getStartOfWeek(now)
-      : this.getStartOfMonth(now);
+    const startOfPeriod =
+      goal.time_period === 'weekly'
+        ? this.getStartOfWeek(now)
+        : this.getStartOfMonth(now);
 
     // Get progress within current period
-    const periodProgress = goal.goal_progress?.filter((progress: GoalProgressRecord) => 
-      new Date(progress.activity_date) >= startOfPeriod
-    ) || [];
+    const periodProgress =
+      goal.goal_progress?.filter(
+        (progress: GoalProgressRecord) =>
+          new Date(progress.activity_date) >= startOfPeriod
+      ) || [];
 
     const currentPeriodProgress = periodProgress.reduce(
-      (sum: number, p: GoalProgressRecord) => sum + (p.contribution_amount || 0), 
+      (sum: number, p: GoalProgressRecord) =>
+        sum + (p.contribution_amount || 0),
       0
     );
 
@@ -207,15 +225,19 @@ export class AutomaticGoalProgress {
       goal,
       currentPeriodProgress,
       targetValue: goal.target_value || 0,
-      progressPercentage: goal.target_value 
+      progressPercentage: goal.target_value
         ? Math.round((currentPeriodProgress / goal.target_value) * 100)
         : 0,
-      remainingToTarget: Math.max(0, (goal.target_value || 0) - currentPeriodProgress),
+      remainingToTarget: Math.max(
+        0,
+        (goal.target_value || 0) - currentPeriodProgress
+      ),
       periodStart: startOfPeriod,
-      periodEnd: goal.time_period === 'weekly' 
-        ? this.getEndOfWeek(now)
-        : this.getEndOfMonth(now),
-      recentActivities: periodProgress.length
+      periodEnd:
+        goal.time_period === 'weekly'
+          ? this.getEndOfWeek(now)
+          : this.getEndOfMonth(now),
+      recentActivities: periodProgress.length,
     };
   }
 
@@ -240,6 +262,14 @@ export class AutomaticGoalProgress {
   }
 
   private static getEndOfMonth(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+    return new Date(
+      date.getFullYear(),
+      date.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999
+    );
   }
-} 
+}

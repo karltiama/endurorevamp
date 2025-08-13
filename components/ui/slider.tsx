@@ -1,27 +1,33 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
 interface SliderProps extends React.HTMLAttributes<HTMLDivElement> {
-  value: number[]
-  onValueChange: (value: number[]) => void
-  max?: number
-  min?: number
-  step?: number
+  value: number[];
+  onValueChange: (value: number[]) => void;
+  max?: number;
+  min?: number;
+  step?: number;
 }
 
 const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
-  ({ className, value, onValueChange, max = 100, min = 0, step = 1, ...props }, ref) => {
+  (
+    { className, value, onValueChange, max = 100, min = 0, step = 1, ...props },
+    ref
+  ) => {
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = parseInt(event.target.value, 10)
-      onValueChange([newValue])
-    }
+      const newValue = parseInt(event.target.value, 10);
+      onValueChange([newValue]);
+    };
 
     return (
       <div
         ref={ref}
-        className={cn("relative flex items-center select-none touch-none w-full", className)}
+        className={cn(
+          'relative flex items-center select-none touch-none w-full',
+          className
+        )}
         {...props}
       >
         <input
@@ -52,9 +58,9 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
           }
         `}</style>
       </div>
-    )
+    );
   }
-)
-Slider.displayName = "Slider"
+);
+Slider.displayName = 'Slider';
 
-export { Slider } 
+export { Slider };

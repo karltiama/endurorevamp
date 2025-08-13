@@ -6,7 +6,9 @@ import { useUnitPreferences } from '@/hooks/useUnitPreferences';
 
 // Mock the useUnitPreferences hook
 jest.mock('@/hooks/useUnitPreferences');
-const mockUseUnitPreferences = useUnitPreferences as jest.MockedFunction<typeof useUnitPreferences>;
+const mockUseUnitPreferences = useUnitPreferences as jest.MockedFunction<
+  typeof useUnitPreferences
+>;
 
 describe('SmartGoalCard', () => {
   const mockSuggestion: DynamicGoalSuggestion = {
@@ -27,7 +29,7 @@ describe('SmartGoalCard', () => {
       calculation_method: 'Test method',
       is_active: true,
       created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z'
+      updated_at: '2024-01-01T00:00:00Z',
     },
     suggestedTarget: 25,
     targetUnit: 'km',
@@ -36,7 +38,7 @@ describe('SmartGoalCard', () => {
     benefits: ['Benefit 1', 'Benefit 2'],
     strategies: ['Strategy 1', 'Strategy 2'],
     successProbability: 75,
-    requiredCommitment: 'medium'
+    requiredCommitment: 'medium',
   };
 
   beforeEach(() => {
@@ -45,12 +47,12 @@ describe('SmartGoalCard', () => {
         distance: 'km',
         pace: 'min/km',
         temperature: 'celsius',
-        windSpeed: 'km/h'
+        windSpeed: 'km/h',
       },
       isLoading: false,
       updatePreferences: jest.fn(),
       setDistanceUnit: jest.fn(),
-      toggleUnits: jest.fn()
+      toggleUnits: jest.fn(),
     });
   });
 
@@ -77,8 +79,8 @@ describe('SmartGoalCard', () => {
         ...mockSuggestion.goalType,
         category: 'pace',
         metric_type: 'average_pace',
-        name: 'general_pace_improvement'
-      }
+        name: 'general_pace_improvement',
+      },
     };
 
     render(
@@ -103,8 +105,8 @@ describe('SmartGoalCard', () => {
         ...mockSuggestion.goalType,
         category: 'frequency',
         metric_type: 'run_count',
-        name: 'weekly_run_frequency'
-      }
+        name: 'weekly_run_frequency',
+      },
     };
 
     render(
@@ -118,4 +120,4 @@ describe('SmartGoalCard', () => {
     // Check that the frequency is displayed with proper spacing
     expect(screen.getByText('3 runs/week')).toBeInTheDocument();
   });
-}); 
+});

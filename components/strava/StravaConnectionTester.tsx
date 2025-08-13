@@ -2,14 +2,27 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/providers/AuthProvider';
 import { useStravaConnection } from '@/hooks/strava/useStravaConnection';
 import { useStravaToken } from '@/hooks/strava/useStravaToken';
 import { createClient } from '@/lib/supabase/client';
 import { getStravaAuthUrl } from '@/lib/strava';
-import { Loader2, CheckCircle, AlertCircle, Link2, RefreshCw, Database } from 'lucide-react';
+import {
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  Link2,
+  RefreshCw,
+  Database,
+} from 'lucide-react';
 
 interface DatabaseTestResult {
   canRead: boolean;
@@ -23,10 +36,22 @@ interface DatabaseTestResult {
 
 export function StravaConnectionTester() {
   const { user } = useAuth();
-  const { connectionStatus, isLoading: isCheckingConnection, error: connectionError, refreshStatus } = useStravaConnection();
-  const { accessToken, isLoading: isLoadingToken, error: tokenError, refreshToken } = useStravaToken();
+  const {
+    connectionStatus,
+    isLoading: isCheckingConnection,
+    error: connectionError,
+    refreshStatus,
+  } = useStravaConnection();
+  const {
+    accessToken,
+    isLoading: isLoadingToken,
+    error: tokenError,
+    refreshToken,
+  } = useStravaToken();
   const [isTestingDb, setIsTestingDb] = useState(false);
-  const [dbTestResult, setDbTestResult] = useState<DatabaseTestResult | null>(null);
+  const [dbTestResult, setDbTestResult] = useState<DatabaseTestResult | null>(
+    null
+  );
 
   // Test database connection and token storage
   const testDatabaseConnection = async () => {
@@ -37,9 +62,9 @@ export function StravaConnectionTester() {
 
     try {
       const supabase = createClient();
-      
+
       console.log('🔍 Testing database connection...');
-      
+
       // Test 1: Check if strava_tokens table exists and is accessible
       const { data: tokensData, error: tokensError } = await supabase
         .from('strava_tokens')
@@ -85,7 +110,6 @@ export function StravaConnectionTester() {
         readError: tokensError?.message,
         writeError: insertError?.message,
       });
-
     } catch (error) {
       console.error('Database test failed:', error);
       setDbTestResult({
@@ -110,14 +134,17 @@ export function StravaConnectionTester() {
     await Promise.all([
       refreshStatus(),
       refreshToken(),
-      testDatabaseConnection()
+      testDatabaseConnection(),
     ]);
   };
 
   const getStatusIcon = (status: boolean | undefined, isLoading: boolean) => {
-    if (isLoading) return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
-    if (status === true) return <CheckCircle className="h-4 w-4 text-green-500" />;
-    if (status === false) return <AlertCircle className="h-4 w-4 text-red-500" />;
+    if (isLoading)
+      return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
+    if (status === true)
+      return <CheckCircle className="h-4 w-4 text-green-500" />;
+    if (status === false)
+      return <AlertCircle className="h-4 w-4 text-red-500" />;
     return <AlertCircle className="h-4 w-4 text-gray-400" />;
   };
 
@@ -126,11 +153,11 @@ export function StravaConnectionTester() {
       <CardHeader>
         <CardTitle>🔗 Strava Connection Tester</CardTitle>
         <CardDescription>
-          Comprehensive testing of your Strava OAuth connection and token storage
+          Comprehensive testing of your Strava OAuth connection and token
+          storage
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        
         {/* Connection Status Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 border rounded-lg">
@@ -139,10 +166,9 @@ export function StravaConnectionTester() {
               <span className="font-medium">Strava Connection</span>
             </div>
             <div className="text-sm text-gray-600">
-              {connectionStatus?.connected ? 
-                `Connected as ${connectionStatus.athlete?.firstname} ${connectionStatus.athlete?.lastname}` :
-                'Not connected to Strava'
-              }
+              {connectionStatus?.connected
+                ? `Connected as ${connectionStatus.athlete?.firstname} ${connectionStatus.athlete?.lastname}`
+                : 'Not connected to Strava'}
             </div>
           </div>
 
@@ -152,10 +178,9 @@ export function StravaConnectionTester() {
               <span className="font-medium">Access Token</span>
             </div>
             <div className="text-sm text-gray-600">
-              {accessToken ? 
-                `Valid token (${accessToken.substring(0, 12)}...)` :
-                'No valid access token'
-              }
+              {accessToken
+                ? `Valid token (${accessToken.substring(0, 12)}...)`
+                : 'No valid access token'}
             </div>
           </div>
 
@@ -165,10 +190,9 @@ export function StravaConnectionTester() {
               <span className="font-medium">Database Storage</span>
             </div>
             <div className="text-sm text-gray-600">
-              {dbTestResult?.hasExistingTokens ? 
-                'Tokens stored in database' :
-                'No tokens in database'
-              }
+              {dbTestResult?.hasExistingTokens
+                ? 'Tokens stored in database'
+                : 'No tokens in database'}
             </div>
           </div>
         </div>
@@ -181,15 +205,18 @@ export function StravaConnectionTester() {
               Connect to Strava
             </Button>
           ) : (
-            <Button onClick={handleRefreshAll} disabled={isCheckingConnection || isLoadingToken}>
+            <Button
+              onClick={handleRefreshAll}
+              disabled={isCheckingConnection || isLoadingToken}
+            >
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh Status
             </Button>
           )}
-          
-          <Button 
-            variant="outline" 
-            onClick={testDatabaseConnection} 
+
+          <Button
+            variant="outline"
+            onClick={testDatabaseConnection}
             disabled={isTestingDb || !user}
           >
             {isTestingDb ? (
@@ -224,7 +251,7 @@ export function StravaConnectionTester() {
                 )}
                 <span>Can read from strava_tokens table</span>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 {dbTestResult.canWrite ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />
@@ -233,7 +260,7 @@ export function StravaConnectionTester() {
                 )}
                 <span>Can write to strava_tokens table</span>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 {dbTestResult.hasExistingTokens ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />
@@ -246,31 +273,48 @@ export function StravaConnectionTester() {
 
             {dbTestResult.existingTokensData && (
               <details className="mt-3">
-                <summary className="cursor-pointer font-medium">View Token Details</summary>
+                <summary className="cursor-pointer font-medium">
+                  View Token Details
+                </summary>
                 <pre className="mt-2 p-3 bg-gray-50 rounded text-xs overflow-auto">
-                  {JSON.stringify({
-                    athleteId: dbTestResult.existingTokensData.strava_athlete_id,
-                    athleteName: `${dbTestResult.existingTokensData.athlete_firstname} ${dbTestResult.existingTokensData.athlete_lastname}`,
-                    expiresAt: dbTestResult.existingTokensData.expires_at,
-                    tokenType: dbTestResult.existingTokensData.token_type,
-                    hasAccessToken: !!dbTestResult.existingTokensData.access_token,
-                    hasRefreshToken: !!dbTestResult.existingTokensData.refresh_token,
-                    createdAt: dbTestResult.existingTokensData.created_at,
-                    updatedAt: dbTestResult.existingTokensData.updated_at,
-                  }, null, 2)}
+                  {JSON.stringify(
+                    {
+                      athleteId:
+                        dbTestResult.existingTokensData.strava_athlete_id,
+                      athleteName: `${dbTestResult.existingTokensData.athlete_firstname} ${dbTestResult.existingTokensData.athlete_lastname}`,
+                      expiresAt: dbTestResult.existingTokensData.expires_at,
+                      tokenType: dbTestResult.existingTokensData.token_type,
+                      hasAccessToken:
+                        !!dbTestResult.existingTokensData.access_token,
+                      hasRefreshToken:
+                        !!dbTestResult.existingTokensData.refresh_token,
+                      createdAt: dbTestResult.existingTokensData.created_at,
+                      updatedAt: dbTestResult.existingTokensData.updated_at,
+                    },
+                    null,
+                    2
+                  )}
                 </pre>
               </details>
             )}
 
-            {(dbTestResult.readError || dbTestResult.writeError || dbTestResult.error) && (
+            {(dbTestResult.readError ||
+              dbTestResult.writeError ||
+              dbTestResult.error) && (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   <strong>Database Errors:</strong>
                   <ul className="mt-1">
-                    {dbTestResult.readError && <li>Read: {dbTestResult.readError}</li>}
-                    {dbTestResult.writeError && <li>Write: {dbTestResult.writeError}</li>}
-                    {dbTestResult.error && <li>General: {dbTestResult.error}</li>}
+                    {dbTestResult.readError && (
+                      <li>Read: {dbTestResult.readError}</li>
+                    )}
+                    {dbTestResult.writeError && (
+                      <li>Write: {dbTestResult.writeError}</li>
+                    )}
+                    {dbTestResult.error && (
+                      <li>General: {dbTestResult.error}</li>
+                    )}
                   </ul>
                 </AlertDescription>
               </Alert>
@@ -284,15 +328,27 @@ export function StravaConnectionTester() {
           <AlertDescription>
             <strong>Troubleshooting Steps:</strong>
             <ol className="mt-2 list-decimal list-inside space-y-1 text-sm">
-              <li>First, test the database connection to make sure tokens can be stored</li>
-              <li>If database works, try connecting to Strava using the button above</li>
+              <li>
+                First, test the database connection to make sure tokens can be
+                stored
+              </li>
+              <li>
+                If database works, try connecting to Strava using the button
+                above
+              </li>
               <li>Check browser console for OAuth errors during connection</li>
-              <li>After connecting, refresh status to see if tokens were stored properly</li>
-              <li>If connection shows as successful but tokens aren&apos;t found, there&apos;s an issue with the OAuth callback handling</li>
+              <li>
+                After connecting, refresh status to see if tokens were stored
+                properly
+              </li>
+              <li>
+                If connection shows as successful but tokens aren&apos;t found,
+                there&apos;s an issue with the OAuth callback handling
+              </li>
             </ol>
           </AlertDescription>
         </Alert>
       </CardContent>
     </Card>
   );
-} 
+}

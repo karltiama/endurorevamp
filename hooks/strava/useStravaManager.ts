@@ -53,17 +53,17 @@ export interface UseStravaManagerReturn {
   connectionStatus: StravaConnectionStatus | null;
   isCheckingConnection: boolean;
   connectionError: string | null;
-  
+
   // Access token
   accessToken: string | null;
   isLoadingToken: boolean;
   tokenError: string | null;
-  
+
   // Authentication
   authenticateWithCode: (code: string) => void;
   isAuthenticating: boolean;
   authError: string | null;
-  
+
   // Sync operations
   syncStatus: SyncStatus | null;
   isLoadingSyncStatus: boolean;
@@ -72,13 +72,13 @@ export interface UseStravaManagerReturn {
   isSyncing: boolean;
   syncError: string | null;
   syncResult: SyncResult | null;
-  
+
   // Actions
   refreshConnection: () => Promise<void>;
   refreshToken: () => Promise<void>;
   refreshSyncStatus: () => Promise<void>;
   disconnect: () => Promise<void>;
-  
+
   // Helper sync methods
   syncLatest: () => void;
   syncLastWeek: () => void;
@@ -189,11 +189,16 @@ export function useStravaManager(): UseStravaManagerReturn {
       }
 
       const result = await response.json();
-      return result as { success: boolean; athlete: StravaAuthResponse['athlete'] };
+      return result as {
+        success: boolean;
+        athlete: StravaAuthResponse['athlete'];
+      };
     },
     onSuccess: () => {
       // Invalidate related queries on successful auth
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.connection, user?.id] });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.connection, user?.id],
+      });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.token, user?.id] });
     },
   });
@@ -233,14 +238,20 @@ export function useStravaManager(): UseStravaManagerReturn {
 
   // Action callbacks
   const refreshConnection = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.connection, user?.id] });
+    await queryClient.invalidateQueries({
+      queryKey: [QUERY_KEYS.connection, user?.id],
+    });
     await refetchConnection();
   }, [queryClient, user?.id, refetchConnection]);
 
   const refreshToken = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.token, user?.id] });
+    await queryClient.invalidateQueries({
+      queryKey: [QUERY_KEYS.token, user?.id],
+    });
     // Also invalidate connection status since token changes affect connection
-    await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.connection, user?.id] });
+    await queryClient.invalidateQueries({
+      queryKey: [QUERY_KEYS.connection, user?.id],
+    });
     await refetchToken();
   }, [queryClient, user?.id, refetchToken]);
 
@@ -254,67 +265,97 @@ export function useStravaManager(): UseStravaManagerReturn {
     try {
       const stravaAuth = new StravaAuth(false);
       await stravaAuth.disconnectUser(user.id);
-      
+
       // Update cache to reflect disconnection
-      queryClient.setQueryData([QUERY_KEYS.connection, user.id], { connected: false });
-      
+      queryClient.setQueryData([QUERY_KEYS.connection, user.id], {
+        connected: false,
+      });
+
       // Invalidate queries to force fresh fetch
-      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.connection, user.id] });
-      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.token, user.id] });
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.connection, user.id],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.token, user.id],
+      });
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to disconnect';
+      const errorMsg =
+        err instanceof Error ? err.message : 'Failed to disconnect';
       console.error('Error disconnecting from Strava:', err);
       throw new Error(errorMsg);
     }
   }, [user, queryClient]);
 
   // Helper sync methods
-  const syncLatest = useCallback(() => triggerSync({ maxActivities: 50 }), [triggerSync]);
-  const syncLastWeek = useCallback(() => triggerSync({ sinceDays: 7, maxActivities: 100 }), [triggerSync]);
-  const syncLastMonth = useCallback(() => triggerSync({ sinceDays: 30, maxActivities: 200 }), [triggerSync]);
-  const forceFullSync = useCallback(() => triggerSync({ 
-    forceRefresh: true, 
-    maxActivities: 200,
-    sinceDays: 90 
-  }), [triggerSync]);
+  const syncLatest = useCallback(
+    () => triggerSync({ maxActivities: 50 }),
+    [triggerSync]
+  );
+  const syncLastWeek = useCallback(
+    () => triggerSync({ sinceDays: 7, maxActivities: 100 }),
+    [triggerSync]
+  );
+  const syncLastMonth = useCallback(
+    () => triggerSync({ sinceDays: 30, maxActivities: 200 }),
+    [triggerSync]
+  );
+  const forceFullSync = useCallback(
+    () =>
+      triggerSync({
+        forceRefresh: true,
+        maxActivities: 200,
+        sinceDays: 90,
+      }),
+    [triggerSync]
+  );
 
   // Error handling
-  const connectionError = connectionQueryError ? 
-    (connectionQueryError instanceof Error ? connectionQueryError.message : 'Failed to check connection status') : 
-    null;
+  const connectionError = connectionQueryError
+    ? connectionQueryError instanceof Error
+      ? connectionQueryError.message
+      : 'Failed to check connection status'
+    : null;
 
-  const tokenError = tokenQueryError ? 
-    (tokenQueryError instanceof Error ? tokenQueryError.message : 'Failed to get access token') : 
-    null;
+  const tokenError = tokenQueryError
+    ? tokenQueryError instanceof Error
+      ? tokenQueryError.message
+      : 'Failed to get access token'
+    : null;
 
-  const syncStatusError = syncStatusQueryError ? 
-    (syncStatusQueryError instanceof Error ? syncStatusQueryError.message : 'Failed to get sync status') : 
-    null;
+  const syncStatusError = syncStatusQueryError
+    ? syncStatusQueryError instanceof Error
+      ? syncStatusQueryError.message
+      : 'Failed to get sync status'
+    : null;
 
-  const authError = authMutationError ? 
-    (authMutationError instanceof Error ? authMutationError.message : 'Authentication failed') : 
-    null;
+  const authError = authMutationError
+    ? authMutationError instanceof Error
+      ? authMutationError.message
+      : 'Authentication failed'
+    : null;
 
-  const syncError = syncMutationError ? 
-    (syncMutationError instanceof Error ? syncMutationError.message : 'Sync failed') : 
-    null;
+  const syncError = syncMutationError
+    ? syncMutationError instanceof Error
+      ? syncMutationError.message
+      : 'Sync failed'
+    : null;
 
   return {
     // Connection status
     connectionStatus: connectionStatus || null,
     isCheckingConnection,
     connectionError,
-    
+
     // Access token
     accessToken: accessToken || null,
     isLoadingToken,
     tokenError,
-    
+
     // Authentication
     authenticateWithCode,
     isAuthenticating,
     authError,
-    
+
     // Sync operations
     syncStatus: syncStatus || null,
     isLoadingSyncStatus,
@@ -323,13 +364,13 @@ export function useStravaManager(): UseStravaManagerReturn {
     isSyncing,
     syncError,
     syncResult: syncResult || null,
-    
+
     // Actions
     refreshConnection,
     refreshToken,
     refreshSyncStatus,
     disconnect,
-    
+
     // Helper sync methods
     syncLatest,
     syncLastWeek,
@@ -339,4 +380,4 @@ export function useStravaManager(): UseStravaManagerReturn {
 }
 
 // Export query keys for use in other components
-export { QUERY_KEYS as STRAVA_QUERY_KEYS }; 
+export { QUERY_KEYS as STRAVA_QUERY_KEYS };

@@ -10,28 +10,35 @@ import { useAuth } from '@/providers/AuthProvider';
  */
 export function DashboardOnboardingHandler() {
   const { user } = useAuth();
-  const { onboarding, hasCompletedOnboarding, isLoading: onboardingLoading } = useOnboardingStatus();
+  const {
+    onboarding,
+    hasCompletedOnboarding,
+    isLoading: onboardingLoading,
+  } = useOnboardingStatus();
   const { data: goalsData, isLoading: goalsLoading } = useUserGoals();
   const [showModal, setShowModal] = useState(false);
 
   // Extract additional data from goals response
   const existingGoals = goalsData?.goals || [];
-  const userStats = goalsData?.userStats || { activityCount: 0, hasStravaConnection: false };
+  const userStats = goalsData?.userStats || {
+    activityCount: 0,
+    hasStravaConnection: false,
+  };
   const isLoading = onboardingLoading || goalsLoading;
 
   useEffect(() => {
     if (user && !isLoading) {
       // Comprehensive check for new vs existing users
-      const hasAnyContent = 
-        existingGoals.length > 0 || 
-        userStats.activityCount > 0 || 
+      const hasAnyContent =
+        existingGoals.length > 0 ||
+        userStats.activityCount > 0 ||
         userStats.hasStravaConnection;
 
       // User needs onboarding if:
       // 1. They haven't completed onboarding AND
       // 2. They don't have any existing content (goals, activities, or Strava connection)
       const needsOnboarding = !hasCompletedOnboarding && !hasAnyContent;
-      
+
       if (needsOnboarding) {
         console.log('🎯 New user detected, showing onboarding modal', {
           hasOnboardingRecord: !!onboarding,
@@ -40,7 +47,7 @@ export function DashboardOnboardingHandler() {
           activityCount: userStats.activityCount,
           hasStravaConnection: userStats.hasStravaConnection,
           hasAnyContent,
-          needsOnboarding
+          needsOnboarding,
         });
         setShowModal(true);
       } else {
@@ -51,11 +58,19 @@ export function DashboardOnboardingHandler() {
           activityCount: userStats.activityCount,
           hasStravaConnection: userStats.hasStravaConnection,
           hasAnyContent,
-          needsOnboarding
+          needsOnboarding,
         });
       }
     }
-  }, [user, isLoading, onboarding, hasCompletedOnboarding, existingGoals.length, userStats.activityCount, userStats.hasStravaConnection]);
+  }, [
+    user,
+    isLoading,
+    onboarding,
+    hasCompletedOnboarding,
+    existingGoals.length,
+    userStats.activityCount,
+    userStats.hasStravaConnection,
+  ]);
 
   const handleComplete = () => {
     console.log('✅ Onboarding completed successfully');
@@ -72,10 +87,10 @@ export function DashboardOnboardingHandler() {
   }
 
   return (
-    <OnboardingModal 
+    <OnboardingModal
       open={showModal}
       onOpenChange={handleOpenChange}
       onComplete={handleComplete}
     />
   );
-} 
+}

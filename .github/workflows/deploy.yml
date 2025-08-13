@@ -12,8 +12,8 @@ on:
         default: 'production'
         type: choice
         options:
-        - production
-        - staging
+          - production
+          - staging
 
 env:
   NODE_VERSION: '22'
@@ -23,144 +23,144 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
-        
-    - name: Cache Next.js build
-      uses: actions/cache@v4
-      with:
-        path: |
-          .next/cache
-          node_modules/.cache
-        key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-nextjs-
-        
-    - name: Install dependencies
-      run: npm ci --prefer-offline --no-audit
-      
-    - name: Run tests
-      env:
-        NODE_ENV: test
-        CI: true
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      run: npm run test:coverage
-      continue-on-error: true
-      
-    - name: Build application
-      env:
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        NEXT_PUBLIC_STRAVA_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_STRAVA_CLIENT_ID }}
-        STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
-        STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
-      run: npm run build
-      continue-on-error: true
-      
-    # Vercel Deployment (uncomment if using Vercel)
-    # - name: Deploy to Vercel
-    #   uses: amondnet/vercel-action@v25
-    #   with:
-    #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
-    #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-    #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-    #     vercel-args: '--prod'
-    #   env:
-    #     VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-    
-    # Netlify Deployment (uncomment if using Netlify)
-    # - name: Deploy to Netlify
-    #   uses: nwtgck/actions-netlify@v3.0
-    #   with:
-    #     publish-dir: './out'
-    #     production-branch: main
-    #     github-token: ${{ secrets.GITHUB_TOKEN }}
-    #     deploy-message: "Deploy from GitHub Actions"
-    #   env:
-    #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-    #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-    #   timeout-minutes: 1
-    
-    # Manual deployment step (for custom hosting)
-    - name: Prepare deployment artifacts
-      run: |
-        echo "📦 Preparing deployment artifacts..."
-        echo "Build completed successfully!"
-        echo "Deploy to your preferred hosting platform:"
-        echo "- Vercel: Connect your GitHub repo"
-        echo "- Netlify: Upload the .next folder"
-        echo "- Custom server: Copy .next folder to your server"
-        
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-artifacts
-        path: |
-          .next/
-          public/
-          package.json
-          package-lock.json
-        retention-days: 30
-        
-    - name: Deployment Summary
-      run: |
-        echo "🚀 Deployment Summary"
-        echo "===================="
-        echo "✅ Build completed successfully"
-        echo "✅ Tests passed"
-        echo "✅ Artifacts uploaded"
-        echo ""
-        echo "📋 Next steps:"
-        echo "1. Download artifacts from GitHub Actions"
-        echo "2. Deploy to your hosting platform"
-        echo "3. Update DNS if needed"
-        echo "4. Verify deployment"
-        
-    - name: Notify deployment status
-      if: always()
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const { data: commits } = await github.rest.repos.listCommits({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            sha: context.sha,
-            per_page: 1
-          });
-          
-          const commit = commits[0];
-          const shortSha = context.sha.substring(0, 7);
-          
-          const message = `🚀 Deployment ${job.status === 'success' ? 'SUCCESSFUL' : 'FAILED'}
-          
-          **Commit**: ${shortSha} - ${commit.commit.message}
-          **Branch**: ${context.ref}
-          **Environment**: ${{ github.event.inputs.environment || 'production' }}
-          **Timestamp**: ${new Date().toISOString()}
-          
-          ${job.status === 'success' ? '✅ Build artifacts ready for deployment' : '❌ Deployment failed - check logs'}
-          
-          [View Build Logs](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
-          
-          // Create a deployment status
-          await github.rest.repos.createDeploymentStatus({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            deployment_id: context.runId,
-            state: job.status === 'success' ? 'success' : 'failure',
-            description: message,
-            environment: ${{ github.event.inputs.environment || 'production' }},
-            log_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-          }); 
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+            node_modules/.cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run tests
+        env:
+          NODE_ENV: test
+          CI: true
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run test:coverage
+        continue-on-error: true
+
+      - name: Build application
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_STRAVA_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_STRAVA_CLIENT_ID }}
+          STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+          STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
+        run: npm run build
+        continue-on-error: true
+
+      # Vercel Deployment (uncomment if using Vercel)
+      # - name: Deploy to Vercel
+      #   uses: amondnet/vercel-action@v25
+      #   with:
+      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
+      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+      #     vercel-args: '--prod'
+      #   env:
+      #     VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      # Netlify Deployment (uncomment if using Netlify)
+      # - name: Deploy to Netlify
+      #   uses: nwtgck/actions-netlify@v3.0
+      #   with:
+      #     publish-dir: './out'
+      #     production-branch: main
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     deploy-message: "Deploy from GitHub Actions"
+      #   env:
+      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      #   timeout-minutes: 1
+
+      # Manual deployment step (for custom hosting)
+      - name: Prepare deployment artifacts
+        run: |
+          echo "📦 Preparing deployment artifacts..."
+          echo "Build completed successfully!"
+          echo "Deploy to your preferred hosting platform:"
+          echo "- Vercel: Connect your GitHub repo"
+          echo "- Netlify: Upload the .next folder"
+          echo "- Custom server: Copy .next folder to your server"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            .next/
+            public/
+            package.json
+            package-lock.json
+          retention-days: 30
+
+      - name: Deployment Summary
+        run: |
+          echo "🚀 Deployment Summary"
+          echo "===================="
+          echo "✅ Build completed successfully"
+          echo "✅ Tests passed"
+          echo "✅ Artifacts uploaded"
+          echo ""
+          echo "📋 Next steps:"
+          echo "1. Download artifacts from GitHub Actions"
+          echo "2. Deploy to your hosting platform"
+          echo "3. Update DNS if needed"
+          echo "4. Verify deployment"
+
+      - name: Notify deployment status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: commits } = await github.rest.repos.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              per_page: 1
+            });
+
+            const commit = commits[0];
+            const shortSha = context.sha.substring(0, 7);
+
+            const message = `🚀 Deployment ${job.status === 'success' ? 'SUCCESSFUL' : 'FAILED'}
+
+            **Commit**: ${shortSha} - ${commit.commit.message}
+            **Branch**: ${context.ref}
+            **Environment**: ${{ github.event.inputs.environment || 'production' }}
+            **Timestamp**: ${new Date().toISOString()}
+
+            ${job.status === 'success' ? '✅ Build artifacts ready for deployment' : '❌ Deployment failed - check logs'}
+
+            [View Build Logs](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+
+            // Create a deployment status
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.runId,
+              state: job.status === 'success' ? 'success' : 'failure',
+              description: message,
+              environment: ${{ github.event.inputs.environment || 'production' }},
+              log_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });

@@ -1,16 +1,19 @@
 # Unit Conversion Implementation Summary
 
 ## 🎯 **Issue Resolved**
+
 The user reported that runs in their activity feed were still showing km instead of miles. I've now updated all activity display components to use the unit preferences system.
 
 ## ✅ **Components Updated for Unit Preferences**
 
 ### 1. **Core Components (Already Updated)**
+
 - ✅ `components/dashboard/LastActivityDeepDive.tsx` - Activity details in dashboard
 - ✅ `components/dashboard/KeyMetrics.tsx` - Weekly/monthly metrics
 - ✅ `app/dashboard/settings/page.tsx` - Settings page with unit preferences
 
 ### 2. **Activity Feed Components (Newly Updated)**
+
 - ✅ `components/analytics/ActivityCard.tsx` - Individual activity cards in feeds
 - ✅ `components/analytics/ActivityDetailModal.tsx` - Detailed activity modal
 - ✅ `components/analytics/ActivityFeed.tsx` - Main activity feed component
@@ -18,6 +21,7 @@ The user reported that runs in their activity feed were still showing km instead
 - ✅ `components/strava/ActivitiesDashboard.tsx` - Activities dashboard
 
 ### 3. **Supporting Infrastructure**
+
 - ✅ `lib/utils.ts` - Unit conversion utilities
 - ✅ `hooks/useUnitPreferences.ts` - Unit preferences hook
 - ✅ `components/settings/UnitPreferences.tsx` - Settings UI component
@@ -26,38 +30,43 @@ The user reported that runs in their activity feed were still showing km instead
 ## 🔄 **What Changed**
 
 ### **ActivityCard.tsx**
+
 ```typescript
 // Before
-const formatDistance = (meters: number) => `${(meters / 1000).toFixed(1)} km`
-const formatPace = () => `${minutes}:${seconds} /km`
+const formatDistance = (meters: number) => `${(meters / 1000).toFixed(1)} km`;
+const formatPace = () => `${minutes}:${seconds} /km`;
 
 // After
-const { preferences } = useUnitPreferences(userId)
-const formatDistanceWithUnits = (meters: number) => formatDistance(meters, preferences.distance)
-const formatPaceWithUnits = () => formatPace(paceSecondsPerKm, preferences.pace)
+const { preferences } = useUnitPreferences(userId);
+const formatDistanceWithUnits = (meters: number) =>
+  formatDistance(meters, preferences.distance);
+const formatPaceWithUnits = () =>
+  formatPace(paceSecondsPerKm, preferences.pace);
 ```
 
 ### **ActivityDetailModal.tsx**
+
 ```typescript
 // Before
-value: `${(activity.average_speed * 3.6).toFixed(1)} km/h`
+value: `${(activity.average_speed * 3.6).toFixed(1)} km/h`;
 
 // After
-const speedKmh = activity.average_speed * 3.6
+const speedKmh = activity.average_speed * 3.6;
 if (preferences.distance === 'miles') {
-  const speedMph = speedKmh * 0.621371
-  value: `${speedMph.toFixed(1)} mph`
+  const speedMph = speedKmh * 0.621371;
+  value: `${speedMph.toFixed(1)} mph`;
 } else {
-  value: `${speedKmh.toFixed(1)} km/h`
+  value: `${speedKmh.toFixed(1)} km/h`;
 }
 ```
 
 ### **RecentActivities.tsx**
+
 ```typescript
 // Before
 {activityType} • {formatDistance(activity.distance)}
 
-// After  
+// After
 const { preferences } = useUnitPreferences(userId)
 {activityType} • {formatDistanceWithUnits(activity.distance)}
 ```
@@ -74,12 +83,14 @@ const { preferences } = useUnitPreferences(userId)
 ## 📊 **Expected Results**
 
 ### **When set to Miles:**
+
 - Distance: "3.1 mi" (instead of "5.0 km")
-- Pace: "8:02/mi" (instead of "5:00/km") 
+- Pace: "8:02/mi" (instead of "5:00/km")
 - Speed: "12.4 mph" (instead of "20.0 km/h")
 - Weekly total: "15.5 mi" (instead of "25.0 km")
 
 ### **When set to Kilometers:**
+
 - Distance: "5.0 km"
 - Pace: "5:00/km"
 - Speed: "20.0 km/h"
@@ -88,6 +99,7 @@ const { preferences } = useUnitPreferences(userId)
 ## 🔍 **Components That Now Support Units**
 
 ### **Activity Display:**
+
 - Individual activity cards in feeds
 - Activity detail modals
 - Recent activities widget
@@ -95,12 +107,14 @@ const { preferences } = useUnitPreferences(userId)
 - Last activity deep dive
 
 ### **Metrics & Stats:**
+
 - Weekly distance totals
 - Monthly goal progress
 - Activity comparisons
 - Performance metrics
 
 ### **Speed & Pace:**
+
 - Running pace (min/km ↔ min/mile)
 - Cycling speed (km/h ↔ mph)
 - Average and max speeds
@@ -108,11 +122,13 @@ const { preferences } = useUnitPreferences(userId)
 ## 💡 **Technical Implementation**
 
 ### **Unit Conversion:**
+
 - **Distance**: 1 mile = 1.60934 km
 - **Pace**: pace_per_mile = pace_per_km × 1.60934
 - **Speed**: mph = km/h × 0.621371
 
 ### **Data Flow:**
+
 1. User changes preference in settings
 2. Preference saved to database + localStorage
 3. All components use `useUnitPreferences(userId)` hook
@@ -132,4 +148,4 @@ const { preferences } = useUnitPreferences(userId)
 
 ---
 
-**All activity displays now respect user unit preferences!** 🎉 
+**All activity displays now respect user unit preferences!** 🎉

@@ -9,7 +9,8 @@ jest.mock('@/hooks/use-user-activities', () => ({
   useUserActivities: jest.fn(),
 }));
 
-const mockUseUserActivities = require('@/hooks/use-user-activities').useUserActivities;
+const mockUseUserActivities =
+  require('@/hooks/use-user-activities').useUserActivities;
 
 const createMockActivity = (overrides: Partial<Activity> = {}): Activity => ({
   id: '1',
@@ -41,9 +42,7 @@ const renderWithQueryClient = (component: React.ReactElement) => {
   });
 
   return render(
-    <QueryClientProvider client={queryClient}>
-      {component}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{component}</QueryClientProvider>
   );
 };
 
@@ -60,8 +59,10 @@ describe('LastActivityDeepDive', () => {
     });
 
     renderWithQueryClient(<LastActivityDeepDive userId="user-1" />);
-    
-    expect(screen.getByText('Loading your latest activity analysis...')).toBeInTheDocument();
+
+    expect(
+      screen.getByText('Loading your latest activity analysis...')
+    ).toBeInTheDocument();
   });
 
   it('renders empty state when no activities', () => {
@@ -72,9 +73,13 @@ describe('LastActivityDeepDive', () => {
     });
 
     renderWithQueryClient(<LastActivityDeepDive userId="user-1" />);
-    
+
     expect(screen.getByText('No activities found')).toBeInTheDocument();
-    expect(screen.getByText('Connect your Strava account to see detailed activity insights')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Connect your Strava account to see detailed activity insights'
+      )
+    ).toBeInTheDocument();
   });
 
   it('renders error state', () => {
@@ -85,13 +90,13 @@ describe('LastActivityDeepDive', () => {
     });
 
     renderWithQueryClient(<LastActivityDeepDive userId="user-1" />);
-    
+
     expect(screen.getByText('Error loading activity data')).toBeInTheDocument();
   });
 
   it('renders activity deep dive with data', () => {
     const mockActivity = createMockActivity();
-    
+
     mockUseUserActivities.mockReturnValue({
       data: [mockActivity],
       isLoading: false,
@@ -99,23 +104,23 @@ describe('LastActivityDeepDive', () => {
     });
 
     renderWithQueryClient(<LastActivityDeepDive userId="user-1" />);
-    
+
     // Check main title and activity name
     expect(screen.getByText('Last Activity Deep Dive')).toBeInTheDocument();
     expect(screen.getByText('Morning Run')).toBeInTheDocument();
-    
+
     // Check activity type badge
     expect(screen.getByText('Run')).toBeInTheDocument();
-    
+
     // Check key stats
     expect(screen.getByText('5 km')).toBeInTheDocument(); // Distance
     expect(screen.getByText('30m')).toBeInTheDocument(); // Duration
     expect(screen.getByText('100m')).toBeInTheDocument(); // Elevation
-    
+
     // Check heart rate
     expect(screen.getByText('150 bpm')).toBeInTheDocument();
     expect(screen.getByText('Max: 170 bpm')).toBeInTheDocument();
-    
+
     // Check power
     expect(screen.getByText('200W')).toBeInTheDocument();
     expect(screen.getByText('Max: 250W')).toBeInTheDocument();
@@ -123,7 +128,7 @@ describe('LastActivityDeepDive', () => {
 
   it('shows tabs for different views', () => {
     const mockActivity = createMockActivity();
-    
+
     mockUseUserActivities.mockReturnValue({
       data: [mockActivity],
       isLoading: false,
@@ -131,7 +136,7 @@ describe('LastActivityDeepDive', () => {
     });
 
     renderWithQueryClient(<LastActivityDeepDive userId="user-1" />);
-    
+
     // Check tabs are present
     expect(screen.getByText('Overview')).toBeInTheDocument();
     expect(screen.getByText('Performance')).toBeInTheDocument();
@@ -140,10 +145,16 @@ describe('LastActivityDeepDive', () => {
 
   it('shows personal best badge when applicable', () => {
     const activities = [
-      createMockActivity({ distance: 10000, start_date: new Date().toISOString() }), // Latest - 10km
-      createMockActivity({ distance: 5000, start_date: new Date(Date.now() - 86400000).toISOString() }), // Previous - 5km
+      createMockActivity({
+        distance: 10000,
+        start_date: new Date().toISOString(),
+      }), // Latest - 10km
+      createMockActivity({
+        distance: 5000,
+        start_date: new Date(Date.now() - 86400000).toISOString(),
+      }), // Previous - 5km
     ];
-    
+
     mockUseUserActivities.mockReturnValue({
       data: activities,
       isLoading: false,
@@ -151,7 +162,7 @@ describe('LastActivityDeepDive', () => {
     });
 
     renderWithQueryClient(<LastActivityDeepDive userId="user-1" />);
-    
+
     // Should show personal best badge since 10km > average (7.5km) * 1.1
     expect(screen.getByText('Personal Best!')).toBeInTheDocument();
   });
@@ -163,7 +174,7 @@ describe('LastActivityDeepDive', () => {
       average_watts: undefined,
       max_watts: undefined,
     });
-    
+
     mockUseUserActivities.mockReturnValue({
       data: [mockActivity],
       isLoading: false,
@@ -171,11 +182,11 @@ describe('LastActivityDeepDive', () => {
     });
 
     renderWithQueryClient(<LastActivityDeepDive userId="user-1" />);
-    
+
     // Should still render basic stats
     expect(screen.getByText('Morning Run')).toBeInTheDocument();
     expect(screen.getByText('5 km')).toBeInTheDocument();
-    
+
     // Should not show heart rate or power sections
     expect(screen.queryByText('Heart Rate')).not.toBeInTheDocument();
     expect(screen.queryByText('Power')).not.toBeInTheDocument();
@@ -191,20 +202,25 @@ describe('LastActivityDeepDive', () => {
       average_heartrate: 150,
       max_heartrate: 170,
       average_watts: undefined,
-      max_watts: undefined
+      max_watts: undefined,
     });
 
     // Mock the hook to return a test activity
     mockUseUserActivities.mockReturnValue({
       data: [mockActivity],
       isLoading: false,
-      error: null
+      error: null,
     });
 
     renderWithQueryClient(<LastActivityDeepDive userId="test-user" />);
-    
-    const viewAllActivitiesLink = screen.getByRole('link', { name: /view all activities/i });
+
+    const viewAllActivitiesLink = screen.getByRole('link', {
+      name: /view all activities/i,
+    });
     expect(viewAllActivitiesLink).toBeInTheDocument();
-    expect(viewAllActivitiesLink).toHaveAttribute('href', '/dashboard/analytics#activity-feed');
+    expect(viewAllActivitiesLink).toHaveAttribute(
+      'href',
+      '/dashboard/analytics#activity-feed'
+    );
   });
-}); 
+});

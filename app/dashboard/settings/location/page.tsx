@@ -1,21 +1,30 @@
-import React from 'react'
-import { requireAuth } from '@/lib/auth/server'
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { MapPin, Shield, Info } from 'lucide-react'
-import { LocationSettingsClient } from '@/components/settings/LocationSettingsClient'
+import React from 'react';
+import { requireAuth } from '@/lib/auth/server';
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { MapPin, Shield, Info } from 'lucide-react';
+import { LocationSettingsClient } from '@/components/settings/LocationSettingsClient';
 
 export default async function LocationSettingsPage() {
-  const user = await requireAuth()
+  const user = await requireAuth();
 
   return (
     <DashboardLayout user={user}>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Location Settings</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Location Settings
+          </h1>
           <p className="text-muted-foreground">
-            Manage your location preferences for weather data and running recommendations.
+            Manage your location preferences for weather data and running
+            recommendations.
           </p>
         </div>
 
@@ -28,18 +37,20 @@ export default async function LocationSettingsPage() {
                 Privacy & Location Data
               </CardTitle>
               <CardDescription>
-                How we use your location data to improve your running experience.
+                How we use your location data to improve your running
+                experience.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  Your location data is used solely for weather information and running recommendations. 
-                  We do not track your movements or share your location with third parties.
+                  Your location data is used solely for weather information and
+                  running recommendations. We do not track your movements or
+                  share your location with third parties.
                 </AlertDescription>
               </Alert>
-              
+
               <div className="space-y-2 text-sm text-gray-600">
                 <div className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
@@ -47,7 +58,9 @@ export default async function LocationSettingsPage() {
                 </div>
                 <div className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Weather API calls use your location coordinates only</span>
+                  <span>
+                    Weather API calls use your location coordinates only
+                  </span>
                 </div>
                 <div className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
@@ -62,5 +75,5 @@ export default async function LocationSettingsPage() {
         </div>
       </div>
     </DashboardLayout>
-  )
-} 
+  );
+}

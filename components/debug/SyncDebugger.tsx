@@ -1,67 +1,68 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { useQueryClient } from '@tanstack/react-query'
-import { useStravaToken } from '@/hooks/strava/useStravaToken'
-import { useStravaConnection } from '@/hooks/strava/useStravaConnection'
-import { useAuth } from '@/providers/AuthProvider'
-import { createClient } from '@/lib/supabase/client'
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useQueryClient } from '@tanstack/react-query';
+import { useStravaToken } from '@/hooks/strava/useStravaToken';
+import { useStravaConnection } from '@/hooks/strava/useStravaConnection';
+import { useAuth } from '@/providers/AuthProvider';
+import { createClient } from '@/lib/supabase/client';
 
 interface SyncDebugResult {
-  step: string
-  status: 'pending' | 'success' | 'error'
-  message: string
-  data?: unknown
+  step: string;
+  status: 'pending' | 'success' | 'error';
+  message: string;
+  data?: unknown;
 }
 
 export function SyncDebugger() {
-  const [isDebugging, setIsDebugging] = useState(false)
-  const [debugResults, setDebugResults] = useState<SyncDebugResult[]>([])
-  const queryClient = useQueryClient()
-  const { accessToken } = useStravaToken()
-  const { connectionStatus } = useStravaConnection()
-  const { user } = useAuth()
+  const [isDebugging, setIsDebugging] = useState(false);
+  const [debugResults, setDebugResults] = useState<SyncDebugResult[]>([]);
+  const queryClient = useQueryClient();
+  const { accessToken } = useStravaToken();
+  const { connectionStatus } = useStravaConnection();
+  const { user } = useAuth();
 
   const addResult = (result: SyncDebugResult) => {
-    setDebugResults(prev => [...prev, result])
-  }
+    setDebugResults(prev => [...prev, result]);
+  };
 
   const updateLastResult = (updates: Partial<SyncDebugResult>) => {
     setDebugResults(prev => {
-      const newResults = [...prev]
-      const lastIndex = newResults.length - 1
+      const newResults = [...prev];
+      const lastIndex = newResults.length - 1;
       if (lastIndex >= 0) {
-        newResults[lastIndex] = { ...newResults[lastIndex], ...updates }
+        newResults[lastIndex] = { ...newResults[lastIndex], ...updates };
       }
-      return newResults
-    })
-  }
+      return newResults;
+    });
+  };
 
   const runSyncDebug = async () => {
-    setIsDebugging(true)
-    setDebugResults([])
+    setIsDebugging(true);
+    setDebugResults([]);
 
     try {
       // Step 1: Check Strava token
       addResult({
         step: '1. Check Strava Token',
         status: 'pending',
-        message: 'Checking if you have a valid Strava access token...'
-      })
+        message: 'Checking if you have a valid Strava access token...',
+      });
 
       if (!accessToken) {
         updateLastResult({
           status: 'error',
-          message: 'No valid Strava token found. You need to connect your Strava account.',
-          data: { 
+          message:
+            'No valid Strava token found. You need to connect your Strava account.',
+          data: {
             connected: connectionStatus?.connected || false,
-            athlete: connectionStatus?.athlete 
-          }
-        })
-        return
+            athlete: connectionStatus?.athlete,
+          },
+        });
+        return;
       }
 
       updateLastResult({
@@ -70,43 +71,43 @@ export function SyncDebugger() {
         data: {
           tokenLength: accessToken.length,
           connected: connectionStatus?.connected,
-          athlete: connectionStatus?.athlete
-        }
-      })
+          athlete: connectionStatus?.athlete,
+        },
+      });
 
       // Step 2: Check what Strava API returns
       addResult({
         step: '2. Fetch from Strava API',
         status: 'pending',
-        message: 'Fetching latest activities directly from Strava...'
-      })
+        message: 'Fetching latest activities directly from Strava...',
+      });
 
       const stravaResponse = await fetch('/api/strava/activities?limit=5', {
         headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      })
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
       if (!stravaResponse.ok) {
         updateLastResult({
           status: 'error',
-          message: `Strava API call failed: ${stravaResponse.status} - ${stravaResponse.statusText}`
-        })
-        return
+          message: `Strava API call failed: ${stravaResponse.status} - ${stravaResponse.statusText}`,
+        });
+        return;
       }
 
-      const stravaActivities = await stravaResponse.json()
+      const stravaActivities = await stravaResponse.json();
       updateLastResult({
         status: 'success',
         message: `Fetched ${stravaActivities.length} activities from Strava API`,
-        data: stravaActivities.slice(0, 2) // Show first 2 for debugging
-      })
+        data: stravaActivities.slice(0, 2), // Show first 2 for debugging
+      });
 
       // Step 3: Test sync process
       addResult({
         step: '3. Run Sync Process',
         status: 'pending',
-        message: 'Triggering sync to store activities in database...'
-      })
+        message: 'Triggering sync to store activities in database...',
+      });
 
       const syncResponse = await fetch('/api/strava/sync', {
         method: 'POST',
@@ -115,118 +116,133 @@ export function SyncDebugger() {
         },
         body: JSON.stringify({
           maxActivities: 10,
-          forceRefresh: true
-        })
-      })
+          forceRefresh: true,
+        }),
+      });
 
       if (!syncResponse.ok) {
-        const syncError = await syncResponse.json()
+        const syncError = await syncResponse.json();
         updateLastResult({
           status: 'error',
-          message: `Sync failed: ${syncError.message || 'Unknown error'}`
-        })
-        return
+          message: `Sync failed: ${syncError.message || 'Unknown error'}`,
+        });
+        return;
       }
 
-      const syncResult = await syncResponse.json()
+      const syncResult = await syncResponse.json();
       updateLastResult({
         status: 'success',
         message: `Sync completed: ${syncResult.data?.activitiesProcessed || 0} activities processed`,
-        data: syncResult
-      })
+        data: syncResult,
+      });
 
       // Step 4: Verify database
       addResult({
         step: '4. Verify Database Storage',
         status: 'pending',
-        message: 'Checking if activities were stored in database...'
-      })
+        message: 'Checking if activities were stored in database...',
+      });
 
       if (!user) {
         updateLastResult({
           status: 'error',
-          message: 'No authenticated user found for database query'
-        })
-        return
+          message: 'No authenticated user found for database query',
+        });
+        return;
       }
 
       // Invalidate cache first
-      queryClient.invalidateQueries({ queryKey: ['user', 'activities'] })
-      
+      queryClient.invalidateQueries({ queryKey: ['user', 'activities'] });
+
       // Wait a bit for cache invalidation
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Query database directly using Supabase client (same as useUserActivities hook)
-      const supabase = createClient()
+      const supabase = createClient();
       const { data: dbActivities, error: dbError } = await supabase
         .from('activities')
         .select('*')
         .eq('user_id', user.id)
         .order('start_date', { ascending: false })
-        .limit(5)
+        .limit(5);
 
       if (dbError) {
         updateLastResult({
           status: 'error',
           message: `Database query failed: ${dbError.message}`,
-          data: { error: dbError }
-        })
-        return
+          data: { error: dbError },
+        });
+        return;
       }
 
       updateLastResult({
         status: 'success',
         message: `Found ${dbActivities?.length || 0} activities in database`,
-        data: dbActivities?.slice(0, 2) || []
-      })
+        data: dbActivities?.slice(0, 2) || [],
+      });
 
       // Step 5: Compare latest activity
-      if (stravaActivities.length > 0 && dbActivities && dbActivities.length > 0) {
+      if (
+        stravaActivities.length > 0 &&
+        dbActivities &&
+        dbActivities.length > 0
+      ) {
         addResult({
           step: '5. Compare Latest Activity',
           status: 'pending',
-          message: 'Comparing latest Strava activity with database...'
-        })
+          message: 'Comparing latest Strava activity with database...',
+        });
 
-        const latestStrava = stravaActivities[0]
-        const latestDb = dbActivities.find((db) => db.strava_activity_id === latestStrava.id)
+        const latestStrava = stravaActivities[0];
+        const latestDb = dbActivities.find(
+          db => db.strava_activity_id === latestStrava.id
+        );
 
         if (latestDb) {
           updateLastResult({
             status: 'success',
             message: `✅ Latest activity "${latestStrava.name}" is in database`,
-            data: { strava: latestStrava, database: latestDb }
-          })
+            data: { strava: latestStrava, database: latestDb },
+          });
         } else {
           updateLastResult({
             status: 'error',
             message: `❌ Latest activity "${latestStrava.name}" (ID: ${latestStrava.id}) is NOT in database`,
-            data: { strava: latestStrava, missingFromDb: true, dbActivities: dbActivities.map(a => ({ id: a.strava_activity_id, name: a.name })) }
-          })
+            data: {
+              strava: latestStrava,
+              missingFromDb: true,
+              dbActivities: dbActivities.map(a => ({
+                id: a.strava_activity_id,
+                name: a.name,
+              })),
+            },
+          });
         }
-      } else if (stravaActivities.length > 0 && (!dbActivities || dbActivities.length === 0)) {
+      } else if (
+        stravaActivities.length > 0 &&
+        (!dbActivities || dbActivities.length === 0)
+      ) {
         addResult({
           step: '5. Compare Latest Activity',
           status: 'error',
           message: `❌ Found ${stravaActivities.length} activities from Strava but 0 in database`,
-          data: { stravaCount: stravaActivities.length, dbCount: 0 }
-        })
+          data: { stravaCount: stravaActivities.length, dbCount: 0 },
+        });
       }
-
     } catch (error) {
-      console.error('Debug error:', error)
+      console.error('Debug error:', error);
       updateLastResult({
         status: 'error',
-        message: `Debug failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-      })
+        message: `Debug failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      });
     } finally {
-      setIsDebugging(false)
+      setIsDebugging(false);
     }
-  }
+  };
 
   const clearResults = () => {
-    setDebugResults([])
-  }
+    setDebugResults([]);
+  };
 
   return (
     <Card>
@@ -234,7 +250,12 @@ export function SyncDebugger() {
         <CardTitle className="flex items-center justify-between">
           🔍 Sync Debugger
           <div className="flex gap-2">
-            <Button onClick={clearResults} size="sm" variant="outline" disabled={isDebugging}>
+            <Button
+              onClick={clearResults}
+              size="sm"
+              variant="outline"
+              disabled={isDebugging}
+            >
               Clear
             </Button>
             <Button onClick={runSyncDebug} size="sm" disabled={isDebugging}>
@@ -246,7 +267,8 @@ export function SyncDebugger() {
       <CardContent>
         <div className="space-y-3">
           <p className="text-sm text-gray-600">
-            This tool will step through the sync process to identify where your recent run might be getting lost.
+            This tool will step through the sync process to identify where your
+            recent run might be getting lost.
           </p>
 
           {debugResults.length === 0 && !isDebugging && (
@@ -259,11 +281,13 @@ export function SyncDebugger() {
             <div key={index} className="border rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-medium text-sm">{result.step}</h4>
-                <Badge 
+                <Badge
                   variant={
-                    result.status === 'success' ? 'default' : 
-                    result.status === 'error' ? 'destructive' : 
-                    'secondary'
+                    result.status === 'success'
+                      ? 'default'
+                      : result.status === 'error'
+                        ? 'destructive'
+                        : 'secondary'
                   }
                 >
                   {result.status === 'pending' && '⏳'}
@@ -273,12 +297,14 @@ export function SyncDebugger() {
                 </Badge>
               </div>
               <p className="text-sm text-gray-700">{result.message}</p>
-              
-{result.data != null && (
+
+              {result.data != null && (
                 <details className="mt-2">
-                  <summary className="text-xs text-gray-500 cursor-pointer">View Data</summary>
+                  <summary className="text-xs text-gray-500 cursor-pointer">
+                    View Data
+                  </summary>
                   <pre className="text-xs bg-gray-50 p-2 rounded mt-1 overflow-auto">
-{JSON.stringify(result.data || {}, null, 2)}
+                    {JSON.stringify(result.data || {}, null, 2)}
                   </pre>
                 </details>
               )}
@@ -287,5 +313,5 @@ export function SyncDebugger() {
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

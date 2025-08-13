@@ -1,22 +1,26 @@
 # Strava Status Badge UX Decision
 
 ## Overview
+
 The Strava status badge in the dashboard provides users with a clear indication of their Strava connection status and allows them to connect directly when not synced.
 
 ## UX Decision: Direct Connection vs. Settings Navigation
 
 ### Chosen Approach: Direct Strava Connection
+
 We chose to implement a **direct connection to Strava** when users click the "Not Synced" badge, rather than navigating to a settings page first.
 
 ### Rationale
 
 #### ✅ Benefits of Direct Connection
+
 1. **Reduced Friction**: One-click connection reduces abandonment
 2. **Faster Onboarding**: Users can start using the app immediately
 3. **Modern UX Pattern**: Users expect this behavior from fitness apps
 4. **Clear Intent**: The badge clearly indicates what will happen
 
 #### ✅ Mitigating Concerns
+
 1. **Transparency**: Tooltip explains what permissions are granted
 2. **User Control**: Clear messaging that connection can be managed later
 3. **Information**: Shows what benefits the user will get
@@ -24,17 +28,21 @@ We chose to implement a **direct connection to Strava** when users click the "No
 ### Implementation Details
 
 #### Visual Design
+
 - **Connected State**: Green badge with checkmark icon
 - **Not Connected State**: Red badge with alert icon and hover effect
 - **Loading State**: Yellow badge with spinner animation
 
 #### Interaction
+
 - **Hover**: Shows informative tooltip explaining the connection
 - **Click**: Directly initiates Strava OAuth flow
 - **Visual Feedback**: Cursor changes to pointer on hover
 
 #### Tooltip Content
+
 The tooltip provides:
+
 - Clear explanation of what connecting does
 - List of benefits (activity sync, performance tracking, etc.)
 - Reassurance about user control ("manage anytime in Settings")
@@ -42,14 +50,17 @@ The tooltip provides:
 ### Alternative Approaches Considered
 
 #### ❌ Settings Page Navigation
+
 - **Pros**: More control, detailed explanation
 - **Cons**: Extra step, potential abandonment
 
 #### ❌ Dropdown Menu
+
 - **Pros**: Multiple options, flexibility
 - **Cons**: More complex, less direct
 
 #### ❌ Modal Confirmation
+
 - **Pros**: Explicit consent, detailed information
 - **Cons**: Interrupts flow, feels heavy-handed
 
@@ -72,10 +83,7 @@ The tooltip provides:
 
 ```tsx
 // Simplified component structure
-<Badge 
-  onClick={handleStravaAuth}
-  className="cursor-pointer hover:bg-red-200"
->
+<Badge onClick={handleStravaAuth} className="cursor-pointer hover:bg-red-200">
   <AlertCircle />
   <span>Not Synced</span>
 </Badge>

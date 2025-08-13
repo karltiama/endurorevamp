@@ -32,7 +32,9 @@ export class StravaAuth {
         const { createClient } = await import('@/lib/supabase/server');
         this.supabaseClient = await createClient();
       } else {
-        const { createClient: createBrowserClient } = await import('@/lib/supabase/client');
+        const { createClient: createBrowserClient } = await import(
+          '@/lib/supabase/client'
+        );
         this.supabaseClient = createBrowserClient();
       }
     }
@@ -42,9 +44,12 @@ export class StravaAuth {
   /**
    * Store tokens after successful OAuth exchange
    */
-  async storeTokens(userId: string, authResponse: StravaAuthResponse): Promise<void> {
+  async storeTokens(
+    userId: string,
+    authResponse: StravaAuthResponse
+  ): Promise<void> {
     const supabase = await this.getSupabase();
-    
+
     const tokenData: Omit<StravaTokens, 'id' | 'created_at' | 'updated_at'> = {
       user_id: userId,
       access_token: authResponse.access_token,
@@ -59,12 +64,10 @@ export class StravaAuth {
       // scope: authResponse.scope, // Add if Strava returns scope
     };
 
-    const { error } = await supabase
-      .from('strava_tokens')
-      .upsert(tokenData, { 
-        onConflict: 'user_id',
-        ignoreDuplicates: false 
-      });
+    const { error } = await supabase.from('strava_tokens').upsert(tokenData, {
+      onConflict: 'user_id',
+      ignoreDuplicates: false,
+    });
 
     if (error) {
       console.error('Error storing Strava tokens:', error);
@@ -77,7 +80,7 @@ export class StravaAuth {
    */
   async getTokens(userId: string): Promise<StravaTokens | null> {
     const supabase = await this.getSupabase();
-    
+
     const { data, error } = await supabase
       .from('strava_tokens')
       .select('*')
@@ -109,7 +112,7 @@ export class StravaAuth {
       const now = new Date();
       const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
 
-      return expiresAt.getTime() > (now.getTime() + bufferTime);
+      return expiresAt.getTime() > now.getTime() + bufferTime;
     } catch (error) {
       console.error('Error checking Strava connection:', error);
       return false;
@@ -129,10 +132,13 @@ export class StravaAuth {
       const now = new Date();
       const bufferTime = 5 * 60 * 1000; // 5 minutes buffer - reduced from 10 minutes
 
-      if (expiresAt.getTime() <= (now.getTime() + bufferTime)) {
+      if (expiresAt.getTime() <= now.getTime() + bufferTime) {
         // Token expired or expiring soon, refresh it
         console.log('🔄 Token expiring soon, attempting refresh...');
-        const refreshedTokens = await this.refreshTokens(tokens.refresh_token, userId);
+        const refreshedTokens = await this.refreshTokens(
+          tokens.refresh_token,
+          userId
+        );
         return refreshedTokens?.access_token || tokens.access_token; // Fallback to old token if refresh fails
       }
 
@@ -147,10 +153,13 @@ export class StravaAuth {
   /**
    * Refresh expired tokens
    */
-  private async refreshTokens(refreshToken: string, userId: string): Promise<StravaTokens | null> {
+  private async refreshTokens(
+    refreshToken: string,
+    userId: string
+  ): Promise<StravaTokens | null> {
     try {
       console.log('🔄 Refreshing Strava tokens for user:', userId);
-      
+
       const response = await fetch('https://www.strava.com/oauth/token', {
         method: 'POST',
         headers: {
@@ -167,33 +176,33 @@ export class StravaAuth {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ Token refresh failed:', response.status, errorText);
-        
+
         // Only disconnect on specific error types, not all failures
         if (response.status === 400 && errorText.includes('invalid_grant')) {
           console.log('🔄 Invalid refresh token, user needs to reconnect');
           await this.disconnectUser(userId);
         }
-        
+
         throw new Error(`Failed to refresh token: ${response.statusText}`);
       }
 
       const authResponse: StravaAuthResponse = await response.json();
       console.log('✅ Token refresh successful');
-      
+
       // Store the refreshed tokens
       await this.storeTokens(userId, authResponse);
-      
+
       // Return the updated tokens
       return await this.getTokens(userId);
     } catch (error) {
       console.error('Error refreshing Strava tokens:', error);
-      
+
       // Don't automatically disconnect user on network errors or temporary failures
       // Only disconnect on permanent token issues
       if (error instanceof Error && error.message.includes('invalid_grant')) {
         await this.disconnectUser(userId);
       }
-      
+
       return null;
     }
   }
@@ -203,7 +212,7 @@ export class StravaAuth {
    */
   async disconnectUser(userId: string): Promise<void> {
     const supabase = await this.getSupabase();
-    
+
     const { error } = await supabase
       .from('strava_tokens')
       .delete()
@@ -231,7 +240,7 @@ export class StravaAuth {
     try {
       console.log('🔍 Checking connection status for user:', userId);
       const tokens = await this.getTokens(userId);
-      
+
       if (!tokens) {
         console.log('❌ No tokens found for user');
         return { connected: false };
@@ -239,8 +248,13 @@ export class StravaAuth {
 
       console.log('✅ Tokens found, checking if connected...');
       const connected = await this.isConnected(userId);
-      console.log('🔗 Connection status:', connected, 'expires at:', tokens.expires_at);
-      
+      console.log(
+        '🔗 Connection status:',
+        connected,
+        'expires at:',
+        tokens.expires_at
+      );
+
       return {
         connected,
         athlete: {
@@ -256,4 +270,4 @@ export class StravaAuth {
       return { connected: false };
     }
   }
-} 
+}

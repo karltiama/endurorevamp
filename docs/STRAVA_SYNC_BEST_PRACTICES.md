@@ -6,10 +6,10 @@ Your app uses a **hybrid approach** with two data sources:
 
 ### 🔄 Data Sources
 
-| Component Type | Data Source | Hook Used | Pros | Cons |
-|---|---|---|---|---|
-| **Analytics/Feed** | Strava API Direct | `useAthleteActivities` | Real-time, always current | Rate limited, slower, API dependent |
-| **Dashboard/Metrics** | Database | `useUserActivities` | Fast, reliable, complex queries | Requires sync, may be stale |
+| Component Type        | Data Source       | Hook Used              | Pros                            | Cons                                |
+| --------------------- | ----------------- | ---------------------- | ------------------------------- | ----------------------------------- |
+| **Analytics/Feed**    | Strava API Direct | `useAthleteActivities` | Real-time, always current       | Rate limited, slower, API dependent |
+| **Dashboard/Metrics** | Database          | `useUserActivities`    | Fast, reliable, complex queries | Requires sync, may be stale         |
 
 ### 🏗️ Current Sync Flow
 
@@ -29,7 +29,7 @@ graph TD
 ### ✅ For Your New Run
 
 1. **Immediate Action**: Click "Sync Strava Data" button in dashboard
-2. **What Happens**: 
+2. **What Happens**:
    - Fetches activities since last sync (with 1-hour buffer)
    - Upserts new activities into database
    - Updates components using database data
@@ -38,10 +38,10 @@ graph TD
 
 ```typescript
 // Different sync options in your app:
-syncLatest()        // Last 50 activities
-syncLastWeek()      // Last 7 days, max 100 activities  
-syncLastMonth()     // Last 30 days, max 200 activities
-forceFullSync()     // Last 3 months, forced refresh
+syncLatest(); // Last 50 activities
+syncLastWeek(); // Last 7 days, max 100 activities
+syncLastMonth(); // Last 30 days, max 200 activities
+forceFullSync(); // Last 3 months, forced refresh
 ```
 
 ## Current Limitations & Issues
@@ -72,11 +72,13 @@ forceFullSync()     // Last 3 months, forced refresh
 ### 🎯 Recommendation 1: Unified Data Strategy
 
 **Option A: Database-First Approach**
+
 - Store all activities in database via sync
 - All components read from database
 - Implement background/automatic sync
 
 **Option B: Smart Hybrid Approach**
+
 - Recent data (last 7 days): API direct
 - Historical data: Database
 - Clear UX indicating data source
@@ -85,7 +87,7 @@ forceFullSync()     // Last 3 months, forced refresh
 
 ```typescript
 // Implement webhook-based sync
-POST /api/webhooks/strava
+POST / api / webhooks / strava;
 // Or scheduled background sync
 // Or smart sync on app focus
 ```
@@ -95,10 +97,10 @@ POST /api/webhooks/strava
 ```typescript
 // Show sync status clearly
 interface SyncStatus {
-  lastSync: Date
-  dataFreshness: 'realtime' | 'stale' | 'syncing'
-  nextSyncAvailable: Date
-  pendingActivities: number
+  lastSync: Date;
+  dataFreshness: 'realtime' | 'stale' | 'syncing';
+  nextSyncAvailable: Date;
+  pendingActivities: number;
 }
 ```
 
@@ -109,13 +111,13 @@ interface SyncStatus {
 const syncStrategy = {
   // Frequent small syncs for recent data
   recent: { since: '24h', frequency: 'hourly' },
-  
+
   // Less frequent larger syncs for historical
   historical: { since: '30d', frequency: 'daily' },
-  
+
   // Full refresh occasionally
-  full: { since: '3m', frequency: 'weekly' }
-}
+  full: { since: '3m', frequency: 'weekly' },
+};
 ```
 
 ## Handling Sync Issues
@@ -123,42 +125,48 @@ const syncStrategy = {
 ### 🔍 Common Issues & Solutions
 
 **Issue: Database doesn't match API**
+
 ```typescript
 // Solution: Force refresh sync
-forceFullSync() // Re-syncs last 3 months
+forceFullSync(); // Re-syncs last 3 months
 ```
 
 **Issue: Missing recent activities**
+
 ```typescript
 // Solution: Reduce sync timeframe buffer
-const since = lastSync - (2 * 60 * 60 * 1000) // 2-hour buffer instead of 1
+const since = lastSync - 2 * 60 * 60 * 1000; // 2-hour buffer instead of 1
 ```
 
 **Issue: Rate limit exceeded**
+
 ```typescript
 // Solution: Implement smart sync timing
-const canSync = syncStatus.canSync && !recentSync()
+const canSync = syncStatus.canSync && !recentSync();
 ```
 
 **Issue: Failed sync doesn't retry**
+
 ```typescript
 // Solution: Implement retry logic with exponential backoff
 const retrySync = async (attempts = 3) => {
   // Retry logic here
-}
+};
 ```
 
 ### 🛠️ Debugging Sync Issues
 
 1. **Check Sync State**:
+
    ```sql
    SELECT * FROM sync_state WHERE user_id = 'your-user-id'
    ```
 
 2. **Check Recent Activities**:
+
    ```sql
-   SELECT COUNT(*), MAX(start_date) 
-   FROM activities 
+   SELECT COUNT(*), MAX(start_date)
+   FROM activities
    WHERE user_id = 'your-user-id'
    ```
 
@@ -171,16 +179,19 @@ const retrySync = async (attempts = 3) => {
 ## Implementation Roadmap
 
 ### Phase 1: Fix Current Issues
+
 - [ ] Standardize on single data source per feature
 - [ ] Improve sync error handling
 - [ ] Add better sync status UI
 
-### Phase 2: Enhance Sync Strategy  
+### Phase 2: Enhance Sync Strategy
+
 - [ ] Implement automatic sync triggers
 - [ ] Add webhook support for real-time updates
 - [ ] Optimize sync frequency and timeframes
 
 ### Phase 3: Advanced Features
+
 - [ ] Partial sync for specific activity types
 - [ ] Conflict resolution for updated activities
 - [ ] Offline sync queue
@@ -188,12 +199,14 @@ const retrySync = async (attempts = 3) => {
 ## Quick Actions for Your New Run
 
 ### Right Now:
+
 1. Open your dashboard
-2. Click "Sync Strava Data" 
+2. Click "Sync Strava Data"
 3. Wait for sync to complete
 4. Your run will appear in database-powered components
 
 ### Long Term:
+
 1. Consider implementing automatic sync
 2. Standardize data sources across components
 3. Add better sync status indicators
@@ -201,4 +214,4 @@ const retrySync = async (attempts = 3) => {
 
 ---
 
-*This guide assumes your current codebase structure. The recommendations can be implemented incrementally without breaking existing functionality.* 
+_This guide assumes your current codebase structure. The recommendations can be implemented incrementally without breaking existing functionality._

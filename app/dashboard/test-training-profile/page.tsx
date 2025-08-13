@@ -42,7 +42,7 @@ export default function TestTrainingProfilePage() {
 
   const runProfileTests = async () => {
     if (!user) return;
-    
+
     setIsLoading(true);
     setError(null);
     setResults(null);
@@ -52,8 +52,10 @@ export default function TestTrainingProfilePage() {
 
       // Test 1: Create/Get Profile
       console.log('Testing profile creation...');
-      let completeProfile = await TrainingProfileService.getCompleteProfile(user.id);
-      
+      let completeProfile = await TrainingProfileService.getCompleteProfile(
+        user.id
+      );
+
       if (!completeProfile) {
         // Create a test profile
         const sampleProfile = {
@@ -64,29 +66,49 @@ export default function TestTrainingProfilePage() {
           experience_level: 'intermediate' as const,
           primary_sport: 'Run',
           preferred_units: 'metric' as const,
-          training_philosophy: 'balanced' as const
+          training_philosophy: 'balanced' as const,
         };
-        
-        const profile = await TrainingProfileService.updateProfile(user.id, sampleProfile);
-        completeProfile = await TrainingProfileService.getCompleteProfile(user.id);
-        testResults.profileCreation = { success: true, profile, completeProfile };
+
+        const profile = await TrainingProfileService.updateProfile(
+          user.id,
+          sampleProfile
+        );
+        completeProfile = await TrainingProfileService.getCompleteProfile(
+          user.id
+        );
+        testResults.profileCreation = {
+          success: true,
+          profile,
+          completeProfile,
+        };
       } else {
-        testResults.profileCreation = { success: true, existing: true, completeProfile };
+        testResults.profileCreation = {
+          success: true,
+          existing: true,
+          completeProfile,
+        };
       }
 
       // Test 2: Calculate Thresholds (with sample empty activities array)
       console.log('Testing threshold calculation...');
-      const thresholds = await TrainingProfileService.calculateThresholds(user.id, []);
+      const thresholds = await TrainingProfileService.calculateThresholds(
+        user.id,
+        []
+      );
       testResults.thresholdCalculation = { success: true, thresholds };
 
       // Test 3: Generate Personalized TSS Target
       console.log('Testing TSS target generation...');
-      const tssTarget = TrainingProfileService.calculatePersonalizedTSSTarget(completeProfile!.profile);
+      const tssTarget = TrainingProfileService.calculatePersonalizedTSSTarget(
+        completeProfile!.profile
+      );
       testResults.tssTargetGeneration = { success: true, tssTarget };
 
       // Test 4: Get Training Zones
       console.log('Testing training zones...');
-      const zones = TrainingProfileService.generateTrainingZones(completeProfile!.profile);
+      const zones = TrainingProfileService.generateTrainingZones(
+        completeProfile!.profile
+      );
       testResults.trainingZones = { success: true, zones };
 
       // Test 5: Profile Analysis
@@ -96,7 +118,6 @@ export default function TestTrainingProfilePage() {
 
       setResults(testResults);
       console.log('All tests completed successfully!', testResults);
-
     } catch (err) {
       console.error('Test failed:', err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
@@ -107,7 +128,7 @@ export default function TestTrainingProfilePage() {
 
   const resetProfile = async () => {
     if (!user) return;
-    
+
     setIsLoading(true);
     try {
       // For now, just clear the results
@@ -124,7 +145,9 @@ export default function TestTrainingProfilePage() {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Training Profile Test</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Training Profile Test
+        </h1>
         <p className="text-muted-foreground">
           Test and validate your training profile service functionality.
         </p>
@@ -135,15 +158,15 @@ export default function TestTrainingProfilePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-4">
-            <Button 
-              onClick={runProfileTests} 
+            <Button
+              onClick={runProfileTests}
               disabled={isLoading}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {isLoading ? 'Running Tests...' : 'Run Profile Tests'}
             </Button>
-            <Button 
-              onClick={resetProfile} 
+            <Button
+              onClick={resetProfile}
               disabled={isLoading}
               variant="destructive"
             >
@@ -160,7 +183,9 @@ export default function TestTrainingProfilePage() {
           {results && (
             <div className="space-y-4">
               <Alert>
-                <AlertDescription>All tests completed successfully! ✅</AlertDescription>
+                <AlertDescription>
+                  All tests completed successfully! ✅
+                </AlertDescription>
               </Alert>
 
               {/* Profile Creation */}
@@ -178,7 +203,9 @@ export default function TestTrainingProfilePage() {
               {/* Threshold Calculation */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">2. Threshold Calculation</CardTitle>
+                  <CardTitle className="text-sm">
+                    2. Threshold Calculation
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <pre className="text-xs bg-gray-50 p-2 rounded overflow-auto">
@@ -190,7 +217,9 @@ export default function TestTrainingProfilePage() {
               {/* TSS Target */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">3. Personalized TSS Target</CardTitle>
+                  <CardTitle className="text-sm">
+                    3. Personalized TSS Target
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-lg font-bold text-green-600">
@@ -217,14 +246,20 @@ export default function TestTrainingProfilePage() {
               {/* Profile Analysis */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">5. Profile Completeness Analysis</CardTitle>
+                  <CardTitle className="text-sm">
+                    5. Profile Completeness Analysis
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
                     <div>
                       <strong>Analysis Results:</strong>
                       <pre className="text-xs bg-gray-50 p-2 rounded overflow-auto mt-2">
-                        {JSON.stringify(results.profileAnalysis?.analysis, null, 2)}
+                        {JSON.stringify(
+                          results.profileAnalysis?.analysis,
+                          null,
+                          2
+                        )}
                       </pre>
                     </div>
                   </div>
@@ -236,4 +271,4 @@ export default function TestTrainingProfilePage() {
       </Card>
     </div>
   );
-} 
+}

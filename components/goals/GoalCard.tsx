@@ -6,14 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { UserGoal } from '@/types/goals';
-import { 
-  Target, 
-  Calendar, 
-  TrendingUp, 
-  Edit, 
-  CheckCircle, 
+import {
+  Target,
+  Calendar,
+  TrendingUp,
+  Edit,
+  CheckCircle,
   MoreHorizontal,
-  Archive
+  Archive,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -28,10 +28,14 @@ interface GoalCardProps {
   showCompleted?: boolean;
 }
 
-export function GoalCard({ goal, onEdit, showCompleted = false }: GoalCardProps) {
+export function GoalCard({
+  goal,
+  onEdit,
+  showCompleted = false,
+}: GoalCardProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const progressPercentage = goal.target_value 
+  const progressPercentage = goal.target_value
     ? Math.min(100, (goal.current_progress / goal.target_value) * 100)
     : 0;
 
@@ -54,7 +58,7 @@ export function GoalCard({ goal, onEdit, showCompleted = false }: GoalCardProps)
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     });
   };
 
@@ -67,15 +71,21 @@ export function GoalCard({ goal, onEdit, showCompleted = false }: GoalCardProps)
   const GoalIcon = getGoalIcon();
 
   return (
-    <Card className={`transition-all hover:shadow-md ${isCompleted ? 'border-green-200 bg-green-50/50' : ''}`}>
+    <Card
+      className={`transition-all hover:shadow-md ${isCompleted ? 'border-green-200 bg-green-50/50' : ''}`}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
-            <div className={`p-2 rounded-lg ${isCompleted ? 'bg-green-100 text-green-600' : 'bg-primary/10 text-primary'}`}>
+            <div
+              className={`p-2 rounded-lg ${isCompleted ? 'bg-green-100 text-green-600' : 'bg-primary/10 text-primary'}`}
+            >
               <GoalIcon className="h-4 w-4" />
             </div>
             <div className="flex-1">
-              <CardTitle className="text-lg">{goal.goal_type?.display_name}</CardTitle>
+              <CardTitle className="text-lg">
+                {goal.goal_type?.display_name}
+              </CardTitle>
               {goal.goal_data?.notes && (
                 <p className="text-sm text-muted-foreground mt-1">
                   {goal.goal_data.notes}
@@ -83,15 +93,18 @@ export function GoalCard({ goal, onEdit, showCompleted = false }: GoalCardProps)
               )}
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {isCompleted && (
-              <Badge variant="secondary" className="bg-green-100 text-green-700">
+              <Badge
+                variant="secondary"
+                className="bg-green-100 text-green-700"
+              >
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Complete
               </Badge>
             )}
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -104,7 +117,7 @@ export function GoalCard({ goal, onEdit, showCompleted = false }: GoalCardProps)
                   Edit Goal
                 </DropdownMenuItem>
                 {!showCompleted && (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={handleToggleComplete}
                     disabled={isUpdating}
                   >
@@ -142,22 +155,26 @@ export function GoalCard({ goal, onEdit, showCompleted = false }: GoalCardProps)
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Progress</span>
                 <span className="font-medium">
-                  {goal.current_progress} / {goal.target_value} {goal.target_unit}
+                  {goal.current_progress} / {goal.target_value}{' '}
+                  {goal.target_unit}
                 </span>
               </div>
-              
-              <Progress 
-                value={progressPercentage} 
+
+              <Progress
+                value={progressPercentage}
                 className={`h-2 ${isCompleted ? '[&>div]:bg-green-500' : ''}`}
               />
-              
+
               <div className="flex items-center justify-between text-xs">
-                <span className={`${isOnTrack ? 'text-green-600' : 'text-orange-600'}`}>
+                <span
+                  className={`${isOnTrack ? 'text-green-600' : 'text-orange-600'}`}
+                >
                   {Math.round(progressPercentage)}% complete
                 </span>
                 {goal.target_value > goal.current_progress && (
                   <span className="text-muted-foreground">
-                    {(goal.target_value - goal.current_progress).toFixed(1)} {goal.target_unit} remaining
+                    {(goal.target_value - goal.current_progress).toFixed(1)}{' '}
+                    {goal.target_unit} remaining
                   </span>
                 )}
               </div>
@@ -170,7 +187,7 @@ export function GoalCard({ goal, onEdit, showCompleted = false }: GoalCardProps)
           <Badge variant="outline" className="text-xs">
             {goal.goal_type?.category}
           </Badge>
-          
+
           {goal.last_progress_update && (
             <span className="text-xs text-muted-foreground">
               Updated {formatDate(goal.last_progress_update)}
@@ -195,4 +212,4 @@ export function GoalCard({ goal, onEdit, showCompleted = false }: GoalCardProps)
       </CardContent>
     </Card>
   );
-} 
+}

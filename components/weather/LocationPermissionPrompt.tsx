@@ -1,58 +1,64 @@
-'use client'
+'use client';
 
-import React from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { MapPin, Shield, X, Check } from 'lucide-react'
-import { useLocation } from '@/hooks/useLocation'
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { MapPin, Shield, X, Check } from 'lucide-react';
+import { useLocation } from '@/hooks/useLocation';
 
 interface LocationPermissionPromptProps {
-  onLocationGranted?: () => void
-  onDismiss?: () => void
-  className?: string
+  onLocationGranted?: () => void;
+  onDismiss?: () => void;
+  className?: string;
 }
 
-export function LocationPermissionPrompt({ 
-  onLocationGranted, 
-  onDismiss, 
-  className = '' 
+export function LocationPermissionPrompt({
+  onLocationGranted,
+  onDismiss,
+  className = '',
 }: LocationPermissionPromptProps) {
-  const { 
-    requestLocation, 
-    permissionStatus, 
+  const {
+    requestLocation,
+    permissionStatus,
     hasRequestedPermission,
     canRequestLocation,
-    isLocationSupported 
-  } = useLocation()
+    isLocationSupported,
+  } = useLocation();
 
-  const [isRequesting, setIsRequesting] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
+  const [isRequesting, setIsRequesting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   const handleRequestLocation = async () => {
-    if (!canRequestLocation) return
+    if (!canRequestLocation) return;
 
-    setIsRequesting(true)
-    setError(null)
+    setIsRequesting(true);
+    setError(null);
 
     try {
-      await requestLocation()
-      onLocationGranted?.()
+      await requestLocation();
+      onLocationGranted?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get location')
+      setError(err instanceof Error ? err.message : 'Failed to get location');
     } finally {
-      setIsRequesting(false)
+      setIsRequesting(false);
     }
-  }
+  };
 
   // Don't show if location is not supported
   if (!isLocationSupported) {
-    return null
+    return null;
   }
 
   // Don't show if permission is already granted
   if (permissionStatus === 'granted') {
-    return null
+    return null;
   }
 
   // Don't show if user has already been prompted and denied
@@ -69,12 +75,13 @@ export function LocationPermissionPrompt({
           <Alert>
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              Location access was denied. You can still use the weather widget with a manual location.
+              Location access was denied. You can still use the weather widget
+              with a manual location.
             </AlertDescription>
           </Alert>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -85,7 +92,8 @@ export function LocationPermissionPrompt({
           Show Weather for Your Location?
         </CardTitle>
         <CardDescription>
-          Get personalized weather data for your current location to improve your running experience.
+          Get personalized weather data for your current location to improve
+          your running experience.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -111,26 +119,23 @@ export function LocationPermissionPrompt({
         )}
 
         <div className="flex gap-2">
-          <Button 
+          <Button
             onClick={handleRequestLocation}
             disabled={isRequesting || !canRequestLocation}
             className="flex-1"
           >
             {isRequesting ? 'Getting Location...' : 'Allow Location Access'}
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={onDismiss}
-            disabled={isRequesting}
-          >
+          <Button variant="outline" onClick={onDismiss} disabled={isRequesting}>
             <X className="h-4 w-4" />
           </Button>
         </div>
 
         <div className="text-xs text-gray-500">
-          You can change this later in your browser settings or manually set your location.
+          You can change this later in your browser settings or manually set
+          your location.
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

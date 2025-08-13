@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 describe('Form Submissions RLS Policies', () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  
+
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
   const testSubmission = {
@@ -12,7 +12,7 @@ describe('Form Submissions RLS Policies', () => {
     email: 'test@example.com',
     message: 'Test message for RLS verification',
     category: 'test',
-    priority: 'medium' as const
+    priority: 'medium' as const,
   };
 
   beforeAll(async () => {

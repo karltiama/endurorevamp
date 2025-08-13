@@ -4,7 +4,7 @@ export enum ErrorType {
   NETWORK_ERROR = 'NETWORK_ERROR',
   TIMEOUT_ERROR = 'TIMEOUT_ERROR',
   VALIDATION_ERROR = 'VALIDATION_ERROR',
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
 
 export interface AppError {
@@ -27,15 +27,19 @@ export class ErrorHandler {
     if (!error) return null;
 
     const errorMap: Record<string, string> = {
-      'access_denied': 'Access was denied by the user',
-      'invalid_request': 'The request is missing a required parameter',
-      'invalid_client': 'Client authentication failed',
-      'invalid_grant': 'The provided authorization grant is invalid',
-      'unauthorized_client': 'The client is not authorized to request an authorization code',
-      'unsupported_response_type': 'The authorization server does not support this response type',
-      'invalid_scope': 'The requested scope is invalid or unknown',
-      'server_error': 'The authorization server encountered an unexpected condition',
-      'temporarily_unavailable': 'The authorization server is currently unable to handle the request'
+      access_denied: 'Access was denied by the user',
+      invalid_request: 'The request is missing a required parameter',
+      invalid_client: 'Client authentication failed',
+      invalid_grant: 'The provided authorization grant is invalid',
+      unauthorized_client:
+        'The client is not authorized to request an authorization code',
+      unsupported_response_type:
+        'The authorization server does not support this response type',
+      invalid_scope: 'The requested scope is invalid or unknown',
+      server_error:
+        'The authorization server encountered an unexpected condition',
+      temporarily_unavailable:
+        'The authorization server is currently unable to handle the request',
     };
 
     return {
@@ -43,7 +47,8 @@ export class ErrorHandler {
       message: errorDescription || errorMap[error] || `OAuth error: ${error}`,
       details: { error, errorDescription, errorUri },
       code: error,
-      retryable: error === 'temporarily_unavailable' || error === 'server_error'
+      retryable:
+        error === 'temporarily_unavailable' || error === 'server_error',
     };
   }
 
@@ -59,9 +64,13 @@ export class ErrorHandler {
 
     switch (status) {
       case 400:
-        message = (responseData && typeof responseData === 'object' && 'error' in responseData && typeof responseData.error === 'string') 
-          ? responseData.error 
-          : 'Invalid request';
+        message =
+          responseData &&
+          typeof responseData === 'object' &&
+          'error' in responseData &&
+          typeof responseData.error === 'string'
+            ? responseData.error
+            : 'Invalid request';
         break;
       case 401:
         message = 'Invalid authorization code. Please try connecting again.';
@@ -87,9 +96,13 @@ export class ErrorHandler {
         retryable = true;
         break;
       default:
-        message = (responseData && typeof responseData === 'object' && 'error' in responseData && typeof responseData.error === 'string') 
-          ? responseData.error 
-          : `HTTP ${status}: ${statusText}`;
+        message =
+          responseData &&
+          typeof responseData === 'object' &&
+          'error' in responseData &&
+          typeof responseData.error === 'string'
+            ? responseData.error
+            : `HTTP ${status}: ${statusText}`;
     }
 
     return {
@@ -97,7 +110,7 @@ export class ErrorHandler {
       message,
       details: { status, statusText, responseData },
       code: status,
-      retryable
+      retryable,
     };
   }
 
@@ -121,7 +134,7 @@ export class ErrorHandler {
       type: ErrorType.NETWORK_ERROR,
       message,
       details: { originalError: error.message, name: error.name },
-      retryable
+      retryable,
     };
   }
 
@@ -133,7 +146,7 @@ export class ErrorHandler {
       type: ErrorType.TIMEOUT_ERROR,
       message: `Operation timed out after ${duration / 1000} seconds. Please try again.`,
       details: { duration },
-      retryable: true
+      retryable: true,
     };
   }
 
@@ -146,12 +159,12 @@ export class ErrorHandler {
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
         return this.parseNetworkError(error);
       }
-      
+
       return {
         type: ErrorType.UNKNOWN_ERROR,
         message: error.message || 'An unexpected error occurred',
         details: { originalError: error },
-        retryable: false
+        retryable: false,
       };
     }
 
@@ -159,7 +172,7 @@ export class ErrorHandler {
       return {
         type: ErrorType.UNKNOWN_ERROR,
         message: error,
-        retryable: false
+        retryable: false,
       };
     }
 
@@ -167,7 +180,7 @@ export class ErrorHandler {
       type: ErrorType.UNKNOWN_ERROR,
       message: 'An unexpected error occurred',
       details: { originalError: error },
-      retryable: false
+      retryable: false,
     };
   }
 
@@ -198,4 +211,4 @@ export class ErrorHandler {
       console.error(logMessage, error.details);
     }
   }
-} 
+}

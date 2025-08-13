@@ -1,21 +1,23 @@
-import { requireAuth } from '@/lib/auth/server'
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
+import { requireAuth } from '@/lib/auth/server';
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 // Removed unused import
-import { PersonalBestsClient } from '@/components/analytics/PersonalBestsClient'
-import { HistoricalTrendsClient } from '@/components/analytics/HistoricalTrendsClient'
-import { HashScrollHandler } from '@/components/HashScrollHandler'
-import { Suspense } from 'react'
-import { AnalyticsSyncPrompt } from '@/components/analytics/AnalyticsSyncPrompt'
+import { PersonalBestsClient } from '@/components/analytics/PersonalBestsClient';
+import { HistoricalTrendsClient } from '@/components/analytics/HistoricalTrendsClient';
+import { HashScrollHandler } from '@/components/HashScrollHandler';
+import { Suspense } from 'react';
+import { AnalyticsSyncPrompt } from '@/components/analytics/AnalyticsSyncPrompt';
 
 export default async function AnalyticsPage() {
-  const user = await requireAuth()
+  const user = await requireAuth();
 
   return (
     <DashboardLayout user={user}>
       <HashScrollHandler />
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Performance Analytics</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Performance Analytics
+          </h1>
           <p className="text-muted-foreground">
             Deep insights into your training performance and achievements.
           </p>
@@ -40,13 +42,11 @@ export default async function AnalyticsPage() {
           </Suspense>
         </div>
 
-
-
         {/* Activity Feed Section */}
         {/* Removed: Activity Feed is now on its own page */}
       </div>
     </DashboardLayout>
-  )
+  );
 }
 
 function PersonalBestsSkeleton() {
@@ -70,7 +70,7 @@ function PersonalBestsSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function HistoricalTrendsSkeleton() {
@@ -87,9 +87,7 @@ function HistoricalTrendsSkeleton() {
         <div className="h-80 bg-gray-100 rounded-lg"></div>
       </div>
     </div>
-  )
+  );
 }
 
-
-
-// Removed unused function 
+// Removed unused function

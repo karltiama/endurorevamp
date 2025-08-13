@@ -6,8 +6,12 @@ import { useStravaSync, useSyncStatusInfo } from '@/hooks/use-strava-sync';
 // Mock the useStravaSync hook
 jest.mock('@/hooks/use-strava-sync');
 
-const mockUseStravaSync = useStravaSync as jest.MockedFunction<typeof useStravaSync>;
-const mockUseSyncStatusInfo = useSyncStatusInfo as jest.MockedFunction<typeof useSyncStatusInfo>;
+const mockUseStravaSync = useStravaSync as jest.MockedFunction<
+  typeof useStravaSync
+>;
+const mockUseSyncStatusInfo = useSyncStatusInfo as jest.MockedFunction<
+  typeof useSyncStatusInfo
+>;
 
 const renderWithQueryClient = (component: React.ReactElement) => {
   const queryClient = new QueryClient({
@@ -17,9 +21,7 @@ const renderWithQueryClient = (component: React.ReactElement) => {
     },
   });
   return render(
-    <QueryClientProvider client={queryClient}>
-      {component}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{component}</QueryClientProvider>
   );
 };
 
@@ -28,7 +30,7 @@ describe('FullSyncButton', () => {
     syncStatus: {
       canSync: true,
       activityCount: 0,
-      syncState: { sync_requests_today: 0 }
+      syncState: { sync_requests_today: 0 },
     },
     isLoadingStatus: false,
     statusError: null,
@@ -50,8 +52,8 @@ describe('FullSyncButton', () => {
       consecutiveErrors: 0,
       lastError: undefined,
       hasStravaTokens: true,
-      athlete: null
-    }
+      athlete: null,
+    },
   };
 
   beforeEach(() => {
@@ -67,23 +69,23 @@ describe('FullSyncButton', () => {
       consecutiveErrors: 0,
       lastError: undefined,
       hasStravaTokens: true,
-      athlete: null
+      athlete: null,
     });
   });
 
   it('renders full sync button', () => {
     renderWithQueryClient(<FullSyncButton />);
-    
+
     expect(screen.getByText('Full Sync All Activities')).toBeInTheDocument();
     expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
   it('shows warning on first click', () => {
     renderWithQueryClient(<FullSyncButton />);
-    
+
     const button = screen.getByRole('button');
     fireEvent.click(button);
-    
+
     expect(screen.getByText('Confirm Full Sync')).toBeInTheDocument();
     // The component doesn't show warning text in the UI, only changes button text
     expect(screen.getByRole('button')).toBeInTheDocument();
@@ -93,20 +95,20 @@ describe('FullSyncButton', () => {
     const mockFullSync = jest.fn();
     mockUseStravaSync.mockReturnValue({
       ...defaultMockReturn,
-      fullSync: mockFullSync
+      fullSync: mockFullSync,
     });
 
     renderWithQueryClient(<FullSyncButton />);
-    
+
     const button = screen.getByRole('button');
-    
+
     // First click shows warning
     fireEvent.click(button);
     expect(screen.getByText('Confirm Full Sync')).toBeInTheDocument();
-    
+
     // Second click triggers sync
     fireEvent.click(button);
-    
+
     await waitFor(() => {
       expect(mockFullSync).toHaveBeenCalledTimes(1);
     });
@@ -115,11 +117,11 @@ describe('FullSyncButton', () => {
   it('shows syncing state', () => {
     mockUseStravaSync.mockReturnValue({
       ...defaultMockReturn,
-      isSyncing: true
+      isSyncing: true,
     });
 
     renderWithQueryClient(<FullSyncButton />);
-    
+
     expect(screen.getByText('Full Sync in Progress...')).toBeInTheDocument();
     expect(screen.getByRole('button')).toBeDisabled();
   });
@@ -127,11 +129,11 @@ describe('FullSyncButton', () => {
   it('shows error state', () => {
     mockUseStravaSync.mockReturnValue({
       ...defaultMockReturn,
-      syncError: new Error('Sync failed')
+      syncError: new Error('Sync failed'),
     });
 
     renderWithQueryClient(<FullSyncButton />);
-    
+
     // The component doesn't display error messages in the UI, only changes the icon
     expect(screen.getByText('Full Sync All Activities')).toBeInTheDocument();
     expect(screen.getByRole('button')).toBeInTheDocument();
@@ -147,13 +149,13 @@ describe('FullSyncButton', () => {
           activitiesProcessed: 150,
           newActivities: 25,
           updatedActivities: 5,
-          syncDuration: 5000
-        }
-      }
+          syncDuration: 5000,
+        },
+      },
     });
 
     renderWithQueryClient(<FullSyncButton />);
-    
+
     // The component doesn't display success messages in the UI, only changes the icon
     expect(screen.getByText('Full Sync All Activities')).toBeInTheDocument();
     expect(screen.getByRole('button')).toBeInTheDocument();
@@ -165,8 +167,8 @@ describe('FullSyncButton', () => {
       syncStatus: {
         canSync: false,
         activityCount: 0,
-        syncState: { sync_requests_today: 5 }
-      }
+        syncState: { sync_requests_today: 5 },
+      },
     });
 
     mockUseSyncStatusInfo.mockReturnValue({
@@ -179,11 +181,11 @@ describe('FullSyncButton', () => {
       consecutiveErrors: 0,
       lastError: undefined,
       hasStravaTokens: true,
-      athlete: null
+      athlete: null,
     });
 
     renderWithQueryClient(<FullSyncButton />);
-    
+
     // The button should be disabled when sync is not available
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
@@ -195,14 +197,14 @@ describe('FullSyncButton', () => {
       syncStatus: {
         canSync: true,
         activityCount: 42,
-        syncState: { sync_requests_today: 2 }
-      }
+        syncState: { sync_requests_today: 2 },
+      },
     });
 
     renderWithQueryClient(<FullSyncButton />);
-    
+
     // The component doesn't display status information in the UI, only in tooltips
     expect(screen.getByText('Full Sync All Activities')).toBeInTheDocument();
     expect(screen.getByRole('button')).toBeInTheDocument();
   });
-}); 
+});

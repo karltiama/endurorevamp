@@ -1,2 +1,2 @@
-export const createServerClient = jest.fn()
-export const createBrowserClient = jest.fn() 
+export const createServerClient = jest.fn();
+export const createBrowserClient = jest.fn();

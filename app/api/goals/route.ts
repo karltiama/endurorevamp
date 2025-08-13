@@ -7,7 +7,7 @@ import { CreateGoalRequest } from '@/types/goals';
 export async function GET() {
   try {
     const user = await getUser();
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -16,14 +16,16 @@ export async function GET() {
     }
 
     const supabase = await createClient();
-    
+
     // Fetch user goals with goal type information
     const { data: goals, error: goalsError } = await supabase
       .from('user_goals')
-      .select(`
+      .select(
+        `
         *,
         goal_type:goal_types(*)
-      `)
+      `
+      )
       .eq('user_id', user.id)
       .eq('is_active', true)
       .order('priority', { ascending: true });
@@ -51,7 +53,7 @@ export async function GET() {
         .from('user_onboarding')
         .insert({
           user_id: user.id,
-          current_step: 'goals'
+          current_step: 'goals',
         })
         .select('*')
         .single();
@@ -93,10 +95,9 @@ export async function GET() {
       onboarding: finalOnboarding || null,
       userStats: {
         activityCount: activityCount || 0,
-        hasStravaConnection: !!stravaToken
-      }
+        hasStravaConnection: !!stravaToken,
+      },
     });
-
   } catch (error) {
     console.error('Goals GET API error:', error);
     return NextResponse.json(
@@ -110,7 +111,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const user = await getUser();
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -119,7 +120,7 @@ export async function POST(request: Request) {
     }
 
     const body: CreateGoalRequest = await request.json();
-    
+
     // Validate required fields
     if (!body.goal_type_id) {
       return NextResponse.json(
@@ -129,7 +130,7 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient();
-    
+
     // Check if goal type exists and is active
     const { data: goalType, error: goalTypeError } = await supabase
       .from('goal_types')
@@ -139,10 +140,7 @@ export async function POST(request: Request) {
       .single();
 
     if (goalTypeError || !goalType) {
-      return NextResponse.json(
-        { error: 'Invalid goal type' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid goal type' }, { status: 400 });
     }
 
     // Create the goal
@@ -155,17 +153,19 @@ export async function POST(request: Request) {
         target_unit: body.target_unit || goalType.unit,
         target_date: body.target_date,
         goal_data: body.goal_data || {},
-        priority: body.priority || 1
+        priority: body.priority || 1,
       })
-      .select(`
+      .select(
+        `
         *,
         goal_type:goal_types(*)
-      `)
+      `
+      )
       .single();
 
     if (createError) {
       console.error('Error creating goal:', createError);
-      
+
       // Handle duplicate goal error
       if (createError.code === '23505') {
         return NextResponse.json(
@@ -173,7 +173,7 @@ export async function POST(request: Request) {
           { status: 409 }
         );
       }
-      
+
       return NextResponse.json(
         { error: 'Failed to create goal' },
         { status: 500 }
@@ -182,9 +182,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      goal
+      goal,
     });
-
   } catch (error) {
     console.error('Goals POST API error:', error);
     return NextResponse.json(
@@ -192,4 +191,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

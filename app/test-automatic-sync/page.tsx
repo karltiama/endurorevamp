@@ -1,11 +1,17 @@
-'use client'
+'use client';
 
-import { SyncTestDashboard } from '@/components/test/SyncTestDashboard'
-import { AutoSyncManager } from '@/components/strava/AutoSyncManager'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { TestTube, Settings, BookOpen } from 'lucide-react'
+import { SyncTestDashboard } from '@/components/test/SyncTestDashboard';
+import { AutoSyncManager } from '@/components/strava/AutoSyncManager';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TestTube, Settings, BookOpen } from 'lucide-react';
 
 export default function AutoSyncTestPage() {
   return (
@@ -20,8 +26,9 @@ export default function AutoSyncTestPage() {
       <Alert>
         <TestTube className="h-4 w-4" />
         <AlertDescription>
-          <strong>Testing Environment:</strong> This page provides tools to test webhook delivery, 
-          background sync, and token management. Use this to validate your automatic sync setup.
+          <strong>Testing Environment:</strong> This page provides tools to test
+          webhook delivery, background sync, and token management. Use this to
+          validate your automatic sync setup.
         </AlertDescription>
       </Alert>
 
@@ -60,67 +67,133 @@ export default function AutoSyncTestPage() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold mb-2">📋 Pre-Testing Checklist</h3>
+                  <h3 className="font-semibold mb-2">
+                    📋 Pre-Testing Checklist
+                  </h3>
                   <ul className="space-y-1 text-sm text-muted-foreground ml-4">
-                    <li>✅ Environment variables are set (webhook token, API key, app URL)</li>
-                    <li>✅ Database migration has been run (last_sync_at field added)</li>
-                    <li>✅ Strava connection is active for your test account</li>
+                    <li>
+                      ✅ Environment variables are set (webhook token, API key,
+                      app URL)
+                    </li>
+                    <li>
+                      ✅ Database migration has been run (last_sync_at field
+                      added)
+                    </li>
+                    <li>
+                      ✅ Strava connection is active for your test account
+                    </li>
                     <li>✅ App is deployed and publicly accessible</li>
                   </ul>
                 </div>
 
                 <div>
-                  <h3 className="font-semibold mb-2">🔧 1. Initial Setup Testing</h3>
+                  <h3 className="font-semibold mb-2">
+                    🔧 1. Initial Setup Testing
+                  </h3>
                   <ol className="space-y-2 text-sm ml-4">
-                    <li><strong>1.1</strong> Go to &quot;Sync Management&quot; tab and set up webhook subscription</li>
-                    <li><strong>1.2</strong> Verify webhook status shows &quot;Active&quot;</li>
-                    <li><strong>1.3</strong> Check sync statistics to see current user count</li>
+                    <li>
+                      <strong>1.1</strong> Go to &quot;Sync Management&quot; tab
+                      and set up webhook subscription
+                    </li>
+                    <li>
+                      <strong>1.2</strong> Verify webhook status shows
+                      &quot;Active&quot;
+                    </li>
+                    <li>
+                      <strong>1.3</strong> Check sync statistics to see current
+                      user count
+                    </li>
                   </ol>
                 </div>
 
                 <div>
                   <h3 className="font-semibold mb-2">📡 2. Webhook Testing</h3>
                   <ol className="space-y-2 text-sm ml-4">
-                    <li><strong>2.1</strong> Go to &quot;Testing Dashboard&quot; → &quot;Setup&quot; tab</li>
-                    <li><strong>2.2</strong> Verify your Strava Athlete ID is populated</li>
-                    <li><strong>2.3</strong> Go to &quot;Webhook Tests&quot; tab</li>
-                    <li><strong>2.4</strong> Click &quot;Simulate New Activity&quot; and check results</li>
-                    <li><strong>2.5</strong> Check your database for new activity entries</li>
+                    <li>
+                      <strong>2.1</strong> Go to &quot;Testing Dashboard&quot; →
+                      &quot;Setup&quot; tab
+                    </li>
+                    <li>
+                      <strong>2.2</strong> Verify your Strava Athlete ID is
+                      populated
+                    </li>
+                    <li>
+                      <strong>2.3</strong> Go to &quot;Webhook Tests&quot; tab
+                    </li>
+                    <li>
+                      <strong>2.4</strong> Click &quot;Simulate New
+                      Activity&quot; and check results
+                    </li>
+                    <li>
+                      <strong>2.5</strong> Check your database for new activity
+                      entries
+                    </li>
                   </ol>
                 </div>
 
                 <div>
-                  <h3 className="font-semibold mb-2">⏰ 3. Background Sync Testing</h3>
+                  <h3 className="font-semibold mb-2">
+                    ⏰ 3. Background Sync Testing
+                  </h3>
                   <ol className="space-y-2 text-sm ml-4">
-                    <li><strong>3.1</strong> Go to &quot;Sync Tests&quot; tab</li>
-                    <li><strong>3.2</strong> Click &quot;Test Background Sync&quot;</li>
-                    <li><strong>3.3</strong> Check results for successful user sync</li>
-                    <li><strong>3.4</strong> Verify last_sync_at timestamp was updated</li>
+                    <li>
+                      <strong>3.1</strong> Go to &quot;Sync Tests&quot; tab
+                    </li>
+                    <li>
+                      <strong>3.2</strong> Click &quot;Test Background
+                      Sync&quot;
+                    </li>
+                    <li>
+                      <strong>3.3</strong> Check results for successful user
+                      sync
+                    </li>
+                    <li>
+                      <strong>3.4</strong> Verify last_sync_at timestamp was
+                      updated
+                    </li>
                   </ol>
                 </div>
 
                 <div>
-                  <h3 className="font-semibold mb-2">🏃 4. Real-World Testing</h3>
+                  <h3 className="font-semibold mb-2">
+                    🏃 4. Real-World Testing
+                  </h3>
                   <ol className="space-y-2 text-sm ml-4">
-                    <li><strong>4.1</strong> Complete an actual activity on Strava</li>
-                    <li><strong>4.2</strong> Wait 1-2 minutes for webhook delivery</li>
-                    <li><strong>4.3</strong> Check your app dashboard for the new activity</li>
-                    <li><strong>4.4</strong> If not appeared, check webhook logs and manual sync</li>
+                    <li>
+                      <strong>4.1</strong> Complete an actual activity on Strava
+                    </li>
+                    <li>
+                      <strong>4.2</strong> Wait 1-2 minutes for webhook delivery
+                    </li>
+                    <li>
+                      <strong>4.3</strong> Check your app dashboard for the new
+                      activity
+                    </li>
+                    <li>
+                      <strong>4.4</strong> If not appeared, check webhook logs
+                      and manual sync
+                    </li>
                   </ol>
                 </div>
 
                 <div>
                   <h3 className="font-semibold mb-2">🔍 5. Troubleshooting</h3>
                   <div className="space-y-2 text-sm">
-                    <p><strong>Webhook not working?</strong></p>
+                    <p>
+                      <strong>Webhook not working?</strong>
+                    </p>
                     <ul className="ml-4 space-y-1 text-muted-foreground">
-                      <li>• Check if webhook subscription exists (Management tab)</li>
+                      <li>
+                        • Check if webhook subscription exists (Management tab)
+                      </li>
                       <li>• Verify your app URL is publicly accessible</li>
                       <li>• Check server logs for webhook POST requests</li>
                       <li>• Test with webhook simulator first</li>
                     </ul>
 
-                    <p><strong>Background sync failing?</strong></p>
+                    <p>
+                      <strong>Background sync failing?</strong>
+                    </p>
                     <ul className="ml-4 space-y-1 text-muted-foreground">
                       <li>• Check API key in environment variables</li>
                       <li>• Verify user has valid Strava tokens</li>
@@ -128,7 +201,9 @@ export default function AutoSyncTestPage() {
                       <li>• Review sync error logs</li>
                     </ul>
 
-                    <p><strong>Token issues?</strong></p>
+                    <p>
+                      <strong>Token issues?</strong>
+                    </p>
                     <ul className="ml-4 space-y-1 text-muted-foreground">
                       <li>• Check token expiration in Setup tab</li>
                       <li>• Test manual token refresh</li>
@@ -143,5 +218,5 @@ export default function AutoSyncTestPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

@@ -4,16 +4,16 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Target, 
-  TrendingUp, 
+import {
+  Target,
+  TrendingUp,
   Calendar,
   Clock,
   MapPin,
   Award,
   CheckCircle,
   Sparkles,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 import { UserGoal } from '@/types/goals';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
@@ -59,13 +59,13 @@ const defaultSuggestions: GoalSuggestion[] = [
     benefits: [
       'Builds endurance gradually',
       'Reduces injury risk',
-      'Establishes consistent training habits'
+      'Establishes consistent training habits',
     ],
     strategies: [
       'Increase distance by 10% each week',
       'Include rest days between runs',
-      'Listen to your body and adjust as needed'
-    ]
+      'Listen to your body and adjust as needed',
+    ],
   },
   {
     id: 'weekly-frequency',
@@ -82,13 +82,13 @@ const defaultSuggestions: GoalSuggestion[] = [
     benefits: [
       'Builds training consistency',
       'Improves fitness gradually',
-      'Creates sustainable habits'
+      'Creates sustainable habits',
     ],
     strategies: [
       'Schedule runs on specific days',
       'Start with shorter, easier runs',
-      'Gradually increase frequency'
-    ]
+      'Gradually increase frequency',
+    ],
   },
   {
     id: 'pace-improvement',
@@ -105,17 +105,17 @@ const defaultSuggestions: GoalSuggestion[] = [
     benefits: [
       'Improves running economy',
       'Builds speed endurance',
-      'Enhances overall fitness'
+      'Enhances overall fitness',
     ],
     strategies: [
       'Include interval training once per week',
       'Focus on good running form',
-      'Gradually increase intensity'
+      'Gradually increase intensity',
     ],
     warnings: [
       'Don&apos;t increase intensity too quickly',
-      'Listen to your body and rest when needed'
-    ]
+      'Listen to your body and rest when needed',
+    ],
   },
   {
     id: 'long-run',
@@ -132,20 +132,27 @@ const defaultSuggestions: GoalSuggestion[] = [
     benefits: [
       'Builds aerobic endurance',
       'Improves fat burning',
-      'Prepares for longer races'
+      'Prepares for longer races',
     ],
     strategies: [
       'Start with 30-minute runs',
       'Increase duration by 10% weekly',
-      'Keep long runs at easy pace'
-    ]
-  }
+      'Keep long runs at easy pace',
+    ],
+  },
 ];
 
-export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: GoalsSelectionStepProps) {
+export function GoalsSelectionStep({
+  onGoalsSelected,
+  onComplete,
+  onError,
+}: GoalsSelectionStepProps) {
   const { preferences } = useUnitPreferences();
-  const [suggestions, setSuggestions] = useState<GoalSuggestion[]>(defaultSuggestions);
-  const [selectedSuggestions, setSelectedSuggestions] = useState<GoalSuggestion[]>([]);
+  const [suggestions, setSuggestions] =
+    useState<GoalSuggestion[]>(defaultSuggestions);
+  const [selectedSuggestions, setSelectedSuggestions] = useState<
+    GoalSuggestion[]
+  >([]);
   const [isCreatingGoals, setIsCreatingGoals] = useState(false);
 
   // Convert suggestions to user's preferred units
@@ -157,7 +164,7 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: Goa
           ...suggestion,
           target: Math.round(miles * 10) / 10,
           unit: 'mi',
-          reasoning: suggestion.reasoning.replace('km', 'mi')
+          reasoning: suggestion.reasoning.replace('km', 'mi'),
         };
       }
       if (suggestion.unit === 'seconds/km' && preferences.pace === 'min/mile') {
@@ -166,7 +173,7 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: Goa
           ...suggestion,
           target: Math.round(pacePerMile),
           unit: 'seconds/mi',
-          reasoning: suggestion.reasoning.replace('/km', '/mi')
+          reasoning: suggestion.reasoning.replace('/km', '/mi'),
         };
       }
       return suggestion;
@@ -177,7 +184,9 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: Goa
   const handleSuggestionSelect = (suggestion: GoalSuggestion) => {
     const isSelected = selectedSuggestions.some(s => s.id === suggestion.id);
     if (isSelected) {
-      setSelectedSuggestions(selectedSuggestions.filter(s => s.id !== suggestion.id));
+      setSelectedSuggestions(
+        selectedSuggestions.filter(s => s.id !== suggestion.id)
+      );
     } else {
       setSelectedSuggestions([...selectedSuggestions, suggestion]);
     }
@@ -185,9 +194,9 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: Goa
 
   const handleContinue = async () => {
     if (selectedSuggestions.length === 0) return;
-    
+
     setIsCreatingGoals(true);
-    
+
     try {
       // Convert suggestions to UserGoal format
       const goals: UserGoal[] = selectedSuggestions.map(suggestion => ({
@@ -201,7 +210,12 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: Goa
         streak_count: 0,
         is_active: true,
         is_completed: false,
-        priority: suggestion.priority === 'high' ? 1 : suggestion.priority === 'medium' ? 2 : 3,
+        priority:
+          suggestion.priority === 'high'
+            ? 1
+            : suggestion.priority === 'medium'
+              ? 2
+              : 3,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         goal_data: {
@@ -214,45 +228,50 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: Goa
           suggestion_id: suggestion.id,
           suggestion_title: suggestion.title,
           suggestion_reasoning: suggestion.reasoning,
-          difficulty_level: suggestion.difficulty === 'conservative' ? 'beginner' as const : 
-                           suggestion.difficulty === 'moderate' ? 'intermediate' as const : 
-                           'advanced' as const,
+          difficulty_level:
+            suggestion.difficulty === 'conservative'
+              ? ('beginner' as const)
+              : suggestion.difficulty === 'moderate'
+                ? ('intermediate' as const)
+                : ('advanced' as const),
           success_probability: suggestion.successProbability,
-          warnings: suggestion.warnings
-        }
+          warnings: suggestion.warnings,
+        },
       }));
-      
+
       // Create the goals
       const response = await fetch('/api/goals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ goals })
+        body: JSON.stringify({ goals }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to create goals');
       }
-      
+
       // Update onboarding status to mark goals as completed
       const onboardingResponse = await fetch('/api/onboarding', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           goals_completed: true,
-          current_step: 'strava'
-        })
+          current_step: 'strava',
+        }),
       });
-      
+
       if (!onboardingResponse.ok) {
-        console.warn('Failed to update onboarding status, but goals were created');
+        console.warn(
+          'Failed to update onboarding status, but goals were created'
+        );
       }
-      
+
       onGoalsSelected(goals);
       onComplete?.();
-      
     } catch (error) {
       console.error('Error creating goals:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create goals';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to create goals';
       onError?.(errorMessage);
     } finally {
       setIsCreatingGoals(false);
@@ -261,19 +280,27 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: Goa
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'border-red-200 bg-red-50';
-      case 'medium': return 'border-yellow-200 bg-yellow-50';
-      case 'low': return 'border-green-200 bg-green-50';
-      default: return 'border-gray-200 bg-gray-50';
+      case 'high':
+        return 'border-red-200 bg-red-50';
+      case 'medium':
+        return 'border-yellow-200 bg-yellow-50';
+      case 'low':
+        return 'border-green-200 bg-green-50';
+      default:
+        return 'border-gray-200 bg-gray-50';
     }
   };
 
   const getDifficultyIcon = (difficulty: string) => {
     switch (difficulty) {
-      case 'conservative': return '🛡️';
-      case 'moderate': return '🎯';
-      case 'ambitious': return '⚡';
-      default: return '📈';
+      case 'conservative':
+        return '🛡️';
+      case 'moderate':
+        return '🎯';
+      case 'ambitious':
+        return '⚡';
+      default:
+        return '📈';
     }
   };
 
@@ -282,16 +309,19 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: Goa
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-2">Choose Your Training Goals</h2>
         <p className="text-muted-foreground">
-          Select 2-3 goals to focus on. We&apos;ll help you track progress and stay motivated.
+          Select 2-3 goals to focus on. We&apos;ll help you track progress and
+          stay motivated.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {suggestions.map((suggestion) => {
-          const isSelected = selectedSuggestions.some(s => s.id === suggestion.id);
+        {suggestions.map(suggestion => {
+          const isSelected = selectedSuggestions.some(
+            s => s.id === suggestion.id
+          );
           return (
-            <Card 
-              key={suggestion.id} 
+            <Card
+              key={suggestion.id}
               className={`cursor-pointer transition-all hover:shadow-md ${
                 isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''
               }`}
@@ -300,13 +330,19 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: Goa
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">{getDifficultyIcon(suggestion.difficulty)}</span>
-                    <Badge className={`${getPriorityColor(suggestion.priority)} border text-xs`}>
+                    <span className="text-lg">
+                      {getDifficultyIcon(suggestion.difficulty)}
+                    </span>
+                    <Badge
+                      className={`${getPriorityColor(suggestion.priority)} border text-xs`}
+                    >
                       {suggestion.priority}
                     </Badge>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm text-muted-foreground">Success Rate</div>
+                    <div className="text-sm text-muted-foreground">
+                      Success Rate
+                    </div>
                     <div className="text-lg font-semibold text-green-600">
                       {suggestion.successProbability}%
                     </div>
@@ -314,16 +350,20 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: Goa
                 </div>
 
                 <div className="flex items-start space-x-3 mb-3">
-                  <div className="mt-1">
-                    {suggestion.icon}
-                  </div>
+                  <div className="mt-1">{suggestion.icon}</div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">{suggestion.title}</h3>
-                    <p className="text-muted-foreground text-sm mb-2">{suggestion.description}</p>
+                    <h3 className="font-semibold text-lg mb-1">
+                      {suggestion.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mb-2">
+                      {suggestion.description}
+                    </p>
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1">
                         <Target className="h-4 w-4 text-blue-500" />
-                        <span>{suggestion.target} {suggestion.unit}</span>
+                        <span>
+                          {suggestion.target} {suggestion.unit}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Award className="h-4 w-4 text-purple-500" />
@@ -355,7 +395,7 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: Goa
         <div className="text-sm text-muted-foreground">
           {selectedSuggestions.length} of 3 goals selected
         </div>
-        <Button 
+        <Button
           onClick={handleContinue}
           disabled={selectedSuggestions.length === 0 || isCreatingGoals}
           className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
@@ -375,4 +415,4 @@ export function GoalsSelectionStep({ onGoalsSelected, onComplete, onError }: Goa
       </div>
     </div>
   );
-} 
+}

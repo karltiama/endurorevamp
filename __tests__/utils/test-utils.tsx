@@ -1,72 +1,69 @@
-import React, { ReactElement } from 'react'
-import { render, RenderOptions } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import React, { ReactElement } from 'react';
+import { render, RenderOptions } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Create a test-specific QueryClient that doesn't retry
-export const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
+export const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        refetchOnWindowFocus: false,
+        staleTime: Infinity,
+      },
+      mutations: {
+        retry: false,
+      },
     },
-    mutations: {
-      retry: false,
-    },
-  },
-})
+  });
 
 // Custom render function that includes QueryClient provider
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
-  const queryClient = createTestQueryClient()
-  
+  const queryClient = createTestQueryClient();
+
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  )
-}
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
 
 const customRender = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
-) => render(ui, { wrapper: AllTheProviders, ...options })
+) => render(ui, { wrapper: AllTheProviders, ...options });
 
 // Export everything from testing-library/react
-export * from '@testing-library/react'
+export * from '@testing-library/react';
 
 // Override render method
-export { customRender as render }
+export { customRender as render };
 
 // Utility to render components that need QueryClient
 export const renderWithQueryClient = (
   component: ReactElement,
   queryClient?: QueryClient
 ) => {
-  const client = queryClient || createTestQueryClient()
-  
+  const client = queryClient || createTestQueryClient();
+
   return render(
-    <QueryClientProvider client={client}>
-      {component}
-    </QueryClientProvider>
-  )
-}
+    <QueryClientProvider client={client}>{component}</QueryClientProvider>
+  );
+};
 
 // Mock implementation helpers
 export const createMockApiResponse = <T,>(data: T, error = null) => ({
   data,
   error,
   status: error ? 400 : 200,
-  statusText: error ? 'Bad Request' : 'OK'
-})
+  statusText: error ? 'Bad Request' : 'OK',
+});
 
 // Common test data generators
 export const generateTestUser = (overrides = {}) => ({
   id: 'test-user-id',
   email: 'test@example.com',
   created_at: '2024-01-01T00:00:00Z',
-  ...overrides
-})
+  ...overrides,
+});
 
 export const generateTestActivity = (overrides = {}) => ({
   id: 1,
@@ -77,20 +74,20 @@ export const generateTestActivity = (overrides = {}) => ({
   distance: 5000,
   moving_time: 1800,
   start_date_local: '2024-01-01T10:00:00Z',
-  ...overrides
-})
+  ...overrides,
+});
 
 // Wait for async operations in tests
-export const waitForLoadingToFinish = () => 
-  new Promise(resolve => setTimeout(resolve, 0))
+export const waitForLoadingToFinish = () =>
+  new Promise(resolve => setTimeout(resolve, 0));
 
 // Mock console methods for cleaner test output
 export const suppressConsoleErrors = () => {
-  const originalError = console.error
+  const originalError = console.error;
   beforeAll(() => {
-    console.error = jest.fn()
-  })
+    console.error = jest.fn();
+  });
   afterAll(() => {
-    console.error = originalError
-  })
-} 
+    console.error = originalError;
+  });
+};

@@ -1,7 +1,7 @@
 ---
 title: Auth Token Route Testing & Helper Utilities Summary
 author: AI Assistant
-date: "2024-05-10"
+date: '2024-05-10'
 ---
 
 # Auth Token Route: Testing & Helper Utilities Summary
@@ -35,25 +35,27 @@ import {
   TestData,
   TestScenarios,
   Assertions,
-  TestHelpers
-} from '../utils/auth-test-helpers'
+  TestHelpers,
+} from '../utils/auth-test-helpers';
 
 // Arrange
-const mockClient = TestScenarios.authenticatedUserWithTokens()
-TestHelpers.mockSupabaseClient(mockClient)
-TestHelpers.mockStravaAPI(MockStravaAPI.successResponse(TestData.stravaAuth.success))
+const mockClient = TestScenarios.authenticatedUserWithTokens();
+TestHelpers.mockSupabaseClient(mockClient);
+TestHelpers.mockStravaAPI(
+  MockStravaAPI.successResponse(TestData.stravaAuth.success)
+);
 
 // Act
-const request = RequestBuilder.authTokenPut()
-const response = await PUT(request)
-const data = await response.json()
+const request = RequestBuilder.authTokenPut();
+const response = await PUT(request);
+const data = await response.json();
 
 // Assert
-expect(response.status).toBe(200)
+expect(response.status).toBe(200);
 expect(data).toEqual({
   success: true,
-  athlete: TestData.stravaAuth.success.athlete
-})
+  athlete: TestData.stravaAuth.success.athlete,
+});
 ```
 
 ## Helper Utilities Overview
@@ -80,4 +82,4 @@ expect(data).toEqual({
 
 ---
 
-_This summary documents the improvements and best practices for authentication route testing and test utility design in our codebase._ 
+_This summary documents the improvements and best practices for authentication route testing and test utility design in our codebase._

@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { GoalType } from '@/types/goals';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
 import { formatDistance, formatPace as formatPaceUtil } from '@/lib/utils';
-import { 
+import {
   Brain,
   Target,
   TrendingUp,
@@ -17,7 +17,7 @@ import {
   Shield,
   Star,
   Calculator,
-  Lightbulb
+  Lightbulb,
 } from 'lucide-react';
 
 interface UserPerformanceData {
@@ -36,16 +36,21 @@ interface SmartTargetRecommendationsProps {
   onSelectTarget: (target: number, difficulty: string) => void;
 }
 
-export function SmartTargetRecommendations({ 
-  goalType, 
-  userPerformance, 
-  onSelectTarget 
+export function SmartTargetRecommendations({
+  goalType,
+  userPerformance,
+  onSelectTarget,
 }: SmartTargetRecommendationsProps) {
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('moderate');
+  const [selectedDifficulty, setSelectedDifficulty] =
+    useState<string>('moderate');
   const [customTarget, setCustomTarget] = useState<number | null>(null);
   const { preferences } = useUnitPreferences();
 
-  const recommendations = generateSmartRecommendations(goalType, userPerformance, preferences);
+  const recommendations = generateSmartRecommendations(
+    goalType,
+    userPerformance,
+    preferences
+  );
 
   return (
     <div className="space-y-6">
@@ -59,8 +64,9 @@ export function SmartTargetRecommendations({
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            Our AI analyzes your recent performance, training history, and injury patterns to suggest the optimal target for your goal. 
-            Choose a difficulty level that matches your commitment and timeline.
+            Our AI analyzes your recent performance, training history, and
+            injury patterns to suggest the optimal target for your goal. Choose
+            a difficulty level that matches your commitment and timeline.
           </p>
         </CardContent>
       </Card>
@@ -77,19 +83,36 @@ export function SmartTargetRecommendations({
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <div className="font-semibold">{formatDistance(userPerformance.weeklyDistance * 1000, preferences.distance)}</div>
+                <div className="font-semibold">
+                  {formatDistance(
+                    userPerformance.weeklyDistance * 1000,
+                    preferences.distance
+                  )}
+                </div>
                 <div className="text-muted-foreground">Weekly Distance</div>
               </div>
               <div className="text-center p-3 bg-green-50 rounded-lg">
-                <div className="font-semibold">{formatPaceUtil(userPerformance.averagePace, preferences.pace)}</div>
+                <div className="font-semibold">
+                  {formatPaceUtil(
+                    userPerformance.averagePace,
+                    preferences.pace
+                  )}
+                </div>
                 <div className="text-muted-foreground">Average Pace</div>
               </div>
               <div className="text-center p-3 bg-purple-50 rounded-lg">
-                <div className="font-semibold">{userPerformance.runFrequency}/week</div>
+                <div className="font-semibold">
+                  {userPerformance.runFrequency}/week
+                </div>
                 <div className="text-muted-foreground">Run Frequency</div>
               </div>
               <div className="text-center p-3 bg-orange-50 rounded-lg">
-                <div className="font-semibold">{formatDistance(userPerformance.longestRun * 1000, preferences.distance)}</div>
+                <div className="font-semibold">
+                  {formatDistance(
+                    userPerformance.longestRun * 1000,
+                    preferences.distance
+                  )}
+                </div>
                 <div className="text-muted-foreground">Longest Run</div>
               </div>
             </div>
@@ -104,14 +127,15 @@ export function SmartTargetRecommendations({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4">
-            {recommendations.map((rec) => (
+            {recommendations.map(rec => (
               <div
                 key={rec.difficulty}
                 className={`
                   p-4 border-2 rounded-lg cursor-pointer transition-all
-                  ${selectedDifficulty === rec.difficulty 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-200 hover:border-gray-300'
+                  ${
+                    selectedDifficulty === rec.difficulty
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
                   }
                 `}
                 onClick={() => setSelectedDifficulty(rec.difficulty)}
@@ -132,8 +156,12 @@ export function SmartTargetRecommendations({
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium">{rec.successRate}% Success Rate</div>
-                    <div className="text-xs text-muted-foreground">{rec.timeframe}</div>
+                    <div className="text-sm font-medium">
+                      {rec.successRate}% Success Rate
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {rec.timeframe}
+                    </div>
                   </div>
                 </div>
 
@@ -142,11 +170,15 @@ export function SmartTargetRecommendations({
                   <div className="text-sm space-y-1">
                     <div className="flex items-center gap-2">
                       <Lightbulb className="h-3 w-3 text-yellow-500" />
-                      <span className="text-muted-foreground">Benefits: {rec.benefits}</span>
+                      <span className="text-muted-foreground">
+                        Benefits: {rec.benefits}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calculator className="h-3 w-3 text-blue-500" />
-                      <span className="text-muted-foreground">Strategy: {rec.strategy}</span>
+                      <span className="text-muted-foreground">
+                        Strategy: {rec.strategy}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -165,13 +197,17 @@ export function SmartTargetRecommendations({
                 type="number"
                 placeholder={`Enter target in ${goalType.unit}`}
                 value={customTarget || ''}
-                onChange={(e) => setCustomTarget(parseFloat(e.target.value) || null)}
+                onChange={e =>
+                  setCustomTarget(parseFloat(e.target.value) || null)
+                }
                 className="flex-1"
               />
               <Button
                 variant="outline"
                 disabled={!customTarget}
-                onClick={() => customTarget && onSelectTarget(customTarget, 'custom')}
+                onClick={() =>
+                  customTarget && onSelectTarget(customTarget, 'custom')
+                }
               >
                 Use Custom
               </Button>
@@ -183,13 +219,18 @@ export function SmartTargetRecommendations({
             <Button
               className="flex-1"
               onClick={() => {
-                const selected = recommendations.find(r => r.difficulty === selectedDifficulty);
+                const selected = recommendations.find(
+                  r => r.difficulty === selectedDifficulty
+                );
                 if (selected) {
                   onSelectTarget(selected.target, selected.difficulty);
                 }
               }}
             >
-              Use {selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1)} Target
+              Use{' '}
+              {selectedDifficulty.charAt(0).toUpperCase() +
+                selectedDifficulty.slice(1)}{' '}
+              Target
             </Button>
           </div>
         </CardContent>
@@ -218,7 +259,11 @@ export function SmartTargetRecommendations({
   );
 }
 
-function generateSmartRecommendations(goalType: GoalType, userPerformance?: UserPerformanceData, unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }) {
+function generateSmartRecommendations(
+  goalType: GoalType,
+  userPerformance?: UserPerformanceData,
+  unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }
+) {
   const metricType = goalType.metric_type;
 
   // Default recommendations if no performance data
@@ -231,16 +276,28 @@ function generateSmartRecommendations(goalType: GoalType, userPerformance?: User
 
   switch (metricType) {
     case 'total_distance':
-      recommendations.push(...generateDistanceRecommendations(goalType, userPerformance));
+      recommendations.push(
+        ...generateDistanceRecommendations(goalType, userPerformance)
+      );
       break;
     case 'run_count':
-      recommendations.push(...generateFrequencyRecommendations(goalType, userPerformance));
+      recommendations.push(
+        ...generateFrequencyRecommendations(goalType, userPerformance)
+      );
       break;
     case 'average_pace':
-      recommendations.push(...generatePaceRecommendations(goalType, userPerformance, unitPreferences));
+      recommendations.push(
+        ...generatePaceRecommendations(
+          goalType,
+          userPerformance,
+          unitPreferences
+        )
+      );
       break;
     case 'total_time':
-      recommendations.push(...generateDurationRecommendations(goalType, userPerformance));
+      recommendations.push(
+        ...generateDurationRecommendations(goalType, userPerformance)
+      );
       break;
     default:
       return getDefaultRecommendations(goalType);
@@ -249,9 +306,12 @@ function generateSmartRecommendations(goalType: GoalType, userPerformance?: User
   return recommendations;
 }
 
-function generateDistanceRecommendations(goalType: GoalType, userPerformance: UserPerformanceData) {
-  const current = goalType.name.includes('weekly') 
-    ? userPerformance.weeklyDistance 
+function generateDistanceRecommendations(
+  goalType: GoalType,
+  userPerformance: UserPerformanceData
+) {
+  const current = goalType.name.includes('weekly')
+    ? userPerformance.weeklyDistance
     : userPerformance.monthlyDistance;
 
   const baseMultiplier = goalType.name.includes('weekly') ? 1 : 4;
@@ -264,11 +324,12 @@ function generateDistanceRecommendations(goalType: GoalType, userPerformance: Us
       icon: Shield,
       color: 'text-green-500',
       badgeVariant: 'secondary' as const,
-      description: '10% increase from your current average - safe and sustainable',
+      description:
+        '10% increase from your current average - safe and sustainable',
       benefits: 'Builds confidence, low injury risk',
       strategy: 'Gradual weekly increases, focus on consistency',
       successRate: 95,
-      timeframe: '4-6 weeks'
+      timeframe: '4-6 weeks',
     },
     {
       difficulty: 'moderate',
@@ -277,11 +338,12 @@ function generateDistanceRecommendations(goalType: GoalType, userPerformance: Us
       icon: Target,
       color: 'text-blue-500',
       badgeVariant: 'default' as const,
-      description: '25% increase - optimal balance of challenge and achievability',
+      description:
+        '25% increase - optimal balance of challenge and achievability',
       benefits: 'Meaningful fitness gains, improved endurance',
       strategy: 'Progressive overload with recovery weeks',
       successRate: 80,
-      timeframe: '6-8 weeks'
+      timeframe: '6-8 weeks',
     },
     {
       difficulty: 'ambitious',
@@ -290,16 +352,20 @@ function generateDistanceRecommendations(goalType: GoalType, userPerformance: Us
       icon: Zap,
       color: 'text-purple-500',
       badgeVariant: 'destructive' as const,
-      description: '50% increase - significant challenge for experienced runners',
+      description:
+        '50% increase - significant challenge for experienced runners',
       benefits: 'Major fitness breakthrough, mental toughness',
       strategy: 'Structured training plan, careful monitoring',
       successRate: 60,
-      timeframe: '8-12 weeks'
-    }
+      timeframe: '8-12 weeks',
+    },
   ];
 }
 
-function generateFrequencyRecommendations(goalType: GoalType, userPerformance: UserPerformanceData) {
+function generateFrequencyRecommendations(
+  goalType: GoalType,
+  userPerformance: UserPerformanceData
+) {
   const current = userPerformance.runFrequency;
   const maxSafe = Math.min(6, current + 2);
 
@@ -315,7 +381,7 @@ function generateFrequencyRecommendations(goalType: GoalType, userPerformance: U
       benefits: 'Improved consistency, better recovery',
       strategy: 'Replace one rest day with easy run',
       successRate: 90,
-      timeframe: '2-4 weeks'
+      timeframe: '2-4 weeks',
     },
     {
       difficulty: 'moderate',
@@ -328,7 +394,7 @@ function generateFrequencyRecommendations(goalType: GoalType, userPerformance: U
       benefits: 'Enhanced fitness, stronger habit formation',
       strategy: 'Schedule specific days, include variety',
       successRate: 75,
-      timeframe: '4-6 weeks'
+      timeframe: '4-6 weeks',
     },
     {
       difficulty: 'ambitious',
@@ -341,14 +407,18 @@ function generateFrequencyRecommendations(goalType: GoalType, userPerformance: U
       benefits: 'Elite-level consistency, rapid improvement',
       strategy: 'Include easy runs, cross-training, recovery',
       successRate: 55,
-      timeframe: '6-10 weeks'
-    }
+      timeframe: '6-10 weeks',
+    },
   ];
 }
 
-function generatePaceRecommendations(goalType: GoalType, userPerformance: UserPerformanceData, unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }) {
+function generatePaceRecommendations(
+  goalType: GoalType,
+  userPerformance: UserPerformanceData,
+  unitPreferences?: { distance: 'km' | 'miles'; pace: 'min/km' | 'min/mile' }
+) {
   const currentPace = userPerformance.averagePace; // seconds per km
-  
+
   // Format pace description based on user preferences
   const formatPaceDescription = (secondsImprovement: number) => {
     if (unitPreferences?.pace === 'min/mile') {
@@ -363,7 +433,7 @@ function generatePaceRecommendations(goalType: GoalType, userPerformance: UserPe
       return `${minutes}:${seconds.toString().padStart(2, '0')} per km improvement - sustainable pace gains`;
     }
   };
-  
+
   return [
     {
       difficulty: 'conservative',
@@ -376,7 +446,7 @@ function generatePaceRecommendations(goalType: GoalType, userPerformance: UserPe
       benefits: 'Noticeable improvement, manageable effort',
       strategy: 'Tempo runs once per week, easy runs for base',
       successRate: 85,
-      timeframe: '6-8 weeks'
+      timeframe: '6-8 weeks',
     },
     {
       difficulty: 'moderate',
@@ -389,7 +459,7 @@ function generatePaceRecommendations(goalType: GoalType, userPerformance: UserPe
       benefits: 'Major speed improvement, enhanced efficiency',
       strategy: 'Interval training, tempo runs, speed work',
       successRate: 70,
-      timeframe: '8-12 weeks'
+      timeframe: '8-12 weeks',
     },
     {
       difficulty: 'ambitious',
@@ -402,14 +472,18 @@ function generatePaceRecommendations(goalType: GoalType, userPerformance: UserPe
       benefits: 'Elite-level speed, race performance boost',
       strategy: 'Structured training plan, track work, coaching',
       successRate: 50,
-      timeframe: '12-16 weeks'
-    }
+      timeframe: '12-16 weeks',
+    },
   ];
 }
 
-function generateDurationRecommendations(goalType: GoalType, userPerformance: UserPerformanceData) {
-  const estimatedWeeklyHours = (userPerformance.weeklyDistance / 10) * (userPerformance.averagePace / 60); // rough estimate
-  
+function generateDurationRecommendations(
+  goalType: GoalType,
+  userPerformance: UserPerformanceData
+) {
+  const estimatedWeeklyHours =
+    (userPerformance.weeklyDistance / 10) * (userPerformance.averagePace / 60); // rough estimate
+
   return [
     {
       difficulty: 'conservative',
@@ -422,7 +496,7 @@ function generateDurationRecommendations(goalType: GoalType, userPerformance: Us
       benefits: 'Better endurance, aerobic base development',
       strategy: 'Extend easy runs by 5-10 minutes',
       successRate: 90,
-      timeframe: '4-6 weeks'
+      timeframe: '4-6 weeks',
     },
     {
       difficulty: 'moderate',
@@ -435,7 +509,7 @@ function generateDurationRecommendations(goalType: GoalType, userPerformance: Us
       benefits: 'Enhanced aerobic capacity, fat burning',
       strategy: 'Add longer easy runs, maintain easy effort',
       successRate: 75,
-      timeframe: '6-8 weeks'
+      timeframe: '6-8 weeks',
     },
     {
       difficulty: 'ambitious',
@@ -448,8 +522,8 @@ function generateDurationRecommendations(goalType: GoalType, userPerformance: Us
       benefits: 'Elite endurance, marathon preparation level',
       strategy: 'Multiple runs per day, careful recovery',
       successRate: 60,
-      timeframe: '8-12 weeks'
-    }
+      timeframe: '8-12 weeks',
+    },
   ];
 }
 
@@ -457,9 +531,9 @@ function getDefaultRecommendations(goalType: GoalType) {
   // Fallback recommendations when no user data is available
   const guidance = goalType.target_guidance || '';
   const matches = guidance.match(/(\d+)-?(\d+)?/g) || [];
-  
+
   const baseTarget = matches.length > 0 ? parseInt(matches[0] || '20') : 20;
-  
+
   return [
     {
       difficulty: 'conservative',
@@ -472,7 +546,7 @@ function getDefaultRecommendations(goalType: GoalType) {
       benefits: 'Builds confidence and consistency',
       strategy: 'Focus on completion, not speed',
       successRate: 90,
-      timeframe: '4-6 weeks'
+      timeframe: '4-6 weeks',
     },
     {
       difficulty: 'moderate',
@@ -485,7 +559,7 @@ function getDefaultRecommendations(goalType: GoalType) {
       benefits: 'Meaningful improvement and challenge',
       strategy: 'Progressive training with variety',
       successRate: 75,
-      timeframe: '6-8 weeks'
+      timeframe: '6-8 weeks',
     },
     {
       difficulty: 'ambitious',
@@ -498,49 +572,62 @@ function getDefaultRecommendations(goalType: GoalType) {
       benefits: 'Significant fitness gains and achievement',
       strategy: 'Structured training plan required',
       successRate: 60,
-      timeframe: '8-12 weeks'
-    }
+      timeframe: '8-12 weeks',
+    },
   ];
 }
 
-function getGoalTips(goalType: GoalType, difficulty: string = 'moderate'): string[] {
+function getGoalTips(
+  goalType: GoalType,
+  difficulty: string = 'moderate'
+): string[] {
   const baseTips = {
     distance: [
       'Increase distance gradually - no more than 10% per week',
       'Include one long run per week to build endurance',
       'Listen to your body and take rest days when needed',
-      'Focus on time on feet rather than speed for distance goals'
+      'Focus on time on feet rather than speed for distance goals',
     ],
     pace: [
       'Include interval training once per week for speed',
       'Do most of your runs at an easy, conversational pace',
       'Track your progress with a GPS watch or phone app',
-      'Race shorter distances to practice your target pace'
+      'Race shorter distances to practice your target pace',
     ],
     frequency: [
       'Schedule your runs like appointments in your calendar',
       'Start with easy runs to build the habit consistently',
       'Include at least one rest day between hard efforts',
-      'Consider alternate activities on non-running days'
+      'Consider alternate activities on non-running days',
     ],
     duration: [
       'Build time gradually - add 5-10 minutes per week',
       'Keep most runs at an easy, sustainable effort',
       'Stay hydrated and fuel properly for longer sessions',
-      'Focus on enjoying the process, not just the outcome'
-    ]
+      'Focus on enjoying the process, not just the outcome',
+    ],
   };
 
   const difficultyTips = {
-    conservative: ['Prioritize consistency over intensity', 'Celebrate small wins along the way'],
-    moderate: ['Include one challenging workout per week', 'Monitor your energy levels and adjust as needed'],
-    ambitious: ['Consider working with a coach or structured plan', 'Pay extra attention to recovery and nutrition']
+    conservative: [
+      'Prioritize consistency over intensity',
+      'Celebrate small wins along the way',
+    ],
+    moderate: [
+      'Include one challenging workout per week',
+      'Monitor your energy levels and adjust as needed',
+    ],
+    ambitious: [
+      'Consider working with a coach or structured plan',
+      'Pay extra attention to recovery and nutrition',
+    ],
   };
 
   const category = (goalType.category || 'distance') as keyof typeof baseTips;
   const categoryTips = baseTips[category] || baseTips.distance;
-  const levelTips = difficultyTips[(difficulty || 'moderate') as keyof typeof difficultyTips] || [];
+  const levelTips =
+    difficultyTips[(difficulty || 'moderate') as keyof typeof difficultyTips] ||
+    [];
 
   return [...categoryTips.slice(0, 3), ...levelTips];
 }
-

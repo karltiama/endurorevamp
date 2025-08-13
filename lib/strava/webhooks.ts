@@ -1,54 +1,58 @@
 /**
  * Strava Webhook Management
- * 
+ *
  * This module handles webhook subscription management for real-time
  * activity notifications from Strava.
  */
 
 interface WebhookSubscription {
-  id: number
-  callback_url: string
-  created_at: string
-  updated_at: string
+  id: number;
+  callback_url: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface CreateSubscriptionResponse {
-  id: number
+  id: number;
 }
 
 export class StravaWebhooks {
-  private static readonly WEBHOOK_URL = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/strava`
-  private static readonly VERIFY_TOKEN = process.env.STRAVA_WEBHOOK_VERIFY_TOKEN
+  private static readonly WEBHOOK_URL = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/strava`;
+  private static readonly VERIFY_TOKEN =
+    process.env.STRAVA_WEBHOOK_VERIFY_TOKEN;
 
   /**
    * Create a webhook subscription with Strava
    */
   static async createSubscription(): Promise<CreateSubscriptionResponse | null> {
     try {
-      const response = await fetch('https://www.strava.com/api/v3/push_subscriptions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          client_id: process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID,
-          client_secret: process.env.STRAVA_CLIENT_SECRET,
-          callback_url: this.WEBHOOK_URL,
-          verify_token: this.VERIFY_TOKEN,
-        }),
-      })
+      const response = await fetch(
+        'https://www.strava.com/api/v3/push_subscriptions',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            client_id: process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID,
+            client_secret: process.env.STRAVA_CLIENT_SECRET,
+            callback_url: this.WEBHOOK_URL,
+            verify_token: this.VERIFY_TOKEN,
+          }),
+        }
+      );
 
       if (!response.ok) {
-        const error = await response.text()
-        throw new Error(`Failed to create webhook subscription: ${error}`)
+        const error = await response.text();
+        throw new Error(`Failed to create webhook subscription: ${error}`);
       }
 
-      const subscription = await response.json()
-      console.log('✅ Webhook subscription created:', subscription)
-      return subscription
+      const subscription = await response.json();
+      console.log('✅ Webhook subscription created:', subscription);
+      return subscription;
     } catch (error) {
-      console.error('❌ Error creating webhook subscription:', error)
-      return null
+      console.error('❌ Error creating webhook subscription:', error);
+      return null;
     }
   }
 
@@ -62,16 +66,16 @@ export class StravaWebhooks {
         {
           method: 'GET',
         }
-      )
+      );
 
       if (!response.ok) {
-        throw new Error(`Failed to list subscriptions: ${response.statusText}`)
+        throw new Error(`Failed to list subscriptions: ${response.statusText}`);
       }
 
-      return await response.json()
+      return await response.json();
     } catch (error) {
-      console.error('❌ Error listing webhook subscriptions:', error)
-      return []
+      console.error('❌ Error listing webhook subscriptions:', error);
+      return [];
     }
   }
 
@@ -85,18 +89,18 @@ export class StravaWebhooks {
         {
           method: 'DELETE',
         }
-      )
+      );
 
       if (response.ok) {
-        console.log('✅ Webhook subscription deleted:', subscriptionId)
-        return true
+        console.log('✅ Webhook subscription deleted:', subscriptionId);
+        return true;
       } else {
-        console.error('❌ Failed to delete subscription:', response.statusText)
-        return false
+        console.error('❌ Failed to delete subscription:', response.statusText);
+        return false;
       }
     } catch (error) {
-      console.error('❌ Error deleting webhook subscription:', error)
-      return false
+      console.error('❌ Error deleting webhook subscription:', error);
+      return false;
     }
   }
 
@@ -106,19 +110,19 @@ export class StravaWebhooks {
   static async setupWebhook(): Promise<boolean> {
     try {
       // Check if subscription already exists
-      const subscriptions = await this.listSubscriptions()
-      
+      const subscriptions = await this.listSubscriptions();
+
       if (subscriptions.length > 0) {
-        console.log('✅ Webhook subscription already exists')
-        return true
+        console.log('✅ Webhook subscription already exists');
+        return true;
       }
 
       // Create new subscription
-      const result = await this.createSubscription()
-      return result !== null
+      const result = await this.createSubscription();
+      return result !== null;
     } catch (error) {
-      console.error('❌ Error setting up webhook:', error)
-      return false
+      console.error('❌ Error setting up webhook:', error);
+      return false;
     }
   }
 
@@ -127,13 +131,13 @@ export class StravaWebhooks {
    */
   static async cleanupWebhooks(): Promise<void> {
     try {
-      const subscriptions = await this.listSubscriptions()
-      
+      const subscriptions = await this.listSubscriptions();
+
       for (const subscription of subscriptions) {
-        await this.deleteSubscription(subscription.id)
+        await this.deleteSubscription(subscription.id);
       }
     } catch (error) {
-      console.error('❌ Error cleaning up webhooks:', error)
+      console.error('❌ Error cleaning up webhooks:', error);
     }
   }
 }
@@ -142,29 +146,31 @@ export class StravaWebhooks {
  * Webhook event types from Strava
  */
 export interface StravaWebhookEvent {
-  object_type: 'activity' | 'athlete'
-  object_id: number
-  aspect_type: 'create' | 'update' | 'delete'
+  object_type: 'activity' | 'athlete';
+  object_id: number;
+  aspect_type: 'create' | 'update' | 'delete';
   updates?: {
-    title?: string
-    type?: string
-    private?: string
-    authorized?: string
-  }
-  owner_id: number
-  subscription_id: number
-  event_time: number
+    title?: string;
+    type?: string;
+    private?: string;
+    authorized?: string;
+  };
+  owner_id: number;
+  subscription_id: number;
+  event_time: number;
 }
 
 /**
  * Utility function to validate webhook events
  */
-export function isValidWebhookEvent(event: unknown): event is StravaWebhookEvent {
+export function isValidWebhookEvent(
+  event: unknown
+): event is StravaWebhookEvent {
   if (!event || typeof event !== 'object') {
-    return false
+    return false;
   }
-  
-  const eventObj = event as Record<string, unknown>
+
+  const eventObj = event as Record<string, unknown>;
   return (
     typeof eventObj.object_type === 'string' &&
     typeof eventObj.object_id === 'number' &&
@@ -172,5 +178,5 @@ export function isValidWebhookEvent(event: unknown): event is StravaWebhookEvent
     typeof eventObj.owner_id === 'number' &&
     typeof eventObj.subscription_id === 'number' &&
     typeof eventObj.event_time === 'number'
-  )
+  );
 }

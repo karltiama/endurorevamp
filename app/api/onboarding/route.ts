@@ -7,7 +7,7 @@ import { UpdateOnboardingRequest } from '@/types/goals';
 export async function GET() {
   try {
     const user = await getUser();
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -16,7 +16,7 @@ export async function GET() {
     }
 
     const supabase = await createClient();
-    
+
     const { data: onboarding, error } = await supabase
       .from('user_onboarding')
       .select('*')
@@ -29,7 +29,7 @@ export async function GET() {
         .from('user_onboarding')
         .insert({
           user_id: user.id,
-          current_step: 'goals'
+          current_step: 'goals',
         })
         .select('*')
         .single();
@@ -44,7 +44,7 @@ export async function GET() {
 
       return NextResponse.json({
         success: true,
-        onboarding: newOnboarding
+        onboarding: newOnboarding,
       });
     }
 
@@ -58,9 +58,8 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      onboarding
+      onboarding,
     });
-
   } catch (error) {
     console.error('Onboarding GET API error:', error);
     return NextResponse.json(
@@ -74,7 +73,7 @@ export async function GET() {
 export async function PATCH(request: Request) {
   try {
     const user = await getUser();
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -86,17 +85,17 @@ export async function PATCH(request: Request) {
     const supabase = await createClient();
 
     // Check if all steps are completed for setting completed_at
-    const shouldMarkComplete = 
-      body.goals_completed && 
-      body.strava_connected && 
-      body.profile_completed && 
+    const shouldMarkComplete =
+      body.goals_completed &&
+      body.strava_connected &&
+      body.profile_completed &&
       body.first_sync_completed;
 
-    const updateData: UpdateOnboardingRequest & { 
-      completed_at?: string; 
-      current_step?: 'goals' | 'strava' | 'complete'; 
+    const updateData: UpdateOnboardingRequest & {
+      completed_at?: string;
+      current_step?: 'goals' | 'strava' | 'complete';
     } = { ...body };
-    
+
     if (shouldMarkComplete) {
       updateData.completed_at = new Date().toISOString();
       updateData.current_step = 'complete';
@@ -119,9 +118,8 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({
       success: true,
-      onboarding
+      onboarding,
     });
-
   } catch (error) {
     console.error('Onboarding PATCH API error:', error);
     return NextResponse.json(
@@ -129,4 +127,4 @@ export async function PATCH(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

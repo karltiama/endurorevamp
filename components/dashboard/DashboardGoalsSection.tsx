@@ -3,12 +3,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  Target, 
-  Settings, 
-  Plus,
-  Eye
-} from 'lucide-react';
+import { Target, Settings, Plus, Eye } from 'lucide-react';
 import { useUserGoals } from '@/hooks/useGoals';
 import { useGoalManagement } from '@/hooks/useGoals';
 import { DashboardGoalSelector } from './DashboardGoalSelector';
@@ -87,7 +82,7 @@ export function DashboardGoalsSection() {
                   />
                 ))}
               </div>
-              
+
               {/* View All Goals Link */}
               <div className="pt-2 border-t">
                 <Button
@@ -106,18 +101,27 @@ export function DashboardGoalsSection() {
               <Target className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
               <h3 className="text-base font-medium mb-2">No Dashboard Goals</h3>
               <p className="text-muted-foreground mb-4 max-w-md mx-auto text-sm">
-                Set up goals to track your training progress. You can add up to 3 goals to your dashboard for quick access.
+                Set up goals to track your training progress. You can add up to
+                3 goals to your dashboard for quick access.
               </p>
               <div className="flex justify-center gap-2 flex-wrap">
                 <Button onClick={() => setShowAddModal(true)} size="sm">
                   <Plus className="h-3 w-3 mr-1" />
                   Create Your First Goal
                 </Button>
-                <Button variant="outline" onClick={() => router.push('/dashboard/goals')} size="sm">
+                <Button
+                  variant="outline"
+                  onClick={() => router.push('/dashboard/goals')}
+                  size="sm"
+                >
                   <Eye className="h-3 w-3 mr-1" />
                   View All Goals
                 </Button>
-                <Button variant="outline" onClick={() => setShowGoalSelector(true)} size="sm">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowGoalSelector(true)}
+                  size="sm"
+                >
                   <Settings className="h-3 w-3 mr-1" />
                   Manage Dashboard
                 </Button>
@@ -136,11 +140,8 @@ export function DashboardGoalsSection() {
       )}
 
       {showAddModal && (
-        <AddGoalModal
-          open={showAddModal}
-          onOpenChange={setShowAddModal}
-        />
+        <AddGoalModal open={showAddModal} onOpenChange={setShowAddModal} />
       )}
     </>
   );
-} 
+}

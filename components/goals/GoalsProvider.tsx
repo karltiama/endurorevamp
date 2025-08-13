@@ -14,12 +14,12 @@ interface GoalsContextType {
   completedGoals: UserGoal[];
   isLoading: boolean;
   error: Error | null;
-  
+
   // Management functions
   getDashboardGoals: () => UserGoal[];
   getGoalsByContext: (context: string) => UserGoal[];
   getSuggestionGoals: () => UserGoal[];
-  
+
   // Orchestrator functions
   createGoal: (params: unknown) => Promise<unknown>;
   createGoalFromSuggestion: (params: unknown) => Promise<unknown>;
@@ -28,7 +28,7 @@ interface GoalsContextType {
   isCreating: boolean;
   isUpdating: boolean;
   isManaging: boolean;
-  
+
   // Refresh functions
   refreshGoals: () => void;
 }
@@ -41,7 +41,8 @@ interface GoalsProviderProps {
 
 export function GoalsProvider({ children }: GoalsProviderProps) {
   const { data: goalsData, isLoading, error, refetch } = useUserGoals();
-  const { getDashboardGoals, getGoalsByContext, getSuggestionGoals } = useGoalManagement();
+  const { getDashboardGoals, getGoalsByContext, getSuggestionGoals } =
+    useGoalManagement();
   const orchestrator = useGoalsOrchestrator();
 
   const goals = goalsData?.goals || [];
@@ -57,12 +58,12 @@ export function GoalsProvider({ children }: GoalsProviderProps) {
     completedGoals,
     isLoading,
     error,
-    
+
     // Management functions
     getDashboardGoals,
     getGoalsByContext,
     getSuggestionGoals,
-    
+
     // Orchestrator functions
     createGoal: orchestrator.createGoal,
     createGoalFromSuggestion: orchestrator.createGoalFromSuggestion,
@@ -71,15 +72,13 @@ export function GoalsProvider({ children }: GoalsProviderProps) {
     isCreating: orchestrator.isCreating,
     isUpdating: orchestrator.isUpdating,
     isManaging: orchestrator.isManaging,
-    
+
     // Refresh functions
     refreshGoals: refetch,
   } as unknown as GoalsContextType;
 
   return (
-    <GoalsContext.Provider value={value}>
-      {children}
-    </GoalsContext.Provider>
+    <GoalsContext.Provider value={value}>{children}</GoalsContext.Provider>
   );
 }
 
@@ -89,4 +88,4 @@ export function useGoalsContext() {
     throw new Error('useGoalsContext must be used within a GoalsProvider');
   }
   return context;
-} 
+}

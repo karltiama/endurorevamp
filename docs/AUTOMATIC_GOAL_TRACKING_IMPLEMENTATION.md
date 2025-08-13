@@ -7,6 +7,7 @@ Your goals are now **automatically connected to your Strava activity data**! Thi
 ## 🎯 What's Now Automatically Tracked
 
 ### Quantifiable Goals (Auto-Updated)
+
 These goals calculate progress automatically from your Strava activities:
 
 1. **Distance Goals**
@@ -30,6 +31,7 @@ These goals calculate progress automatically from your Strava activities:
    - `elevation_per_km`: Hill training consistency
 
 ### Manual Goals (Require Special Data)
+
 These still need manual updates or special equipment:
 
 - Heart rate zone training (requires HR monitor data)
@@ -41,6 +43,7 @@ These still need manual updates or special equipment:
 ### Core Components
 
 #### 1. `AutomaticGoalProgress` Class (`lib/goals/automatic-progress.ts`)
+
 Central service handling all automatic calculations:
 
 ```typescript
@@ -55,6 +58,7 @@ const stats = await AutomaticGoalProgress.getQuantifiableGoals(userId);
 ```
 
 #### 2. Sync Integration (`lib/strava/sync-activities.ts`)
+
 Automatic goal updates are now part of the activity sync process:
 
 ```typescript
@@ -68,13 +72,16 @@ try {
 ```
 
 #### 3. Database Function (`sql/onboarding_goals.sql`)
+
 Uses your existing `update_goal_progress_from_activity()` function to:
+
 - Loop through all active goals for the user
 - Calculate appropriate contributions based on metric type
 - Update progress and best results
 - Mark goals as completed when targets are reached
 
 #### 4. UI Components
+
 - **Goals Page**: Enhanced with automatic tracking tab
 - **AutomaticGoalTracker**: New component showing auto vs manual goals
 - **Real-time Progress**: Updates immediately after sync
@@ -98,6 +105,7 @@ Strava Activity → Activity Sync → Goal Progress Update → UI Refresh
 ## 🎨 User Experience
 
 ### Before (Manual)
+
 - User runs 5km
 - Activity syncs to database
 - Goal progress remains unchanged
@@ -105,6 +113,7 @@ Strava Activity → Activity Sync → Goal Progress Update → UI Refresh
 - Easy to forget or make mistakes
 
 ### After (Automatic) ✨
+
 - User runs 5km
 - Activity syncs to database
 - **Goal progress updates automatically**
@@ -116,7 +125,9 @@ Strava Activity → Activity Sync → Goal Progress Update → UI Refresh
 ## 🔍 Debugging & Management
 
 ### Auto-Tracking Dashboard
+
 New "Auto Tracking" tab in goals page shows:
+
 - Total goals vs auto-tracked percentage
 - Which goals are automatically updated
 - Which goals require manual input
@@ -124,12 +135,15 @@ New "Auto Tracking" tab in goals page shows:
 - Recalculate button for data corrections
 
 ### Progress Verification
+
 The system tracks:
+
 - When each goal was last updated
 - Which activities contributed to each goal
 - Detailed progress history in `goal_progress` table
 
 ### Data Integrity
+
 - Progress updates are **non-critical** - if they fail, activity sync continues
 - Full recalculation available if data gets out of sync
 - Activity data is the source of truth
@@ -145,6 +159,7 @@ The system tracks:
 ## 🔮 Future Enhancements
 
 Potential additions when data becomes available:
+
 - Heart rate zone automatic tracking (requires HR data in activities)
 - Training load calculations
 - Performance trend analysis
@@ -161,13 +176,15 @@ Potential additions when data becomes available:
 ## 🔧 Troubleshooting
 
 **Progress not updating?**
+
 - Check the sync logs for goal update messages
 - Use the "Recalculate All Progress" button
 - Verify the goal type is in the auto-trackable list
 
 **Wrong progress values?**
+
 - Use recalculation to rebuild from source data
 - Check if goal time period (weekly/monthly) is correct
 - Verify activity data quality in the database
 
-Your goals are now truly connected to your running data! 🏃‍♂️🎯 
+Your goals are now truly connected to your running data! 🏃‍♂️🎯

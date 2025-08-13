@@ -17,7 +17,9 @@ This document covers the complete implementation of a professional dashboard sid
 ## Initial Dashboard State
 
 ### The Problem
+
 Our initial dashboard was a single page (`/dashboard`) containing all functionality:
+
 - Key metrics
 - Activity charts
 - Activity contribution calendar
@@ -27,12 +29,14 @@ Our initial dashboard was a single page (`/dashboard`) containing all functional
 - Zone analysis
 
 This created several issues:
+
 - **Cluttered UI** - Too much information on one page
 - **Poor UX** - No clear navigation structure
 - **Scalability concerns** - Adding new features would make it worse
 - **Mobile unfriendly** - No responsive navigation
 
 ### Code Structure Before
+
 ```tsx
 // app/dashboard/page.tsx - Everything in one file!
 export default async function DashboardPage() {
@@ -40,23 +44,23 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Key Metrics */}
       <KeyMetrics userId={user.id} />
-      
+
       {/* Activity Charts */}
       <ActivityCharts userId={user.id} />
-      
+
       {/* User Information */}
       <UserInfoSection />
-      
+
       {/* Strava Integration */}
       <StravaIntegration />
-      
+
       {/* Sync Dashboard */}
       <SyncDashboard />
-      
+
       {/* Zone Analysis */}
       <ZoneAnalysisDashboard />
     </div>
-  )
+  );
 }
 ```
 
@@ -67,6 +71,7 @@ export default async function DashboardPage() {
 We decided on a **sidebar navigation pattern** for several reasons:
 
 #### Why Sidebar Over Top Navigation?
+
 - ✅ **More space** for content on each page
 - ✅ **Better mobile experience** (collapsible)
 - ✅ **Scales well** as we add features
@@ -74,6 +79,7 @@ We decided on a **sidebar navigation pattern** for several reasons:
 - ✅ **Clear separation** of concerns
 
 #### Proposed Page Structure
+
 ```
 📊 Dashboard (Overview)    - Key metrics + activity calendar
 📈 Analytics              - Detailed charts and insights
@@ -84,23 +90,24 @@ We decided on a **sidebar navigation pattern** for several reasons:
 ```
 
 #### Information Architecture
+
 ```mermaid
 graph TD
     A[Dashboard Root] --> B[Overview]
-    A --> C[Analytics] 
+    A --> C[Analytics]
     A --> D[Training]
     A --> E[Goals]
     A --> F[Settings]
-    
+
     B --> B1[Key Metrics]
     B --> B2[Activity Calendar]
-    
+
     C --> C1[Activity Charts]
     C --> C2[Performance Trends]
-    
+
     D --> D1[Zone Analysis]
     D --> D2[Training Load]
-    
+
     F --> F1[User Info]
     F --> F2[Strava Integration]
     F --> F3[Sync Settings]
@@ -109,13 +116,15 @@ graph TD
 ## Sidebar Implementation
 
 ### Step 1: Installing shadcn/ui Sidebar
+
 ```bash
 npx shadcn@latest add sidebar
 ```
 
 This installed:
+
 - `components/ui/sidebar.tsx`
-- `components/ui/sheet.tsx` 
+- `components/ui/sheet.tsx`
 - `hooks/use-mobile.ts`
 - `components/ui/skeleton.tsx`
 
@@ -123,10 +132,10 @@ This installed:
 
 ```tsx
 // components/dashboard/DashboardLayout.tsx
-"use client"
+'use client';
 
-import { ReactNode } from "react"
-import { User as SupabaseUser } from "@supabase/supabase-js"
+import { ReactNode } from 'react';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 import {
   Sidebar,
   SidebarContent,
@@ -141,39 +150,39 @@ import {
   SidebarProvider,
   SidebarRail,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 interface DashboardLayoutProps {
-  children: ReactNode
-  user: SupabaseUser
+  children: ReactNode;
+  user: SupabaseUser;
 }
 
 const navigation = [
   {
-    title: "Overview",
+    title: 'Overview',
     items: [
       {
-        title: "Dashboard",
-        url: "/dashboard",
+        title: 'Dashboard',
+        url: '/dashboard',
         icon: Home,
-        description: "Overview and key metrics"
+        description: 'Overview and key metrics',
       },
-    ]
+    ],
   },
   {
-    title: "Analytics", 
+    title: 'Analytics',
     items: [
       {
-        title: "Activity Analysis",
-        url: "/dashboard/analytics",
+        title: 'Activity Analysis',
+        url: '/dashboard/analytics',
         icon: BarChart3,
-        description: "Detailed activity charts and insights"
+        description: 'Detailed activity charts and insights',
       },
       // ... more items
-    ]
+    ],
   },
   // ... more groups
-]
+];
 
 export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   return (
@@ -184,19 +193,18 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
           </header>
-          <div className="flex-1 space-y-4 p-4 md:p-6 lg:p-8">
-            {children}
-          </div>
+          <div className="flex-1 space-y-4 p-4 md:p-6 lg:p-8">{children}</div>
         </main>
       </div>
     </SidebarProvider>
-  )
+  );
 }
 ```
 
 ### Step 3: Navigation Structure
 
 The sidebar includes:
+
 - **Header** - App branding and logo
 - **Navigation Groups** - Organized by functionality
 - **Active State** - Highlights current page
@@ -212,18 +220,19 @@ When we restructured the dashboard, we encountered a critical issue:
 ```tsx
 // This doesn't work in Next.js App Router!
 export default async function DashboardPage() {
-  const user = await requireAuth() // Server component
-  
+  const user = await requireAuth(); // Server component
+
   return (
     <DashboardLayout user={user}>
       {/* This component uses React Query hooks */}
       <KeyMetrics userId={user.id} />
     </DashboardLayout>
-  )
+  );
 }
 ```
 
 #### Error Messages We Encountered:
+
 - "You're importing a component that needs useQuery. This only works in a Client Component"
 - "Cannot use hooks in Server Components"
 - Hydration mismatches between server and client rendering
@@ -243,16 +252,17 @@ export default async function DashboardPage() {
    - Bundle size impact on client
 
 3. **Our Components Were Mixed**:
+
    ```tsx
    // Server component (good)
    export default async function DashboardPage() {
-     const user = await requireAuth()
+     const user = await requireAuth();
      // ...
    }
-   
+
    // Client component trying to be used in server context (bad!)
    export function KeyMetrics({ userId }: { userId: string }) {
-     const { data } = useUserActivities(userId) // Hook usage!
+     const { data } = useUserActivities(userId); // Hook usage!
      // ...
    }
    ```
@@ -265,18 +275,18 @@ We created dedicated client wrapper components that handle data fetching:
 
 ```tsx
 // components/dashboard/ActivityChartsClient.tsx
-'use client'
+'use client';
 
-import { useUserActivities } from '@/hooks/use-user-activities'
-import { ActivityCharts } from './ActivityCharts'
+import { useUserActivities } from '@/hooks/use-user-activities';
+import { ActivityCharts } from './ActivityCharts';
 
 export function ActivityChartsClient({ userId }: { userId: string }) {
-  const { data: activities, isLoading, error } = useUserActivities(userId)
+  const { data: activities, isLoading, error } = useUserActivities(userId);
 
-  if (isLoading) return <LoadingSkeleton />
-  if (error) return <ErrorState />
-  
-  return <ActivityCharts activities={activities || []} />
+  if (isLoading) return <LoadingSkeleton />;
+  if (error) return <ErrorState />;
+
+  return <ActivityCharts activities={activities || []} />;
 }
 ```
 
@@ -287,16 +297,16 @@ We refactored our components to separate data fetching from presentation:
 ```tsx
 // Before: Mixed concerns (bad)
 export function ActivityCharts({ userId }: { userId: string }) {
-  const { data: activities, isLoading, error } = useUserActivities(userId)
-  
+  const { data: activities, isLoading, error } = useUserActivities(userId);
+
   // Presentation logic mixed with data fetching
-  return <div>{/* Charts using activities */}</div>
+  return <div>{/* Charts using activities */}</div>;
 }
 
 // After: Pure presentation (good)
 export function ActivityCharts({ activities }: { activities: Activity[] }) {
   // Only presentation logic, no data fetching
-  return <div>{/* Charts using activities prop */}</div>
+  return <div>{/* Charts using activities prop */}</div>;
 }
 ```
 
@@ -305,8 +315,8 @@ export function ActivityCharts({ activities }: { activities: Activity[] }) {
 ```tsx
 // Server Component (page level)
 export default async function AnalyticsPage() {
-  const user = await requireAuth() // Server-side auth
-  
+  const user = await requireAuth(); // Server-side auth
+
   return (
     <DashboardLayout user={user}>
       <Suspense fallback={<LoadingSkeleton />}>
@@ -314,7 +324,7 @@ export default async function AnalyticsPage() {
         <ActivityChartsClient userId={user.id} />
       </Suspense>
     </DashboardLayout>
-  )
+  );
 }
 ```
 
@@ -326,22 +336,23 @@ We fixed TypeScript issues with user types:
 // Before: Custom interface (problematic)
 interface DashboardLayoutProps {
   user: {
-    email: string
-    id: string  
-  }
+    email: string;
+    id: string;
+  };
 }
 
 // After: Using Supabase types (correct)
-import { User as SupabaseUser } from "@supabase/supabase-js"
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface DashboardLayoutProps {
-  user: SupabaseUser
+  user: SupabaseUser;
 }
 ```
 
 ## Final Architecture
 
 ### File Structure
+
 ```
 app/
 ├── dashboard/
@@ -364,24 +375,28 @@ app/
 ### Component Responsibilities
 
 #### Server Components (Pages):
+
 - ✅ Authentication checks
 - ✅ Layout rendering
 - ✅ Static content
 - ✅ SEO optimization
 
 #### Client Wrapper Components:
+
 - ✅ Data fetching with React Query
 - ✅ Loading states
 - ✅ Error handling
 - ✅ Hook usage
 
 #### Presentation Components:
+
 - ✅ Pure UI rendering
 - ✅ Props-based data
 - ✅ Reusable across contexts
 - ✅ Easy to test
 
 ### Data Flow
+
 ```
 Server Page → Client Wrapper → Presentation Component
      ↓              ↓                ↓
@@ -395,11 +410,13 @@ Server Page → Client Wrapper → Presentation Component
 ### 1. Next.js App Router Best Practices
 
 **Server Components by Default**:
+
 - Use server components for pages and layouts
 - Keep data fetching on the server when possible
 - Use client components only when necessary
 
 **Client Components When Needed**:
+
 - Interactive components requiring hooks
 - Browser API usage
 - State management
@@ -408,6 +425,7 @@ Server Page → Client Wrapper → Presentation Component
 ### 2. Component Architecture Patterns
 
 **Separation of Concerns**:
+
 ```tsx
 // ✅ Good: Separated responsibilities
 <ServerPage>           {/* Auth, layout, static content */}
@@ -416,11 +434,12 @@ Server Page → Client Wrapper → Presentation Component
   </ClientWrapper>
 </ServerPage>
 
-// ❌ Bad: Mixed responsibilities  
+// ❌ Bad: Mixed responsibilities
 <ComponentThatDoesEverything />  {/* Auth + data + UI + state */}
 ```
 
 **Prop Drilling vs Context**:
+
 - Use props for simple data passing
 - Use context for deeply nested shared state
 - Avoid prop drilling through many levels
@@ -428,39 +447,45 @@ Server Page → Client Wrapper → Presentation Component
 ### 3. TypeScript Integration
 
 **Use Framework Types**:
+
 ```tsx
 // ✅ Good: Use Supabase/framework types
-import { User } from "@supabase/supabase-js"
+import { User } from '@supabase/supabase-js';
 
 // ❌ Bad: Custom interfaces that duplicate framework types
-interface CustomUser { id: string; email: string }
+interface CustomUser {
+  id: string;
+  email: string;
+}
 ```
 
 **Proper Prop Types**:
+
 ```tsx
 // ✅ Good: Clear, specific prop types
 interface ActivityChartsProps {
-  activities: Activity[]
+  activities: Activity[];
 }
 
 // ❌ Bad: Vague or overly complex types
 interface Props {
-  data?: any
-  config?: object
+  data?: any;
+  config?: object;
 }
 ```
 
 ### 4. Error Handling Strategies
 
 **Graceful Degradation**:
+
 ```tsx
 export function ClientWrapper({ userId }: { userId: string }) {
   const { data, isLoading, error } = useQuery(...)
-  
+
   if (isLoading) return <Skeleton />     // Show loading state
-  if (error) return <ErrorBoundary />    // Show error state  
+  if (error) return <ErrorBoundary />    // Show error state
   if (!data) return <EmptyState />       // Show empty state
-  
+
   return <Component data={data} />       // Show success state
 }
 ```
@@ -468,11 +493,13 @@ export function ClientWrapper({ userId }: { userId: string }) {
 ### 5. Performance Considerations
 
 **Bundle Size Optimization**:
+
 - Keep client components small and focused
 - Use dynamic imports for heavy components
 - Leverage React.lazy for code splitting
 
 **Caching Strategies**:
+
 - Use React Query for client-side caching
 - Implement proper stale-while-revalidate patterns
 - Consider server-side caching for expensive operations
@@ -488,6 +515,7 @@ Implementing a professional sidebar with Next.js App Router required careful con
 5. **Performance** - Optimized bundle sizes and caching
 
 The final result is a scalable, maintainable dashboard architecture that provides:
+
 - ✅ Professional user experience
 - ✅ Clear navigation structure
 - ✅ Responsive design
@@ -495,4 +523,4 @@ The final result is a scalable, maintainable dashboard architecture that provide
 - ✅ Optimized performance
 - ✅ Easy feature additions
 
-This foundation allows for easy addition of new features while maintaining code quality and user experience standards. 
+This foundation allows for easy addition of new features while maintaining code quality and user experience standards.

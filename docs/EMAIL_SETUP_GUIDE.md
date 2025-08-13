@@ -5,22 +5,26 @@ This guide covers setting up email functionality using Resend for your Next.js a
 ## 🚀 Quick Start with Resend
 
 ### 1. Sign Up for Resend
+
 1. Go to [resend.com](https://resend.com)
 2. Create a free account
 3. Verify your email address
 
 ### 2. Get Your API Key
+
 1. In your Resend dashboard, go to **API Keys**
 2. Create a new API key
 3. Copy the API key (starts with `re_`)
 
 ### 3. Verify Your Domain (Recommended)
+
 1. Go to **Domains** in your Resend dashboard
 2. Add your domain (e.g., `yourdomain.com`)
 3. Follow the DNS verification steps
 4. Wait for verification (usually takes a few minutes)
 
 ### 4. Environment Variables
+
 Add these to your `.env.local`:
 
 ```env
@@ -36,6 +40,7 @@ RESEND_DOMAIN=yourdomain.com
 ```
 
 ### 5. Install Dependencies
+
 ```bash
 npm install resend
 ```
@@ -43,10 +48,12 @@ npm install resend
 ## 📧 Email Features Implemented
 
 ### Contact Form Notifications
+
 - **Admin Notification**: Sends email to admin when contact form is submitted
 - **User Confirmation**: Sends confirmation email to user who submitted the form
 
 ### Email Templates Available
+
 - Welcome emails for new users
 - Contact form notifications
 - Weekly training progress summaries
@@ -58,6 +65,7 @@ npm install resend
 If you prefer other services, here are the setup instructions:
 
 #### SendGrid
+
 ```bash
 npm install @sendgrid/mail
 ```
@@ -84,6 +92,7 @@ export async function sendEmail({ to, subject, html, from }: EmailOptions) {
 ```
 
 #### Mailgun
+
 ```bash
 npm install mailgun.js form-data
 ```
@@ -115,6 +124,7 @@ export async function sendEmail({ to, subject, html, from }: EmailOptions) {
 ```
 
 #### AWS SES
+
 ```bash
 npm install @aws-sdk/client-ses
 ```
@@ -153,11 +163,13 @@ export async function sendEmail({ to, subject, html, from }: EmailOptions) {
 ## 🧪 Testing
 
 ### Run Email Tests
+
 ```bash
 npm test -- --testPathPattern=email.test.ts
 ```
 
 ### Test Email Sending (Development)
+
 Create a test API endpoint:
 
 ```typescript
@@ -168,7 +180,7 @@ import { sendEmail, emailTemplates } from '@/lib/email';
 export async function POST(request: NextRequest) {
   try {
     const { to, template } = await request.json();
-    
+
     let emailContent;
     switch (template) {
       case 'welcome':
@@ -179,23 +191,29 @@ export async function POST(request: NextRequest) {
           name: 'Test User',
           email: 'test@example.com',
           message: 'This is a test message',
-          type: 'contact'
+          type: 'contact',
         });
         break;
       default:
-        return NextResponse.json({ error: 'Invalid template' }, { status: 400 });
+        return NextResponse.json(
+          { error: 'Invalid template' },
+          { status: 400 }
+        );
     }
 
     await sendEmail({
       to,
       subject: emailContent.subject,
-      html: emailContent.html
+      html: emailContent.html,
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Test email error:', error);
-    return NextResponse.json({ error: 'Failed to send test email' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to send test email' },
+      { status: 500 }
+    );
   }
 }
 ```
@@ -203,11 +221,13 @@ export async function POST(request: NextRequest) {
 ## 🔒 Security Best Practices
 
 ### 1. Environment Variables
+
 - Never commit API keys to version control
 - Use different API keys for development and production
 - Rotate API keys regularly
 
 ### 2. Rate Limiting
+
 Consider implementing rate limiting for email endpoints:
 
 ```typescript
@@ -216,7 +236,11 @@ import { NextRequest } from 'next/server';
 
 const emailLimits = new Map<string, { count: number; resetTime: number }>();
 
-export function checkEmailRateLimit(email: string, limit = 5, windowMs = 60000): boolean {
+export function checkEmailRateLimit(
+  email: string,
+  limit = 5,
+  windowMs = 60000
+): boolean {
   const now = Date.now();
   const userLimit = emailLimits.get(email);
 
@@ -235,6 +259,7 @@ export function checkEmailRateLimit(email: string, limit = 5, windowMs = 60000):
 ```
 
 ### 3. Email Validation
+
 Always validate email addresses:
 
 ```typescript
@@ -247,35 +272,37 @@ function isValidEmail(email: string): boolean {
 ## 📊 Monitoring & Analytics
 
 ### Resend Dashboard
+
 - Track email delivery rates
 - Monitor bounce rates
 - View email analytics
 
 ### Custom Logging
+
 ```typescript
 // Enhanced email service with logging
 export async function sendEmailWithLogging(options: EmailOptions) {
   const startTime = Date.now();
-  
+
   try {
     const result = await sendEmail(options);
-    
+
     console.log('Email sent successfully', {
       to: options.to,
       subject: options.subject,
       duration: Date.now() - startTime,
-      id: result?.id
+      id: result?.id,
     });
-    
+
     return result;
   } catch (error) {
     console.error('Email failed', {
       to: options.to,
       subject: options.subject,
       error: error.message,
-      duration: Date.now() - startTime
+      duration: Date.now() - startTime,
     });
-    
+
     throw error;
   }
 }
@@ -306,6 +333,7 @@ export async function sendEmailWithLogging(options: EmailOptions) {
    - Monitor usage in dashboard
 
 ### Debug Mode
+
 Enable debug logging:
 
 ```typescript
@@ -320,16 +348,19 @@ if (process.env.NODE_ENV === 'development') {
 ## 📈 Scaling Considerations
 
 ### High Volume
+
 - Consider upgrading Resend plan
 - Implement email queuing
 - Use batch sending for multiple recipients
 
 ### Cost Optimization
+
 - Monitor email volume
 - Clean email lists regularly
 - Use templates to reduce development time
 
 ### Performance
+
 - Send emails asynchronously
 - Implement retry logic
 - Cache email templates

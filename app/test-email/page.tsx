@@ -1,17 +1,29 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { toast } from 'sonner'
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
 
 export default function TestEmailPage() {
-  const [email, setEmail] = useState('')
-  const [template, setTemplate] = useState('welcome')
-  const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState('');
+  const [template, setTemplate] = useState('welcome');
+  const [isLoading, setIsLoading] = useState(false);
   const [config, setConfig] = useState<{
     config: {
       resendApiKey: string;
@@ -22,28 +34,28 @@ export default function TestEmailPage() {
     };
     recommendations: string[];
     nextSteps: string[];
-  } | null>(null)
-  const [configLoading, setConfigLoading] = useState(true)
+  } | null>(null);
+  const [configLoading, setConfigLoading] = useState(true);
 
   const checkConfig = async () => {
     try {
-      const response = await fetch('/api/test/email-config')
-      const data = await response.json()
-      setConfig(data)
+      const response = await fetch('/api/test/email-config');
+      const data = await response.json();
+      setConfig(data);
     } catch (error) {
-      console.error('Error checking config:', error)
+      console.error('Error checking config:', error);
     } finally {
-      setConfigLoading(false)
+      setConfigLoading(false);
     }
-  }
+  };
 
   const handleSendTestEmail = async () => {
     if (!email) {
-      toast.error('Please enter an email address')
-      return
+      toast.error('Please enter an email address');
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const response = await fetch('/api/test/email', {
         method: 'POST',
@@ -51,27 +63,27 @@ export default function TestEmailPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ to: email, template }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (response.ok) {
-        toast.success(data.message)
+        toast.success(data.message);
       } else {
-        toast.error(data.error || 'Failed to send email')
+        toast.error(data.error || 'Failed to send email');
       }
     } catch (error) {
-      console.error('Error sending test email:', error)
-      toast.error('Failed to send test email')
+      console.error('Error sending test email:', error);
+      toast.error('Failed to send test email');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Check config on component mount
   useEffect(() => {
-    checkConfig()
-  }, [])
+    checkConfig();
+  }, []);
 
   return (
     <div className="container mx-auto py-8 max-w-2xl">
@@ -80,9 +92,7 @@ export default function TestEmailPage() {
         <Card>
           <CardHeader>
             <CardTitle>Email Configuration</CardTitle>
-            <CardDescription>
-              Current email setup status
-            </CardDescription>
+            <CardDescription>Current email setup status</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {configLoading ? (
@@ -91,36 +101,64 @@ export default function TestEmailPage() {
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <span className="font-medium">Resend API Key:</span>
-                  <span className={config.config.resendApiKey.includes('✅') ? 'text-green-600' : 'text-red-600'}>
+                  <span
+                    className={
+                      config.config.resendApiKey.includes('✅')
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }
+                  >
                     {config.config.resendApiKey}
                   </span>
-                  
+
                   <span className="font-medium">From Email:</span>
-                  <span className={config.config.fromEmail.includes('❌') ? 'text-red-600' : 'text-green-600'}>
+                  <span
+                    className={
+                      config.config.fromEmail.includes('❌')
+                        ? 'text-red-600'
+                        : 'text-green-600'
+                    }
+                  >
                     {config.config.fromEmail}
                   </span>
-                  
+
                   <span className="font-medium">Admin Email:</span>
-                  <span className={config.config.adminEmail.includes('❌') ? 'text-red-600' : 'text-green-600'}>
+                  <span
+                    className={
+                      config.config.adminEmail.includes('❌')
+                        ? 'text-red-600'
+                        : 'text-green-600'
+                    }
+                  >
                     {config.config.adminEmail}
                   </span>
-                  
+
                   <span className="font-medium">Domain:</span>
-                  <span className={config.config.resendDomain.includes('❌') ? 'text-yellow-600' : 'text-green-600'}>
+                  <span
+                    className={
+                      config.config.resendDomain.includes('❌')
+                        ? 'text-yellow-600'
+                        : 'text-green-600'
+                    }
+                  >
                     {config.config.resendDomain}
                   </span>
                 </div>
 
                 {config.recommendations.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="font-medium text-sm mb-2">Recommendations:</h4>
+                    <h4 className="font-medium text-sm mb-2">
+                      Recommendations:
+                    </h4>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      {config.recommendations.map((rec: string, index: number) => (
-                        <li key={index} className="flex items-start">
-                          <span className="text-red-500 mr-2">•</span>
-                          {rec}
-                        </li>
-                      ))}
+                      {config.recommendations.map(
+                        (rec: string, index: number) => (
+                          <li key={index} className="flex items-start">
+                            <span className="text-red-500 mr-2">•</span>
+                            {rec}
+                          </li>
+                        )
+                      )}
                     </ul>
                   </div>
                 )}
@@ -159,7 +197,7 @@ export default function TestEmailPage() {
                 type="email"
                 placeholder="test@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
               />
             </div>
 
@@ -171,30 +209,28 @@ export default function TestEmailPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="welcome">Welcome Email</SelectItem>
-                  <SelectItem value="contact">Contact Form Notification</SelectItem>
+                  <SelectItem value="contact">
+                    Contact Form Notification
+                  </SelectItem>
                   <SelectItem value="weekly">Weekly Progress Report</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <Button 
-              onClick={handleSendTestEmail} 
+            <Button
+              onClick={handleSendTestEmail}
               disabled={isLoading || !email}
               className="w-full"
             >
               {isLoading ? 'Sending...' : 'Send Test Email'}
             </Button>
 
-            <Button 
-              onClick={checkConfig} 
-              variant="outline"
-              className="w-full"
-            >
+            <Button onClick={checkConfig} variant="outline" className="w-full">
               Refresh Configuration
             </Button>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }

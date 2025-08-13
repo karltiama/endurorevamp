@@ -5,6 +5,7 @@
 **As of [Current Date]**: The CI pipeline now enforces **mandatory quality gates**. All checks must pass before code can be merged.
 
 ### **What Changed:**
+
 - ❌ **TypeScript compilation errors**: Pipeline fails immediately
 - ❌ **Linting errors**: Must be fixed before merge
 - ❌ **Test failures**: All tests must pass
@@ -12,19 +13,21 @@
 - ⚠️ **Security audit**: Warnings only (doesn't block merge)
 
 ### **Local Development Commands:**
+
 ```bash
 # Run all quality checks locally (same as CI)
 npm run ci
 
 # Individual checks:
 npm run type-check    # TypeScript compilation
-npm run lint          # ESLint checks  
+npm run lint          # ESLint checks
 npm run lint:fix      # Auto-fix linting issues
 npm run test:coverage # Run tests with coverage
 npm run build         # Verify build works
 ```
 
 ### **If Your PR Fails CI:**
+
 1. **Check the failed step** in GitHub Actions logs
 2. **Run the same command locally** to reproduce the issue
 3. **Fix the issue** and commit the fix
@@ -121,16 +124,19 @@ graph LR
 ## Benefits for Your Development Process
 
 ### 🚀 Quality Assurance
+
 - **Catch bugs early** - Tests run automatically before code reaches production
 - **Consistent quality** - Same checks run for every developer
 - **Safe deployments** - Only tested, passing code gets deployed
 
 ### 👥 Team Collaboration
+
 - **Team confidence** - Everyone knows the build is healthy
 - **Standardized process** - Same workflow for all contributors
 - **Code review integration** - PR status checks
 
 ### ⏰ Time Savings
+
 - **Automated workflows** - No manual testing/deployment steps
 - **Parallel execution** - Multiple checks run simultaneously
 - **Fast feedback loops** - Know immediately if something breaks
@@ -138,6 +144,7 @@ graph LR
 ## Security for Your Strava App
 
 ### 🔐 Environment Management
+
 ```yaml
 env:
   STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
@@ -146,6 +153,7 @@ env:
 ```
 
 ### 🛡️ Security Checks
+
 - **Environment secrets** - Store API keys, tokens securely
 - **Token refresh testing** - Verify OAuth flows work correctly
 - **Security scanning** - Check for vulnerable dependencies
@@ -171,19 +179,19 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run tests
         run: npm run test:ci
-      
+
       - name: TypeScript check
         run: npm run type-check
-      
+
       - name: Lint code
         run: npm run lint
-      
+
       - name: Build application
         run: npm run build
 
@@ -203,18 +211,21 @@ jobs:
 ## Best Practices
 
 ### ✅ Testing Strategy
+
 - **Unit tests** for individual components and hooks
 - **Integration tests** for API interactions
 - **E2E tests** for critical user flows
 - **Coverage thresholds** to maintain quality
 
 ### 🔄 Branching Strategy
+
 - **Feature branches** → Pull Requests → Main
 - **Protection rules** on main branch
 - **Required status checks** before merging
 - **Automatic deployments** from main
 
 ### 📊 Monitoring
+
 - **Build status badges** in README
 - **Deployment notifications** in Slack/Discord
 - **Performance monitoring** on production
@@ -222,4 +233,4 @@ jobs:
 
 ---
 
-*This overview covers the essential concepts of CI/CD and how GitHub Actions can streamline your Next.js development workflow while maintaining high code quality and secure deployments.* 
+_This overview covers the essential concepts of CI/CD and how GitHub Actions can streamline your Next.js development workflow while maintaining high code quality and secure deployments._

@@ -2,7 +2,13 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DashboardGoalSelector } from '@/components/dashboard/DashboardGoalSelector';
-import { useUserGoals, useUpdateGoal, useGoalTypes, useGoalManagement, useUnifiedGoalCreation } from '@/hooks/useGoals';
+import {
+  useUserGoals,
+  useUpdateGoal,
+  useGoalTypes,
+  useGoalManagement,
+  useUnifiedGoalCreation,
+} from '@/hooks/useGoals';
 
 // Mock the hooks
 jest.mock('@/hooks/useGoals', () => ({
@@ -15,11 +21,20 @@ jest.mock('@/hooks/useGoals', () => ({
   useUnifiedGoalCreation: jest.fn(),
 }));
 
-const mockUseUserGoals = useUserGoals as jest.MockedFunction<typeof useUserGoals>;
-const mockUseUpdateGoal = useUpdateGoal as jest.MockedFunction<typeof useUpdateGoal>;
-const mockUseGoalTypes = useGoalTypes as jest.MockedFunction<typeof useGoalTypes>;
-const mockUseGoalManagement = useGoalManagement as jest.MockedFunction<typeof useGoalManagement>;
-const mockUseUnifiedGoalCreation = useUnifiedGoalCreation as jest.MockedFunction<typeof useUnifiedGoalCreation>;
+const mockUseUserGoals = useUserGoals as jest.MockedFunction<
+  typeof useUserGoals
+>;
+const mockUseUpdateGoal = useUpdateGoal as jest.MockedFunction<
+  typeof useUpdateGoal
+>;
+const mockUseGoalTypes = useGoalTypes as jest.MockedFunction<
+  typeof useGoalTypes
+>;
+const mockUseGoalManagement = useGoalManagement as jest.MockedFunction<
+  typeof useGoalManagement
+>;
+const mockUseUnifiedGoalCreation =
+  useUnifiedGoalCreation as jest.MockedFunction<typeof useUnifiedGoalCreation>;
 
 // Test wrapper component
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -31,9 +46,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   });
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 
@@ -64,11 +77,11 @@ const mockGoals = [
       calculation_method: 'sum',
       is_active: true,
       created_at: '2024-01-01',
-      updated_at: '2024-01-01'
+      updated_at: '2024-01-01',
     },
     goal_data: {
-      show_on_dashboard: false
-    }
+      show_on_dashboard: false,
+    },
   },
   {
     id: '2',
@@ -95,12 +108,12 @@ const mockGoals = [
       calculation_method: 'count',
       is_active: true,
       created_at: '2024-01-01',
-      updated_at: '2024-01-01'
+      updated_at: '2024-01-01',
     },
     goal_data: {
       show_on_dashboard: true,
-      dashboard_priority: 1
-    }
+      dashboard_priority: 1,
+    },
   },
   {
     id: '3',
@@ -127,12 +140,12 @@ const mockGoals = [
       calculation_method: 'average',
       is_active: true,
       created_at: '2024-01-01',
-      updated_at: '2024-01-01'
+      updated_at: '2024-01-01',
     },
     goal_data: {
-      show_on_dashboard: false
-    }
-  }
+      show_on_dashboard: false,
+    },
+  },
 ];
 
 describe('DashboardGoalSelector', () => {
@@ -143,7 +156,7 @@ describe('DashboardGoalSelector', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockUseUserGoals.mockReturnValue({
       data: { goals: mockGoals, onboarding: null },
       isLoading: false,
@@ -151,14 +164,14 @@ describe('DashboardGoalSelector', () => {
       refetch: jest.fn(),
       isRefetching: false,
       isError: false,
-      isSuccess: true
+      isSuccess: true,
     } as any);
 
     mockUseUpdateGoal.mockReturnValue({
       mutateAsync: mockUpdateGoal,
       isPending: false,
       isError: false,
-      error: null
+      error: null,
     } as any);
 
     mockUseGoalTypes.mockReturnValue({
@@ -168,7 +181,7 @@ describe('DashboardGoalSelector', () => {
       refetch: jest.fn(),
       isRefetching: false,
       isError: false,
-      isSuccess: true
+      isSuccess: true,
     } as any);
 
     mockUseGoalManagement.mockReturnValue({
@@ -179,7 +192,7 @@ describe('DashboardGoalSelector', () => {
     mockUseUnifiedGoalCreation.mockReturnValue({
       mutateAsync: mockCreateGoal,
       isPending: false,
-      error: null
+      error: null,
     } as any);
 
     // Mock getDashboardGoals to return the goal with show_on_dashboard: true
@@ -197,7 +210,11 @@ describe('DashboardGoalSelector', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     // Check for the dialog description specifically
     expect(screen.getByText('Select Goals for Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Choose up to 3 goals to display on your dashboard. Goals will be shown in order of selection.')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Choose up to 3 goals to display on your dashboard. Goals will be shown in order of selection.'
+      )
+    ).toBeInTheDocument();
   });
 
   it('shows loading state', () => {
@@ -208,7 +225,7 @@ describe('DashboardGoalSelector', () => {
       refetch: jest.fn(),
       isRefetching: false,
       isError: false,
-      isSuccess: false
+      isSuccess: false,
     } as any);
 
     render(
@@ -251,8 +268,10 @@ describe('DashboardGoalSelector', () => {
     );
 
     // Click on Weekly Distance goal
-    const weeklyGoal = screen.getByText('Weekly Distance').closest('.cursor-pointer') as HTMLElement;
-    
+    const weeklyGoal = screen
+      .getByText('Weekly Distance')
+      .closest('.cursor-pointer') as HTMLElement;
+
     if (weeklyGoal) {
       fireEvent.click(weeklyGoal);
     }
@@ -267,7 +286,7 @@ describe('DashboardGoalSelector', () => {
     const extendedMockGoals = [
       ...mockGoals.map(goal => ({
         ...goal,
-        goal_data: { show_on_dashboard: false }
+        goal_data: { show_on_dashboard: false },
       })),
       {
         id: '4',
@@ -294,12 +313,12 @@ describe('DashboardGoalSelector', () => {
           calculation_method: 'sum',
           is_active: true,
           created_at: '2024-01-01',
-          updated_at: '2024-01-01'
+          updated_at: '2024-01-01',
         },
         goal_data: {
-          show_on_dashboard: false
-        }
-      }
+          show_on_dashboard: false,
+        },
+      },
     ];
 
     mockUseUserGoals.mockReturnValue({
@@ -309,7 +328,7 @@ describe('DashboardGoalSelector', () => {
       refetch: jest.fn(),
       isRefetching: false,
       isError: false,
-      isSuccess: true
+      isSuccess: true,
     } as any);
 
     mockGetDashboardGoals.mockReturnValue([]);
@@ -320,8 +339,9 @@ describe('DashboardGoalSelector', () => {
       </TestWrapper>
     );
 
-    // Select first three goals  
-    const goalCards = screen.getAllByText(/Weekly Distance|Monthly Runs|5K Pace|Monthly Elevation/)
+    // Select first three goals
+    const goalCards = screen
+      .getAllByText(/Weekly Distance|Monthly Runs|5K Pace|Monthly Elevation/)
       .map(text => text.closest('.cursor-pointer'))
       .filter(Boolean) as HTMLElement[];
 
@@ -346,7 +366,7 @@ describe('DashboardGoalSelector', () => {
 
   it('saves dashboard goals correctly', async () => {
     const mockOnOpenChange = jest.fn();
-    
+
     render(
       <TestWrapper>
         <DashboardGoalSelector open={true} onOpenChange={mockOnOpenChange} />
@@ -354,7 +374,9 @@ describe('DashboardGoalSelector', () => {
     );
 
     // Select a goal
-    const weeklyGoal = screen.getByText('Weekly Distance').closest('.cursor-pointer') as HTMLElement;
+    const weeklyGoal = screen
+      .getByText('Weekly Distance')
+      .closest('.cursor-pointer') as HTMLElement;
     if (weeklyGoal) {
       fireEvent.click(weeklyGoal);
     }
@@ -377,7 +399,7 @@ describe('DashboardGoalSelector', () => {
       refetch: jest.fn(),
       isRefetching: false,
       isError: false,
-      isSuccess: true
+      isSuccess: true,
     } as any);
 
     render(
@@ -391,7 +413,9 @@ describe('DashboardGoalSelector', () => {
   });
 
   it('handles errors gracefully', async () => {
-    mockToggleDashboardGoal.mockRejectedValueOnce(new Error('Failed to update'));
+    mockToggleDashboardGoal.mockRejectedValueOnce(
+      new Error('Failed to update')
+    );
 
     render(
       <TestWrapper>
@@ -400,7 +424,9 @@ describe('DashboardGoalSelector', () => {
     );
 
     // Select a goal and try to save
-    const weeklyGoal = screen.getByText('Weekly Distance').closest('.cursor-pointer');
+    const weeklyGoal = screen
+      .getByText('Weekly Distance')
+      .closest('.cursor-pointer');
     if (weeklyGoal) {
       fireEvent.click(weeklyGoal);
     }
@@ -420,6 +446,8 @@ describe('DashboardGoalSelector', () => {
       </TestWrapper>
     );
 
-    expect(screen.queryByText('Choose Dashboard Goals')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Choose Dashboard Goals')
+    ).not.toBeInTheDocument();
   });
-}); 
+});

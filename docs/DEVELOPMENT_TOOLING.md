@@ -19,12 +19,14 @@ All development tools are protected by multiple layers:
 ## 🚨 Security Best Practices
 
 ### ✅ DO:
+
 - Keep all debugging/testing tools behind environment checks
 - Use clear visual indicators (dev warnings, environment badges)
 - Protect sensitive API endpoints with proper authentication
 - Log access attempts to protected routes in production
 
 ### ❌ DON'T:
+
 - Leave debug routes accessible in production
 - Expose internal API details to end users
 - Include sensitive environment variables in client-side code
@@ -67,8 +69,8 @@ When deploying to production:
 Our development tools follow a layered testing approach:
 
 1. **Configuration Layer** - Environment variables and setup
-2. **Authentication Layer** - OAuth flows and token management  
+2. **Authentication Layer** - OAuth flows and token management
 3. **Database Layer** - Connection status and data persistence
 4. **Sync Layer** - End-to-end functionality testing
 
-Each layer must pass before testing the next layer for optimal debugging workflow. 
+Each layer must pass before testing the next layer for optimal debugging workflow.

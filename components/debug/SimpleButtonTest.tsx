@@ -1,28 +1,28 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function SimpleButtonTest() {
-  const [clickCount, setClickCount] = useState(0)
-  const [isLoading, setIsLoading] = useState(false)
+  const [clickCount, setClickCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleClick = () => {
-    console.log('Button clicked!')
-    setClickCount(prev => prev + 1)
-  }
+    console.log('Button clicked!');
+    setClickCount(prev => prev + 1);
+  };
 
   const handleAsyncClick = async () => {
-    console.log('Async button clicked!')
-    setIsLoading(true)
-    
+    console.log('Async button clicked!');
+    setIsLoading(true);
+
     // Simulate some async work
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    setClickCount(prev => prev + 1)
-    setIsLoading(false)
-  }
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    setClickCount(prev => prev + 1);
+    setIsLoading(false);
+  };
 
   return (
     <Card>
@@ -35,7 +35,7 @@ export function SimpleButtonTest() {
             Test Button (Clicked: {clickCount})
           </Button>
         </div>
-        
+
         <div>
           <Button onClick={handleAsyncClick} disabled={isLoading}>
             {isLoading ? 'Loading...' : 'Async Test Button'}
@@ -48,5 +48,5 @@ export function SimpleButtonTest() {
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

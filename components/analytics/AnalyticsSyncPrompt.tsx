@@ -1,24 +1,24 @@
-'use client'
+'use client';
 
-import { useUserActivities } from '@/hooks/use-user-activities'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { Settings, Activity, RefreshCw } from 'lucide-react'
-import Link from 'next/link'
-import { useStravaToken } from '@/hooks/strava/useStravaToken'
-import { getStravaAuthUrl } from '@/lib/strava'
+import { useUserActivities } from '@/hooks/use-user-activities';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Settings, Activity, RefreshCw } from 'lucide-react';
+import Link from 'next/link';
+import { useStravaToken } from '@/hooks/strava/useStravaToken';
+import { getStravaAuthUrl } from '@/lib/strava';
 
 interface AnalyticsSyncPromptProps {
-  userId: string
+  userId: string;
 }
 
 export function AnalyticsSyncPrompt({ userId }: AnalyticsSyncPromptProps) {
-  const { data: activities, isLoading } = useUserActivities(userId)
-  const { refreshToken } = useStravaToken()
+  const { data: activities, isLoading } = useUserActivities(userId);
+  const { refreshToken } = useStravaToken();
 
   // Don't show anything while loading or if there are activities
   if (isLoading || (activities && activities.length > 0)) {
-    return null
+    return null;
   }
 
   return (
@@ -27,8 +27,9 @@ export function AnalyticsSyncPrompt({ userId }: AnalyticsSyncPromptProps) {
       <AlertDescription className="text-blue-800">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <strong>No Activities Found</strong> - To see your activity analytics, you need to sync your activities from Strava. 
-            Don&apos;t see your most recent activities? Make sure to sync in your settings.
+            <strong>No Activities Found</strong> - To see your activity
+            analytics, you need to sync your activities from Strava. Don&apos;t
+            see your most recent activities? Make sure to sync in your settings.
           </div>
           <div className="flex gap-2 ml-4">
             <Link href="/dashboard/settings">
@@ -37,16 +38,16 @@ export function AnalyticsSyncPrompt({ userId }: AnalyticsSyncPromptProps) {
                 Go to Settings
               </Button>
             </Link>
-            <Button 
+            <Button
               size="sm"
-              variant="outline" 
+              variant="outline"
               onClick={async () => {
                 try {
-                  await refreshToken()
+                  await refreshToken();
                 } catch (error) {
-                  console.error('Failed to refresh token:', error)
-                  const authUrl = getStravaAuthUrl(window.location.origin)
-                  window.location.href = authUrl
+                  console.error('Failed to refresh token:', error);
+                  const authUrl = getStravaAuthUrl(window.location.origin);
+                  window.location.href = authUrl;
                 }
               }}
               className="text-blue-600 border-blue-200 hover:bg-blue-100"
@@ -58,5 +59,5 @@ export function AnalyticsSyncPrompt({ userId }: AnalyticsSyncPromptProps) {
         </div>
       </AlertDescription>
     </Alert>
-  )
-} 
+  );
+}

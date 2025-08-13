@@ -3,6 +3,7 @@
 ## 🎯 **Problem Identified**
 
 The `/api/strava/sync` endpoint was being called **every 30 seconds** to check sync status, which is excessive for a personal training app where:
+
 - Sync status rarely changes (only when manually syncing)
 - Users don't need real-time sync monitoring
 - Most calls were just checking "when did I last sync?" from the database
@@ -12,15 +13,17 @@ The `/api/strava/sync` endpoint was being called **every 30 seconds** to check s
 ### **1. Removed Aggressive Polling**
 
 **Before:**
+
 ```tsx
 useQuery({
   queryKey: ['strava', 'sync-status'],
   queryFn: getSyncStatus,
   refetchInterval: 30000, // 🚨 Every 30 seconds!
-})
+});
 ```
 
 **After:**
+
 ```tsx
 useQuery({
   queryKey: ['strava', 'sync-status'],
@@ -30,28 +33,33 @@ useQuery({
   refetchOnWindowFocus: false, // Don't refetch when switching tabs
   refetchOnReconnect: false, // Don't refetch on network reconnect
   // No refetchInterval - only fetch when explicitly requested
-})
+});
 ```
 
 ### **2. Reduced Zone Analysis Polling**
 
 **Before:**
+
 ```tsx
 // Check every 5 minutes when user is active
-const interval = setInterval(() => {
-  if (document.visibilityState === 'visible') {
-    checkAndInvalidateZones()
-  }
-}, 5 * 60 * 1000) // 5 minutes
+const interval = setInterval(
+  () => {
+    if (document.visibilityState === 'visible') {
+      checkAndInvalidateZones();
+    }
+  },
+  5 * 60 * 1000
+); // 5 minutes
 ```
 
 **After:**
+
 ```tsx
 // Check for invalidation only on mount
 React.useEffect(() => {
-  checkAndInvalidateZones()
+  checkAndInvalidateZones();
   // No periodic checking - zones will be invalidated when sync completes
-}, [checkAndInvalidateZones])
+}, [checkAndInvalidateZones]);
 ```
 
 ### **3. Added Manual Refresh Control**
@@ -74,17 +82,20 @@ Added a refresh button in the SyncDashboard for when users actually want to chec
 ## 📊 **Impact Analysis**
 
 ### **API Call Reduction:**
+
 - **Before**: 120 calls/hour (every 30 seconds) + zone checks
 - **After**: ~1-2 calls/hour (only on page load and manual refresh)
 - **Reduction**: ~98% fewer unnecessary API calls
 
 ### **User Experience:**
+
 - ✅ **Faster page loads** - no constant background requests
 - ✅ **Manual control** - users can refresh when they want
 - ✅ **Still responsive** - sync status updates immediately after manual sync
 - ✅ **Smart caching** - data stays fresh for reasonable time periods
 
 ### **Server Performance:**
+
 - ✅ **Reduced database load** - fewer sync status queries
 - ✅ **Better scalability** - won't overwhelm with users
 - ✅ **Maintained functionality** - all features still work
@@ -99,6 +110,7 @@ Added a refresh button in the SyncDashboard for when users actually want to chec
 ## 🧪 **Testing Results**
 
 All tests pass with the new optimization:
+
 - ✅ `use-strava-sync` hook tests: 11/11 passed
 - ✅ `SyncDashboard` component tests: 10/10 passed
 - ✅ Functionality preserved with better performance
@@ -113,4 +125,4 @@ This optimization is perfect for a personal training app because:
 4. **Battery Friendly**: Less network activity on mobile devices
 5. **Scalable**: Ready for multiple users without overwhelming the server
 
-The app now behaves more like a traditional training dashboard - data is fetched when needed, not constantly monitored in real-time! 🚀 
+The app now behaves more like a traditional training dashboard - data is fetched when needed, not constantly monitored in real-time! 🚀

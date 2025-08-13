@@ -22,7 +22,11 @@ jest.mock('next/navigation', () => ({
 // Mock next/link
 jest.mock('next/link', () => {
   return ({ children, href, ...props }: any) => {
-    return <a href={href} {...props}>{children}</a>;
+    return (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    );
   };
 });
 
@@ -128,7 +132,7 @@ describe('UserNav', () => {
 
     const avatarButton = screen.getByRole('button', { name: 'T' });
     expect(avatarButton).toBeInTheDocument();
-    
+
     // Check that the button has the correct attributes for a dropdown trigger
     expect(avatarButton).toHaveAttribute('aria-expanded', 'false');
     expect(avatarButton).toHaveAttribute('aria-haspopup', 'menu');
@@ -142,7 +146,7 @@ describe('UserNav', () => {
     );
 
     const avatarButton = screen.getByRole('button', { name: 'T' });
-    
+
     // Test that the button can be clicked without errors
     expect(() => fireEvent.click(avatarButton)).not.toThrow();
   });
@@ -219,4 +223,4 @@ describe('UserNav', () => {
     // Test that the component renders with user initials from email
     expect(screen.getByText('T')).toBeInTheDocument();
   });
-}); 
+});

@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
-import { useState } from 'react'
-import { User, Settings, LogOut } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react';
+import { User, Settings, LogOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,26 +10,30 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useAuth } from '@/providers/AuthProvider'
-import Link from 'next/link'
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/providers/AuthProvider';
+import Link from 'next/link';
 
 export function UserNav() {
-  const { user, signOut, isLoading } = useAuth()
-  const [isOpen, setIsOpen] = useState(false)
+  const { user, signOut, isLoading } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
-  if (!user) return null
+  if (!user) return null;
 
-  const initials = user.email?.charAt(0).toUpperCase() || 'U'
-  const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
+  const initials = user.email?.charAt(0).toUpperCase() || 'U';
+  const displayName =
+    user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user.user_metadata?.avatar_url} alt={displayName} />
+            <AvatarImage
+              src={user.user_metadata?.avatar_url}
+              alt={displayName}
+            />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>
@@ -57,7 +61,7 @@ export function UserNav() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={signOut}
           disabled={isLoading}
           className="cursor-pointer"
@@ -67,5 +71,5 @@ export function UserNav() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-} 
+  );
+}
