@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import AnimatedLevelUp from "./AnimatedLevelUp"
+import EnhancedPhoneMockup from "./ui/EnhancedPhoneMockup"
 
 const features = [
   {
@@ -132,18 +133,11 @@ export default function EnhancedFeaturesSection() {
               {/* Screenshot */}
               <div className={`relative ${index % 2 === 1 ? 'lg:col-start-1' : ''}`}>
                 {feature.title === "Mobile Dashboard" ? (
-                  // Mobile dashboard - use professional iPhone mockup
-                  <div className="flex justify-center">
-                    <div className="relative">
-                      <Image
-                        src="/images/features/iphone-mockup.png"
-                        alt="iPhone mockup showing mobile dashboard interface"
-                        width={700}
-                        height={1400}
-                        className="w-auto h-auto"
-                      />
-                    </div>
-                  </div>
+                  // Mobile dashboard - use professional iPhone mockup with enhanced styling
+                  <EnhancedPhoneMockup 
+                    src="/images/features/iphone-mockup.png"
+                    alt="iPhone mockup showing mobile dashboard interface"
+                  />
                 ) : (
                   // Other features - with browser container
                   <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-4 shadow-xl border">

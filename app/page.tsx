@@ -20,6 +20,7 @@ import { redirect } from "next/navigation"
 import AnimatedStats from "@/components/AnimatedStats"
 import AnimatedTestimonials from "@/components/AnimatedTestimonials"
 import EnhancedFeaturesSection from "@/components/EnhancedFeaturesSection"
+import EnhancedPhoneMockup from "@/components/ui/EnhancedPhoneMockup"
 
 export default async function Home() {
   const supabase = await createClient()
