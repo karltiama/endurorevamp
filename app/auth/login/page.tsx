@@ -9,6 +9,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(null);
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
+  
   const router = useRouter();
   const supabase = createClient();
 
@@ -57,6 +63,162 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotPasswordLoading(true);
+    setForgotPasswordError(null);
+
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: forgotPasswordEmail }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send password reset email');
+      }
+
+      setForgotPasswordSuccess(true);
+    } catch (err) {
+      setForgotPasswordError(err instanceof Error ? err.message : 'An unexpected error occurred');
+    } finally {
+      setForgotPasswordLoading(false);
+    }
+  };
+
+  const resetForgotPassword = () => {
+    setForgotPasswordEmail('');
+    setForgotPasswordError(null);
+    setForgotPasswordSuccess(false);
+  };
+
+  const goBackToLogin = () => {
+    setShowForgotPassword(false);
+    setForgotPasswordEmail('');
+    setForgotPasswordError(null);
+    setForgotPasswordSuccess(false);
+  };
+
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-sm sm:max-w-md">
+          <div className="mb-8 text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Forgot your password?
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Enter your email address and we&apos;ll send you a link to reset your password
+            </p>
+          </div>
+
+          <div className="bg-card border border-border rounded-lg shadow-sm p-6 sm:p-8 space-y-6">
+            {forgotPasswordSuccess ? (
+              <>
+                <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md text-sm">
+                  <p>
+                    We&apos;ve sent a password reset link to <strong>{forgotPasswordEmail}</strong>. 
+                    Please check your email and click the link to reset your password.
+                  </p>
+                </div>
+
+                <div className="text-center space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Didn&apos;t receive the email? Check your spam folder or try again.
+                  </p>
+                  <button
+                    onClick={resetForgotPassword}
+                    className="text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors"
+                  >
+                    Try again
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {forgotPasswordError && (
+                  <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-md text-sm">
+                    {forgotPasswordError}
+                  </div>
+                )}
+
+                <form className="space-y-4" onSubmit={handleForgotPassword}>
+                  <div className="space-y-1">
+                    <label
+                      htmlFor="forgot-email"
+                      className="text-sm font-medium text-foreground"
+                    >
+                      Email address
+                    </label>
+                    <input
+                      id="forgot-email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={forgotPasswordEmail}
+                      onChange={e => setForgotPasswordEmail(e.target.value)}
+                      className="w-full px-3 py-2.5 border border-input bg-background rounded-md text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={forgotPasswordLoading}
+                    className="w-full flex justify-center items-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {forgotPasswordLoading ? (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-2 h-4 w-4"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Sending...
+                      </>
+                    ) : (
+                      'Send reset link'
+                    )}
+                  </button>
+                </form>
+              </>
+            )}
+
+            <div className="text-center">
+              <button
+                onClick={goBackToLogin}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                ← Back to login
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8">
@@ -155,6 +317,15 @@ export default function LoginPage() {
                 className="w-full px-3 py-2.5 border border-input bg-background rounded-md text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
                 placeholder="Enter your password"
               />
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors"
+                >
+                  Forgot password?
+                </button>
+              </div>
             </div>
 
             <button

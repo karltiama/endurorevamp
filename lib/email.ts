@@ -86,6 +86,21 @@ export const emailTemplates = {
     `,
   }),
 
+  passwordReset: (userName?: string) => ({
+    subject: 'Reset Your EnduroRevamp Password',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #2563eb;">Reset Your Password</h1>
+        <p>Hi ${userName || 'there'},</p>
+        <p>We received a request to reset your password for your EnduroRevamp account.</p>
+        <p>If you didn't make this request, you can safely ignore this email.</p>
+        <p>If you did request a password reset, please check your email for a link from Supabase to complete the process.</p>
+        <p>For security reasons, this link will expire in 24 hours.</p>
+        <p>Best regards,<br>The EnduroRevamp Team</p>
+      </div>
+    `,
+  }),
+
   contactForm: (submission: {
     name: string;
     email: string;
