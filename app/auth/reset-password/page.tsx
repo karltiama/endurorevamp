@@ -12,7 +12,7 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isValidSession, setIsValidSession] = useState(false);
-  
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -20,7 +20,9 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     // Check if we have a valid session for password reset
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session?.user) {
         setIsValidSession(true);
       } else {
@@ -44,7 +46,7 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -68,13 +70,15 @@ export default function ResetPasswordPage() {
       }
 
       setSuccess(true);
-      
+
       // Redirect to login after a short delay
       setTimeout(() => {
         router.push('/auth/login');
       }, 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update password');
+      setError(
+        err instanceof Error ? err.message : 'Failed to update password'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +134,8 @@ export default function ResetPasswordPage() {
           <div className="bg-card border border-border rounded-lg shadow-sm p-6 sm:p-8 space-y-6">
             <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md text-sm">
               <p>
-                Your password has been updated successfully. You will be redirected to the login page shortly.
+                Your password has been updated successfully. You will be
+                redirected to the login page shortly.
               </p>
             </div>
 

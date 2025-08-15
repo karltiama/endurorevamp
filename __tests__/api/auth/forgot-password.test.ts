@@ -20,25 +20,28 @@ describe('/api/auth/forgot-password', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup mocks
     const { createClient } = require('@/lib/supabase/server');
     const { sendEmail } = require('@/lib/email');
-    
+
     createClient.mockResolvedValue({
       auth: {
         resetPasswordForEmail: mockResetPasswordForEmail,
       },
     });
-    
+
     sendEmail.mockImplementation(mockSendEmail);
   });
 
   it('returns 400 when email is missing', async () => {
-    const request = new NextRequest('http://localhost:3000/api/auth/forgot-password', {
-      method: 'POST',
-      body: JSON.stringify({}),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/auth/forgot-password',
+      {
+        method: 'POST',
+        body: JSON.stringify({}),
+      }
+    );
 
     const response = await POST(request);
     const data = await response.json();
@@ -48,10 +51,13 @@ describe('/api/auth/forgot-password', () => {
   });
 
   it('returns 400 when email is empty string', async () => {
-    const request = new NextRequest('http://localhost:3000/api/auth/forgot-password', {
-      method: 'POST',
-      body: JSON.stringify({ email: '' }),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/auth/forgot-password',
+      {
+        method: 'POST',
+        body: JSON.stringify({ email: '' }),
+      }
+    );
 
     const response = await POST(request);
     const data = await response.json();
@@ -66,21 +72,24 @@ describe('/api/auth/forgot-password', () => {
     });
     mockSendEmail.mockResolvedValue({ id: 'email-123' });
 
-    const request = new NextRequest('http://localhost:3000/api/auth/forgot-password', {
-      method: 'POST',
-      body: JSON.stringify({ email: 'test@example.com' }),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/auth/forgot-password',
+      {
+        method: 'POST',
+        body: JSON.stringify({ email: 'test@example.com' }),
+      }
+    );
 
     const response = await POST(request);
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(data.message).toBe('Password reset email sent successfully');
-    
+
     expect(mockResetPasswordForEmail).toHaveBeenCalledWith('test@example.com', {
       redirectTo: 'http://localhost:3000/auth/reset-password',
     });
-    
+
     expect(mockSendEmail).toHaveBeenCalledWith({
       to: 'test@example.com',
       subject: 'Reset Your EnduroRevamp Password',
@@ -93,10 +102,13 @@ describe('/api/auth/forgot-password', () => {
       error: { message: 'User not found' },
     });
 
-    const request = new NextRequest('http://localhost:3000/api/auth/forgot-password', {
-      method: 'POST',
-      body: JSON.stringify({ email: 'test@example.com' }),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/auth/forgot-password',
+      {
+        method: 'POST',
+        body: JSON.stringify({ email: 'test@example.com' }),
+      }
+    );
 
     const response = await POST(request);
     const data = await response.json();
@@ -111,10 +123,13 @@ describe('/api/auth/forgot-password', () => {
     });
     mockSendEmail.mockRejectedValue(new Error('Email service down'));
 
-    const request = new NextRequest('http://localhost:3000/api/auth/forgot-password', {
-      method: 'POST',
-      body: JSON.stringify({ email: 'test@example.com' }),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/auth/forgot-password',
+      {
+        method: 'POST',
+        body: JSON.stringify({ email: 'test@example.com' }),
+      }
+    );
 
     const response = await POST(request);
     const data = await response.json();
@@ -132,10 +147,13 @@ describe('/api/auth/forgot-password', () => {
       error: null,
     });
 
-    const request = new NextRequest('http://localhost:3000/api/auth/forgot-password', {
-      method: 'POST',
-      body: JSON.stringify({ email: 'test@example.com' }),
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/auth/forgot-password',
+      {
+        method: 'POST',
+        body: JSON.stringify({ email: 'test@example.com' }),
+      }
+    );
 
     await POST(request);
 
@@ -148,10 +166,13 @@ describe('/api/auth/forgot-password', () => {
   });
 
   it('handles malformed JSON gracefully', async () => {
-    const request = new NextRequest('http://localhost:3000/api/auth/forgot-password', {
-      method: 'POST',
-      body: 'invalid json',
-    });
+    const request = new NextRequest(
+      'http://localhost:3000/api/auth/forgot-password',
+      {
+        method: 'POST',
+        body: 'invalid json',
+      }
+    );
 
     const response = await POST(request);
     const data = await response.json();

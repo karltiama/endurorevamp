@@ -12,9 +12,11 @@ export default function LoginPage() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
-  const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(null);
+  const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(
+    null
+  );
   const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
-  
+
   const router = useRouter();
   const supabase = createClient();
 
@@ -86,7 +88,9 @@ export default function LoginPage() {
 
       setForgotPasswordSuccess(true);
     } catch (err) {
-      setForgotPasswordError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setForgotPasswordError(
+        err instanceof Error ? err.message : 'An unexpected error occurred'
+      );
     } finally {
       setForgotPasswordLoading(false);
     }
@@ -114,7 +118,8 @@ export default function LoginPage() {
               Forgot your password?
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Enter your email address and we&apos;ll send you a link to reset your password
+              Enter your email address and we&apos;ll send you a link to reset
+              your password
             </p>
           </div>
 
@@ -123,14 +128,16 @@ export default function LoginPage() {
               <>
                 <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md text-sm">
                   <p>
-                    We&apos;ve sent a password reset link to <strong>{forgotPasswordEmail}</strong>. 
-                    Please check your email and click the link to reset your password.
+                    We&apos;ve sent a password reset link to{' '}
+                    <strong>{forgotPasswordEmail}</strong>. Please check your
+                    email and click the link to reset your password.
                   </p>
                 </div>
 
                 <div className="text-center space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Didn&apos;t receive the email? Check your spam folder or try again.
+                    Didn&apos;t receive the email? Check your spam folder or try
+                    again.
                   </p>
                   <button
                     onClick={resetForgotPassword}
