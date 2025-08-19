@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function SignupPage() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -30,12 +31,21 @@ export default function SignupPage() {
       return;
     }
 
+    if (!name.trim()) {
+      setError('Please enter your name');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            full_name: name.trim(),
+          },
         },
       });
 
@@ -60,6 +70,10 @@ export default function SignupPage() {
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
@@ -138,7 +152,27 @@ export default function SignupPage() {
           </div>
 
           {/* Email/Password Form */}
-          <form className="space-y-4" onSubmit={handleEmailSignup}>
+          <form className="space-y-4" onSubmit={handleEmailSignup} data-testid="signup-form">
+            <div className="space-y-1">
+              <label
+                htmlFor="name"
+                className="text-sm font-medium text-foreground"
+              >
+                Full name
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                autoComplete="name"
+                required
+                value={name}
+                onChange={e => setName(e.target.value)}
+                className="w-full px-3 py-2.5 border border-input bg-background rounded-md text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
+                placeholder="Enter your full name"
+              />
+            </div>
+
             <div className="space-y-1">
               <label
                 htmlFor="email"
