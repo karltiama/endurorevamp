@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function SignupPage() {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -31,8 +31,8 @@ export default function SignupPage() {
       return;
     }
 
-    if (!name.trim()) {
-      setError('Please enter your name');
+    if (!firstName.trim()) {
+      setError('Please enter your first name');
       setIsLoading(false);
       return;
     }
@@ -44,7 +44,7 @@ export default function SignupPage() {
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
-            full_name: name.trim(),
+            first_name: firstName.trim(),
           },
         },
       });
@@ -159,21 +159,21 @@ export default function SignupPage() {
           >
             <div className="space-y-1">
               <label
-                htmlFor="name"
+                htmlFor="firstName"
                 className="text-sm font-medium text-foreground"
               >
-                Full name
+                First name
               </label>
               <input
-                id="name"
-                name="name"
+                id="firstName"
+                name="firstName"
                 type="text"
-                autoComplete="name"
+                autoComplete="given-name"
                 required
-                value={name}
-                onChange={e => setName(e.target.value)}
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
                 className="w-full px-3 py-2.5 border border-input bg-background rounded-md text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
-                placeholder="Enter your full name"
+                placeholder="Enter your first name"
               />
             </div>
 

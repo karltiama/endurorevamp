@@ -19,10 +19,10 @@ describe('SignupPage', () => {
     jest.clearAllMocks();
   });
 
-  it('renders all form fields including name field', () => {
+  it('renders all form fields including first name field', () => {
     render(<SignupPage />);
 
-    expect(screen.getByLabelText('Full name')).toBeInTheDocument();
+    expect(screen.getByLabelText('First name')).toBeInTheDocument();
     expect(screen.getByLabelText('Email address')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.getByLabelText('Confirm password')).toBeInTheDocument();
@@ -37,7 +37,7 @@ describe('SignupPage', () => {
   it('validates required fields', async () => {
     render(<SignupPage />);
 
-    // Fill in valid passwords so name validation error shows first
+    // Fill in valid passwords so first name validation error shows first
     const passwordInput = screen.getByLabelText('Password');
     const confirmPasswordInput = screen.getByLabelText('Confirm password');
 
@@ -50,19 +50,19 @@ describe('SignupPage', () => {
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.getByText('Please enter your name')).toBeInTheDocument();
+      expect(screen.getByText('Please enter your first name')).toBeInTheDocument();
     });
   });
 
   it('validates password length', async () => {
     render(<SignupPage />);
 
-    const nameInput = screen.getByLabelText('Full name');
+    const firstNameInput = screen.getByLabelText('First name');
     const emailInput = screen.getByLabelText('Email address');
     const passwordInput = screen.getByLabelText('Password');
     const confirmPasswordInput = screen.getByLabelText('Confirm password');
 
-    fireEvent.change(nameInput, { target: { value: 'John Doe' } });
+    fireEvent.change(firstNameInput, { target: { value: 'John' } });
     fireEvent.change(emailInput, { target: { value: 'john@example.com' } });
     fireEvent.change(passwordInput, { target: { value: '123' } });
     fireEvent.change(confirmPasswordInput, { target: { value: '123' } });
@@ -80,12 +80,12 @@ describe('SignupPage', () => {
   it('validates password confirmation', async () => {
     render(<SignupPage />);
 
-    const nameInput = screen.getByLabelText('Full name');
+    const firstNameInput = screen.getByLabelText('First name');
     const emailInput = screen.getByLabelText('Email address');
     const passwordInput = screen.getByLabelText('Password');
     const confirmPasswordInput = screen.getByLabelText('Confirm password');
 
-    fireEvent.change(nameInput, { target: { value: 'John Doe' } });
+    fireEvent.change(firstNameInput, { target: { value: 'John' } });
     fireEvent.change(emailInput, { target: { value: 'john@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
     fireEvent.change(confirmPasswordInput, {
@@ -105,12 +105,12 @@ describe('SignupPage', () => {
 
     render(<SignupPage />);
 
-    const nameInput = screen.getByLabelText('Full name');
+    const firstNameInput = screen.getByLabelText('First name');
     const emailInput = screen.getByLabelText('Email address');
     const passwordInput = screen.getByLabelText('Password');
     const confirmPasswordInput = screen.getByLabelText('Confirm password');
 
-    fireEvent.change(nameInput, { target: { value: 'John Doe' } });
+    fireEvent.change(firstNameInput, { target: { value: 'John' } });
     fireEvent.change(emailInput, { target: { value: 'john@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
     fireEvent.change(confirmPasswordInput, {
@@ -127,7 +127,7 @@ describe('SignupPage', () => {
         options: {
           emailRedirectTo: expect.stringContaining('/auth/callback'),
           data: {
-            full_name: 'John Doe',
+            first_name: 'John',
           },
         },
       });
@@ -145,12 +145,12 @@ describe('SignupPage', () => {
 
     render(<SignupPage />);
 
-    const nameInput = screen.getByLabelText('Full name');
+    const firstNameInput = screen.getByLabelText('First name');
     const emailInput = screen.getByLabelText('Email address');
     const passwordInput = screen.getByLabelText('Password');
     const confirmPasswordInput = screen.getByLabelText('Confirm password');
 
-    fireEvent.change(nameInput, { target: { value: 'John Doe' } });
+    fireEvent.change(firstNameInput, { target: { value: 'John' } });
     fireEvent.change(emailInput, { target: { value: 'john@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
     fireEvent.change(confirmPasswordInput, {
@@ -202,17 +202,17 @@ describe('SignupPage', () => {
     });
   });
 
-  it('trims whitespace from name field', async () => {
+  it('trims whitespace from first name field', async () => {
     mockSupabase.auth.signUp.mockResolvedValue({ error: null });
 
     render(<SignupPage />);
 
-    const nameInput = screen.getByLabelText('Full name');
+    const firstNameInput = screen.getByLabelText('First name');
     const emailInput = screen.getByLabelText('Email address');
     const passwordInput = screen.getByLabelText('Password');
     const confirmPasswordInput = screen.getByLabelText('Confirm password');
 
-    fireEvent.change(nameInput, { target: { value: '  John Doe  ' } });
+    fireEvent.change(firstNameInput, { target: { value: '  John  ' } });
     fireEvent.change(emailInput, { target: { value: 'john@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
     fireEvent.change(confirmPasswordInput, {
@@ -229,7 +229,7 @@ describe('SignupPage', () => {
         options: {
           emailRedirectTo: expect.stringContaining('/auth/callback'),
           data: {
-            full_name: 'John Doe',
+            first_name: 'John',
           },
         },
       });
@@ -245,12 +245,12 @@ describe('SignupPage', () => {
 
     render(<SignupPage />);
 
-    const nameInput = screen.getByLabelText('Full name');
+    const firstNameInput = screen.getByLabelText('First name');
     const emailInput = screen.getByLabelText('Email address');
     const passwordInput = screen.getByLabelText('Password');
     const confirmPasswordInput = screen.getByLabelText('Confirm password');
 
-    fireEvent.change(nameInput, { target: { value: 'John Doe' } });
+    fireEvent.change(firstNameInput, { target: { value: 'John' } });
     fireEvent.change(emailInput, { target: { value: 'john@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
     fireEvent.change(confirmPasswordInput, {
