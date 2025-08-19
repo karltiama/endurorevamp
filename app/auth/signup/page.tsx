@@ -152,7 +152,11 @@ export default function SignupPage() {
           </div>
 
           {/* Email/Password Form */}
-          <form className="space-y-4" onSubmit={handleEmailSignup} data-testid="signup-form">
+          <form
+            className="space-y-4"
+            onSubmit={handleEmailSignup}
+            data-testid="signup-form"
+          >
             <div className="space-y-1">
               <label
                 htmlFor="name"
