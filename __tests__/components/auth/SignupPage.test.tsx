@@ -50,7 +50,9 @@ describe('SignupPage', () => {
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.getByText('Please enter your first name')).toBeInTheDocument();
+      expect(
+        screen.getByText('Please enter your first name')
+      ).toBeInTheDocument();
     });
   });
 
