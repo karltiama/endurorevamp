@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
 
-    // Request password reset from Supabase
+    // Request password reset from Supabase with custom template
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password`,
     });
@@ -23,18 +23,6 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to send password reset email' },
         { status: 500 }
       );
-    }
-
-    // Send a custom email notification using our template
-    try {
-      await sendEmail({
-        to: email,
-        subject: emailTemplates.passwordReset().subject,
-        html: emailTemplates.passwordReset().html,
-      });
-    } catch (emailError) {
-      // Log but don't fail the request - Supabase handles the actual reset
-      console.warn('Custom email notification failed:', emailError);
     }
 
     return NextResponse.json({
