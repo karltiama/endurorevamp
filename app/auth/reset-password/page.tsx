@@ -23,20 +23,18 @@ function ResetPasswordForm() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
+
       if (session?.user) {
         setIsValidSession(true);
       } else {
-        // Check if we have access_token in URL (from email link)
-        const accessToken = searchParams.get('access_token');
-        if (accessToken) {
-          // Set the session with the access token
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: '',
-          });
-          if (!error) {
-            setIsValidSession(true);
-          }
+        // Check if we have the password reset token from email link
+        const tokenHash = searchParams.get('token_hash');
+        const type = searchParams.get('type');
+
+        if (tokenHash && type === 'recovery') {
+          // This is a valid password reset link
+          // We don't need to set a session, just allow access to the form
+          setIsValidSession(true);
         }
       }
     };
@@ -61,6 +59,15 @@ function ResetPasswordForm() {
     setError(null);
 
     try {
+      // Get the token from URL parameters
+      const tokenHash = searchParams.get('token_hash');
+      const type = searchParams.get('type');
+
+      if (!tokenHash || type !== 'recovery') {
+        throw new Error('Invalid reset token');
+      }
+
+      // Use the reset token to update the password
       const { error } = await supabase.auth.updateUser({
         password: password,
       });
