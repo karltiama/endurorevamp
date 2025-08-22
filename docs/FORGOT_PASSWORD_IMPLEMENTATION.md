@@ -9,18 +9,21 @@ The forgot password system allows users to reset their password when they can't 
 ## Architecture
 
 ### 1. **API Route** (`/api/auth/forgot-password`)
+
 - **Location**: `app/api/auth/forgot-password/route.ts`
 - **Purpose**: Handles password reset requests
 - **Method**: POST
 - **Input**: `{ email: string }`
 
 **Key Features:**
+
 - Validates email input
 - Uses Supabase's `resetPasswordForEmail` method
 - Redirects users to `/auth/reset-password` after email verification
 - Sends custom email notification using our template system
 
 **Flow:**
+
 ```typescript
 // 1. Validate email input
 if (!email) {
@@ -36,11 +39,13 @@ const { error } = await supabase.auth.resetPasswordForEmail(email, {
 ```
 
 ### 2. **Login Page Integration**
+
 - **Location**: `app/auth/login/page.tsx`
 - **Implementation**: Inline forgot password form (no separate page)
 - **State Management**: Uses React state to toggle between login and forgot password views
 
 **User Experience:**
+
 1. User sees login form
 2. Clicks "Forgot Password?" link
 3. Login form is replaced with forgot password form
@@ -49,30 +54,38 @@ const { error } = await supabase.auth.resetPasswordForEmail(email, {
 6. User can return to login form
 
 **Key States:**
+
 ```typescript
 const [showForgotPassword, setShowForgotPassword] = useState(false);
 const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
 const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
-const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(null);
+const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(
+  null
+);
 const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
 ```
 
 ### 3. **Reset Password Page**
+
 - **Location**: `app/auth/reset-password/page.tsx`
 - **Purpose**: Allows users to set a new password after email verification
 - **Access**: Via email link or direct navigation with valid session
 
 **Features:**
+
 - Session validation
 - Access token handling from URL parameters
 - Password confirmation
 - Success feedback and redirect
 
 **Session Validation:**
+
 ```typescript
 useEffect(() => {
   const checkSession = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (session?.user) {
       setIsValidSession(true);
     } else {
@@ -94,6 +107,7 @@ useEffect(() => {
 ```
 
 ### 4. **Email Template**
+
 - **Location**: `supabase/email-templates/forgot-password.html`
 - **Purpose**: Custom HTML email for password reset
 - **Integration**: Configured in Supabase dashboard
@@ -138,6 +152,7 @@ The forgot password functionality is thoroughly tested:
 - **Mocking**: Supabase client and email service are properly mocked
 
 **Test Scenarios:**
+
 - Missing email validation
 - Empty email validation
 - Successful password reset
@@ -147,17 +162,22 @@ The forgot password functionality is thoroughly tested:
 ## Customization Options
 
 ### Email Template
+
 The email template can be customized by editing:
+
 - `supabase/email-templates/forgot-password.html`
 - Supabase dashboard email settings
 
 ### Redirect URL
+
 Change the redirect URL in the API route:
+
 ```typescript
-redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`
+redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`;
 ```
 
 ### Success Message
+
 Customize success messages in the login page component.
 
 ## Troubleshooting
