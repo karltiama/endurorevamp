@@ -22,6 +22,7 @@ A modern, performance-focused web application for athletes to track, analyze, an
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **Framework**: Next.js 15.3.2 (App Router)
 - **Language**: TypeScript 5.0
 - **UI Library**: React 19.0.0
@@ -31,12 +32,14 @@ A modern, performance-focused web application for athletes to track, analyze, an
 - **UI Components**: Radix UI, Headless UI, Lucide React
 
 ### Backend & Database
+
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
 - **API**: Next.js API Routes
 - **Real-time**: Supabase Realtime
 
 ### Development & Testing
+
 - **Testing**: Jest 29.7.0, React Testing Library
 - **Linting**: ESLint 9.30.1
 - **Formatting**: Prettier 3.3.3
@@ -76,46 +79,52 @@ endurorevamp/
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/endurorevamp.git
    cd endurorevamp
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Environment Setup**
+
    ```bash
    cp .env.example .env.local
    ```
-   
+
    Configure your environment variables:
+
    ```env
    # Supabase
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-   
+
    # Strava API
    STRAVA_CLIENT_ID=your_strava_client_id
    STRAVA_CLIENT_SECRET=your_strava_client_secret
-   
+
    # Email (Resend)
    RESEND_API_KEY=your_resend_api_key
    ```
 
 4. **Database Setup**
+
    ```bash
    # Start Supabase locally (if using local development)
    npm run supabase:start
-   
+
    # Run migrations
    npm run db:migrate
    ```
 
 5. **Start Development Server**
+
    ```bash
    npm run dev
    ```
@@ -159,19 +168,19 @@ npm run ci
 
 ## 🚀 Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with Turbopack |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run lint:fix` | Fix ESLint issues automatically |
-| `npm run type-check` | Check TypeScript types |
-| `npm run test` | Run test suite |
-| `npm run test:coverage` | Run tests with coverage report |
-| `npm run format` | Format code with Prettier |
-| `npm run format:check` | Check code formatting |
-| `npm run ci` | Run all CI checks locally |
+| Command                 | Description                             |
+| ----------------------- | --------------------------------------- |
+| `npm run dev`           | Start development server with Turbopack |
+| `npm run build`         | Build for production                    |
+| `npm run start`         | Start production server                 |
+| `npm run lint`          | Run ESLint                              |
+| `npm run lint:fix`      | Fix ESLint issues automatically         |
+| `npm run type-check`    | Check TypeScript types                  |
+| `npm run test`          | Run test suite                          |
+| `npm run test:coverage` | Run tests with coverage report          |
+| `npm run format`        | Format code with Prettier               |
+| `npm run format:check`  | Check code formatting                   |
+| `npm run ci`            | Run all CI checks locally               |
 
 ## 🔧 Development
 
