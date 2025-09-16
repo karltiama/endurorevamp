@@ -92,4 +92,3 @@ When adding new scripts:
    - Use descriptive names
    - Include file extensions
    - Use kebab-case for multi-word names
-
