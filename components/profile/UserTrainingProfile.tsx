@@ -101,30 +101,38 @@ const analyzeTrainingProfile = (
     };
   }
 
-  const weeklyDistance =
-    activities.reduce((sum, activity) => sum + activity.distance, 0) / 1000; // Convert to km
-  const runningActivities = activities.filter(a => a.sport_type === 'Run');
-  const averagePace =
-    runningActivities.length > 0
-      ? runningActivities.reduce((sum, activity) => {
-          const pace = activity.moving_time / (activity.distance / 1000); // seconds per km
-          return sum + pace;
-        }, 0) / runningActivities.length
-      : 0;
-  const weeklyTSS = activities.slice(0, 10).reduce((sum, activity) => {
-    const tss =
-      (activity as ActivityWithTrainingData).training_stress_score ||
-      estimateTSS(activity);
-    return sum + tss;
-  }, 0);
-
-  // Calculate training frequency
+  // Calculate training frequency and filter recent activities (last 7 days)
   const recentActivities = activities.filter(a => {
     const activityDate = new Date(a.start_date);
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     return activityDate >= weekAgo;
   });
   const trainingFrequency = recentActivities.length;
+
+  // Calculate weekly distance from recent activities only
+  const weeklyDistance =
+    recentActivities.reduce((sum, activity) => sum + activity.distance, 0) /
+    1000; // Convert to km
+
+  // Calculate average pace from recent running activities
+  const recentRunningActivities = recentActivities.filter(
+    a => a.sport_type === 'Run'
+  );
+  const averagePace =
+    recentRunningActivities.length > 0
+      ? recentRunningActivities.reduce((sum, activity) => {
+          const pace = activity.moving_time / (activity.distance / 1000); // seconds per km
+          return sum + pace;
+        }, 0) / recentRunningActivities.length
+      : 0;
+
+  // Calculate weekly TSS from recent activities
+  const weeklyTSS = recentActivities.reduce((sum, activity) => {
+    const tss =
+      (activity as ActivityWithTrainingData).training_stress_score ||
+      estimateTSS(activity);
+    return sum + tss;
+  }, 0);
 
   // DYNAMIC ANALYSIS: Use personalized parameters
   const metricAnalysis = {
