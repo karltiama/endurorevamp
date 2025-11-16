@@ -39,7 +39,7 @@ import {
   ComposedChart,
   Bar,
 } from 'recharts';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, startOfWeek, addDays } from 'date-fns';
 
 interface TrainingLoadChartProps {
   userId: string;
@@ -55,19 +55,64 @@ export function TrainingLoadChart({
   const { data: trends } = useTrainingLoadTrends(userId, 90);
 
   const chartData = useMemo(() => {
-    if (!trends) return [];
+    if (!trends || trends.length === 0) {
+      console.log('No trends data available', { trends, hasData, isLoading });
+      return [];
+    }
 
-    return trends.map(trend => ({
-      date: trend.date,
-      formattedDate: format(parseISO(trend.date), 'MMM dd'),
-      dailyLoad: trend.dailyLoad,
-      atl: trend.atl,
-      ctl: trend.ctl,
-      tsb: trend.tsb,
-      trimp: trend.trimp,
-      tss: trend.tss,
-    }));
-  }, [trends]);
+    return trends.map(trend => {
+      // Determine load intensity zone for color coding
+      const loadZone = getLoadZone(trend.dailyLoad, trend.ctl);
+      
+      return {
+        date: trend.date,
+        formattedDate: format(parseISO(trend.date), 'MMM dd'),
+        dayOfWeek: format(parseISO(trend.date), 'EEE'),
+        dailyLoad: trend.dailyLoad,
+        atl: trend.atl,
+        ctl: trend.ctl,
+        tsb: trend.tsb,
+        trimp: trend.trimp,
+        tss: trend.tss,
+        loadZone,
+        isRestDay: trend.dailyLoad === 0,
+      };
+    });
+  }, [trends, hasData, isLoading]);
+
+  // Calculate weekly summaries
+  const weeklySummaries = useMemo(() => {
+    if (!chartData.length) return [];
+    
+    const weeks: Record<string, typeof chartData> = {};
+    chartData.forEach(day => {
+      const weekStart = getWeekStart(day.date);
+      if (!weeks[weekStart]) {
+        weeks[weekStart] = [];
+      }
+      weeks[weekStart].push(day);
+    });
+
+    return Object.entries(weeks)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .slice(0, 4) // Last 4 weeks
+      .map(([weekStart, days]) => {
+        const totalLoad = days.reduce((sum, d) => sum + d.dailyLoad, 0);
+        const avgLoad = totalLoad / days.length;
+        const trainingDays = days.filter(d => !d.isRestDay).length;
+        const restDays = days.filter(d => d.isRestDay).length;
+        
+        return {
+          weekStart,
+          weekLabel: format(parseISO(weekStart), 'MMM dd'),
+          totalLoad: Math.round(totalLoad),
+          avgLoad: Math.round(avgLoad),
+          trainingDays,
+          restDays,
+          days,
+        };
+      });
+  }, [chartData]);
 
   if (isLoading) {
     return (
@@ -122,6 +167,16 @@ export function TrainingLoadChart({
     activitiesWithPower,
   } = data!;
 
+  // Ensure metrics exist, provide fallback if missing
+  const safeMetrics = metrics || {
+    acute: 0,
+    chronic: 0,
+    balance: 0,
+    rampRate: 0,
+    status: 'recover',
+    recommendation: 'Insufficient data to calculate training load metrics',
+  };
+
   return (
     <TooltipProvider>
       <Card className={className}>
@@ -164,61 +219,123 @@ export function TrainingLoadChart({
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
-              <TrainingLoadMetrics metrics={metrics} />
+              <TrainingLoadMetrics metrics={safeMetrics} />
+              
+              {/* Weekly Summary Cards */}
+              {weeklySummaries.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {weeklySummaries.map((week, idx) => (
+                    <Card key={week.weekStart} className="border-l-4" style={{ borderLeftColor: idx === 0 ? '#10b981' : '#6b7280' }}>
+                      <CardContent className="p-4">
+                        <div className="text-xs text-muted-foreground mb-1">
+                          Week of {week.weekLabel}
+                          {idx === 0 && <Badge variant="secondary" className="ml-2 text-xs">Current</Badge>}
+                        </div>
+                        <div className="text-2xl font-bold mb-2">{week.totalLoad}</div>
+                        <div className="text-xs text-muted-foreground space-y-1">
+                          <div>Avg: {week.avgLoad} / day</div>
+                          <div className="flex items-center gap-4 mt-2">
+                            <span className="text-green-600">{week.trainingDays} training</span>
+                            <span className="text-gray-400">{week.restDays} rest</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
               {chartData.length > 0 && (
                 <div className="space-y-4">
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart
-                        data={chartData.slice(-30)}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                        <XAxis
-                          dataKey="formattedDate"
-                          tick={{ fontSize: 12 }}
-                          interval="preserveStartEnd"
-                        />
-                        <YAxis tick={{ fontSize: 12 }} />
-                        <Bar
-                          dataKey="dailyLoad"
-                          fill="#3b82f6"
-                          opacity={0.6}
-                          name="Daily Load"
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="ctl"
-                          stroke="#10b981"
-                          strokeWidth={2}
-                          dot={false}
-                          name="Fitness (CTL)"
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="atl"
-                          stroke="#f59e0b"
-                          strokeWidth={2}
-                          dot={false}
-                          name="Fatigue (ATL)"
-                        />
-                      </ComposedChart>
-                    </ResponsiveContainer>
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Last 30 Days - Color-Coded by Intensity</h4>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart
+                          data={chartData.slice(-30)}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                          <XAxis
+                            dataKey="formattedDate"
+                            tick={{ fontSize: 12 }}
+                            interval="preserveStartEnd"
+                          />
+                          <YAxis tick={{ fontSize: 12 }} />
+                          <Bar
+                            dataKey="dailyLoad"
+                            name="Daily Load"
+                            shape={(props: any) => {
+                              const { payload, x, y, width, height } = props;
+                              const color = getLoadZoneColor(payload.loadZone);
+                              return (
+                                <rect
+                                  x={x}
+                                  y={y}
+                                  width={width}
+                                  height={height}
+                                  fill={color}
+                                  opacity={payload.isRestDay ? 0.2 : 0.7}
+                                  rx={2}
+                                />
+                              );
+                            }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="ctl"
+                            stroke="#10b981"
+                            strokeWidth={2}
+                            dot={false}
+                            name="Fitness (CTL)"
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="atl"
+                            stroke="#f59e0b"
+                            strokeWidth={2}
+                            dot={false}
+                            name="Fatigue (ATL)"
+                          />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
 
-                  {/* Custom Legend */}
-                  <div className="flex flex-col gap-2 text-sm items-center">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-3 bg-blue-500 opacity-60 rounded-sm"></div>
-                      <span>Daily Load</span>
+                  {/* Enhanced Legend */}
+                  <div className="space-y-3">
+                    <div className="text-xs font-medium text-muted-foreground">Intensity Zones</div>
+                    <div className="flex flex-wrap gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#e5e7eb', opacity: 0.5 }}></div>
+                        <span>Rest Day</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#10b981', opacity: 0.7 }}></div>
+                        <span>Easy (&lt;50% CTL)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#3b82f6', opacity: 0.7 }}></div>
+                        <span>Moderate (50-100% CTL)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#f59e0b', opacity: 0.7 }}></div>
+                        <span>Hard (100-150% CTL)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#ef4444', opacity: 0.7 }}></div>
+                        <span>Very Hard (&gt;150% CTL)</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-0.5 bg-green-500 rounded-sm"></div>
-                      <span>Fitness (CTL)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-0.5 bg-amber-500 rounded-sm"></div>
-                      <span>Fatigue (ATL)</span>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-0.5 bg-green-500 rounded-sm"></div>
+                        <span>Fitness (CTL) - 42-day avg</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-0.5 bg-amber-500 rounded-sm"></div>
+                        <span>Fatigue (ATL) - 7-day avg</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -275,7 +392,7 @@ export function TrainingLoadChart({
 
                   <div className="h-64">
                     <h4 className="text-sm font-medium mb-2">
-                      Daily Training Load
+                      Daily Training Load (90 days)
                     </h4>
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
@@ -289,15 +406,24 @@ export function TrainingLoadChart({
                           interval={Math.floor(chartData.length / 6)}
                         />
                         <YAxis tick={{ fontSize: 12 }} />
+                        <defs>
+                          <linearGradient id="loadGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
+                            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.1} />
+                          </linearGradient>
+                        </defs>
                         <Area
                           type="monotone"
                           dataKey="dailyLoad"
                           stroke="#3b82f6"
-                          fill="#3b82f6"
-                          fillOpacity={0.3}
+                          fill="url(#loadGradient)"
+                          strokeWidth={2}
                         />
                       </AreaChart>
                     </ResponsiveContainer>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Shows all days including rest days (0 load) for complete training pattern visualization
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -372,6 +498,17 @@ function TrainingLoadMetrics({
 }: {
   metrics: TrainingLoadMetricsData;
 }) {
+  // Guard against missing or invalid metrics
+  if (!metrics || typeof metrics.acute !== 'number' || typeof metrics.chronic !== 'number') {
+    return (
+      <div className="text-center text-muted-foreground py-8">
+        <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
+        <p>Unable to calculate training load metrics</p>
+        <p className="text-sm">Please ensure you have activities with sufficient data</p>
+      </div>
+    );
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'peak':
@@ -611,4 +748,42 @@ function TrainingLoadExplanation() {
       </div>
     </div>
   );
+}
+
+// Helper function to determine load intensity zone
+function getLoadZone(dailyLoad: number, ctl: number): 'rest' | 'easy' | 'moderate' | 'hard' | 'very-hard' {
+  if (dailyLoad === 0) return 'rest';
+  
+  // Use CTL as baseline for relative intensity
+  const relativeLoad = dailyLoad / Math.max(ctl, 1);
+  
+  if (relativeLoad < 0.5) return 'easy';
+  if (relativeLoad < 1.0) return 'moderate';
+  if (relativeLoad < 1.5) return 'hard';
+  return 'very-hard';
+}
+
+// Helper function to get week start (Monday)
+function getWeekStart(dateString: string): string {
+  const date = parseISO(dateString);
+  const weekStart = startOfWeek(date, { weekStartsOn: 1 }); // Monday
+  return format(weekStart, 'yyyy-MM-dd');
+}
+
+// Get color for load zone
+function getLoadZoneColor(zone: string): string {
+  switch (zone) {
+    case 'rest':
+      return '#e5e7eb'; // gray
+    case 'easy':
+      return '#10b981'; // green
+    case 'moderate':
+      return '#3b82f6'; // blue
+    case 'hard':
+      return '#f59e0b'; // orange
+    case 'very-hard':
+      return '#ef4444'; // red
+    default:
+      return '#6b7280';
+  }
 }

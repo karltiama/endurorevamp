@@ -202,33 +202,94 @@ export function useTrainingLoadTrends(userId: string, days: number = 180) {
       trainingLoadData?.loadPoints.length,
     ],
     queryFn: () =>
-      calculateTrainingLoadTrends(trainingLoadData?.loadPoints || []),
-    enabled: !!trainingLoadData && trainingLoadData.loadPoints.length > 0,
+      calculateTrainingLoadTrends(trainingLoadData?.loadPoints || [], days),
+    enabled: !!trainingLoadData, // Enable even if loadPoints is empty to show rest days
     staleTime: 10 * 60 * 1000,
   });
 }
 
 /**
  * Calculate training load trends for visualization
- * Now works with aggregated daily load points
+ * Fills in all days in the date range (including rest days with 0 load)
+ * and calculates rolling averages over actual calendar days
  */
-function calculateTrainingLoadTrends(loadPoints: TrainingLoadPoint[]) {
-  if (loadPoints.length === 0) return [];
+function calculateTrainingLoadTrends(
+  loadPoints: TrainingLoadPoint[],
+  days: number = 90
+) {
+  // Even if loadPoints is empty, we should still return data for the date range
+  // to show rest days and allow the chart to display properly
 
-  // Calculate rolling averages for different time windows
-  const trends = loadPoints.map((point, index) => {
-    const date = new Date(point.date);
+  // Create a map of date -> load point for quick lookup
+  // Handle both date formats: "2024-01-15" and "2024-01-15T00:00:00Z"
+  const loadPointMap = new Map<string, TrainingLoadPoint>();
+  loadPoints.forEach(point => {
+    // Extract just the date part (YYYY-MM-DD) for consistent lookup
+    const dateKey = point.date.split('T')[0];
+    loadPointMap.set(dateKey, point);
+  });
 
-    // 7-day rolling average (ATL) - exponentially weighted
-    const sevenDayStart = Math.max(0, index - 6);
-    const sevenDayPoints = loadPoints.slice(sevenDayStart, index + 1);
+  // Calculate date range: last N days from today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Start of today
+  const startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - (days - 1)); // Include today, so (days - 1) back
+  
+  // Fill in all days in the range
+  const allDays: Array<{ date: string; point: TrainingLoadPoint | null }> = [];
+  const currentDate = new Date(startDate);
+  
+  while (currentDate <= today) {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    const point = loadPointMap.get(dateStr) || null;
+    
+    // Create a zero-load point for rest days
+    const zeroPoint: TrainingLoadPoint = {
+      date: dateStr,
+      trimp: 0,
+      tss: 0,
+      normalizedLoad: 0,
+    };
+    
+    allDays.push({
+      date: dateStr,
+      point: point || zeroPoint,
+    });
+    
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  // Calculate rolling averages over actual calendar days
+  const trends = allDays.map((day, index) => {
+    const point = day.point!;
+    const date = new Date(day.date);
+
+    // 7-day rolling average (ATL) - over actual calendar days
+    const sevenDaysAgo = new Date(date);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // Include today, so 6 days back
+    
+    const sevenDayPoints = allDays
+      .filter(d => {
+        const dDate = new Date(d.date);
+        return dDate >= sevenDaysAgo && dDate <= date;
+      })
+      .map(d => d.point!);
+    
     const atl =
       sevenDayPoints.reduce((sum, p) => sum + p.normalizedLoad, 0) /
       sevenDayPoints.length;
 
-    // 42-day rolling average (CTL) - exponentially weighted
-    const fortyTwoDayStart = Math.max(0, index - 41);
-    const fortyTwoDayPoints = loadPoints.slice(fortyTwoDayStart, index + 1);
+    // 42-day rolling average (CTL) - over actual calendar days
+    const fortyTwoDaysAgo = new Date(date);
+    fortyTwoDaysAgo.setDate(fortyTwoDaysAgo.getDate() - 41); // Include today, so 41 days back
+    
+    const fortyTwoDayPoints = allDays
+      .filter(d => {
+        const dDate = new Date(d.date);
+        return dDate >= fortyTwoDaysAgo && dDate <= date;
+      })
+      .map(d => d.point!);
+    
     const ctl =
       fortyTwoDayPoints.reduce((sum, p) => sum + p.normalizedLoad, 0) /
       fortyTwoDayPoints.length;
@@ -237,7 +298,7 @@ function calculateTrainingLoadTrends(loadPoints: TrainingLoadPoint[]) {
     const tsb = ctl - atl;
 
     return {
-      date: date.toISOString().split('T')[0],
+      date: day.date,
       dailyLoad: point.normalizedLoad,
       atl: Math.round(atl),
       ctl: Math.round(ctl),
