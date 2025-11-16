@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useUserActivities } from '@/hooks/use-user-activities';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
-import { formatDistance, formatPace } from '@/lib/utils';
+import { formatDistance, formatPace, type DistanceUnit, type PaceUnit } from '@/lib/utils';
 import { Activity as StravaActivity } from '@/lib/strava/types';
 import { ActivityWithTrainingData } from '@/types';
 import { AnalysisParametersService } from '@/lib/training/analysis-parameters-service';
@@ -82,7 +82,8 @@ const defaultParams = {
 
 const analyzeTrainingProfile = (
   activities: StravaActivity[],
-  analysisParams: Record<string, number>
+  analysisParams: Record<string, number>,
+  preferences: { distance: DistanceUnit; pace: PaceUnit }
 ): TrainingProfile => {
   if (!activities || activities.length === 0) {
     return {
@@ -155,10 +156,10 @@ const analyzeTrainingProfile = (
               analysisParams.distance_target_multiplier,
       improvement:
         weeklyDistance < analysisParams.distance_beginner_threshold
-          ? `Build weekly distance to ${analysisParams.distance_beginner_threshold}-${analysisParams.distance_intermediate_threshold}km`
+          ? `Build weekly distance to ${formatDistance(analysisParams.distance_beginner_threshold * 1000, preferences.distance)}-${formatDistance(analysisParams.distance_intermediate_threshold * 1000, preferences.distance)}`
           : weeklyDistance < analysisParams.distance_intermediate_threshold
-            ? `Increase to ${analysisParams.distance_intermediate_threshold}-${analysisParams.distance_advanced_threshold}km per week`
-            : `Consider ${analysisParams.distance_advanced_threshold}+km for elite training`,
+            ? `Increase to ${formatDistance(analysisParams.distance_intermediate_threshold * 1000, preferences.distance)}-${formatDistance(analysisParams.distance_advanced_threshold * 1000, preferences.distance)} per week`
+            : `Consider ${formatDistance(analysisParams.distance_advanced_threshold * 1000, preferences.distance)}+ for elite training`,
     },
 
     // Pace analysis
@@ -301,12 +302,12 @@ const analyzeTrainingProfile = (
       switch (metric) {
         case 'distance':
           strengths.push(
-            `Strong weekly distance (${analysis.value.toFixed(1)}km)`
+            `Strong weekly distance (${formatDistance(analysis.value * 1000, preferences.distance)})`
           );
           break;
         case 'pace':
           strengths.push(
-            `Good running pace (${(analysis.value / 60).toFixed(1)} min/km)`
+            `Good running pace (${formatPace(analysis.value, preferences.pace)})`
           );
           break;
         case 'frequency':
@@ -523,7 +524,8 @@ export function UserTrainingProfile({ userId }: UserTrainingProfileProps) {
 
   const profile = analyzeTrainingProfile(
     activities || [],
-    analysisParams || defaultParams
+    analysisParams || defaultParams,
+    preferences
   );
 
   if (isLoading || !profile) {
