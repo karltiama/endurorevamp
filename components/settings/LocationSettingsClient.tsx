@@ -13,7 +13,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MapPin, Navigation, Trash2, Plus, Edit, Check, X, Search, Loader2 } from 'lucide-react';
+import {
+  MapPin,
+  Navigation,
+  Trash2,
+  Plus,
+  Edit,
+  Check,
+  X,
+  Search,
+  Loader2,
+} from 'lucide-react';
 import { useLocation } from '@/hooks/useLocation';
 
 interface SavedLocation {
@@ -53,11 +63,13 @@ export function LocationSettingsClient() {
     lon: '',
   });
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Array<{
-    display_name: string;
-    lat: string;
-    lon: string;
-  }>>([]);
+  const [searchResults, setSearchResults] = useState<
+    Array<{
+      display_name: string;
+      lat: string;
+      lon: string;
+    }>
+  >([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [setAsCurrent, setSetAsCurrent] = useState(true); // Default to true
@@ -213,7 +225,7 @@ export function LocationSettingsClient() {
     // Extract a shorter name from the display name (usually "City, Country" or "Address, City")
     const nameParts = result.display_name.split(',');
     const shortName = nameParts[0].trim();
-    
+
     setFormData({
       name: shortName,
       lat: result.lat,
@@ -352,7 +364,7 @@ export function LocationSettingsClient() {
                   {isSearching && (
                     <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 animate-spin" />
                   )}
-                  
+
                   {/* Search Results Dropdown */}
                   {showSearchResults && searchResults.length > 0 && (
                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -370,7 +382,11 @@ export function LocationSettingsClient() {
                                 {result.display_name.split(',')[0]}
                               </div>
                               <div className="text-xs text-gray-500 truncate">
-                                {result.display_name.split(',').slice(1).join(',').trim()}
+                                {result.display_name
+                                  .split(',')
+                                  .slice(1)
+                                  .join(',')
+                                  .trim()}
                               </div>
                             </div>
                           </div>
@@ -380,7 +396,8 @@ export function LocationSettingsClient() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Search for a place by name, or enter coordinates manually below
+                  Search for a place by name, or enter coordinates manually
+                  below
                 </p>
               </div>
 
@@ -439,7 +456,10 @@ export function LocationSettingsClient() {
                     onChange={e => setSetAsCurrent(e.target.checked)}
                     className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <Label htmlFor="setAsCurrent" className="text-sm font-normal cursor-pointer">
+                  <Label
+                    htmlFor="setAsCurrent"
+                    className="text-sm font-normal cursor-pointer"
+                  >
                     Set as current location
                   </Label>
                 </div>

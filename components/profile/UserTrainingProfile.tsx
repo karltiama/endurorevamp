@@ -20,7 +20,12 @@ import {
 } from 'lucide-react';
 import { useUserActivities } from '@/hooks/use-user-activities';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
-import { formatDistance, formatPace, type DistanceUnit, type PaceUnit } from '@/lib/utils';
+import {
+  formatDistance,
+  formatPace,
+  type DistanceUnit,
+  type PaceUnit,
+} from '@/lib/utils';
 import { Activity as StravaActivity } from '@/lib/strava/types';
 import { ActivityWithTrainingData } from '@/types';
 import { AnalysisParametersService } from '@/lib/training/analysis-parameters-service';

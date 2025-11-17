@@ -63,7 +63,7 @@ export function TrainingLoadChart({
     return trends.map(trend => {
       // Determine load intensity zone for color coding
       const loadZone = getLoadZone(trend.dailyLoad, trend.ctl);
-      
+
       return {
         date: trend.date,
         formattedDate: format(parseISO(trend.date), 'MMM dd'),
@@ -83,7 +83,7 @@ export function TrainingLoadChart({
   // Calculate weekly summaries
   const weeklySummaries = useMemo(() => {
     if (!chartData.length) return [];
-    
+
     const weeks: Record<string, typeof chartData> = {};
     chartData.forEach(day => {
       const weekStart = getWeekStart(day.date);
@@ -101,7 +101,7 @@ export function TrainingLoadChart({
         const avgLoad = totalLoad / days.length;
         const trainingDays = days.filter(d => !d.isRestDay).length;
         const restDays = days.filter(d => d.isRestDay).length;
-        
+
         return {
           weekStart,
           weekLabel: format(parseISO(weekStart), 'MMM dd'),
@@ -220,23 +220,39 @@ export function TrainingLoadChart({
 
             <TabsContent value="overview" className="space-y-6">
               <TrainingLoadMetrics metrics={safeMetrics} />
-              
+
               {/* Weekly Summary Cards */}
               {weeklySummaries.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {weeklySummaries.map((week, idx) => (
-                    <Card key={week.weekStart} className="border-l-4" style={{ borderLeftColor: idx === 0 ? '#10b981' : '#6b7280' }}>
+                    <Card
+                      key={week.weekStart}
+                      className="border-l-4"
+                      style={{
+                        borderLeftColor: idx === 0 ? '#10b981' : '#6b7280',
+                      }}
+                    >
                       <CardContent className="p-4">
                         <div className="text-xs text-muted-foreground mb-1">
                           Week of {week.weekLabel}
-                          {idx === 0 && <Badge variant="secondary" className="ml-2 text-xs">Current</Badge>}
+                          {idx === 0 && (
+                            <Badge variant="secondary" className="ml-2 text-xs">
+                              Current
+                            </Badge>
+                          )}
                         </div>
-                        <div className="text-2xl font-bold mb-2">{week.totalLoad}</div>
+                        <div className="text-2xl font-bold mb-2">
+                          {week.totalLoad}
+                        </div>
                         <div className="text-xs text-muted-foreground space-y-1">
                           <div>Avg: {week.avgLoad} / day</div>
                           <div className="flex items-center gap-4 mt-2">
-                            <span className="text-green-600">{week.trainingDays} training</span>
-                            <span className="text-gray-400">{week.restDays} rest</span>
+                            <span className="text-green-600">
+                              {week.trainingDays} training
+                            </span>
+                            <span className="text-gray-400">
+                              {week.restDays} rest
+                            </span>
                           </div>
                         </div>
                       </CardContent>
@@ -248,7 +264,9 @@ export function TrainingLoadChart({
               {chartData.length > 0 && (
                 <div className="space-y-4">
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Last 30 Days - Color-Coded by Intensity</h4>
+                    <h4 className="text-sm font-medium mb-2">
+                      Last 30 Days - Color-Coded by Intensity
+                    </h4>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart
@@ -268,7 +286,12 @@ export function TrainingLoadChart({
                             shape={(props: unknown) => {
                               const typedProps = props as {
                                 payload: {
-                                  loadZone: 'rest' | 'easy' | 'moderate' | 'hard' | 'very-hard';
+                                  loadZone:
+                                    | 'rest'
+                                    | 'easy'
+                                    | 'moderate'
+                                    | 'hard'
+                                    | 'very-hard';
                                   isRestDay: boolean;
                                 };
                                 x: number;
@@ -276,7 +299,8 @@ export function TrainingLoadChart({
                                 width: number;
                                 height: number;
                               };
-                              const { payload, x, y, width, height } = typedProps;
+                              const { payload, x, y, width, height } =
+                                typedProps;
                               const color = getLoadZoneColor(payload.loadZone);
                               return (
                                 <rect
@@ -314,26 +338,43 @@ export function TrainingLoadChart({
 
                   {/* Enhanced Legend */}
                   <div className="space-y-3">
-                    <div className="text-xs font-medium text-muted-foreground">Intensity Zones</div>
+                    <div className="text-xs font-medium text-muted-foreground">
+                      Intensity Zones
+                    </div>
                     <div className="flex flex-wrap gap-4 text-sm">
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#e5e7eb', opacity: 0.5 }}></div>
+                        <div
+                          className="w-4 h-3 rounded-sm"
+                          style={{ backgroundColor: '#e5e7eb', opacity: 0.5 }}
+                        ></div>
                         <span>Rest Day</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#10b981', opacity: 0.7 }}></div>
+                        <div
+                          className="w-4 h-3 rounded-sm"
+                          style={{ backgroundColor: '#10b981', opacity: 0.7 }}
+                        ></div>
                         <span>Easy (&lt;50% CTL)</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#3b82f6', opacity: 0.7 }}></div>
+                        <div
+                          className="w-4 h-3 rounded-sm"
+                          style={{ backgroundColor: '#3b82f6', opacity: 0.7 }}
+                        ></div>
                         <span>Moderate (50-100% CTL)</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#f59e0b', opacity: 0.7 }}></div>
+                        <div
+                          className="w-4 h-3 rounded-sm"
+                          style={{ backgroundColor: '#f59e0b', opacity: 0.7 }}
+                        ></div>
                         <span>Hard (100-150% CTL)</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#ef4444', opacity: 0.7 }}></div>
+                        <div
+                          className="w-4 h-3 rounded-sm"
+                          style={{ backgroundColor: '#ef4444', opacity: 0.7 }}
+                        ></div>
                         <span>Very Hard (&gt;150% CTL)</span>
                       </div>
                     </div>
@@ -417,9 +458,23 @@ export function TrainingLoadChart({
                         />
                         <YAxis tick={{ fontSize: 12 }} />
                         <defs>
-                          <linearGradient id="loadGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
-                            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.1} />
+                          <linearGradient
+                            id="loadGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="0%"
+                              stopColor="#3b82f6"
+                              stopOpacity={0.4}
+                            />
+                            <stop
+                              offset="100%"
+                              stopColor="#3b82f6"
+                              stopOpacity={0.1}
+                            />
                           </linearGradient>
                         </defs>
                         <Area
@@ -432,7 +487,8 @@ export function TrainingLoadChart({
                       </AreaChart>
                     </ResponsiveContainer>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Shows all days including rest days (0 load) for complete training pattern visualization
+                      Shows all days including rest days (0 load) for complete
+                      training pattern visualization
                     </p>
                   </div>
                 </div>
@@ -509,12 +565,18 @@ function TrainingLoadMetrics({
   metrics: TrainingLoadMetricsData;
 }) {
   // Guard against missing or invalid metrics
-  if (!metrics || typeof metrics.acute !== 'number' || typeof metrics.chronic !== 'number') {
+  if (
+    !metrics ||
+    typeof metrics.acute !== 'number' ||
+    typeof metrics.chronic !== 'number'
+  ) {
     return (
       <div className="text-center text-muted-foreground py-8">
         <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
         <p>Unable to calculate training load metrics</p>
-        <p className="text-sm">Please ensure you have activities with sufficient data</p>
+        <p className="text-sm">
+          Please ensure you have activities with sufficient data
+        </p>
       </div>
     );
   }
@@ -761,12 +823,15 @@ function TrainingLoadExplanation() {
 }
 
 // Helper function to determine load intensity zone
-function getLoadZone(dailyLoad: number, ctl: number): 'rest' | 'easy' | 'moderate' | 'hard' | 'very-hard' {
+function getLoadZone(
+  dailyLoad: number,
+  ctl: number
+): 'rest' | 'easy' | 'moderate' | 'hard' | 'very-hard' {
   if (dailyLoad === 0) return 'rest';
-  
+
   // Use CTL as baseline for relative intensity
   const relativeLoad = dailyLoad / Math.max(ctl, 1);
-  
+
   if (relativeLoad < 0.5) return 'easy';
   if (relativeLoad < 1.0) return 'moderate';
   if (relativeLoad < 1.5) return 'hard';

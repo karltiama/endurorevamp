@@ -234,15 +234,15 @@ function calculateTrainingLoadTrends(
   today.setHours(0, 0, 0, 0); // Start of today
   const startDate = new Date(today);
   startDate.setDate(startDate.getDate() - (days - 1)); // Include today, so (days - 1) back
-  
+
   // Fill in all days in the range
   const allDays: Array<{ date: string; point: TrainingLoadPoint | null }> = [];
   const currentDate = new Date(startDate);
-  
+
   while (currentDate <= today) {
     const dateStr = currentDate.toISOString().split('T')[0];
     const point = loadPointMap.get(dateStr) || null;
-    
+
     // Create a zero-load point for rest days
     const zeroPoint: TrainingLoadPoint = {
       date: dateStr,
@@ -250,12 +250,12 @@ function calculateTrainingLoadTrends(
       tss: 0,
       normalizedLoad: 0,
     };
-    
+
     allDays.push({
       date: dateStr,
       point: point || zeroPoint,
     });
-    
+
     currentDate.setDate(currentDate.getDate() + 1);
   }
 
@@ -267,14 +267,14 @@ function calculateTrainingLoadTrends(
     // 7-day rolling average (ATL) - over actual calendar days
     const sevenDaysAgo = new Date(date);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // Include today, so 6 days back
-    
+
     const sevenDayPoints = allDays
       .filter(d => {
         const dDate = new Date(d.date);
         return dDate >= sevenDaysAgo && dDate <= date;
       })
       .map(d => d.point!);
-    
+
     const atl =
       sevenDayPoints.reduce((sum, p) => sum + p.normalizedLoad, 0) /
       sevenDayPoints.length;
@@ -282,14 +282,14 @@ function calculateTrainingLoadTrends(
     // 42-day rolling average (CTL) - over actual calendar days
     const fortyTwoDaysAgo = new Date(date);
     fortyTwoDaysAgo.setDate(fortyTwoDaysAgo.getDate() - 41); // Include today, so 41 days back
-    
+
     const fortyTwoDayPoints = allDays
       .filter(d => {
         const dDate = new Date(d.date);
         return dDate >= fortyTwoDaysAgo && dDate <= date;
       })
       .map(d => d.point!);
-    
+
     const ctl =
       fortyTwoDayPoints.reduce((sum, p) => sum + p.normalizedLoad, 0) /
       fortyTwoDayPoints.length;
