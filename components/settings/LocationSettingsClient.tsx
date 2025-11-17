@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MapPin, Navigation, Trash2, Plus, Edit, Check, X } from 'lucide-react';
+import { MapPin, Navigation, Trash2, Plus, Edit, Check, X, Search, Loader2 } from 'lucide-react';
 import { useLocation } from '@/hooks/useLocation';
 
 interface SavedLocation {
@@ -52,6 +52,17 @@ export function LocationSettingsClient() {
     lat: '',
     lon: '',
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Array<{
+    display_name: string;
+    lat: string;
+    lon: string;
+  }>>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [setAsCurrent, setSetAsCurrent] = useState(true); // Default to true
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const saveLocations = (locations: SavedLocation[]) => {
     try {
@@ -78,7 +89,16 @@ export function LocationSettingsClient() {
       const updated = [...savedLocations, newLocation];
       saveLocations(updated);
 
+      // Set as current location if checkbox is checked
+      if (setAsCurrent) {
+        setManualLocation(lat, lon, formData.name.trim());
+      }
+
       setFormData({ name: '', lat: '', lon: '' });
+      setSearchQuery('');
+      setSearchResults([]);
+      setShowSearchResults(false);
+      setSetAsCurrent(true); // Reset to default
       setShowAddForm(false);
     }
   };
@@ -110,6 +130,98 @@ export function LocationSettingsClient() {
 
   const handleSetAsCurrent = (savedLocation: SavedLocation) => {
     setManualLocation(savedLocation.lat, savedLocation.lon, savedLocation.name);
+  };
+
+  // Search for locations using OpenStreetMap Nominatim API
+  const searchLocations = async (query: string) => {
+    if (!query.trim() || query.length < 3) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // Use Nominatim API (free, no API key required)
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'EnduroRevamp/1.0', // Required by Nominatim
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data);
+        setShowSearchResults(true);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Error searching locations:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    // Debounce search
+    searchTimeoutRef.current = setTimeout(() => {
+      searchLocations(value);
+    }, 300);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSelectSearchResult = (result: {
+    display_name: string;
+    lat: string;
+    lon: string;
+  }) => {
+    // Extract a shorter name from the display name (usually "City, Country" or "Address, City")
+    const nameParts = result.display_name.split(',');
+    const shortName = nameParts[0].trim();
+    
+    setFormData({
+      name: shortName,
+      lat: result.lat,
+      lon: result.lon,
+    });
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowSearchResults(false);
   };
 
   const handleRequestGPSLocation = async () => {
@@ -217,6 +329,61 @@ export function LocationSettingsClient() {
               }
               className="space-y-4"
             >
+              {/* Location Search */}
+              <div className="space-y-2">
+                <Label htmlFor="locationSearch">Search for a Location</Label>
+                <div className="relative" ref={searchContainerRef}>
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="locationSearch"
+                    value={searchQuery}
+                    onChange={e => {
+                      const value = e.target.value;
+                      handleSearchChange(value);
+                    }}
+                    onFocus={() => {
+                      if (searchResults.length > 0) {
+                        setShowSearchResults(true);
+                      }
+                    }}
+                    placeholder="Search for a city, address, or place..."
+                    className="pl-10"
+                  />
+                  {isSearching && (
+                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 animate-spin" />
+                  )}
+                  
+                  {/* Search Results Dropdown */}
+                  {showSearchResults && searchResults.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {searchResults.map((result, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => handleSelectSearchResult(result)}
+                          className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                        >
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate">
+                                {result.display_name.split(',')[0]}
+                              </div>
+                              <div className="text-xs text-gray-500 truncate">
+                                {result.display_name.split(',').slice(1).join(',').trim()}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Search for a place by name, or enter coordinates manually below
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="locationName">Location Name</Label>
                 <Input
@@ -225,7 +392,7 @@ export function LocationSettingsClient() {
                   onChange={e =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  placeholder="e.g., Home, Work, Gym"
+                  placeholder="e.g., Home, Work, Gym, or city name"
                   required
                 />
               </div>
@@ -241,7 +408,7 @@ export function LocationSettingsClient() {
                     onChange={e =>
                       setFormData({ ...formData, lat: e.target.value })
                     }
-                    placeholder="51.5074"
+                    placeholder="Auto-filled from search"
                     required
                   />
                 </div>
@@ -256,11 +423,27 @@ export function LocationSettingsClient() {
                     onChange={e =>
                       setFormData({ ...formData, lon: e.target.value })
                     }
-                    placeholder="-0.1278"
+                    placeholder="Auto-filled from search"
                     required
                   />
                 </div>
               </div>
+
+              {/* Set as current location checkbox - only show when adding new location */}
+              {!editingLocation && (
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="setAsCurrent"
+                    checked={setAsCurrent}
+                    onChange={e => setSetAsCurrent(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <Label htmlFor="setAsCurrent" className="text-sm font-normal cursor-pointer">
+                    Set as current location
+                  </Label>
+                </div>
+              )}
 
               <div className="flex gap-2">
                 <Button type="submit" size="sm">
@@ -275,6 +458,10 @@ export function LocationSettingsClient() {
                     setShowAddForm(false);
                     setEditingLocation(null);
                     setFormData({ name: '', lat: '', lon: '' });
+                    setSearchQuery('');
+                    setSearchResults([]);
+                    setShowSearchResults(false);
+                    setSetAsCurrent(true); // Reset to default
                   }}
                 >
                   <X className="h-4 w-4 mr-2" />
@@ -332,6 +519,9 @@ export function LocationSettingsClient() {
                           lat: savedLocation.lat.toString(),
                           lon: savedLocation.lon.toString(),
                         });
+                        setSearchQuery('');
+                        setSearchResults([]);
+                        setShowSearchResults(false);
                       }}
                       size="sm"
                       variant="outline"
