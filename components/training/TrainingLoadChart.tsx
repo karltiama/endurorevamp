@@ -39,7 +39,7 @@ import {
   ComposedChart,
   Bar,
 } from 'recharts';
-import { format, parseISO, startOfWeek, addDays } from 'date-fns';
+import { format, parseISO, startOfWeek } from 'date-fns';
 
 interface TrainingLoadChartProps {
   userId: string;
@@ -265,8 +265,18 @@ export function TrainingLoadChart({
                           <Bar
                             dataKey="dailyLoad"
                             name="Daily Load"
-                            shape={(props: any) => {
-                              const { payload, x, y, width, height } = props;
+                            shape={(props: unknown) => {
+                              const typedProps = props as {
+                                payload: {
+                                  loadZone: 'rest' | 'easy' | 'moderate' | 'hard' | 'very-hard';
+                                  isRestDay: boolean;
+                                };
+                                x: number;
+                                y: number;
+                                width: number;
+                                height: number;
+                              };
+                              const { payload, x, y, width, height } = typedProps;
                               const color = getLoadZoneColor(payload.loadZone);
                               return (
                                 <rect
