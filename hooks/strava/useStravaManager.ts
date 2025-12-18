@@ -205,7 +205,7 @@ export function useStravaManager(): UseStravaManagerReturn {
 
   // Sync mutation
   const {
-    mutate: triggerSync,
+    mutate: triggerSyncMutation,
     isPending: isSyncing,
     error: syncMutationError,
     data: syncResult,
@@ -235,6 +235,14 @@ export function useStravaManager(): UseStravaManagerReturn {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
+
+  // Wrap triggerSyncMutation to match the interface signature
+  const triggerSync = useCallback(
+    (options?: SyncOptions) => {
+      triggerSyncMutation(options ?? {});
+    },
+    [triggerSyncMutation]
+  );
 
   // Action callbacks
   const refreshConnection = useCallback(async () => {
@@ -288,25 +296,25 @@ export function useStravaManager(): UseStravaManagerReturn {
 
   // Helper sync methods
   const syncLatest = useCallback(
-    () => triggerSync({ maxActivities: 50 }),
-    [triggerSync]
+    () => triggerSyncMutation({ maxActivities: 50 }),
+    [triggerSyncMutation]
   );
   const syncLastWeek = useCallback(
-    () => triggerSync({ sinceDays: 7, maxActivities: 100 }),
-    [triggerSync]
+    () => triggerSyncMutation({ sinceDays: 7, maxActivities: 100 }),
+    [triggerSyncMutation]
   );
   const syncLastMonth = useCallback(
-    () => triggerSync({ sinceDays: 30, maxActivities: 200 }),
-    [triggerSync]
+    () => triggerSyncMutation({ sinceDays: 30, maxActivities: 200 }),
+    [triggerSyncMutation]
   );
   const forceFullSync = useCallback(
     () =>
-      triggerSync({
+      triggerSyncMutation({
         forceRefresh: true,
         maxActivities: 200,
         sinceDays: 90,
       }),
-    [triggerSync]
+    [triggerSyncMutation]
   );
 
   // Error handling
