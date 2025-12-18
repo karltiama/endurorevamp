@@ -30,6 +30,29 @@ updates:
         update-types: ['version-update:semver-major']
       - dependency-name: '@supabase/ssr'
         update-types: ['version-update:semver-major']
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'jest'
+        update-types: ['version-update:semver-major']
+    groups:
+      # Group safe UI and utility library updates to reduce PR noise
+      # These are low-risk dependencies that can be reviewed together
+      safe-ui-updates:
+        patterns:
+          - '@radix-ui/*'
+          - 'lucide-react'
+          - 'tailwind-merge'
+        update-types:
+          - 'minor'
+          - 'patch'
+      safe-utility-updates:
+        patterns:
+          - 'date-fns'
+          - 'clsx'
+          - 'class-variance-authority'
+        update-types:
+          - 'minor'
+          - 'patch'
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: 'github-actions'
