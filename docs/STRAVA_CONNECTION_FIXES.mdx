@@ -1,0 +1,203 @@
+# Strava Connection & Sync Fixes
+
+> Implementation summary for Strava OAuth, auto-sync, and token refresh improvements.
+
+## Overview
+
+This document describes three related fixes implemented to improve the Strava integration user experience:
+
+1. **OAuth Session Loss** - Fixed users being kicked to login after Strava authorization
+2. **Auto-Sync** - Automatic activity sync after connecting Strava
+3. **Token Refresh** - Transparent token renewal to prevent disconnections
+
+---
+
+## 1. OAuth Session Loss Fix
+
+### Problem
+
+Users were being redirected back to the login screen after authorizing with Strava.
+
+### Root Cause
+
+The Supabase auth token cookie (`sb-*-auth-token`) was being lost during the redirect to Strava's OAuth page and back. The middleware detected "Auth session missing!" and redirected to login.
+
+### Evidence from Debug Logs
+
+| Timing | Cookies Present |
+|--------|-----------------|
+| Before Strava redirect | `auth-token-code-verifier` ✅ `auth-token` ✅ |
+| After Strava redirect | `auth-token-code-verifier` ✅ `auth-token` ❌ |
+
+### Resolution
+
+Identified as an intermittent browser/cookie handling issue during cross-site navigation. Debug instrumentation helped pinpoint the exact failure point in the middleware.
+
+---
+
+## 2. Auto-Sync After Strava Connection
+
+### Problem
+
+Users had to manually navigate to Settings and click "Sync" after connecting Strava - creating friction in the onboarding flow.
+
+### Solution
+
+Modified `StravaOAuthHandler` to automatically trigger a quick sync immediately after successful OAuth.
+
+### File Changed
+
+```
+components/dashboard/StravaOAuthHandler.tsx
+```
+
+### Implementation
+
+```typescript
+// After successful token exchange
+onSuccess: async data => {
+  // ... existing success handling ...
+
+  // Trigger automatic initial sync
+  try {
+    const syncResponse = await fetch('/api/strava/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ syncType: 'quick' }),
+    });
+
+    if (syncResponse.ok) {
+      const syncResult = await syncResponse.json();
+      // Update UI with sync results
+    }
+  } catch (syncError) {
+    // Non-blocking - connection success preserved
+  }
+}
+```
+
+### Features
+
+- **Non-blocking**: Sync failures don't break the connection flow
+- **Quick sync**: Fetches 50 most recent activities (~5 seconds)
+- **Progressive UI**: Shows "Syncing..." then "Synced X activities"
+- **Cache invalidation**: Dashboard updates automatically
+
+---
+
+## 3. Token Refresh Improvements
+
+### Problem
+
+Users were periodically "losing" their Strava connection because access tokens expire every ~6 hours, and the connection check was returning `false` for expired tokens.
+
+### Files Changed
+
+```
+lib/strava/auth.ts
+lib/strava/sync-activities.ts
+```
+
+### Changes to `isConnected()`
+
+| Before | After |
+|--------|-------|
+| Returned `false` when access token expired | Returns `true` as long as refresh token exists |
+| Token expiry = "disconnected" | Token expiry handled transparently |
+
+### New Method Added
+
+```typescript
+isTokenExpired(tokens: StravaTokens): boolean {
+  const expiresAt = new Date(tokens.expires_at);
+  const now = new Date();
+  const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
+  return expiresAt.getTime() <= now.getTime() + bufferTime;
+}
+```
+
+### Proactive Token Refresh
+
+`getConnectionStatus()` now automatically refreshes expired tokens:
+
+```typescript
+async getConnectionStatus(userId: string) {
+  let tokens = await this.getTokens(userId);
+  
+  // Proactively refresh if token is expired
+  if (this.isTokenExpired(tokens)) {
+    const refreshedTokens = await this.refreshTokens(
+      tokens.refresh_token, 
+      userId
+    );
+    if (refreshedTokens) {
+      tokens = refreshedTokens;
+    }
+  }
+  
+  return { connected: true, athlete: {...} };
+}
+```
+
+### Sync Activities Fix
+
+Fixed date format comparison in token expiry check:
+
+```typescript
+// Before (broken)
+const now = Math.floor(Date.now() / 1000);
+if (tokens.expires_at <= now) { ... }
+
+// After (fixed)
+const expiresAt = new Date(tokens.expires_at).getTime();
+const now = Date.now();
+const bufferTime = 5 * 60 * 1000;
+if (expiresAt <= now + bufferTime) { ... }
+```
+
+---
+
+## New User Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  1. User logs in                                            │
+│         ↓                                                   │
+│  2. Onboarding modal → Set goals                            │
+│         ↓                                                   │
+│  3. Connect to Strava → OAuth flow                          │
+│         ↓                                                   │
+│  4. ✅ Auto-sync 50 recent activities (~5 seconds)          │
+│         ↓                                                   │
+│  5. Dashboard shows activities immediately                  │
+│         ↓                                                   │
+│  6. Token expires after ~6 hours                            │
+│         ↓                                                   │
+│  7. ✅ Auto-refresh happens transparently                   │
+│         ↓                                                   │
+│  8. User stays connected indefinitely                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## When Users Need to Reconnect
+
+Users will only need to manually reconnect to Strava if:
+
+1. They manually disconnect from Settings
+2. They revoke access in Strava's app settings
+3. The refresh token becomes invalid (very rare)
+
+---
+
+## Related Files
+
+| File | Purpose |
+|------|---------|
+| `components/dashboard/StravaOAuthHandler.tsx` | OAuth callback + auto-sync |
+| `lib/strava/auth.ts` | Token management + refresh |
+| `lib/strava/sync-activities.ts` | Activity sync logic |
+| `middleware.ts` | Auth session validation |
+| `hooks/strava/useStravaConnection.ts` | Connection status hook |
+

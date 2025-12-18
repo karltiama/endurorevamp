@@ -92,16 +92,18 @@ export async function syncStravaActivities(
     const supabase = await createClient();
 
     // Get user's Strava tokens
-    let { data: tokens, error: tokenError } = await supabase
+    const { data: initialTokens, error: tokenError } = await supabase
       .from('strava_tokens')
       .select('*')
       .eq('user_id', userId)
       .single();
 
-    if (tokenError || !tokens) {
+    if (tokenError || !initialTokens) {
       result.errors.push('No Strava tokens found for user');
       return result;
     }
+
+    let tokens = initialTokens;
 
     // Check if token needs refresh (expires_at is stored as ISO string)
     const expiresAt = new Date(tokens.expires_at).getTime();
