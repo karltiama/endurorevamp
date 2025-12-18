@@ -92,7 +92,7 @@ export async function syncStravaActivities(
     const supabase = await createClient();
 
     // Get user's Strava tokens
-    const { data: tokens, error: tokenError } = await supabase
+    let { data: tokens, error: tokenError } = await supabase
       .from('strava_tokens')
       .select('*')
       .eq('user_id', userId)
@@ -103,9 +103,13 @@ export async function syncStravaActivities(
       return result;
     }
 
-    // Check if token needs refresh
-    const now = Math.floor(Date.now() / 1000);
-    if (tokens.expires_at <= now || forceRefresh) {
+    // Check if token needs refresh (expires_at is stored as ISO string)
+    const expiresAt = new Date(tokens.expires_at).getTime();
+    const now = Date.now();
+    const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
+    
+    if (expiresAt <= now + bufferTime || forceRefresh) {
+      console.log('🔄 Token expired or expiring soon, refreshing...');
       const refreshResult = await refreshStravaToken(
         userId,
         tokens.refresh_token
@@ -115,6 +119,17 @@ export async function syncStravaActivities(
         return result;
       }
       result.tokenRefreshed = true;
+      
+      // Re-fetch tokens to get the updated access token
+      const { data: refreshedTokens } = await supabase
+        .from('strava_tokens')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (refreshedTokens) {
+        tokens = refreshedTokens;
+      }
     }
 
     // Fetch activities from Strava based on sync type

@@ -140,6 +140,52 @@ export function StravaOAuthHandler() {
             }),
           ]);
 
+          // Trigger automatic initial sync of activities (non-blocking)
+          try {
+            console.log('🔄 Starting automatic initial sync...');
+            setAuthStatus({
+              status: 'success',
+              message: 'Connected! Syncing your activities...',
+            });
+            
+            const syncResponse = await fetch('/api/strava/sync', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ syncType: 'quick' }),
+            });
+
+            if (syncResponse.ok) {
+              const syncResult = await syncResponse.json();
+              console.log('✅ Initial sync completed:', syncResult);
+              
+              // Update message with sync results
+              const newCount = syncResult.data?.newActivities || 0;
+              setAuthStatus({
+                status: 'success',
+                message: newCount > 0 
+                  ? `Connected! Synced ${newCount} activities.`
+                  : 'Connected! Your activities are up to date.',
+              });
+              
+              // Invalidate activity-related queries to refresh the dashboard
+              await queryClient.invalidateQueries({ queryKey: ['activities'] });
+              await queryClient.invalidateQueries({ queryKey: ['strava-sync'] });
+            } else {
+              console.warn('Initial sync returned non-ok status:', syncResponse.status);
+              setAuthStatus({
+                status: 'success',
+                message: 'Connected to Strava! You can sync activities from Settings.',
+              });
+            }
+          } catch (syncError) {
+            console.warn('Initial sync failed (non-blocking):', syncError);
+            // Keep the success message - sync failure shouldn't break the connection success
+            setAuthStatus({
+              status: 'success',
+              message: 'Connected to Strava! You can sync activities from Settings.',
+            });
+          }
+
           // Check if user came from onboarding demo and redirect back
           const fromOnboardingDemo = sessionStorage.getItem(
             'from_onboarding_demo'

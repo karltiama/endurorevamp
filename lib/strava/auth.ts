@@ -100,23 +100,28 @@ export class StravaAuth {
   }
 
   /**
-   * Check if user is connected to Strava and tokens are valid
+   * Check if user is connected to Strava
+   * Returns true if we have tokens (refresh token can renew expired access tokens)
    */
   async isConnected(userId: string): Promise<boolean> {
     try {
       const tokens = await this.getTokens(userId);
-      if (!tokens) return false;
-
-      // Check if tokens are expired
-      const expiresAt = new Date(tokens.expires_at);
-      const now = new Date();
-      const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
-
-      return expiresAt.getTime() > now.getTime() + bufferTime;
+      // User is connected if we have tokens - the refresh token can always renew access
+      return tokens !== null && !!tokens.refresh_token;
     } catch (error) {
       console.error('Error checking Strava connection:', error);
       return false;
     }
+  }
+
+  /**
+   * Check if access token is expired or expiring soon
+   */
+  isTokenExpired(tokens: StravaTokens): boolean {
+    const expiresAt = new Date(tokens.expires_at);
+    const now = new Date();
+    const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
+    return expiresAt.getTime() <= now.getTime() + bufferTime;
   }
 
   /**
@@ -153,7 +158,7 @@ export class StravaAuth {
   /**
    * Refresh expired tokens
    */
-  private async refreshTokens(
+  async refreshTokens(
     refreshToken: string,
     userId: string
   ): Promise<StravaTokens | null> {
@@ -226,6 +231,7 @@ export class StravaAuth {
 
   /**
    * Get connection status with user info
+   * Proactively refreshes expired tokens to maintain connection
    */
   async getConnectionStatus(userId: string): Promise<{
     connected: boolean;
@@ -239,14 +245,30 @@ export class StravaAuth {
   }> {
     try {
       console.log('🔍 Checking connection status for user:', userId);
-      const tokens = await this.getTokens(userId);
+      let tokens = await this.getTokens(userId);
 
       if (!tokens) {
         console.log('❌ No tokens found for user');
         return { connected: false };
       }
 
-      console.log('✅ Tokens found, checking if connected...');
+      // Proactively refresh if token is expired or expiring soon
+      if (this.isTokenExpired(tokens)) {
+        console.log('🔄 Token expired, attempting proactive refresh...');
+        try {
+          const refreshedTokens = await this.refreshTokens(tokens.refresh_token, userId);
+          if (refreshedTokens) {
+            tokens = refreshedTokens;
+            console.log('✅ Token refreshed successfully');
+          } else {
+            console.log('⚠️ Token refresh returned null, using existing tokens');
+          }
+        } catch (refreshError) {
+          console.warn('⚠️ Proactive token refresh failed:', refreshError);
+          // Don't disconnect - the refresh token might still be valid for later
+        }
+      }
+
       const connected = await this.isConnected(userId);
       console.log(
         '🔗 Connection status:',
