@@ -213,9 +213,8 @@ describe('TrainingReadinessCard', () => {
     expect(screen.getByText('Training Readiness')).toBeInTheDocument();
 
     // Check for empty state message
-    expect(
-      screen.getByText('No recent activity data available')
-    ).toBeInTheDocument();
+    expect(screen.getByText('No Activity Data Yet')).toBeInTheDocument();
+    expect(screen.getByText('Connect Strava')).toBeInTheDocument();
   });
 
   it('displays TSS balance information', () => {
@@ -368,9 +367,8 @@ describe('TrainingReadinessCard', () => {
     expect(screen.getByText('Training Readiness')).toBeInTheDocument();
 
     // Check for empty state message
-    expect(
-      screen.getByText('No recent activity data available')
-    ).toBeInTheDocument();
+    expect(screen.getByText('No Activity Data Yet')).toBeInTheDocument();
+    expect(screen.getByText('Connect Strava')).toBeInTheDocument();
   });
 
   it('displays weekly TSS progress', () => {

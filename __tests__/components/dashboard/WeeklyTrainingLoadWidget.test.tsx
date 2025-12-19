@@ -447,9 +447,7 @@ describe('WeeklyTrainingLoadWidget', () => {
 
     renderComponent({ userId: 'user-1' });
 
-    expect(
-      screen.getByText('No training data for this week')
-    ).toBeInTheDocument();
+    expect(screen.getByText('No Training Data')).toBeInTheDocument();
     expect(screen.getByText('Refresh Data')).toBeInTheDocument();
   });
 

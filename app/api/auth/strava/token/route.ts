@@ -86,6 +86,25 @@ export async function PUT() {
       );
     }
 
+    // Validate environment variables
+    const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+    const clientSecret = process.env.STRAVA_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      console.error('❌ Missing Strava credentials:', {
+        hasClientId: !!clientId,
+        hasClientSecret: !!clientSecret,
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Strava credentials not configured. Please check STRAVA_CLIENT_ID and STRAVA_CLIENT_SECRET environment variables.',
+        },
+        { status: 500 }
+      );
+    }
+
     // Refresh tokens with Strava
     console.log('🔄 Refreshing Strava tokens for user:', user.id);
     const refreshResponse = await fetch('https://www.strava.com/oauth/token', {
@@ -94,8 +113,8 @@ export async function PUT() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        client_id: process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID,
-        client_secret: process.env.STRAVA_CLIENT_SECRET,
+        client_id: clientId,
+        client_secret: clientSecret,
         grant_type: 'refresh_token',
         refresh_token: tokens.refresh_token,
       }),
@@ -122,6 +141,22 @@ export async function PUT() {
             success: false,
             error:
               'Token refresh failed. Please reconnect your Strava account.',
+          },
+          { status: refreshResponse.status }
+        );
+      }
+
+      // Check for client_secret validation errors
+      if (errorText.includes('client_secret') && errorText.includes('invalid')) {
+        console.error(
+          '❌ Invalid client_secret. Please verify STRAVA_CLIENT_SECRET environment variable matches your Strava app settings.'
+        );
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              'Invalid Strava client secret. Please check your STRAVA_CLIENT_SECRET environment variable matches your Strava app credentials.',
+            retryable: false,
           },
           { status: refreshResponse.status }
         );
@@ -244,6 +279,24 @@ export async function POST(request: Request) {
 
     console.log('👤 User authenticated:', user.id);
 
+    // Validate environment variables
+    const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+    const clientSecret = process.env.STRAVA_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      console.error('❌ Missing Strava credentials:', {
+        hasClientId: !!clientId,
+        hasClientSecret: !!clientSecret,
+      });
+      return NextResponse.json(
+        {
+          error:
+            'Strava credentials not configured. Please check STRAVA_CLIENT_ID and STRAVA_CLIENT_SECRET environment variables.',
+        },
+        { status: 500 }
+      );
+    }
+
     // Exchange code for tokens with Strava
     console.log('🌐 Calling Strava token endpoint...');
     const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
@@ -252,8 +305,8 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        client_id: process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID,
-        client_secret: process.env.STRAVA_CLIENT_SECRET,
+        client_id: clientId,
+        client_secret: clientSecret,
         code,
         grant_type: 'authorization_code',
       }),

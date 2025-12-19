@@ -8,6 +8,7 @@ import { WeatherWidgetEnhanced } from '@/components/weather/WeatherWidgetEnhance
 import { QuickActionsSection } from '@/components/dashboard/QuickActionsSection';
 import { DashboardGoalsSection } from '@/components/dashboard/DashboardGoalsSection';
 import { StravaOAuthHandler } from '@/components/dashboard/StravaOAuthHandler';
+import { DashboardStravaPrompt } from '@/components/dashboard/DashboardStravaPrompt';
 
 import {
   TrainingReadinessSkeleton,
@@ -48,6 +49,9 @@ export default async function DashboardPage() {
             What should you do today? Your personalized training insights.
           </p>
         </div>
+
+        {/* Strava Connection Prompt - Shows if not connected or no activities */}
+        <DashboardStravaPrompt />
 
         {/* Primary Training Readiness - Full width for emphasis */}
         <ErrorBoundary fallback={TrainingReadinessErrorFallback}>

@@ -269,9 +269,20 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-6 text-gray-500">
-            <Activity className="h-10 w-10 mx-auto mb-3 opacity-50" />
-            <p>No recent activity data available</p>
+          <div className="text-center py-6">
+            <Activity className="h-10 w-10 mx-auto mb-3 opacity-50 text-gray-400" />
+            <p className="text-gray-600 font-medium mb-2">No Activity Data Yet</p>
+            <p className="text-sm text-gray-500 mb-4">
+              Connect Strava to start tracking your training readiness and recovery
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push('/dashboard/settings')}
+              className="text-xs"
+            >
+              Connect Strava
+            </Button>
           </div>
         </CardContent>
       </Card>

@@ -29,6 +29,27 @@ export function StravaOAuthHandler() {
   // Use ref to prevent multiple processing of the same code
   const processedCodeRef = useRef<string | null>(null);
   const isProcessingRef = useRef(false);
+  const hasValidatedTokenRef = useRef(false);
+
+  // Validate token on mount
+  useEffect(() => {
+    if (!user || hasValidatedTokenRef.current) return;
+
+    hasValidatedTokenRef.current = true;
+
+    fetch('/api/auth/strava/token')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.has_strava_tokens && data.authenticated) {
+          console.log('⚠️ User authenticated but no valid Strava tokens found');
+        } else if (data.has_strava_tokens) {
+          console.log('✅ Strava tokens validated on dashboard mount');
+        }
+      })
+      .catch(err => {
+        console.warn('Token validation failed (non-blocking):', err);
+      });
+  }, [user]);
 
   const cleanUpUrl = useCallback(() => {
     const newUrl = new URL(window.location.href);

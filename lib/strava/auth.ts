@@ -165,14 +165,28 @@ export class StravaAuth {
     try {
       console.log('🔄 Refreshing Strava tokens for user:', userId);
 
+      // Validate environment variables
+      const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
+      const clientSecret = process.env.STRAVA_CLIENT_SECRET;
+
+      if (!clientId || !clientSecret) {
+        console.error('❌ Missing Strava credentials:', {
+          hasClientId: !!clientId,
+          hasClientSecret: !!clientSecret,
+        });
+        throw new Error(
+          'Strava credentials not configured. Please check STRAVA_CLIENT_ID and STRAVA_CLIENT_SECRET environment variables.'
+        );
+      }
+
       const response = await fetch('https://www.strava.com/oauth/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          client_id: process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID,
-          client_secret: process.env.STRAVA_CLIENT_SECRET,
+          client_id: clientId,
+          client_secret: clientSecret,
           grant_type: 'refresh_token',
           refresh_token: refreshToken,
         }),
@@ -181,6 +195,19 @@ export class StravaAuth {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ Token refresh failed:', response.status, errorText);
+
+        // Check for client_secret validation errors
+        if (
+          errorText.includes('client_secret') &&
+          errorText.includes('invalid')
+        ) {
+          console.error(
+            '❌ Invalid client_secret. Please verify STRAVA_CLIENT_SECRET environment variable matches your Strava app settings.'
+          );
+          throw new Error(
+            'Invalid Strava client secret. Please check your STRAVA_CLIENT_SECRET environment variable matches your Strava app credentials.'
+          );
+        }
 
         // Only disconnect on specific error types, not all failures
         if (response.status === 400 && errorText.includes('invalid_grant')) {

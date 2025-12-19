@@ -259,21 +259,33 @@ export function WeeklyTrainingLoadWidget({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-6 text-gray-500">
-            <Activity className="h-10 w-10 mx-auto mb-3 opacity-50" />
-            <p>No training data for this week</p>
-            <Button
-              onClick={handleRefresh}
-              variant="outline"
-              size="sm"
-              className="mt-3"
-              disabled={isRefetching}
-            >
-              <RefreshCw
-                className={`h-4 w-4 mr-2 ${isRefetching ? 'animate-spin' : ''}`}
-              />
-              {isRefetching ? 'Refreshing...' : 'Refresh Data'}
-            </Button>
+          <div className="text-center py-6">
+            <Activity className="h-10 w-10 mx-auto mb-3 opacity-50 text-gray-400" />
+            <p className="text-gray-600 font-medium mb-2">No Training Data</p>
+            <p className="text-sm text-gray-500 mb-4">
+              Sync your activities to see weekly progress
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={handleRefresh}
+                variant="outline"
+                size="sm"
+                disabled={isRefetching}
+              >
+                <RefreshCw
+                  className={`h-4 w-4 mr-2 ${isRefetching ? 'animate-spin' : ''}`}
+                />
+                {isRefetching ? 'Refreshing...' : 'Refresh Data'}
+              </Button>
+              <Button
+                onClick={() => window.location.href = '/dashboard/settings'}
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+              >
+                Connect Strava
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
