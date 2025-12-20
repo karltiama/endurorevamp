@@ -5,16 +5,13 @@ import { useState } from 'react';
 import { useDynamicGoals } from '@/hooks/useDynamicGoals';
 import { useAuth } from '@/providers/AuthProvider';
 import { useGoalsContext } from '@/components/goals/GoalsProvider';
+import { GoalsHero } from '@/components/dashboard/GoalsHero';
 import { UserGoal } from '@/types/goals';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Target,
-  Trophy,
-  Calendar,
-  TrendingUp,
-  Plus,
   Zap,
   Sparkles,
   Brain,
@@ -85,36 +82,12 @@ export function GoalsPageClient() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Goals</h1>
-          <p className="text-muted-foreground">
-            Track your running progress and achieve your targets
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefreshGoals}
-            disabled={refreshing}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw
-              className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`}
-            />
-            Refresh
-          </Button>
-          <Button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add Goal
-          </Button>
-        </div>
-      </div>
+      {/* Hero Section */}
+      <GoalsHero
+        onAddGoal={() => setShowAddModal(true)}
+        onRefresh={handleRefreshGoals}
+        refreshing={refreshing}
+      />
 
       <Tabs defaultValue="goals" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
@@ -133,86 +106,6 @@ export function GoalsPageClient() {
         </TabsList>
 
         <TabsContent value="goals" className="space-y-6">
-          {/* Overview Cards */}
-          <div className="grid gap-6 md:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Active Goals
-                </CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{activeGoals.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Currently tracking
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Completed</CardTitle>
-                <Trophy className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {completedGoals.length}
-                </div>
-                <p className="text-xs text-muted-foreground">Goals achieved</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Success Rate
-                </CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {activeGoals.length + completedGoals.length > 0
-                    ? Math.round(
-                        (completedGoals.length /
-                          (activeGoals.length + completedGoals.length)) *
-                          100
-                      )
-                    : 0}
-                  %
-                </div>
-                <p className="text-xs text-muted-foreground">Completion rate</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Avg Progress
-                </CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {activeGoals.length > 0
-                    ? Math.round(
-                        activeGoals.reduce((sum, goal) => {
-                          const progress = goal.target_value
-                            ? (goal.current_progress / goal.target_value) * 100
-                            : 0;
-                          return sum + progress;
-                        }, 0) / activeGoals.length
-                      )
-                    : 0}
-                  %
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Across active goals
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Active Goals Section */}
           {isLoading ? (
             <div className="space-y-6">

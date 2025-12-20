@@ -1,8 +1,11 @@
 import { requireAuth } from '@/lib/auth/server';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import { TrainingHero } from '@/components/dashboard/TrainingHero';
 import ZoneAnalysisDashboard from '@/components/training/ZoneAnalysisDashboard';
 import { TrainingLoadChartClient } from '@/components/training/TrainingLoadChartClient';
+import { TrainingHeroErrorFallback } from '@/components/dashboard/DashboardErrorFallbacks';
 import { Suspense } from 'react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default async function TrainingPage() {
   const user = await requireAuth();
@@ -10,12 +13,16 @@ export default async function TrainingPage() {
   return (
     <DashboardLayout user={user}>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Training Load</h1>
-          <p className="text-muted-foreground">
-            Analyze your training zones and load distribution.
-          </p>
-        </div>
+        {/* Hero Section with Training Overview */}
+        <ErrorBoundary fallback={TrainingHeroErrorFallback}>
+          <Suspense
+            fallback={
+              <div className="h-[220px] w-full animate-pulse bg-muted rounded-xl" />
+            }
+          >
+            <TrainingHero userId={user.id} />
+          </Suspense>
+        </ErrorBoundary>
 
         {/* Training Load Analysis */}
         <Suspense fallback={<TrainingLoadSkeleton />}>

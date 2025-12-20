@@ -1,8 +1,8 @@
 import { requireAuth } from '@/lib/auth/server';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { TrainingReadinessCard } from '@/components/dashboard/TrainingReadinessCard';
+import { TrainingCommandHero } from '@/components/dashboard/TrainingCommandHero';
+import { ConsolidatedAnalyticsCard } from '@/components/dashboard/ConsolidatedAnalyticsCard';
 import { WeeklyTrainingLoadWidget } from '@/components/dashboard/WeeklyTrainingLoadWidget';
-import { PerformanceInsightsCard } from '@/components/dashboard/PerformanceInsightsCard';
 
 import { WeatherWidgetEnhanced } from '@/components/weather/WeatherWidgetEnhanced';
 import { QuickActionsSection } from '@/components/dashboard/QuickActionsSection';
@@ -13,14 +13,12 @@ import { DashboardStravaPrompt } from '@/components/dashboard/DashboardStravaPro
 import {
   TrainingReadinessSkeleton,
   TrainingLoadSkeleton,
-  PerformanceInsightsSkeleton,
   QuickActionsSkeleton,
   GoalsSkeleton,
 } from '@/components/dashboard/DashboardSkeletons';
 import {
   TrainingReadinessErrorFallback,
   TrainingLoadErrorFallback,
-  PerformanceInsightsErrorFallback,
   QuickActionsErrorFallback,
   GoalsErrorFallback,
 } from '@/components/dashboard/DashboardErrorFallbacks';
@@ -40,48 +38,48 @@ export default async function DashboardPage() {
       <StravaOAuthHandler />
 
       <div className="space-y-6">
-        {/* Header - More compact */}
-        <div className="pb-2">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Training Command Center
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            What should you do today? Your personalized training insights.
-          </p>
-        </div>
-
         {/* Strava Connection Prompt - Shows if not connected or no activities */}
         <DashboardStravaPrompt />
 
-        {/* Primary Training Readiness - Full width for emphasis */}
+        {/* SECTION 1: Training Command Hero - "Am I ready to train today?" */}
         <ErrorBoundary fallback={TrainingReadinessErrorFallback}>
           <Suspense fallback={<TrainingReadinessSkeleton />}>
-            <TrainingReadinessCard userId={user.id} />
+            <TrainingCommandHero userId={user.id} />
           </Suspense>
         </ErrorBoundary>
 
-        {/* Simplified three-column layout for quick status check */}
+        {/* Main Content Grid: Left content (2/3) + Right Sidebar (1/3) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Weekly Progress - Simplified */}
-          <div className="flex flex-col h-full min-h-[200px]">
-            <ErrorBoundary fallback={TrainingLoadErrorFallback}>
-              <Suspense fallback={<TrainingLoadSkeleton />}>
-                <WeeklyTrainingLoadWidget userId={user.id} />
+          {/* LEFT COLUMN: Main Content (2/3 width) */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* SECTION 2: Key Metrics - "What's my current status?" */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Weekly Training Load */}
+              <ErrorBoundary fallback={TrainingLoadErrorFallback}>
+                <Suspense fallback={<TrainingLoadSkeleton />}>
+                  <WeeklyTrainingLoadWidget userId={user.id} />
+                </Suspense>
+              </ErrorBoundary>
+
+              {/* Consolidated Analytics */}
+              <ErrorBoundary fallback={TrainingReadinessErrorFallback}>
+                <Suspense fallback={<TrainingReadinessSkeleton />}>
+                  <ConsolidatedAnalyticsCard userId={user.id} />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+
+            {/* SECTION 3: Goals - "What are my objectives?" */}
+            <ErrorBoundary fallback={GoalsErrorFallback}>
+              <Suspense fallback={<GoalsSkeleton />}>
+                <DashboardGoalsSection />
               </Suspense>
             </ErrorBoundary>
           </div>
 
-          {/* Performance Status - Simplified */}
-          <div className="flex flex-col h-full min-h-[200px]">
-            <ErrorBoundary fallback={PerformanceInsightsErrorFallback}>
-              <Suspense fallback={<PerformanceInsightsSkeleton />}>
-                <PerformanceInsightsCard userId={user.id} />
-              </Suspense>
-            </ErrorBoundary>
-          </div>
-
-          {/* Weather Conditions - Simplified */}
-          <div className="flex flex-col h-full min-h-[200px]">
+          {/* RIGHT SIDEBAR: Context & Actions (1/3 width) */}
+          <div className="flex flex-col gap-4">
+            {/* Weather - Contextual information */}
             <ErrorBoundary fallback={WeatherErrorFallback}>
               <Suspense fallback={<WeatherSkeleton />}>
                 <WeatherWidgetEnhanced
@@ -91,24 +89,14 @@ export default async function DashboardPage() {
                 />
               </Suspense>
             </ErrorBoundary>
+
+            {/* Quick Actions - "What should I do next?" */}
+            <ErrorBoundary fallback={QuickActionsErrorFallback}>
+              <Suspense fallback={<QuickActionsSkeleton />}>
+                <QuickActionsSection userId={user.id} />
+              </Suspense>
+            </ErrorBoundary>
           </div>
-        </div>
-
-        {/* Goals and Actions - Combined in single row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Dynamic Goals Section */}
-          <ErrorBoundary fallback={GoalsErrorFallback}>
-            <Suspense fallback={<GoalsSkeleton />}>
-              <DashboardGoalsSection />
-            </Suspense>
-          </ErrorBoundary>
-
-          {/* Quick Actions */}
-          <ErrorBoundary fallback={QuickActionsErrorFallback}>
-            <Suspense fallback={<QuickActionsSkeleton />}>
-              <QuickActionsSection userId={user.id} />
-            </Suspense>
-          </ErrorBoundary>
         </div>
       </div>
     </DashboardLayout>

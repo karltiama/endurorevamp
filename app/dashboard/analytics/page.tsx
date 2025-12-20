@@ -1,11 +1,13 @@
 import { requireAuth } from '@/lib/auth/server';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-// Removed unused import
+import { AnalyticsHero } from '@/components/dashboard/AnalyticsHero';
 import { PersonalBestsClient } from '@/components/analytics/PersonalBestsClient';
 import { HistoricalTrendsClient } from '@/components/analytics/HistoricalTrendsClient';
 import { HashScrollHandler } from '@/components/HashScrollHandler';
+import { AnalyticsHeroErrorFallback } from '@/components/dashboard/DashboardErrorFallbacks';
 import { Suspense } from 'react';
 import { AnalyticsSyncPrompt } from '@/components/analytics/AnalyticsSyncPrompt';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default async function AnalyticsPage() {
   const user = await requireAuth();
@@ -14,14 +16,16 @@ export default async function AnalyticsPage() {
     <DashboardLayout user={user}>
       <HashScrollHandler />
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Performance Analytics
-          </h1>
-          <p className="text-muted-foreground">
-            Deep insights into your training performance and achievements.
-          </p>
-        </div>
+        {/* Hero Section with Performance Overview */}
+        <ErrorBoundary fallback={AnalyticsHeroErrorFallback}>
+          <Suspense
+            fallback={
+              <div className="h-[220px] w-full animate-pulse bg-muted rounded-xl" />
+            }
+          >
+            <AnalyticsHero userId={user.id} />
+          </Suspense>
+        </ErrorBoundary>
 
         {/* Sync Prompt - Shows when no activities */}
         <Suspense fallback={null}>

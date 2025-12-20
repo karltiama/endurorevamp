@@ -1,7 +1,10 @@
 import { requireAuth } from '@/lib/auth/server';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import { PlanningHeroWrapper } from '@/components/planning/PlanningHeroWrapper';
 import { EnhancedWorkoutPlanningClient } from '@/components/planning/EnhancedWorkoutPlanningClient';
+import { PlanningHeroErrorFallback } from '@/components/dashboard/DashboardErrorFallbacks';
 import { Suspense } from 'react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default async function PlanningPage() {
   const user = await requireAuth();
@@ -9,16 +12,16 @@ export default async function PlanningPage() {
   return (
     <DashboardLayout user={user}>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Workout Planning
-          </h1>
-          <p className="text-muted-foreground">
-            Get intelligent workout recommendations with modal editing.
-            Customize your weekly plan through a simple, reliable interface
-            based on your training load, goals, and preferences.
-          </p>
-        </div>
+        {/* Hero Section with Weekly Plan Overview */}
+        <ErrorBoundary fallback={PlanningHeroErrorFallback}>
+          <Suspense
+            fallback={
+              <div className="h-[220px] w-full animate-pulse bg-muted rounded-xl" />
+            }
+          >
+            <PlanningHeroWrapper userId={user.id} />
+          </Suspense>
+        </ErrorBoundary>
 
         <Suspense fallback={<EnhancedWorkoutPlanningSkeleton />}>
           <EnhancedWorkoutPlanningClient />
