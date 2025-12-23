@@ -122,9 +122,20 @@ describe('StravaConnectionStatus', () => {
       const connectButton = screen.getByRole('button', {
         name: /connect to strava/i,
       });
+      
+      // Suppress the expected JSDOM error about read-only href
+      // This is expected behavior in JSDOM and doesn't affect the test
+      const originalError = console.error;
+      const errorSpy = jest.fn();
+      console.error = errorSpy;
+      
       fireEvent.click(connectButton);
 
-      expect(mockGetStravaAuthUrl).toHaveBeenCalled();
+      // Verify the important behavior: getStravaAuthUrl was called
+      expect(mockGetStravaAuthUrl).toHaveBeenCalledWith('http://localhost');
+      
+      // Restore console.error
+      console.error = originalError;
     });
   });
 

@@ -2,7 +2,6 @@ import { requireAuth } from '@/lib/auth/server';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { TrainingCommandHero } from '@/components/dashboard/TrainingCommandHero';
 import { ConsolidatedAnalyticsCard } from '@/components/dashboard/ConsolidatedAnalyticsCard';
-import { WeeklyTrainingLoadWidget } from '@/components/dashboard/WeeklyTrainingLoadWidget';
 
 import { WeatherWidgetEnhanced } from '@/components/weather/WeatherWidgetEnhanced';
 import { QuickActionsSection } from '@/components/dashboard/QuickActionsSection';
@@ -12,13 +11,11 @@ import { DashboardStravaPrompt } from '@/components/dashboard/DashboardStravaPro
 
 import {
   TrainingReadinessSkeleton,
-  TrainingLoadSkeleton,
   QuickActionsSkeleton,
   GoalsSkeleton,
 } from '@/components/dashboard/DashboardSkeletons';
 import {
   TrainingReadinessErrorFallback,
-  TrainingLoadErrorFallback,
   QuickActionsErrorFallback,
   GoalsErrorFallback,
 } from '@/components/dashboard/DashboardErrorFallbacks';
@@ -37,7 +34,7 @@ export default async function DashboardPage() {
       {/* Handle Strava OAuth callbacks */}
       <StravaOAuthHandler />
 
-      <div className="space-y-6">
+      <div className="space-y-6 pb-8">
         {/* Strava Connection Prompt - Shows if not connected or no activities */}
         <DashboardStravaPrompt />
 
@@ -52,22 +49,12 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* LEFT COLUMN: Main Content (2/3 width) */}
           <div className="lg:col-span-2 space-y-4">
-            {/* SECTION 2: Key Metrics - "What's my current status?" */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Weekly Training Load */}
-              <ErrorBoundary fallback={TrainingLoadErrorFallback}>
-                <Suspense fallback={<TrainingLoadSkeleton />}>
-                  <WeeklyTrainingLoadWidget userId={user.id} />
-                </Suspense>
-              </ErrorBoundary>
-
-              {/* Consolidated Analytics */}
-              <ErrorBoundary fallback={TrainingReadinessErrorFallback}>
-                <Suspense fallback={<TrainingReadinessSkeleton />}>
-                  <ConsolidatedAnalyticsCard userId={user.id} />
-                </Suspense>
-              </ErrorBoundary>
-            </div>
+            {/* SECTION 2: Training Insights - "What's my current status?" */}
+            <ErrorBoundary fallback={TrainingReadinessErrorFallback}>
+              <Suspense fallback={<TrainingReadinessSkeleton />}>
+                <ConsolidatedAnalyticsCard userId={user.id} />
+              </Suspense>
+            </ErrorBoundary>
 
             {/* SECTION 3: Goals - "What are my objectives?" */}
             <ErrorBoundary fallback={GoalsErrorFallback}>

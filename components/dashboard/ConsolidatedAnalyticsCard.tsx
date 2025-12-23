@@ -10,7 +10,6 @@ import {
   TrendingUp,
   Activity,
   Zap,
-  Target,
   BarChart3,
   Calendar,
 } from 'lucide-react';
@@ -124,7 +123,7 @@ export function ConsolidatedAnalyticsCard({ userId }: ConsolidatedAnalyticsCardP
   if (!metrics) return null;
 
   return (
-    <Card className="h-full border-none shadow-md">
+    <Card className="border-none shadow-md">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
@@ -142,20 +141,32 @@ export function ConsolidatedAnalyticsCard({ userId }: ConsolidatedAnalyticsCardP
           <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-1">
             <Calendar className="h-3 w-3" /> Daily TSS Distribution
           </h4>
-          <div className="flex items-end justify-between h-20 gap-1 px-2">
-            {metrics.dailyTSS.map((day, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div 
-                  className="w-full bg-blue-100 rounded-t-sm hover:bg-blue-200 transition-colors relative group"
-                  style={{ height: `${Math.min(100, (day.tss / 150) * 100)}%` }}
-                >
-                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                    {day.tss} TSS
+          <div className="flex items-end justify-between h-32 gap-1.5 px-2">
+            {metrics.dailyTSS.map((day, i) => {
+              const maxTSS = Math.max(...metrics.dailyTSS.map(d => d.tss), 1);
+              const heightPercent = maxTSS > 0 ? (day.tss / maxTSS) * 100 : 0;
+              // Use pixel-based minimum heights for better visibility
+              const minHeightPx = day.tss > 0 ? 12 : 4; // 12px for days with data, 4px for empty days
+              const maxHeightPx = 120; // Container is 128px (h-32)
+              const calculatedHeight = (heightPercent / 100) * maxHeightPx;
+              const finalHeight = day.tss > 0 ? Math.max(minHeightPx, calculatedHeight) : minHeightPx;
+              
+              return (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                  <div 
+                    className={`w-full rounded-t transition-colors relative group ${
+                      day.tss > 0 ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-300'
+                    }`}
+                    style={{ height: `${finalHeight}px` }}
+                  >
+                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                      {day.tss} TSS
+                    </div>
                   </div>
+                  <span className="text-[10px] font-medium text-gray-500">{day.day[0]}</span>
                 </div>
-                <span className="text-[10px] font-medium text-gray-400">{day.day[0]}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

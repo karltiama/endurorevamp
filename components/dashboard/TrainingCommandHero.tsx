@@ -1,15 +1,9 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useUserActivities } from '@/hooks/use-user-activities';
 import { usePersonalizedTSSTarget } from '@/hooks/useTrainingProfile';
 import { useMemo } from 'react';
@@ -17,12 +11,10 @@ import { useRouter } from 'next/navigation';
 import {
   Battery,
   Heart,
-  Zap,
   AlertTriangle,
   CheckCircle,
   Clock,
   Activity,
-  Info,
   Target,
   BarChart3,
 } from 'lucide-react';
@@ -278,4 +270,7 @@ export function TrainingCommandHero({ userId }: TrainingCommandHeroProps) {
     </Card>
   );
 }
+
+
+
 

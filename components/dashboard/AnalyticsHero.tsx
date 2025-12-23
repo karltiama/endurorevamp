@@ -234,7 +234,7 @@ export function AnalyticsHero({ userId }: AnalyticsHeroProps) {
             {analytics.avgPace > 0 ? (
               <>
                 <div className="text-2xl font-bold text-green-900">
-                  {formatPace(analytics.avgPace, preferences.distance)}
+                  {formatPace(analytics.avgPace, preferences.pace)}
                 </div>
                 <div
                   className={`text-xs font-bold mt-1 flex items-center gap-1 ${getTrendColor(analytics.paceChange)}`}

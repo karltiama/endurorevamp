@@ -1,7 +1,6 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useGoalsContext } from '@/components/goals/GoalsProvider';
 import { useMemo } from 'react';
@@ -16,7 +15,6 @@ import {
   CheckCircle,
   Clock,
 } from 'lucide-react';
-import { toast } from 'sonner';
 
 interface GoalsHeroProps {
   onAddGoal: () => void;

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useUserActivities } from '@/hooks/use-user-activities';
 import { useUnitPreferences } from '@/hooks/useUnitPreferences';
-import { formatDistance, formatDuration } from '@/lib/utils';
+import { formatDistance } from '@/lib/utils';
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -15,7 +15,6 @@ import {
   Clock,
   MapPin,
   Zap,
-  BarChart3,
 } from 'lucide-react';
 
 interface ActivitiesHeroProps {

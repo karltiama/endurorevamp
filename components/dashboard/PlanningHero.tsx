@@ -22,9 +22,7 @@ import {
   Sun,
   CloudRain,
   Wind,
-  Thermometer,
 } from 'lucide-react';
-import { formatTemperature } from '@/lib/utils';
 
 interface PlanningHeroProps {
   userId: string;
@@ -54,10 +52,15 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
 
     const weekProgress = Math.round((completedWorkouts / plannedWorkouts) * 100);
 
+    // Calculate recommended TSS (default 400, adjust based on periodization phase)
+    const recommendedTSS = analytics.periodizationPhase === 'base' ? 350 :
+                           analytics.periodizationPhase === 'build' ? 450 :
+                           analytics.periodizationPhase === 'peak' ? 500 : 400;
+
     // Determine if plan is balanced
     const isBalanced =
-      analytics.totalPlannedTSS >= analytics.recommendedTSS * 0.9 &&
-      analytics.totalPlannedTSS <= analytics.recommendedTSS * 1.1;
+      analytics.totalTSS >= recommendedTSS * 0.9 &&
+      analytics.totalTSS <= recommendedTSS * 1.1;
 
     // Get status
     let status: 'optimal' | 'high' | 'low';
@@ -66,7 +69,7 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
     if (isBalanced) {
       status = 'optimal';
       statusMessage = 'Well-balanced weekly plan';
-    } else if (analytics.totalPlannedTSS > analytics.recommendedTSS * 1.1) {
+    } else if (analytics.totalTSS > recommendedTSS * 1.1) {
       status = 'high';
       statusMessage = 'High training load - monitor fatigue';
     } else {
@@ -78,8 +81,8 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
       plannedWorkouts,
       completedWorkouts,
       weekProgress,
-      totalTSS: Math.round(analytics.totalPlannedTSS),
-      targetTSS: Math.round(analytics.recommendedTSS),
+      totalTSS: Math.round(analytics.totalTSS),
+      targetTSS: Math.round(recommendedTSS),
       status,
       statusMessage,
       hasWorkouts: plannedWorkouts > 0,
@@ -147,9 +150,9 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
   };
 
   const getWeatherIcon = () => {
-    if (weatherLoading || !weather || !weather.current?.condition) return <Sun className="h-4 w-4" />;
+    if (weatherLoading || !weather || !weather.current?.weatherCondition) return <Sun className="h-4 w-4" />;
     
-    const condition = weather.current.condition.toLowerCase();
+    const condition = weather.current.weatherCondition.toLowerCase();
     if (condition.includes('rain')) return <CloudRain className="h-4 w-4 text-blue-600" />;
     if (condition.includes('cloud')) return <Wind className="h-4 w-4 text-gray-600" />;
     return <Sun className="h-4 w-4 text-yellow-600" />;
@@ -221,7 +224,7 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Dumbbell className="h-5 w-5 text-blue-600" />
-              <span className="font-semibold text-blue-900">Today's Workout</span>
+              <span className="font-semibold text-blue-900">Today&apos;s Workout</span>
             </div>
             <Badge className={`${todayBadge.color} border-none`}>
               {todayBadge.label}
@@ -230,7 +233,7 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
           {todaysWorkout ? (
             <div>
               <div className="text-lg font-bold text-blue-900 mb-1">
-                {todaysWorkout.title}
+                {todaysWorkout.type.charAt(0).toUpperCase() + todaysWorkout.type.slice(1)} {todaysWorkout.sport}
               </div>
               <div className="flex items-center gap-4 text-sm text-blue-700">
                 <span className="flex items-center gap-1">
@@ -243,13 +246,12 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
                     {todaysWorkout.distance} km
                   </span>
                 )}
-                {todaysWorkout.estimatedTSS && (
-                  <span className="flex items-center gap-1">
-                    <Zap className="h-3 w-3" />
-                    {Math.round(todaysWorkout.estimatedTSS)} TSS
-                  </span>
-                )}
               </div>
+              {todaysWorkout.reasoning && (
+                <p className="text-xs text-blue-600 mt-2 line-clamp-2">
+                  {todaysWorkout.reasoning}
+                </p>
+              )}
             </div>
           ) : (
             <div className="text-blue-700">
@@ -312,10 +314,10 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
             {weather?.current && !weatherLoading ? (
               <>
                 <div className="text-2xl font-bold text-cyan-900">
-                  {Math.round(weather.current.temp)}°
+                  {Math.round(weather.current.temperature)}°
                 </div>
                 <div className="text-xs text-cyan-700 mt-1 truncate">
-                  {weather.current.condition || 'N/A'}
+                  {weather.current.weatherCondition || 'N/A'}
                 </div>
               </>
             ) : (
@@ -339,7 +341,7 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
             <div className="text-right">
               <div className="text-xs font-medium">Training Impact</div>
               <div className="text-sm font-bold capitalize">
-                {impact.overallImpact}
+                {impact.performance}
               </div>
             </div>
           )}

@@ -167,7 +167,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <GoalsProvider>
         <div className="flex min-h-screen w-full relative">
           <AppSidebar />
-          <main className="flex-1 flex flex-col min-h-screen relative">
+          <main className="flex-1 flex flex-col relative">
             {/* Header with sidebar trigger */}
             <header className="flex h-16 shrink-0 items-center gap-4 border-b px-4 bg-background z-20 relative">
               <SidebarTrigger className="-ml-1 md:hidden" />
