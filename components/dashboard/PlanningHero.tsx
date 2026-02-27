@@ -36,7 +36,11 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
 
   // Weather integration
   const { location, isLoading: locationLoading } = useLocation();
-  const { weather, impact, isLoading: weatherLoading } = useWeather({
+  const {
+    weather,
+    impact,
+    isLoading: weatherLoading,
+  } = useWeather({
     lat: location.lat,
     lon: location.lon,
     enabled: !locationLoading,
@@ -50,12 +54,19 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
     ).length;
     const completedWorkouts = 0; // TODO: Track completed workouts
 
-    const weekProgress = Math.round((completedWorkouts / plannedWorkouts) * 100);
+    const weekProgress = Math.round(
+      (completedWorkouts / plannedWorkouts) * 100
+    );
 
     // Calculate recommended TSS (default 400, adjust based on periodization phase)
-    const recommendedTSS = analytics.periodizationPhase === 'base' ? 350 :
-                           analytics.periodizationPhase === 'build' ? 450 :
-                           analytics.periodizationPhase === 'peak' ? 500 : 400;
+    const recommendedTSS =
+      analytics.periodizationPhase === 'base'
+        ? 350
+        : analytics.periodizationPhase === 'build'
+          ? 450
+          : analytics.periodizationPhase === 'peak'
+            ? 500
+            : 400;
 
     // Determine if plan is balanced
     const isBalanced =
@@ -150,17 +161,21 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
   };
 
   const getWeatherIcon = () => {
-    if (weatherLoading || !weather || !weather.current?.weatherCondition) return <Sun className="h-4 w-4" />;
-    
+    if (weatherLoading || !weather || !weather.current?.weatherCondition)
+      return <Sun className="h-4 w-4" />;
+
     const condition = weather.current.weatherCondition.toLowerCase();
-    if (condition.includes('rain')) return <CloudRain className="h-4 w-4 text-blue-600" />;
-    if (condition.includes('cloud')) return <Wind className="h-4 w-4 text-gray-600" />;
+    if (condition.includes('rain'))
+      return <CloudRain className="h-4 w-4 text-blue-600" />;
+    if (condition.includes('cloud'))
+      return <Wind className="h-4 w-4 text-gray-600" />;
     return <Sun className="h-4 w-4 text-yellow-600" />;
   };
 
   const getTodaysWorkoutBadge = () => {
-    if (!todaysWorkout) return { color: 'bg-gray-100 text-gray-800', label: 'Rest Day' };
-    
+    if (!todaysWorkout)
+      return { color: 'bg-gray-100 text-gray-800', label: 'Rest Day' };
+
     const type = todaysWorkout.type?.toLowerCase() || '';
     if (type.includes('rest') || type.includes('recovery')) {
       return { color: 'bg-green-100 text-green-800', label: 'Recovery' };
@@ -224,7 +239,9 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Dumbbell className="h-5 w-5 text-blue-600" />
-              <span className="font-semibold text-blue-900">Today&apos;s Workout</span>
+              <span className="font-semibold text-blue-900">
+                Today&apos;s Workout
+              </span>
             </div>
             <Badge className={`${todayBadge.color} border-none`}>
               {todayBadge.label}
@@ -233,7 +250,9 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
           {todaysWorkout ? (
             <div>
               <div className="text-lg font-bold text-blue-900 mb-1">
-                {todaysWorkout.type.charAt(0).toUpperCase() + todaysWorkout.type.slice(1)} {todaysWorkout.sport}
+                {todaysWorkout.type.charAt(0).toUpperCase() +
+                  todaysWorkout.type.slice(1)}{' '}
+                {todaysWorkout.sport}
               </div>
               <div className="flex items-center gap-4 text-sm text-blue-700">
                 <span className="flex items-center gap-1">
@@ -300,7 +319,10 @@ export function PlanningHero({ userId, onEditPlan }: PlanningHeroProps) {
               </span>
             </div>
             <div className="text-2xl font-bold text-purple-900">
-              {Math.round((displaySummary.totalTSS / displaySummary.targetTSS) * 100)}%
+              {Math.round(
+                (displaySummary.totalTSS / displaySummary.targetTSS) * 100
+              )}
+              %
             </div>
             <div className="text-xs text-purple-700 mt-1">Of target</div>
           </div>

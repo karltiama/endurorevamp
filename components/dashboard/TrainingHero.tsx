@@ -79,10 +79,14 @@ export function TrainingHero({ userId }: TrainingHeroProps) {
     );
 
     const tssChange =
-      lastWeekTSS > 0 ? ((currentWeekTSS - lastWeekTSS) / lastWeekTSS) * 100 : 0;
+      lastWeekTSS > 0
+        ? ((currentWeekTSS - lastWeekTSS) / lastWeekTSS) * 100
+        : 0;
 
     // Zone distribution for current week
-    const calculateZoneDistribution = (activities: ActivityWithTrainingData[]) => {
+    const calculateZoneDistribution = (
+      activities: ActivityWithTrainingData[]
+    ) => {
       const distribution = { zone1: 0, zone2: 0, zone3: 0, zone4: 0, zone5: 0 };
       activities.forEach(a => {
         const duration = a.moving_time / 60;
@@ -97,12 +101,16 @@ export function TrainingHero({ userId }: TrainingHeroProps) {
           distribution.zone2 += duration;
         }
       });
-      const totalTime = Object.values(distribution).reduce((sum, t) => sum + t, 0);
+      const totalTime = Object.values(distribution).reduce(
+        (sum, t) => sum + t,
+        0
+      );
       Object.keys(distribution).forEach(zone => {
         distribution[zone as keyof typeof distribution] =
           totalTime > 0
             ? Math.round(
-                (distribution[zone as keyof typeof distribution] / totalTime) * 100
+                (distribution[zone as keyof typeof distribution] / totalTime) *
+                  100
               )
             : 0;
       });

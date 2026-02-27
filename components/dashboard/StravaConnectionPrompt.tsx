@@ -9,8 +9,8 @@ interface StravaConnectionPromptProps {
   variant?: 'full' | 'compact';
 }
 
-export function StravaConnectionPrompt({ 
-  variant = 'full' 
+export function StravaConnectionPrompt({
+  variant = 'full',
 }: StravaConnectionPromptProps) {
   const handleConnect = () => {
     const stravaUrl = getStravaAuthUrl();
@@ -38,7 +38,7 @@ export function StravaConnectionPrompt({
               Sync your activities to unlock personalized training insights
             </p>
           </div>
-          <Button 
+          <Button
             onClick={handleConnect}
             className="bg-orange-600 hover:bg-orange-700 text-white flex-shrink-0"
           >
@@ -64,8 +64,8 @@ export function StravaConnectionPrompt({
             Ready to Start Your Training Journey?
           </h2>
           <p className="text-lg text-gray-600 mb-8">
-            Connect your Strava account to unlock personalized insights, training
-            recommendations, and progress tracking.
+            Connect your Strava account to unlock personalized insights,
+            training recommendations, and progress tracking.
           </p>
 
           {/* Features Grid */}

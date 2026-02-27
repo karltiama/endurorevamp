@@ -8,10 +8,10 @@
 
 ## Quick Decision Matrix
 
-| Condition | Action |
-|-----------|--------|
-| ✅ All AUTO-MERGE criteria met | **AUTO-MERGE** |
-| ❌ Any MANUAL REVIEW trigger | **MANUAL REVIEW** |
+| Condition                      | Action            |
+| ------------------------------ | ----------------- |
+| ✅ All AUTO-MERGE criteria met | **AUTO-MERGE**    |
+| ❌ Any MANUAL REVIEW trigger   | **MANUAL REVIEW** |
 
 ---
 
@@ -80,21 +80,22 @@
 
 **Category:** `[ ] Framework` `[ ] Runtime` `[ ] Tooling` `[ ] UI` `[ ] Utility` `[ ] Other`
 
-| Category | Examples | Risk Level |
-|----------|----------|------------|
-| Framework | next, react, react-dom | 🔴 High |
-| Runtime | node-fetch, axios | 🟡 Medium |
-| Auth | @supabase/*, next-auth | 🔴 High |
-| Database | pg, prisma | 🔴 High |
-| Build Tooling | webpack, vite, esbuild | 🟡 Medium |
-| UI | @radix-ui/*, lucide-react | 🟢 Low |
-| Utility | date-fns, clsx, lodash | 🟢 Low |
+| Category      | Examples                   | Risk Level |
+| ------------- | -------------------------- | ---------- |
+| Framework     | next, react, react-dom     | 🔴 High    |
+| Runtime       | node-fetch, axios          | 🟡 Medium  |
+| Auth          | @supabase/\*, next-auth    | 🔴 High    |
+| Database      | pg, prisma                 | 🔴 High    |
+| Build Tooling | webpack, vite, esbuild     | 🟡 Medium  |
+| UI            | @radix-ui/\*, lucide-react | 🟢 Low     |
+| Utility       | date-fns, clsx, lodash     | 🟢 Low     |
 
 ---
 
 ### Step 3: Confirm File Changes
 
 **Files Changed:**
+
 ```
 [ ] package.json
 [ ] package-lock.json
@@ -109,6 +110,7 @@
 ### Step 4: Risk Assessment
 
 **Risk Factors:**
+
 - [ ] Major version bump
 - [ ] Core framework dependency
 - [ ] Critical system (auth/db/runtime)
@@ -124,7 +126,8 @@
 
 **Decision:** `[ ] AUTO-MERGE` `[ ] MANUAL REVIEW`
 
-**Reason:** 
+**Reason:**
+
 ```
 [1-2 sentence summary of why this decision was made]
 ```
@@ -143,27 +146,33 @@ Copy this template for each PR review:
 **Update Type:** [PATCH/MINOR/MAJOR]
 
 ### Files Changed
+
 - [ ] package.json
 - [ ] package-lock.json
-- [ ] Other: _______________
+- [ ] Other: ******\_\_\_******
 
 ### Dependency Category
+
 [ ] Framework | [ ] Runtime | [ ] Auth | [ ] Database | [ ] Build | [ ] UI | [ ] Utility
 
 ### Risk Assessment
+
 **Risk Level:** [ ] Low | [ ] Medium | [ ] High
 
 **Risk Factors:**
+
 - [Factor 1]
 - [Factor 2]
 
 ### Decision
+
 **Decision:** [ ] AUTO-MERGE | [ ] MANUAL REVIEW
 
 **Reason:**
 [1-2 sentence explanation]
 
 ### Notes
+
 [Any additional context or concerns]
 ```
 
@@ -174,6 +183,7 @@ Copy this template for each PR review:
 ### ✅ Safe to Auto-Merge
 
 **Example:** `date-fns` patch update (2.30.0 → 2.30.1)
+
 - ✅ Patch update
 - ✅ Utility library
 - ✅ Only dependency files changed
@@ -186,6 +196,7 @@ Copy this template for each PR review:
 ### ⚠️ Requires Manual Review
 
 **Example:** `next` minor update (15.3.2 → 15.4.0)
+
 - ❌ Core framework
 - ✅ Minor update (but framework = manual review)
 - **Decision:** MANUAL REVIEW
@@ -196,6 +207,7 @@ Copy this template for each PR review:
 ### 🛑 Definitely Manual Review
 
 **Example:** `@supabase/supabase-js` major update (2.49.10 → 3.0.0)
+
 - ❌ Major version bump
 - ❌ Critical auth/database dependency
 - ❌ Likely breaking changes
@@ -209,6 +221,7 @@ Copy this template for each PR review:
 ### Peer Dependency Warnings
 
 If PR shows peer dependency warnings:
+
 - [ ] Check if warnings are new
 - [ ] Verify compatibility with current versions
 - [ ] **Decision:** MANUAL REVIEW (until verified)
@@ -216,6 +229,7 @@ If PR shows peer dependency warnings:
 ### Build/Test Failures
 
 If CI shows failures:
+
 - [ ] Review error messages
 - [ ] Check if related to dependency update
 - [ ] **Decision:** MANUAL REVIEW (always)
@@ -223,6 +237,7 @@ If CI shows failures:
 ### Multiple Dependencies
 
 If PR updates multiple packages:
+
 - [ ] Review each dependency individually
 - [ ] Check for interaction effects
 - [ ] **Decision:** MANUAL REVIEW if any dependency fails criteria
@@ -256,4 +271,3 @@ These dependencies **always** require manual review regardless of update type:
 
 **Last Updated:** [Date]
 **Maintained By:** Senior Engineering Review Process
-

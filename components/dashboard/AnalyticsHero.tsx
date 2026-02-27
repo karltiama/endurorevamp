@@ -44,9 +44,15 @@ export function AnalyticsHero({ userId }: AnalyticsHeroProps) {
     });
 
     // Calculate metrics for current period
-    const currentDistance = currentPeriod.reduce((sum, a) => sum + a.distance, 0);
+    const currentDistance = currentPeriod.reduce(
+      (sum, a) => sum + a.distance,
+      0
+    );
     const currentActivities = currentPeriod.length;
-    const currentTime = currentPeriod.reduce((sum, a) => sum + a.moving_time, 0);
+    const currentTime = currentPeriod.reduce(
+      (sum, a) => sum + a.moving_time,
+      0
+    );
 
     // Calculate metrics for previous period
     const previousDistance = previousPeriod.reduce(
@@ -69,7 +75,9 @@ export function AnalyticsHero({ userId }: AnalyticsHeroProps) {
         ? ((currentActivities - previousActivities) / previousActivities) * 100
         : 0;
     const timeChange =
-      previousTime > 0 ? ((currentTime - previousTime) / previousTime) * 100 : 0;
+      previousTime > 0
+        ? ((currentTime - previousTime) / previousTime) * 100
+        : 0;
 
     // Calculate average pace for runs
     const runs = currentPeriod.filter(a => a.sport_type === 'Run');
@@ -129,7 +137,8 @@ export function AnalyticsHero({ userId }: AnalyticsHeroProps) {
           <BarChart3 className="h-12 w-12 mx-auto mb-4 text-purple-400 opacity-50" />
           <h2 className="text-xl font-bold mb-2">No Analytics Data</h2>
           <p className="text-gray-600 max-w-md mx-auto">
-            Start tracking activities to see your performance trends and insights.
+            Start tracking activities to see your performance trends and
+            insights.
           </p>
         </CardContent>
       </Card>
@@ -177,7 +186,10 @@ export function AnalyticsHero({ userId }: AnalyticsHeroProps) {
               </span>
             </div>
             <div className="text-2xl font-bold text-blue-900">
-              {formatDistance(analytics.currentDistance * 1000, preferences.distance)}
+              {formatDistance(
+                analytics.currentDistance * 1000,
+                preferences.distance
+              )}
             </div>
             <div
               className={`text-xs font-bold mt-1 flex items-center gap-1 ${getTrendColor(analytics.distanceChange)}`}
@@ -229,7 +241,9 @@ export function AnalyticsHero({ userId }: AnalyticsHeroProps) {
           <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
             <div className="flex items-center gap-2 mb-2">
               <Award className="h-4 w-4 text-green-600" />
-              <span className="text-xs font-medium text-green-900">Avg Pace</span>
+              <span className="text-xs font-medium text-green-900">
+                Avg Pace
+              </span>
             </div>
             {analytics.avgPace > 0 ? (
               <>
@@ -240,7 +254,11 @@ export function AnalyticsHero({ userId }: AnalyticsHeroProps) {
                   className={`text-xs font-bold mt-1 flex items-center gap-1 ${getTrendColor(analytics.paceChange)}`}
                 >
                   {getTrendIcon(analytics.paceChange)}
-                  {analytics.paceChange > 0 ? 'Faster' : analytics.paceChange < 0 ? 'Slower' : 'Steady'}
+                  {analytics.paceChange > 0
+                    ? 'Faster'
+                    : analytics.paceChange < 0
+                      ? 'Slower'
+                      : 'Steady'}
                 </div>
               </>
             ) : (

@@ -635,14 +635,20 @@ export function QuickActionsSection({ userId }: QuickActionsSectionProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-medium text-xs truncate">{action.title}</h4>
+                      <h4 className="font-medium text-xs truncate">
+                        {action.title}
+                      </h4>
                       {action.badge && (
-                        <Badge className={`text-[10px] px-1 py-0 ${getBadgeColor(action.badge)}`}>
+                        <Badge
+                          className={`text-[10px] px-1 py-0 ${getBadgeColor(action.badge)}`}
+                        >
                           {action.badge}
                         </Badge>
                       )}
                     </div>
-                    <p className="text-[10px] text-gray-600 truncate">{action.description}</p>
+                    <p className="text-[10px] text-gray-600 truncate">
+                      {action.description}
+                    </p>
                   </div>
                 </div>
               </button>

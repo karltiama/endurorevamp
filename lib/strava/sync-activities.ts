@@ -109,7 +109,7 @@ export async function syncStravaActivities(
     const expiresAt = new Date(tokens.expires_at).getTime();
     const now = Date.now();
     const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
-    
+
     if (expiresAt <= now + bufferTime || forceRefresh) {
       console.log('🔄 Token expired or expiring soon, refreshing...');
       const refreshResult = await refreshStravaToken(
@@ -121,14 +121,14 @@ export async function syncStravaActivities(
         return result;
       }
       result.tokenRefreshed = true;
-      
+
       // Re-fetch tokens to get the updated access token
       const { data: refreshedTokens } = await supabase
         .from('strava_tokens')
         .select('*')
         .eq('user_id', userId)
         .single();
-      
+
       if (refreshedTokens) {
         tokens = refreshedTokens;
       }

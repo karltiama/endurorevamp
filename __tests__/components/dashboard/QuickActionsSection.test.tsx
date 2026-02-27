@@ -465,9 +465,11 @@ describe('QuickActionsSection', () => {
     });
 
     // Component limits to 4 actions for sidebar layout (slice(0, 4))
-    const actionButtons = screen.getAllByRole('button').filter(
-      btn => btn.textContent && !btn.textContent.includes('Quick Actions')
-    );
+    const actionButtons = screen
+      .getAllByRole('button')
+      .filter(
+        btn => btn.textContent && !btn.textContent.includes('Quick Actions')
+      );
     expect(actionButtons.length).toBeLessThanOrEqual(4);
   });
 

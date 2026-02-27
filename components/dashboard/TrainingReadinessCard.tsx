@@ -271,9 +271,12 @@ export function TrainingReadinessCard({ userId }: TrainingReadinessCardProps) {
         <CardContent>
           <div className="text-center py-6">
             <Activity className="h-10 w-10 mx-auto mb-3 opacity-50 text-gray-400" />
-            <p className="text-gray-600 font-medium mb-2">No Activity Data Yet</p>
+            <p className="text-gray-600 font-medium mb-2">
+              No Activity Data Yet
+            </p>
             <p className="text-sm text-gray-500 mb-4">
-              Connect Strava to start tracking your training readiness and recovery
+              Connect Strava to start tracking your training readiness and
+              recovery
             </p>
             <Button
               variant="outline"

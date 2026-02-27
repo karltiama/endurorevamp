@@ -39,7 +39,8 @@ This restructure implements the dashboard strategy outlined in `DASHBOARD_STRATE
 
 **Before:** 5 separate cards (Training Readiness, Weekly Load, Performance Insights, Weather, Goals)
 
-**After:** 
+**After:**
+
 - **TrainingCommandHero** - Combines readiness, recovery, and weekly progress
 - **ConsolidatedAnalyticsCard** - Combines daily TSS, zone distribution, and performance trends
 - **WeeklyTrainingLoadWidget** - Focused on TSS progress
@@ -67,24 +68,26 @@ This restructure implements the dashboard strategy outlined in `DASHBOARD_STRATE
 ### 3. **Reduced Cognitive Load**
 
 **Before:**
+
 - 5 separate cards requiring mental integration
 - Overlapping information (readiness + performance insights)
 - Equal visual weight to all sections
 
 **After:**
+
 - Hero section immediately answers "should I train?"
 - Related metrics grouped together
 - Clear progression from status → context → actions
 
 ### 4. **Better Information Architecture**
 
-| Section | Purpose | Data Shown |
-|---------|---------|------------|
-| **TrainingCommandHero** | Daily readiness decision | Recovery score, TSS balance, weekly progress, recommendation |
-| **WeeklyTrainingLoadWidget** | Training volume tracking | TSS current/target, workout count |
-| **ConsolidatedAnalyticsCard** | Performance insights | Daily TSS distribution, zone breakdown, weekly trends |
-| **DashboardGoalsSection** | Goal tracking | Active goals, progress, status |
-| **Weather** + **QuickActionsSection** | Training context + Next steps | Stacked sidebar: Conditions, quick actions |
+| Section                               | Purpose                       | Data Shown                                                   |
+| ------------------------------------- | ----------------------------- | ------------------------------------------------------------ |
+| **TrainingCommandHero**               | Daily readiness decision      | Recovery score, TSS balance, weekly progress, recommendation |
+| **WeeklyTrainingLoadWidget**          | Training volume tracking      | TSS current/target, workout count                            |
+| **ConsolidatedAnalyticsCard**         | Performance insights          | Daily TSS distribution, zone breakdown, weekly trends        |
+| **DashboardGoalsSection**             | Goal tracking                 | Active goals, progress, status                               |
+| **Weather** + **QuickActionsSection** | Training context + Next steps | Stacked sidebar: Conditions, quick actions                   |
 
 ---
 
@@ -113,6 +116,7 @@ This restructure implements the dashboard strategy outlined in `DASHBOARD_STRATE
 ### Layout Grid Changes
 
 **Before:**
+
 ```tsx
 // Equal 3-column grid
 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -123,6 +127,7 @@ This restructure implements the dashboard strategy outlined in `DASHBOARD_STRATE
 ```
 
 **After:**
+
 ```tsx
 // Hero section (full width)
 <TrainingCommandHero />
@@ -210,16 +215,19 @@ This restructure implements the dashboard strategy outlined in `DASHBOARD_STRATE
 ## 🚀 Next Steps
 
 ### Phase 1: Validate (Current)
+
 - [ ] User testing of new layout
 - [ ] Gather feedback on readability
 - [ ] Monitor engagement metrics
 
 ### Phase 2: Enhance
+
 - [ ] Add more personalized recommendations
 - [ ] Integrate workout suggestions based on readiness
 - [ ] Show historical recovery patterns
 
 ### Phase 3: Optimize
+
 - [ ] Add predictive analytics for recovery
 - [ ] Weather-aware training suggestions
 - [ ] Goal-based workout recommendations
@@ -245,6 +253,7 @@ This restructure implements the dashboard strategy outlined in `DASHBOARD_STRATE
 ### Error Boundaries Maintained
 
 All sections maintain proper error boundaries and loading states:
+
 ```tsx
 <ErrorBoundary fallback={ErrorFallback}>
   <Suspense fallback={<Skeleton />}>
@@ -304,18 +313,21 @@ return useNewDashboard ? <NewDashboard /> : <OldDashboard />;
 The hero component pattern has been extended across the application for consistency:
 
 **Dashboard Hero** (`TrainingCommandHero`):
+
 - Gradient header: blue-600 → indigo-700
 - Shows recovery score, weekly progress, recommendations
 - Primary call-to-action: "Plan Workout"
 - Focus: Daily training readiness
 
 **Activities Hero** (`ActivitiesHero`):
+
 - Matching gradient header: blue-600 → indigo-700
 - Shows monthly stats, activity count, distance, time
 - Last activity information
 - Focus: Activity volume and history
 
 **Analytics Hero** (`AnalyticsHero`):
+
 - Matching gradient header: blue-600 → indigo-700
 - Shows 30-day performance trends vs previous period
 - Trend indicators (up/down/stable) for all metrics
@@ -324,6 +336,7 @@ The hero component pattern has been extended across the application for consiste
 - Focus: Performance trends and improvements
 
 **Training Hero** (`TrainingHero`):
+
 - Matching gradient header: blue-600 → indigo-700
 - Shows weekly TSS vs target with trend
 - Zone distribution (Aerobic Z1/Z2 vs Intense Z4/Z5)
@@ -333,6 +346,7 @@ The hero component pattern has been extended across the application for consiste
 - Focus: Training load balance and intensity distribution
 
 **Goals Hero** (`GoalsHero`):
+
 - Matching gradient header: blue-600 → indigo-700
 - Shows active goals, completed, success rate, avg progress
 - Smart progress status (excellent/good/getting started/needs focus)
@@ -342,6 +356,7 @@ The hero component pattern has been extended across the application for consiste
 - Focus: Goal achievement and progress tracking
 
 **Planning Hero** (`PlanningHero`):
+
 - Matching gradient header: blue-600 → indigo-700
 - Highlights today's workout with type badge and details
 - Shows weekly plan stats (planned workouts, TSS, load balance)
@@ -351,6 +366,7 @@ The hero component pattern has been extended across the application for consiste
 - Focus: Today's workout and weekly plan overview
 
 **Benefits:**
+
 - ✅ Immediate visual recognition across pages
 - ✅ Consistent information hierarchy
 - ✅ Professional, cohesive design language

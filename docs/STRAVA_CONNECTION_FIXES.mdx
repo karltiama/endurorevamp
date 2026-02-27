@@ -24,10 +24,10 @@ The Supabase auth token cookie (`sb-*-auth-token`) was being lost during the red
 
 ### Evidence from Debug Logs
 
-| Timing | Cookies Present |
-|--------|-----------------|
+| Timing                 | Cookies Present                               |
+| ---------------------- | --------------------------------------------- |
 | Before Strava redirect | `auth-token-code-verifier` ✅ `auth-token` ✅ |
-| After Strava redirect | `auth-token-code-verifier` ✅ `auth-token` ❌ |
+| After Strava redirect  | `auth-token-code-verifier` ✅ `auth-token` ❌ |
 
 ### Resolution
 
@@ -73,7 +73,7 @@ onSuccess: async data => {
   } catch (syncError) {
     // Non-blocking - connection success preserved
   }
-}
+};
 ```
 
 ### Features
@@ -100,10 +100,10 @@ lib/strava/sync-activities.ts
 
 ### Changes to `isConnected()`
 
-| Before | After |
-|--------|-------|
+| Before                                     | After                                          |
+| ------------------------------------------ | ---------------------------------------------- |
 | Returned `false` when access token expired | Returns `true` as long as refresh token exists |
-| Token expiry = "disconnected" | Token expiry handled transparently |
+| Token expiry = "disconnected"              | Token expiry handled transparently             |
 
 ### New Method Added
 
@@ -123,18 +123,18 @@ isTokenExpired(tokens: StravaTokens): boolean {
 ```typescript
 async getConnectionStatus(userId: string) {
   let tokens = await this.getTokens(userId);
-  
+
   // Proactively refresh if token is expired
   if (this.isTokenExpired(tokens)) {
     const refreshedTokens = await this.refreshTokens(
-      tokens.refresh_token, 
+      tokens.refresh_token,
       userId
     );
     if (refreshedTokens) {
       tokens = refreshedTokens;
     }
   }
-  
+
   return { connected: true, athlete: {...} };
 }
 ```
@@ -193,11 +193,10 @@ Users will only need to manually reconnect to Strava if:
 
 ## Related Files
 
-| File | Purpose |
-|------|---------|
+| File                                          | Purpose                    |
+| --------------------------------------------- | -------------------------- |
 | `components/dashboard/StravaOAuthHandler.tsx` | OAuth callback + auto-sync |
-| `lib/strava/auth.ts` | Token management + refresh |
-| `lib/strava/sync-activities.ts` | Activity sync logic |
-| `middleware.ts` | Auth session validation |
-| `hooks/strava/useStravaConnection.ts` | Connection status hook |
-
+| `lib/strava/auth.ts`                          | Token management + refresh |
+| `lib/strava/sync-activities.ts`               | Activity sync logic        |
+| `middleware.ts`                               | Auth session validation    |
+| `hooks/strava/useStravaConnection.ts`         | Connection status hook     |

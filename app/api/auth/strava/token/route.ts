@@ -147,7 +147,10 @@ export async function PUT() {
       }
 
       // Check for client_secret validation errors
-      if (errorText.includes('client_secret') && errorText.includes('invalid')) {
+      if (
+        errorText.includes('client_secret') &&
+        errorText.includes('invalid')
+      ) {
         console.error(
           '❌ Invalid client_secret. Please verify STRAVA_CLIENT_SECRET environment variable matches your Strava app settings.'
         );

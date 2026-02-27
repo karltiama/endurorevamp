@@ -32,13 +32,13 @@ sequenceDiagram
     App->>Strava: OAuth authorization
     Strava->>App: Returns access_token + refresh_token
     App->>Database: Store both tokens in strava_tokens table
-    
+
     Note over User,Strava: AUTOMATIC REFRESH (No user action needed)
     User->>App: Uses app (weeks/months later)
     App->>Database: Get tokens
     Database->>App: Returns tokens
     App->>App: Check if access_token expired (5-min buffer)
-    
+
     alt Token Expired or Expiring Soon
         App->>Strava: Refresh using refresh_token
         Strava->>App: New access_token + refresh_token
@@ -94,6 +94,7 @@ async getValidAccessToken(userId: string): Promise<string | null> {
 ```
 
 **Key Features:**
+
 - 5-minute expiration buffer (proactive refresh)
 - Falls back to old token if refresh fails (graceful degradation)
 - Returns `null` only if no tokens exist
@@ -112,6 +113,7 @@ export async function PUT() {
 ```
 
 Used by:
+
 - Manual token refresh requests
 - Client-side refresh operations
 
@@ -123,14 +125,19 @@ Client-side token management with smart caching:
 export function useStravaToken() {
   const { user } = useAuth();
 
-  const { data: accessToken, isLoading, error, refetch } = useQuery({
+  const {
+    data: accessToken,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['strava-token', user?.id],
     queryFn: async () => {
       const stravaAuth = new StravaAuth(false);
       return await stravaAuth.getValidAccessToken(user.id);
     },
-    staleTime: 15 * 60 * 1000,  // 15 minutes
-    gcTime: 30 * 60 * 1000,      // 30 minutes
+    staleTime: 15 * 60 * 1000, // 15 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 
   return { accessToken, isLoading, error };
@@ -138,6 +145,7 @@ export function useStravaToken() {
 ```
 
 **Benefits:**
+
 - Caches tokens for 15 minutes (reduces database queries)
 - Automatically refetches when stale
 - Handles loading and error states
@@ -157,7 +165,7 @@ await supabase.from('strava_tokens').upsert(
   },
   {
     onConflict: 'user_id',
-    ignoreDuplicates: false,  // Always update
+    ignoreDuplicates: false, // Always update
   }
 );
 ```
@@ -184,16 +192,19 @@ NEXT_PUBLIC_STRAVA_REDIRECT_URI=http://localhost:3000/dashboard
 Users only need to reconnect in these rare scenarios:
 
 ### ❌ User Manually Revokes Access
+
 If user goes to Strava settings and revokes app access, the `refresh_token` becomes invalid.
 
 **Solution:** User must reconnect via OAuth flow.
 
 ### ❌ App Credentials Change
+
 If you change `STRAVA_CLIENT_ID` or `STRAVA_CLIENT_SECRET` in your Strava app settings.
 
 **Solution:** All users must reconnect.
 
 ### ❌ Invalid Grant Error
+
 Strava returns `invalid_grant` error (very rare, usually security-related).
 
 **Solution:** App automatically deletes tokens; user must reconnect.
@@ -277,22 +288,26 @@ console.error('❌ Token refresh failed:', error);
 ## Architecture Benefits
 
 ### Security
+
 - Refresh tokens never exposed to browser
 - Tokens stored server-side in Supabase
 - Client secret never sent to client
 
 ### User Experience
+
 - Seamless authentication (connect once)
 - No interruptions for token expiration
 - Automatic background refresh
 
 ### Reliability
+
 - Proactive refresh (5-minute buffer)
 - Graceful error handling
 - Retry logic with exponential backoff
 - Falls back to existing tokens on failure
 
 ### Performance
+
 - Client-side caching (15-min stale time)
 - Reduces database queries
 - Minimizes Strava API calls
@@ -317,5 +332,3 @@ Your Strava authentication is built to **connect once, work forever**:
 6. ✅ User never needs to reconnect (unless they revoke access)
 
 **Result:** Users have a seamless experience with zero interruptions! 🎉
-
-

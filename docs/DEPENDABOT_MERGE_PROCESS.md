@@ -23,6 +23,7 @@ For each Dependabot PR, collect:
 Use the [Dependabot Review Checklist](./DEPENDABOT_REVIEW_CHECKLIST.md) to evaluate:
 
 **Quick Check:**
+
 - [ ] Is it a PATCH or MINOR update? → Continue
 - [ ] Is it a MAJOR update? → **MANUAL REVIEW REQUIRED**
 - [ ] Is it a framework/core dependency? → **MANUAL REVIEW REQUIRED**
@@ -34,6 +35,7 @@ Use the [Dependabot Review Checklist](./DEPENDABOT_REVIEW_CHECKLIST.md) to evalu
 ### Step 3: Make Decision
 
 **AUTO-MERGE if:**
+
 - ✅ Patch/minor update
 - ✅ Non-framework dependency
 - ✅ Only `package.json` and `package-lock.json` changed
@@ -41,6 +43,7 @@ Use the [Dependabot Review Checklist](./DEPENDABOT_REVIEW_CHECKLIST.md) to evalu
 - ✅ CI tests pass
 
 **MANUAL REVIEW if:**
+
 - ❌ Major version update
 - ❌ Framework dependency (next, react, react-dom)
 - ❌ Critical system (auth, database, runtime)
@@ -54,6 +57,7 @@ Use the [Dependabot Review Checklist](./DEPENDABOT_REVIEW_CHECKLIST.md) to evalu
 ### For Safe PRs (AUTO-MERGE candidates)
 
 1. **Verify CI Status**
+
    ```
    ✅ All checks passing
    ✅ No build errors
@@ -85,20 +89,21 @@ Use the [Dependabot Review Checklist](./DEPENDABOT_REVIEW_CHECKLIST.md) to evalu
    - Review breaking changes section
 
 2. **Test Locally** (if needed)
+
    ```bash
    # Checkout the PR branch
    git fetch origin
    git checkout dependabot/npm_and_yarn/[package]-[version]
-   
+
    # Install dependencies
    npm install
-   
+
    # Run tests
    npm test
-   
+
    # Build
    npm run build
-   
+
    # Test locally
    npm run dev
    ```
@@ -120,11 +125,13 @@ Use the [Dependabot Review Checklist](./DEPENDABOT_REVIEW_CHECKLIST.md) to evalu
 If you have multiple safe PRs:
 
 ### Option 1: Merge Individually (Recommended)
+
 - Review each PR
 - Merge one at a time
 - Easier to rollback if issues
 
 ### Option 2: Merge All Safe PRs
+
 - Review all PRs first
 - Merge safe ones in sequence
 - Faster but less granular control
@@ -134,38 +141,46 @@ If you have multiple safe PRs:
 ## Common Scenarios
 
 ### Scenario 1: Multiple Patch Updates
+
 ```
 PR #1: date-fns 2.30.0 → 2.30.1 (patch)
 PR #2: clsx 2.1.0 → 2.1.1 (patch)
 PR #3: lucide-react 0.511.0 → 0.511.1 (patch)
 ```
+
 **Action:** Review each, merge if all pass checklist ✅
 
 ---
 
 ### Scenario 2: Framework Minor Update
+
 ```
 PR: next 15.3.2 → 15.4.0 (minor)
 ```
+
 **Action:** MANUAL REVIEW - Check Next.js release notes, test build ✅
 
 ---
 
 ### Scenario 3: Major Version Update
+
 ```
 PR: some-package 1.5.0 → 2.0.0 (major)
 ```
+
 **Action:** MANUAL REVIEW - Read migration guide, test thoroughly ✅
 
 ---
 
 ### Scenario 4: Grouped PR (New Feature)
+
 ```
 PR: Update safe-ui-updates group
   - @radix-ui/accordion 1.2.10 → 1.2.11
   - lucide-react 0.511.0 → 0.511.1
   - tailwind-merge 3.3.0 → 3.3.1
 ```
+
 **Action:** Review as group, merge if all safe ✅
 
 ---
@@ -208,6 +223,7 @@ After merging:
 ## Troubleshooting
 
 ### PR Has Merge Conflicts
+
 1. Click "Resolve conflicts" in GitHub
 2. Or update locally and push:
    ```bash
@@ -220,11 +236,13 @@ After merging:
    ```
 
 ### CI Failing
+
 - Check error messages
 - May need code changes (manual review)
 - May be transient (retry)
 
 ### Dependency Conflicts
+
 - Check if other PRs update same package
 - Merge one at a time
 - Resolve conflicts as needed
@@ -233,14 +251,13 @@ After merging:
 
 ## Quick Reference
 
-| Update Type | Framework | Action |
-|-------------|-----------|--------|
-| Patch | No | ✅ Auto-merge (if safe) |
-| Minor | No | ✅ Auto-merge (if safe) |
-| Major | No | ⚠️ Manual review |
-| Any | Yes | ⚠️ Manual review |
+| Update Type | Framework | Action                  |
+| ----------- | --------- | ----------------------- |
+| Patch       | No        | ✅ Auto-merge (if safe) |
+| Minor       | No        | ✅ Auto-merge (if safe) |
+| Major       | No        | ⚠️ Manual review        |
+| Any         | Yes       | ⚠️ Manual review        |
 
 ---
 
 **Need help reviewing a specific PR?** Share the PR details and I'll help evaluate it!
-

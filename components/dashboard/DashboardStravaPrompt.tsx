@@ -12,8 +12,10 @@ import { useAuth } from '@/providers/AuthProvider';
  */
 export function DashboardStravaPrompt() {
   const { user } = useAuth();
-  const { connectionStatus, isLoading: isLoadingConnection } = useStravaConnection();
-  const { data: activities, isLoading: isLoadingActivities } = useUserActivities(user?.id || '');
+  const { connectionStatus, isLoading: isLoadingConnection } =
+    useStravaConnection();
+  const { data: activities, isLoading: isLoadingActivities } =
+    useUserActivities(user?.id || '');
 
   // Show loading state while checking
   if (isLoadingConnection || isLoadingActivities) {
@@ -21,8 +23,8 @@ export function DashboardStravaPrompt() {
   }
 
   // Show prompt if not connected OR if connected but no activities
-  const shouldShowPrompt = 
-    !connectionStatus?.connected || 
+  const shouldShowPrompt =
+    !connectionStatus?.connected ||
     (connectionStatus?.connected && (!activities || activities.length === 0));
 
   if (!shouldShowPrompt) {

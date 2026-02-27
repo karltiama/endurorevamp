@@ -22,7 +22,11 @@ interface GoalsHeroProps {
   refreshing?: boolean;
 }
 
-export function GoalsHero({ onAddGoal, onRefresh, refreshing = false }: GoalsHeroProps) {
+export function GoalsHero({
+  onAddGoal,
+  onRefresh,
+  refreshing = false,
+}: GoalsHeroProps) {
   const { activeGoals, completedGoals, isLoading } = useGoalsContext();
 
   const stats = useMemo(() => {
@@ -50,17 +54,18 @@ export function GoalsHero({ onAddGoal, onRefresh, refreshing = false }: GoalsHer
     const onTrack = activeGoals.filter(goal => {
       if (!goal.target_value) return false;
       const progress = (goal.current_progress / goal.target_value) * 100;
-      
+
       // If it has a deadline, check if on pace
       if (goal.target_date) {
         const now = new Date();
         const deadline = new Date(goal.target_date);
-        const totalTime = deadline.getTime() - new Date(goal.created_at).getTime();
+        const totalTime =
+          deadline.getTime() - new Date(goal.created_at).getTime();
         const elapsedTime = now.getTime() - new Date(goal.created_at).getTime();
         const expectedProgress = (elapsedTime / totalTime) * 100;
         return progress >= expectedProgress - 10; // 10% tolerance
       }
-      
+
       // Otherwise, consider >50% as on track
       return progress >= 50;
     }).length;
@@ -68,28 +73,30 @@ export function GoalsHero({ onAddGoal, onRefresh, refreshing = false }: GoalsHer
     const needsAttention = activeGoals.filter(goal => {
       if (!goal.target_value) return false;
       const progress = (goal.current_progress / goal.target_value) * 100;
-      
+
       if (goal.target_date) {
         const now = new Date();
         const deadline = new Date(goal.target_date);
-        const totalTime = deadline.getTime() - new Date(goal.created_at).getTime();
+        const totalTime =
+          deadline.getTime() - new Date(goal.created_at).getTime();
         const elapsedTime = now.getTime() - new Date(goal.created_at).getTime();
         const expectedProgress = (elapsedTime / totalTime) * 100;
         return progress < expectedProgress - 10;
       }
-      
+
       return progress < 50 && progress > 0;
     }).length;
 
     // Find closest deadline
     const goalsWithDeadlines = activeGoals.filter(g => g.target_date);
-    const closestDeadline = goalsWithDeadlines.length > 0
-      ? goalsWithDeadlines.reduce((closest, goal) => {
-          const goalDate = new Date(goal.target_date!);
-          const closestDate = new Date(closest.target_date!);
-          return goalDate < closestDate ? goal : closest;
-        })
-      : null;
+    const closestDeadline =
+      goalsWithDeadlines.length > 0
+        ? goalsWithDeadlines.reduce((closest, goal) => {
+            const goalDate = new Date(goal.target_date!);
+            const closestDate = new Date(closest.target_date!);
+            return goalDate < closestDate ? goal : closest;
+          })
+        : null;
 
     const daysUntilDeadline = closestDeadline
       ? Math.ceil(
@@ -135,10 +142,29 @@ export function GoalsHero({ onAddGoal, onRefresh, refreshing = false }: GoalsHer
   }
 
   const getProgressStatus = () => {
-    if (stats.avgProgress >= 75) return { icon: <CheckCircle className="h-5 w-5 text-green-600" />, color: 'bg-green-100 text-green-800 border-green-200', label: 'Excellent' };
-    if (stats.avgProgress >= 50) return { icon: <TrendingUp className="h-5 w-5 text-blue-600" />, color: 'bg-blue-100 text-blue-800 border-blue-200', label: 'Good Progress' };
-    if (stats.avgProgress >= 25) return { icon: <Clock className="h-5 w-5 text-yellow-600" />, color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'Getting Started' };
-    return { icon: <AlertCircle className="h-5 w-5 text-orange-600" />, color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Needs Focus' };
+    if (stats.avgProgress >= 75)
+      return {
+        icon: <CheckCircle className="h-5 w-5 text-green-600" />,
+        color: 'bg-green-100 text-green-800 border-green-200',
+        label: 'Excellent',
+      };
+    if (stats.avgProgress >= 50)
+      return {
+        icon: <TrendingUp className="h-5 w-5 text-blue-600" />,
+        color: 'bg-blue-100 text-blue-800 border-blue-200',
+        label: 'Good Progress',
+      };
+    if (stats.avgProgress >= 25)
+      return {
+        icon: <Clock className="h-5 w-5 text-yellow-600" />,
+        color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        label: 'Getting Started',
+      };
+    return {
+      icon: <AlertCircle className="h-5 w-5 text-orange-600" />,
+      color: 'bg-orange-100 text-orange-800 border-orange-200',
+      label: 'Needs Focus',
+    };
   };
 
   const progressStatus = getProgressStatus();
@@ -210,9 +236,7 @@ export function GoalsHero({ onAddGoal, onRefresh, refreshing = false }: GoalsHer
             <div className="text-2xl font-bold text-green-900">
               {stats.completedCount}
             </div>
-            <div className="text-xs text-green-700 mt-1">
-              Goals achieved
-            </div>
+            <div className="text-xs text-green-700 mt-1">Goals achieved</div>
           </div>
 
           {/* Success Rate */}
@@ -226,9 +250,7 @@ export function GoalsHero({ onAddGoal, onRefresh, refreshing = false }: GoalsHer
             <div className="text-2xl font-bold text-purple-900">
               {stats.successRate}%
             </div>
-            <div className="text-xs text-purple-700 mt-1">
-              Completion rate
-            </div>
+            <div className="text-xs text-purple-700 mt-1">Completion rate</div>
           </div>
 
           {/* Average Progress */}
@@ -255,10 +277,15 @@ export function GoalsHero({ onAddGoal, onRefresh, refreshing = false }: GoalsHer
           <div className="flex items-center gap-3">
             {progressStatus.icon}
             <div>
-              <div className="text-sm font-semibold">{progressStatus.label}</div>
+              <div className="text-sm font-semibold">
+                {progressStatus.label}
+              </div>
               <div className="text-xs">
-                {stats.needsAttention > 0 && `${stats.needsAttention} goal${stats.needsAttention > 1 ? 's' : ''} need${stats.needsAttention === 1 ? 's' : ''} attention`}
-                {stats.needsAttention === 0 && stats.hasActiveGoals && 'All goals progressing well'}
+                {stats.needsAttention > 0 &&
+                  `${stats.needsAttention} goal${stats.needsAttention > 1 ? 's' : ''} need${stats.needsAttention === 1 ? 's' : ''} attention`}
+                {stats.needsAttention === 0 &&
+                  stats.hasActiveGoals &&
+                  'All goals progressing well'}
                 {!stats.hasActiveGoals && 'Create goals to start tracking'}
               </div>
             </div>

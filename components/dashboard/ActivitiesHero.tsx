@@ -118,7 +118,9 @@ export function ActivitiesHero({ userId }: ActivitiesHeroProps) {
     ? new Date(stats.lastActivity.start_date)
     : null;
   const daysSinceLastActivity = lastActivityDate
-    ? Math.floor((Date.now() - lastActivityDate.getTime()) / (24 * 60 * 60 * 1000))
+    ? Math.floor(
+        (Date.now() - lastActivityDate.getTime()) / (24 * 60 * 60 * 1000)
+      )
     : null;
 
   return (
@@ -221,7 +223,9 @@ export function ActivitiesHero({ userId }: ActivitiesHeroProps) {
                 <Activity className="h-4 w-4 text-gray-500" />
                 <span>
                   Last activity:{' '}
-                  <span className="font-semibold">{stats.lastActivity.name}</span>
+                  <span className="font-semibold">
+                    {stats.lastActivity.name}
+                  </span>
                 </span>
               </div>
               <Badge variant="outline" className="text-xs">

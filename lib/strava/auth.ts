@@ -186,7 +186,11 @@ export class StravaAuth {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Token refresh via API failed:', response.status, errorData);
+        console.error(
+          '❌ Token refresh via API failed:',
+          response.status,
+          errorData
+        );
 
         if (response.status === 404) {
           console.log('🔄 No tokens found, user needs to reconnect');
@@ -327,12 +331,17 @@ export class StravaAuth {
       if (this.isTokenExpired(tokens)) {
         console.log('🔄 Token expired, attempting proactive refresh...');
         try {
-          const refreshedTokens = await this.refreshTokens(tokens.refresh_token, userId);
+          const refreshedTokens = await this.refreshTokens(
+            tokens.refresh_token,
+            userId
+          );
           if (refreshedTokens) {
             tokens = refreshedTokens;
             console.log('✅ Token refreshed successfully');
           } else {
-            console.log('⚠️ Token refresh returned null, using existing tokens');
+            console.log(
+              '⚠️ Token refresh returned null, using existing tokens'
+            );
           }
         } catch (refreshError) {
           console.warn('⚠️ Proactive token refresh failed:', refreshError);

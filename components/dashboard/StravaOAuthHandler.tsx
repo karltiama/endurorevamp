@@ -168,7 +168,7 @@ export function StravaOAuthHandler() {
               status: 'success',
               message: 'Connected! Syncing your activities...',
             });
-            
+
             const syncResponse = await fetch('/api/strava/sync', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -178,24 +178,31 @@ export function StravaOAuthHandler() {
             if (syncResponse.ok) {
               const syncResult = await syncResponse.json();
               console.log('✅ Initial sync completed:', syncResult);
-              
+
               // Update message with sync results
               const newCount = syncResult.data?.newActivities || 0;
               setAuthStatus({
                 status: 'success',
-                message: newCount > 0 
-                  ? `Connected! Synced ${newCount} activities.`
-                  : 'Connected! Your activities are up to date.',
+                message:
+                  newCount > 0
+                    ? `Connected! Synced ${newCount} activities.`
+                    : 'Connected! Your activities are up to date.',
               });
-              
+
               // Invalidate activity-related queries to refresh the dashboard
               await queryClient.invalidateQueries({ queryKey: ['activities'] });
-              await queryClient.invalidateQueries({ queryKey: ['strava-sync'] });
+              await queryClient.invalidateQueries({
+                queryKey: ['strava-sync'],
+              });
             } else {
-              console.warn('Initial sync returned non-ok status:', syncResponse.status);
+              console.warn(
+                'Initial sync returned non-ok status:',
+                syncResponse.status
+              );
               setAuthStatus({
                 status: 'success',
-                message: 'Connected to Strava! You can sync activities from Settings.',
+                message:
+                  'Connected to Strava! You can sync activities from Settings.',
               });
             }
           } catch (syncError) {
@@ -203,7 +210,8 @@ export function StravaOAuthHandler() {
             // Keep the success message - sync failure shouldn't break the connection success
             setAuthStatus({
               status: 'success',
-              message: 'Connected to Strava! You can sync activities from Settings.',
+              message:
+                'Connected to Strava! You can sync activities from Settings.',
             });
           }
 

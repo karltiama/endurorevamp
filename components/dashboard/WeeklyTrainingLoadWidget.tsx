@@ -278,7 +278,7 @@ export function WeeklyTrainingLoadWidget({
                 {isRefetching ? 'Refreshing...' : 'Refresh Data'}
               </Button>
               <Button
-                onClick={() => window.location.href = '/dashboard/settings'}
+                onClick={() => (window.location.href = '/dashboard/settings')}
                 variant="ghost"
                 size="sm"
                 className="text-xs"

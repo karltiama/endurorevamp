@@ -10,13 +10,7 @@ import { UserGoal } from '@/types/goals';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Target,
-  Zap,
-  Sparkles,
-  Brain,
-  RefreshCw,
-} from 'lucide-react';
+import { Target, Zap, Sparkles, Brain, RefreshCw } from 'lucide-react';
 import { GoalCard } from '@/components/goals/GoalCard';
 import { AddGoalModal } from '@/components/goals/AddGoalModal';
 import { EditGoalModal } from '@/components/goals/EditGoalModal';
