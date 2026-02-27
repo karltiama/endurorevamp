@@ -156,16 +156,66 @@ export class StravaAuth {
   }
 
   /**
-   * Refresh expired tokens
+   * Refresh expired tokens.
+   * Client-side: delegates to the server API route (secrets aren't available in the browser).
+   * Server-side: calls Strava directly.
    */
   async refreshTokens(
+    refreshToken: string,
+    userId: string
+  ): Promise<StravaTokens | null> {
+    if (!this.isServer) {
+      return this.refreshTokensViaApi(userId);
+    }
+    return this.refreshTokensDirectly(refreshToken, userId);
+  }
+
+  /**
+   * Client-side refresh: call our own API route which has access to STRAVA_CLIENT_SECRET
+   */
+  private async refreshTokensViaApi(
+    userId: string
+  ): Promise<StravaTokens | null> {
+    try {
+      console.log('🔄 Refreshing Strava tokens via API route...');
+
+      const response = await fetch('/api/auth/strava/token', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Token refresh via API failed:', response.status, errorData);
+
+        if (response.status === 404) {
+          console.log('🔄 No tokens found, user needs to reconnect');
+          return null;
+        }
+
+        throw new Error(
+          errorData.error || `Token refresh failed: ${response.status}`
+        );
+      }
+
+      console.log('✅ Token refresh via API successful');
+      return await this.getTokens(userId);
+    } catch (error) {
+      console.error('Error refreshing Strava tokens via API:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Server-side refresh: call Strava API directly with client secret
+   */
+  private async refreshTokensDirectly(
     refreshToken: string,
     userId: string
   ): Promise<StravaTokens | null> {
     try {
       console.log('🔄 Refreshing Strava tokens for user:', userId);
 
-      // Validate environment variables
       const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
       const clientSecret = process.env.STRAVA_CLIENT_SECRET;
 
@@ -175,7 +225,7 @@ export class StravaAuth {
           hasClientSecret: !!clientSecret,
         });
         throw new Error(
-          'Strava credentials not configured. Please check STRAVA_CLIENT_ID and STRAVA_CLIENT_SECRET environment variables.'
+          'Strava credentials not configured. Please check NEXT_PUBLIC_STRAVA_CLIENT_ID and STRAVA_CLIENT_SECRET environment variables.'
         );
       }
 
@@ -196,7 +246,6 @@ export class StravaAuth {
         const errorText = await response.text();
         console.error('❌ Token refresh failed:', response.status, errorText);
 
-        // Check for client_secret validation errors
         if (
           errorText.includes('client_secret') &&
           errorText.includes('invalid')
@@ -209,7 +258,6 @@ export class StravaAuth {
           );
         }
 
-        // Only disconnect on specific error types, not all failures
         if (response.status === 400 && errorText.includes('invalid_grant')) {
           console.log('🔄 Invalid refresh token, user needs to reconnect');
           await this.disconnectUser(userId);
@@ -221,16 +269,12 @@ export class StravaAuth {
       const authResponse: StravaAuthResponse = await response.json();
       console.log('✅ Token refresh successful');
 
-      // Store the refreshed tokens
       await this.storeTokens(userId, authResponse);
 
-      // Return the updated tokens
       return await this.getTokens(userId);
     } catch (error) {
       console.error('Error refreshing Strava tokens:', error);
 
-      // Don't automatically disconnect user on network errors or temporary failures
-      // Only disconnect on permanent token issues
       if (error instanceof Error && error.message.includes('invalid_grant')) {
         await this.disconnectUser(userId);
       }
