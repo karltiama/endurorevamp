@@ -177,12 +177,14 @@ export async function PUT() {
     }
 
     const authData = await refreshResponse.json();
+    // Strava refresh_token grant may not include athlete; keep existing DB values if missing
+    const athlete = authData.athlete;
     console.log(
       '✅ Token refresh successful for athlete:',
-      authData.athlete?.id
+      athlete?.id ?? tokens.strava_athlete_id
     );
 
-    // Store the refreshed tokens
+    // Store the refreshed tokens (use existing athlete fields when refresh response omits them)
     const { error: storeError } = await supabase.from('strava_tokens').upsert(
       {
         user_id: user.id,
@@ -191,10 +193,10 @@ export async function PUT() {
         token_type: authData.token_type,
         expires_at: new Date(authData.expires_at * 1000).toISOString(),
         expires_in: authData.expires_in,
-        strava_athlete_id: authData.athlete.id,
-        athlete_firstname: authData.athlete.firstname,
-        athlete_lastname: authData.athlete.lastname,
-        athlete_profile: authData.athlete.profile,
+        strava_athlete_id: athlete?.id ?? tokens.strava_athlete_id,
+        athlete_firstname: athlete?.firstname ?? tokens.athlete_firstname,
+        athlete_lastname: athlete?.lastname ?? tokens.athlete_lastname,
+        athlete_profile: athlete?.profile ?? tokens.athlete_profile,
       },
       {
         onConflict: 'user_id',
@@ -215,7 +217,12 @@ export async function PUT() {
 
     return NextResponse.json({
       success: true,
-      athlete: authData.athlete,
+      athlete: athlete ?? {
+        id: tokens.strava_athlete_id,
+        firstname: tokens.athlete_firstname,
+        lastname: tokens.athlete_lastname,
+        profile: tokens.athlete_profile,
+      },
     });
   } catch (error) {
     console.error('Token refresh error:', error);
@@ -327,9 +334,17 @@ export async function POST(request: Request) {
     }
 
     const authData = await tokenResponse.json();
+    const exchangeAthlete = authData.athlete;
+    if (!exchangeAthlete) {
+      console.error('❌ Strava token response missing athlete object');
+      return NextResponse.json(
+        { error: 'Invalid Strava response: missing athlete data' },
+        { status: 502 }
+      );
+    }
     console.log(
       '✅ Strava token exchange successful for athlete:',
-      authData.athlete?.id
+      exchangeAthlete.id
     );
 
     // Store tokens in Supabase
@@ -342,10 +357,10 @@ export async function POST(request: Request) {
         token_type: authData.token_type,
         expires_at: new Date(authData.expires_at * 1000).toISOString(),
         expires_in: authData.expires_in,
-        strava_athlete_id: authData.athlete.id,
-        athlete_firstname: authData.athlete.firstname,
-        athlete_lastname: authData.athlete.lastname,
-        athlete_profile: authData.athlete.profile,
+        strava_athlete_id: exchangeAthlete.id,
+        athlete_firstname: exchangeAthlete.firstname,
+        athlete_lastname: exchangeAthlete.lastname,
+        athlete_profile: exchangeAthlete.profile,
       },
       {
         onConflict: 'user_id',
@@ -374,7 +389,7 @@ export async function POST(request: Request) {
     // Return success response
     return NextResponse.json({
       success: true,
-      athlete: authData.athlete,
+      athlete: exchangeAthlete,
     });
   } catch (error) {
     console.error('Token exchange error:', error);
