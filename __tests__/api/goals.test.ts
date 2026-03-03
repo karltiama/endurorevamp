@@ -140,6 +140,80 @@ describe('Goals API Routes', () => {
       });
     });
 
+    it('should request goal_progress when fetching goals', async () => {
+      const { getUser } = require('@/lib/auth/server');
+      getUser.mockResolvedValue(mockUser);
+
+      let selectArg = '';
+      mockSupabase.from.mockImplementation((table: string) => {
+        if (table === 'user_goals') {
+          return {
+            select: jest.fn((arg: string) => {
+              selectArg = arg;
+              return {
+                eq: jest.fn().mockReturnValue({
+                  eq: jest.fn().mockReturnValue({
+                    order: jest.fn().mockResolvedValue({
+                      data: [],
+                      error: null,
+                    }),
+                  }),
+                }),
+              };
+            }),
+          };
+        }
+        if (table === 'user_onboarding') {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({
+                  data: null,
+                  error: { code: 'PGRST116' },
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'activities') {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({
+                count: 0,
+                error: null,
+              }),
+            }),
+          };
+        }
+        if (table === 'strava_tokens') {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({
+                  data: null,
+                  error: { code: 'PGRST116' },
+                }),
+              }),
+            }),
+          };
+        }
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: null,
+                error: null,
+              }),
+            }),
+          }),
+        };
+      });
+
+      await GET();
+
+      expect(selectArg).toContain('goal_progress');
+    });
+
     it('should handle unauthenticated user', async () => {
       const { getUser } = require('@/lib/auth/server');
       getUser.mockResolvedValue(null);

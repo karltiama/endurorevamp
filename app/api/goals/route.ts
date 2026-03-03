@@ -17,13 +17,14 @@ export async function GET() {
 
     const supabase = await createClient();
 
-    // Fetch user goals with goal type information
+    // Fetch user goals with goal type and progress (for achievements)
     const { data: goals, error: goalsError } = await supabase
       .from('user_goals')
       .select(
         `
         *,
-        goal_type:goal_types(*)
+        goal_type:goal_types(*),
+        goal_progress(*)
       `
       )
       .eq('user_id', user.id)

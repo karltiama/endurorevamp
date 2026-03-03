@@ -10,13 +10,13 @@ import { UserGoal } from '@/types/goals';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Target, Zap, Sparkles, Brain, RefreshCw } from 'lucide-react';
+import { Target, Award, Sparkles, Brain, RefreshCw } from 'lucide-react';
 import { GoalCard } from '@/components/goals/GoalCard';
 import { AddGoalModal } from '@/components/goals/AddGoalModal';
 import { EditGoalModal } from '@/components/goals/EditGoalModal';
 import { GoalCardSkeletonGrid } from '@/components/goals/GoalCardSkeleton';
 
-import { AutomaticGoalTracker } from '@/components/goals/AutomaticGoalTracker';
+import { AchievementSystem } from '@/components/goals/AchievementSystem';
 import {
   SmartGoalCard,
   SmartGoalCardSkeleton,
@@ -26,7 +26,7 @@ import { toast } from 'sonner';
 
 export function GoalsPageClient() {
   const { user } = useAuth();
-  const { activeGoals, completedGoals, isLoading, refreshGoals } =
+  const { activeGoals, completedGoals, goals, isLoading, refreshGoals } =
     useGoalsContext();
 
   const {
@@ -93,9 +93,9 @@ export function GoalsPageClient() {
             <Sparkles className="h-4 w-4" />
             AI Suggestions
           </TabsTrigger>
-          <TabsTrigger value="tracking" className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            Auto Tracking
+          <TabsTrigger value="achievements" className="flex items-center gap-2">
+            <Award className="h-4 w-4" />
+            Achievements
           </TabsTrigger>
         </TabsList>
 
@@ -227,8 +227,46 @@ export function GoalsPageClient() {
           )}
         </TabsContent>
 
-        <TabsContent value="tracking">
-          <AutomaticGoalTracker />
+        <TabsContent value="achievements" className="space-y-6">
+          {isLoading ? (
+            <Card>
+              <CardContent className="p-12">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-8 bg-muted rounded w-1/3" />
+                  <div className="h-24 bg-muted rounded" />
+                  <div className="h-24 bg-muted rounded" />
+                </div>
+              </CardContent>
+            </Card>
+          ) : activeGoals.length > 0 || completedGoals.length > 0 ? (
+            <AchievementSystem
+              goal={activeGoals[0] || completedGoals[0]}
+              goalProgress={
+                (activeGoals[0] || completedGoals[0])?.goal_progress || []
+              }
+              userGoals={goals}
+            />
+          ) : (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Award className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">
+                  No Achievements Yet
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Add a goal to start earning achievements and tracking your
+                  progress.
+                </p>
+                <Button
+                  onClick={() => setShowAddModal(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Add Your First Goal
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 

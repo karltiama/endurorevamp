@@ -40,6 +40,7 @@ export interface UserGoal {
   completed_at?: string;
   last_progress_update?: string;
   goal_type?: GoalType; // Joined goal type information
+  goal_progress?: GoalProgress[]; // Per-activity progress (for achievements)
 }
 
 export interface GoalProgress {

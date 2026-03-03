@@ -51,7 +51,7 @@ export function AchievementSystem({
   const [showCelebration, setShowCelebration] = useState(false);
 
   const achievements = calculateAchievements(goal, goalProgress);
-  const stats = calculateUserStats(userGoals, goalProgress);
+  const stats = calculateUserStats(userGoals, goalProgress, achievements);
 
   const triggerCelebration = () => {
     confetti({
@@ -496,10 +496,13 @@ function calculateAchievements(
 
 function calculateUserStats(
   userGoals: UserGoal[],
-  allProgress: GoalProgress[]
+  allProgress: GoalProgress[],
+  achievements: Achievement[]
 ) {
   const completedGoals = userGoals.filter(g => g.is_completed).length;
-  const totalPoints = 0; // Would be calculated from unlocked achievements
+  const totalPoints = achievements
+    .filter(a => a.unlockedAt)
+    .reduce((sum, a) => sum + a.points, 0);
   const currentStreak = calculateGlobalStreak(allProgress);
   const level = Math.floor(totalPoints / 100) + 1;
 
