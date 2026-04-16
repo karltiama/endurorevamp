@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
     const successResponse = NextResponse.redirect(dashboardUrl);
     clearStateCookie(successResponse);
     return successResponse;
-  } catch (_error) {
+  } catch {
     dashboardUrl.searchParams.set('strava', 'error');
     dashboardUrl.searchParams.set('reason', 'callback_exception');
     const fallbackResponse = NextResponse.redirect(dashboardUrl);

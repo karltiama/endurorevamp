@@ -22,13 +22,6 @@ interface SyncResult {
   tokenRefreshed?: boolean; // Track if token was refreshed during sync
 }
 
-interface StravaAuthResponse {
-  access_token: string;
-  refresh_token: string;
-  expires_at: number;
-  expires_in: number;
-}
-
 export class StravaActivitySync {
   private userId: string;
 

@@ -133,7 +133,7 @@ export function StravaOAuthHandler() {
                   'Connected to Strava! You can sync activities from Settings.',
               });
             }
-          } catch (_syncError) {
+          } catch {
             setAuthStatus({
               status: 'success',
               message:
@@ -154,7 +154,7 @@ export function StravaOAuthHandler() {
             setAuthStatus({ status: 'idle' });
             isProcessingRef.current = false;
           }, 5000);
-        } catch (_error) {
+        } catch {
           setAuthStatus({
             status: 'error',
             message: 'Failed to finalize Strava connection',
