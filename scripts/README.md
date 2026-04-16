@@ -29,6 +29,19 @@ scripts/
 **Dependencies**: `node-fetch` package
 **Note**: Requires Next.js dev server to be running on localhost:3000
 
+### `normalize-strava-expires-at.js`
+
+**Purpose**: One-time data safety script to detect and normalize legacy numeric `expires_at` values in `strava_tokens` to ISO timestamps.
+**Usage (dry run)**: `node scripts/normalize-strava-expires-at.js`
+**Usage (apply writes)**: `node scripts/normalize-strava-expires-at.js --apply`
+**Dependencies**: `@supabase/supabase-js`
+**Environment variables**:
+
+- `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`)
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+**Safety**: Defaults to dry run and prints planned updates before any write.
+
 ### `debug/debug-callback.html`
 
 **Purpose**: HTML debug tool for testing Strava OAuth callback scenarios
@@ -58,11 +71,18 @@ scripts/
    node scripts/test-sync-debug.js
    ```
 
-2. **Debug OAuth Flow**:
+2. **Check/Normalize Legacy Strava Expiry Data**:
+
+   ```bash
+   node scripts/normalize-strava-expires-at.js
+   node scripts/normalize-strava-expires-at.js --apply
+   ```
+
+3. **Debug OAuth Flow**:
    - Open `scripts/debug/debug-callback.html` in browser
    - Ensure Next.js dev server is running
 
-3. **Debug Database Issues**:
+4. **Debug Database Issues**:
    - Go to `/dashboard` in your app
    - Open browser console
    - Copy and paste content from `scripts/debug/debug-database-check.js`

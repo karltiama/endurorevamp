@@ -183,13 +183,13 @@ export class RequestBuilder {
     });
   }
 
-  static authTokenPost(code: string) {
+  static authTokenPost(code: string, state: string = 'test-state') {
     return new Request('http://localhost:3000/api/auth/strava/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code, state }),
     });
   }
 

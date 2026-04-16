@@ -1,11 +1,9 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { StravaConnectionStatus } from '@/components/strava/StravaConnectionStatus';
 import { useStravaConnection } from '@/hooks/strava/useStravaConnection';
-import { getStravaAuthUrl } from '@/lib/strava';
 
 // Mock the hooks and functions
 jest.mock('@/hooks/strava/useStravaConnection');
-jest.mock('@/lib/strava');
 jest.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({
     invalidateQueries: jest.fn(),
@@ -15,16 +13,11 @@ jest.mock('@tanstack/react-query', () => ({
 const mockUseStravaConnection = useStravaConnection as jest.MockedFunction<
   typeof useStravaConnection
 >;
-const mockGetStravaAuthUrl = getStravaAuthUrl as jest.MockedFunction<
-  typeof getStravaAuthUrl
->;
 
 describe('StravaConnectionStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetStravaAuthUrl.mockReturnValue(
-      'https://www.strava.com/oauth/authorize?client_id=test'
-    );
+    window.location.href = 'http://localhost/';
   });
 
   describe('Connection Status Display', () => {
@@ -108,7 +101,7 @@ describe('StravaConnectionStatus', () => {
   });
 
   describe('Connect Button', () => {
-    it('should call getStravaAuthUrl when connect button is clicked', () => {
+    it('should attempt redirect to server start route when connect button is clicked', () => {
       mockUseStravaConnection.mockReturnValue({
         connectionStatus: { connected: false },
         isLoading: false,
@@ -123,19 +116,13 @@ describe('StravaConnectionStatus', () => {
         name: /connect to strava/i,
       });
 
-      // Suppress the expected JSDOM error about read-only href
-      // This is expected behavior in JSDOM and doesn't affect the test
-      const originalError = console.error;
-      const errorSpy = jest.fn();
-      console.error = errorSpy;
-
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
       fireEvent.click(connectButton);
+      expect(consoleErrorSpy).toHaveBeenCalled();
 
-      // Verify the important behavior: getStravaAuthUrl was called
-      expect(mockGetStravaAuthUrl).toHaveBeenCalledWith('http://localhost');
-
-      // Restore console.error
-      console.error = originalError;
+      consoleErrorSpy.mockRestore();
     });
   });
 

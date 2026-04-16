@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { StravaAuthResponse } from '@/lib/strava/types';
+import { refreshAndPersistStravaToken } from '@/lib/strava/refresh-token';
 
 export interface StravaTokens {
   id?: string;
@@ -218,62 +219,22 @@ export class StravaAuth {
     userId: string
   ): Promise<StravaTokens | null> {
     try {
-      console.log('🔄 Refreshing Strava tokens for user:', userId);
+      const supabase = await this.getSupabase();
+      const currentTokens = await this.getTokens(userId);
 
-      const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
-      const clientSecret = process.env.STRAVA_CLIENT_SECRET;
-
-      if (!clientId || !clientSecret) {
-        console.error('❌ Missing Strava credentials:', {
-          hasClientId: !!clientId,
-          hasClientSecret: !!clientSecret,
-        });
-        throw new Error(
-          'Strava credentials not configured. Please check NEXT_PUBLIC_STRAVA_CLIENT_ID and STRAVA_CLIENT_SECRET environment variables.'
-        );
-      }
-
-      const response = await fetch('https://www.strava.com/oauth/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          client_id: clientId,
-          client_secret: clientSecret,
-          grant_type: 'refresh_token',
-          refresh_token: refreshToken,
-        }),
+      const refreshResult = await refreshAndPersistStravaToken({
+        supabase,
+        userId,
+        refreshToken,
+        existingToken: currentTokens ?? undefined,
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Token refresh failed:', response.status, errorText);
-
-        if (
-          errorText.includes('client_secret') &&
-          errorText.includes('invalid')
-        ) {
-          console.error(
-            '❌ Invalid client_secret. Please verify STRAVA_CLIENT_SECRET environment variable matches your Strava app settings.'
-          );
-          throw new Error(
-            'Invalid Strava client secret. Please check your STRAVA_CLIENT_SECRET environment variable matches your Strava app credentials.'
-          );
-        }
-
-        if (response.status === 400 && errorText.includes('invalid_grant')) {
-          console.log('🔄 Invalid refresh token, user needs to reconnect');
+      if (!refreshResult.success) {
+        if (refreshResult.invalidGrant) {
           await this.disconnectUser(userId);
         }
-
-        throw new Error(`Failed to refresh token: ${response.statusText}`);
+        throw new Error(refreshResult.error);
       }
-
-      const authResponse: StravaAuthResponse = await response.json();
-      console.log('✅ Token refresh successful');
-
-      await this.storeTokens(userId, authResponse);
 
       return await this.getTokens(userId);
     } catch (error) {

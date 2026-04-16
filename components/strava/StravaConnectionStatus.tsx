@@ -18,7 +18,6 @@ import {
   Activity,
 } from 'lucide-react';
 import { useStravaConnection } from '@/hooks/strava/useStravaConnection';
-import { getStravaAuthUrl } from '@/lib/strava';
 import { useState } from 'react';
 
 export function StravaConnectionStatus() {
@@ -34,7 +33,7 @@ export function StravaConnectionStatus() {
   // This component now only handles connection status display and manual actions
 
   const handleConnect = () => {
-    window.location.href = getStravaAuthUrl(window.location.origin);
+    window.location.href = '/api/auth/strava/start';
   };
 
   const handleDisconnect = async () => {

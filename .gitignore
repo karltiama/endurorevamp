@@ -45,6 +45,7 @@ next-env.d.ts
 
 # internal documentation
 /docs/layout-guide.md
+/notes/learning-log/
 
 # IDE and editor files
 .vscode/

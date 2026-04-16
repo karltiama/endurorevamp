@@ -128,6 +128,7 @@ describe('/api/auth/strava/token', () => {
         user_id: 'test-user-id',
         has_strava_tokens: false,
         athlete: null,
+        expires_at: null,
       });
     });
 
@@ -137,6 +138,8 @@ describe('/api/auth/strava/token', () => {
         strava_athlete_id: 12345,
         athlete_firstname: 'John',
         athlete_lastname: 'Doe',
+        athlete_profile: undefined,
+        expires_at: null,
       };
       const mockSupabase = {
         auth: {
@@ -169,8 +172,11 @@ describe('/api/auth/strava/token', () => {
         has_strava_tokens: true,
         athlete: {
           id: 12345,
-          name: 'John Doe',
+          firstname: 'John',
+          lastname: 'Doe',
+          profile: undefined,
         },
+        expires_at: null,
       });
     });
 
@@ -284,7 +290,16 @@ describe('/api/auth/strava/token', () => {
       };
       mockCreateClient.mockResolvedValue(mockSupabase as any);
 
-      const request = createPostRequest({ code: 'test-auth-code' });
+      const mockCookieStore = {
+        get: jest.fn().mockReturnValue({ value: 'test-state' }),
+        set: jest.fn(),
+      };
+      (cookies as jest.Mock).mockResolvedValue(mockCookieStore);
+
+      const request = createPostRequest({
+        code: 'test-auth-code',
+        state: 'test-state',
+      });
       const response = await POST(request);
       const data = await response.json();
 
@@ -311,6 +326,7 @@ describe('/api/auth/strava/token', () => {
 
       // Mock cookies
       const mockCookieStore = {
+        get: jest.fn().mockReturnValue({ value: 'test-state' }),
         set: jest.fn(),
       };
       (cookies as jest.Mock).mockResolvedValue(mockCookieStore);
@@ -321,7 +337,10 @@ describe('/api/auth/strava/token', () => {
         json: jest.fn().mockResolvedValue(mockStravaAuthResponse),
       });
 
-      const request = createPostRequest({ code: 'test-auth-code' });
+      const request = createPostRequest({
+        code: 'test-auth-code',
+        state: 'test-state',
+      });
       const response = await POST(request);
       const data = await response.json();
 
@@ -394,6 +413,12 @@ describe('/api/auth/strava/token', () => {
       };
       mockCreateClient.mockResolvedValue(mockSupabase as any);
 
+      const mockCookieStore = {
+        get: jest.fn().mockReturnValue({ value: 'test-state' }),
+        set: jest.fn(),
+      };
+      (cookies as jest.Mock).mockResolvedValue(mockCookieStore);
+
       // Mock Strava API error response
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
@@ -403,7 +428,10 @@ describe('/api/auth/strava/token', () => {
           .mockResolvedValue(JSON.stringify(mockStravaErrorResponse)),
       });
 
-      const request = createPostRequest({ code: 'invalid-code' });
+      const request = createPostRequest({
+        code: 'invalid-code',
+        state: 'test-state',
+      });
       const response = await POST(request);
       const data = await response.json();
 
@@ -431,13 +459,22 @@ describe('/api/auth/strava/token', () => {
       };
       mockCreateClient.mockResolvedValue(mockSupabase as any);
 
+      const mockCookieStore = {
+        get: jest.fn().mockReturnValue({ value: 'test-state' }),
+        set: jest.fn(),
+      };
+      (cookies as jest.Mock).mockResolvedValue(mockCookieStore);
+
       // Mock Strava API success response
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
         json: jest.fn().mockResolvedValue(mockStravaAuthResponse),
       });
 
-      const request = createPostRequest({ code: 'test-auth-code' });
+      const request = createPostRequest({
+        code: 'test-auth-code',
+        state: 'test-state',
+      });
       const response = await POST(request);
       const data = await response.json();
 
@@ -450,7 +487,16 @@ describe('/api/auth/strava/token', () => {
     it('should handle unexpected errors', async () => {
       mockCreateClient.mockRejectedValue(new Error('Unexpected error'));
 
-      const request = createPostRequest({ code: 'test-auth-code' });
+      const mockCookieStore = {
+        get: jest.fn().mockReturnValue({ value: 'test-state' }),
+        set: jest.fn(),
+      };
+      (cookies as jest.Mock).mockResolvedValue(mockCookieStore);
+
+      const request = createPostRequest({
+        code: 'test-auth-code',
+        state: 'test-state',
+      });
       const response = await POST(request);
       const data = await response.json();
 
@@ -702,6 +748,7 @@ describe('/api/auth/strava/token', () => {
       expect(data).toEqual({
         success: false,
         error: 'Failed to store refreshed tokens',
+        retryable: true,
       });
     });
 

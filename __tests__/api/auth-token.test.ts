@@ -8,6 +8,7 @@ global.fetch = jest.fn();
 jest.mock('next/headers', () => ({
   cookies: jest.fn().mockResolvedValue({
     set: jest.fn(),
+    get: jest.fn().mockReturnValue({ value: 'test-state' }),
     getAll: jest.fn().mockReturnValue([]),
   }),
 }));
@@ -93,8 +94,11 @@ describe('Auth Token API', () => {
         has_strava_tokens: true,
         athlete: {
           id: 12345,
-          name: 'John Doe',
+          firstname: 'John',
+          lastname: 'Doe',
+          profile: undefined,
         },
+        expires_at: null,
       });
     });
 
@@ -131,6 +135,7 @@ describe('Auth Token API', () => {
         user_id: 'test-user-id',
         has_strava_tokens: false,
         athlete: null,
+        expires_at: null,
       });
     });
 
@@ -429,6 +434,7 @@ describe('Auth Token API', () => {
       expect(data).toEqual({
         success: false,
         error: 'Failed to store refreshed tokens',
+        retryable: true,
       });
     });
   });
@@ -478,7 +484,10 @@ describe('Auth Token API', () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ code: 'test-authorization-code' }),
+          body: JSON.stringify({
+            code: 'test-authorization-code',
+            state: 'test-state',
+          }),
         }
       );
 
@@ -591,7 +600,7 @@ describe('Auth Token API', () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ code: 'test-code' }),
+          body: JSON.stringify({ code: 'test-code', state: 'test-state' }),
         }
       );
 
@@ -631,7 +640,7 @@ describe('Auth Token API', () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ code: 'invalid-code' }),
+          body: JSON.stringify({ code: 'invalid-code', state: 'test-state' }),
         }
       );
 
@@ -690,7 +699,7 @@ describe('Auth Token API', () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ code: 'test-code' }),
+          body: JSON.stringify({ code: 'test-code', state: 'test-state' }),
         }
       );
 
@@ -715,7 +724,7 @@ describe('Auth Token API', () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ code: 'test-code' }),
+          body: JSON.stringify({ code: 'test-code', state: 'test-state' }),
         }
       );
 

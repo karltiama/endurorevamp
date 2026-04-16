@@ -1,7 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import { StravaAuth } from '@/lib/strava/auth';
 
 export interface StravaConnectionStatus {
   connected: boolean;
@@ -41,9 +40,30 @@ export function useStravaConnection(): UseStravaConnectionReturn {
     queryKey: [STRAVA_CONNECTION_QUERY_KEY, user?.id],
     queryFn: async () => {
       if (!user) return null;
+      const response = await fetch('/api/auth/strava/token', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-      const stravaAuth = new StravaAuth(false);
-      return await stravaAuth.getConnectionStatus(user.id);
+      if (!response.ok) {
+        throw new Error('Failed to check Strava connection status');
+      }
+
+      const data = await response.json();
+      if (!data.authenticated) return null;
+
+      return {
+        connected: !!data.has_strava_tokens,
+        athlete: data.athlete
+          ? {
+              id: data.athlete.id,
+              firstname: data.athlete.firstname,
+              lastname: data.athlete.lastname,
+              profile: data.athlete.profile,
+            }
+          : undefined,
+        expiresAt: data.expires_at ?? undefined,
+      } as StravaConnectionStatus;
     },
     enabled: !!user,
     staleTime: 2 * 60 * 1000, // 2 minutes - longer to prevent frequent checks
@@ -63,8 +83,15 @@ export function useStravaConnection(): UseStravaConnectionReturn {
     if (!user) return;
 
     try {
-      const stravaAuth = new StravaAuth(false);
-      await stravaAuth.disconnectUser(user.id);
+      const response = await fetch('/api/auth/strava/token', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to disconnect');
+      }
 
       // Immediately update the cache to reflect disconnection
       queryClient.setQueryData([STRAVA_CONNECTION_QUERY_KEY, user.id], {

@@ -1,0 +1,236 @@
+# Strava Integration Review: Current State and Fix Plan
+
+## Context
+
+This document captures how Strava OAuth and token management are currently implemented, what is working, what is risky, and how we will improve the implementation with minimal disruption.
+
+The review is based on the active code paths used in:
+
+- `app/api/auth/strava/start/route.ts`
+- `app/api/auth/strava/callback/route.ts`
+- `components/dashboard/StravaOAuthHandler.tsx`
+- `hooks/strava/useStravaConnection.ts`
+- `lib/strava/auth.ts`
+- `app/api/auth/strava/token/route.ts`
+- `lib/strava/sync-activities.ts`
+
+## Implementation Status (2026-04-15)
+
+### Completed
+
+- Added server OAuth start route (`/api/auth/strava/start`) with server-generated `state` and httpOnly cookie.
+- Added dedicated server callback route (`/api/auth/strava/callback`) with `state` validation, token exchange, token persistence, and status redirect (`strava=connected|error`).
+- Migrated dashboard OAuth handling to status-flag processing only; removed browser code exchange path.
+- Migrated onboarding demo callback handling to status flags.
+- Moved connection status/disconnect to server API (`GET/DELETE /api/auth/strava/token`) instead of direct client token-table access.
+- Normalized sync refresh token expiry to ISO in `lib/strava/sync-activities.ts`.
+- Added targeted tests for start/callback route behavior, including callback success and failure branches (`__tests__/api/strava-oauth-routes.test.ts`).
+- Removed unused legacy client exchange hook (`hooks/use-strava-auth.ts`).
+- Consolidated refresh logic behind shared utility (`lib/strava/refresh-token.ts`) and wired API/sync/auth paths to it.
+- Reduced sensitive auth logging in token route (`app/api/auth/strava/token/route.ts`).
+
+### Remaining
+
+- Add callback tests for remaining low-frequency branches (e.g. missing athlete payload, missing credentials).
+- Add one-time legacy data normalization check/migration for any historical non-ISO `expires_at` rows.
+
+## Current Implementation (How It Works Today)
+
+### 1) Connect Flow
+
+1. User clicks connect in `StravaConnectionStatus`.
+2. Browser navigates to `/api/auth/strava/start`.
+3. Server generates OAuth `state`, sets `strava_oauth_state` httpOnly cookie, and redirects to Strava authorize endpoint.
+4. Strava redirects to `/api/auth/strava/callback` with callback params.
+5. Callback route validates `state`, exchanges `code`, stores tokens, and redirects to `/dashboard` with `strava=connected|error`.
+6. `StravaOAuthHandler` reads status flags, refreshes app state, and triggers initial sync UX.
+
+### 2) Token Exchange and Storage
+
+1. `GET /api/auth/strava/callback` verifies callback state and authenticated user.
+2. Callback route exchanges auth `code` for tokens at `https://www.strava.com/oauth/token`.
+3. Callback route upserts `access_token`, `refresh_token`, expiry fields, and athlete profile into `strava_tokens`.
+
+### 3) Connection Status and Refresh
+
+1. Client hook `useStravaConnection` calls `GET /api/auth/strava/token`.
+2. Server API reads `strava_tokens` and returns redacted connection metadata.
+3. If token is expiring, refresh can occur:
+   - Client/server paths can call `PUT /api/auth/strava/token`.
+   - Server paths may call Strava directly (e.g., sync logic).
+
+### 4) Sync Usage
+
+1. `POST /api/strava/sync` validates user.
+2. `syncStravaActivities()` loads tokens, refreshes if needed, calls Strava activities API, then upserts activities.
+
+## What Is Good About Current Approach
+
+- Token exchange and primary storage happen in server route handlers.
+- Refresh token flow exists and reconnect logic is present for invalid tokens.
+- OAuth callback race conditions were partially addressed with a dedicated dashboard handler and local processing guards.
+- Sync pipeline is robust enough for quick/full sync modes and retry-oriented operation.
+
+## Drawbacks and Security Flaws
+
+## 1) Missing OAuth `state` Validation (High Risk) - Mitigated
+
+### Problem
+
+This is now mitigated by server-generated `state` and callback validation in `/api/auth/strava/start` and `/api/auth/strava/callback`.
+
+### Why This Matters
+
+- Enables CSRF-style OAuth attacks where an attacker can bind an unintended Strava account flow.
+- Makes callback trust weaker than OAuth best practices.
+
+### Current Impact
+
+- Authentication checks still reduce some risk, but OAuth response integrity is not strongly protected.
+
+## 2) Token Table Access from Client-Side Helper (High Risk) - Mitigated
+
+### Problem
+
+This is now mitigated for status/disconnect paths by server-only API calls from `useStravaConnection`.
+
+### Why This Matters
+
+- Sensitive token operations are reachable from client runtime.
+- Increases attack surface in case of XSS or accidental exposure.
+- Couples client UI to security-critical data-layer operations.
+
+### Current Impact
+
+- Even if RLS is configured correctly, token handling is not least-privilege by design.
+
+## 3) Inconsistent `expires_at` Storage Format (High Risk for Reliability) - Partially Mitigated
+
+### Problem
+
+Sync refresh path now stores ISO strings. Remaining risk is broader refresh-path duplication, not the specific sync epoch write issue.
+
+### Why This Matters
+
+- Breaks assumptions in expiration checks (`new Date(tokens.expires_at)`).
+- Can trigger false expiration, unnecessary refreshes, or refresh loops.
+- Makes troubleshooting and data validation harder.
+
+### Current Impact
+
+- Potential intermittent bugs in refresh timing and connection status behavior.
+
+## 4) Callback Logic in Client Dashboard Instead of Dedicated Server Callback (Medium Risk) - Mitigated
+
+### Problem
+
+OAuth callback handling now runs in `/api/auth/strava/callback`. Dashboard handles only status/result UX.
+
+### Why This Matters
+
+- More moving parts in client lifecycle (re-render/reload/query cleanup/race controls).
+- Harder to centralize security checks, error boundaries, and audit logs.
+
+### Current Impact
+
+- Functional but more fragile and maintenance-heavy than server callback flow.
+
+## 5) Sensitive Logging Patterns (Medium Risk) - Mostly Mitigated
+
+### Problem
+
+Request body dumps and auth-code fragment logs have been removed from token route handling. Residual risk is limited to generic error logging in some paths.
+
+### Why This Matters
+
+- Sensitive auth artifacts can end up in logs.
+- Increases operational security risk and compliance burden.
+
+### Current Impact
+
+- Debugging is easier, but logs can become a liability in production environments.
+
+## 6) Duplicate/Distributed Token Refresh Logic (Medium Risk) - Mitigated
+
+### Problem
+
+Core refresh behavior is now centralized in `lib/strava/refresh-token.ts`, with API/sync/auth flows calling the shared utility.
+
+### Why This Matters
+
+- Inconsistent error handling and token normalization.
+- Higher chance of drift and subtle bugs.
+
+### Current Impact
+
+- Greater maintenance cost and debugging complexity.
+
+## Fix Plan (How We Will Improve It)
+
+## Phase 1: Security Baseline (Minimal Churn)
+
+1. Add OAuth `state` generation and validation:
+   - Generate `state` server-side on start flow.
+   - Store in secure, httpOnly cookie (short TTL).
+   - Validate and invalidate on callback.
+2. Remove direct client access to `strava_tokens`:
+   - Client calls server status/disconnect endpoints only.
+   - Server returns redacted connection metadata (never raw tokens).
+3. Normalize token expiry writes:
+   - Store `expires_at` as ISO string everywhere.
+   - Keep one canonical conversion utility.
+4. Reduce sensitive logs:
+   - Remove request body dumps and code fragments.
+   - Keep structured, non-sensitive diagnostics.
+
+## Phase 2: Reliability and Maintainability
+
+1. Introduce dedicated callback route:
+   - `/api/auth/strava/start` for redirect construction.
+   - `/api/auth/strava/callback` for secure code exchange.
+2. Consolidate refresh logic:
+   - One server-only refresh service used by API and sync jobs.
+3. Add targeted tests:
+   - `state` mismatch rejection.
+   - callback success path.
+   - consistent `expires_at` storage.
+   - no client token-table dependency.
+
+## Implementation Principles
+
+- Keep diffs small (one file or one function at a time).
+- Avoid broad refactors during security hardening.
+- Preserve user-facing behavior (connect, sync, status) while reducing risk.
+- Prefer explicit logic over abstraction for security-critical paths.
+
+## Tradeoffs and Alternatives Considered
+
+### Option A: Keep client callback flow and patch only `state`
+
+- Pros: minimal immediate code movement.
+- Cons: still leaves callback orchestration in client runtime.
+
+### Option B: Move full OAuth callback to server route (preferred)
+
+- Pros: stronger security boundaries, cleaner architecture, easier auditing.
+- Cons: requires coordinated updates across auth URL generation and redirect handling.
+
+### Option C: Encrypt tokens at rest immediately
+
+- Pros: stronger defense in depth.
+- Cons: adds key management complexity and rollout overhead.
+- Decision: can be a later hardening step after baseline security fixes.
+
+## Risks During Migration
+
+- Temporary reconnect prompts if callback routing and query invalidation are out of sync.
+- Legacy rows with mixed `expires_at` formats may require one-time normalization.
+- Tests that assert old callback behavior may need updates.
+
+## Acceptance Criteria
+
+- OAuth callback rejects missing/invalid `state`.
+- Browser runtime no longer reads/writes `strava_tokens` directly.
+- `expires_at` written consistently as ISO string in all paths.
+- No sensitive auth payloads in logs.
+- Connect + refresh + sync flow remains user-visible and stable.

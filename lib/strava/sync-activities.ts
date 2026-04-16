@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { StravaActivity, Activity } from '@/lib/strava/types';
 import { TrainingLoadCalculator } from '@/lib/training/training-load';
+import { refreshAndPersistStravaToken } from '@/lib/strava/refresh-token';
 
 interface SyncOptions {
   userId: string;
@@ -251,39 +252,15 @@ async function refreshStravaToken(
   refreshToken: string
 ): Promise<{ success: boolean }> {
   try {
-    const response = await fetch('https://www.strava.com/oauth/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        client_id: process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID,
-        client_secret: process.env.STRAVA_CLIENT_SECRET,
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-      }),
+    const supabase = await createClient();
+    const refreshResult = await refreshAndPersistStravaToken({
+      supabase,
+      userId,
+      refreshToken,
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to refresh token: ${response.statusText}`);
-    }
-
-    const tokenData: StravaAuthResponse = await response.json();
-
-    // Update tokens in database
-    const supabase = await createClient();
-    const { error } = await supabase
-      .from('strava_tokens')
-      .update({
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token,
-        expires_at: tokenData.expires_at,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', userId);
-
-    if (error) {
-      throw new Error(`Failed to update tokens: ${error.message}`);
+    if (!refreshResult.success) {
+      throw new Error(refreshResult.error);
     }
 
     return { success: true };

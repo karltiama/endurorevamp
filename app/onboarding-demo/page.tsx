@@ -8,7 +8,6 @@ import { useOnboardingStatus, useUserGoals } from '@/hooks/useGoals';
 import { Badge } from '@/components/ui/badge';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
-import { useStravaAuth } from '@/hooks/use-strava-auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { STRAVA_CONNECTION_QUERY_KEY } from '@/hooks/strava/useStravaConnection';
 import { STRAVA_TOKEN_QUERY_KEY } from '@/hooks/strava/useStravaToken';
@@ -22,165 +21,63 @@ function OnboardingDemoContent() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { mutate: exchangeToken, isPending: isAuthing } = useStravaAuth();
 
-  // Check if we're returning from Strava OAuth (redirected from dashboard)
+  // Handle OAuth result status redirected back from dashboard
   useEffect(() => {
     const fromStrava = searchParams.get('from_strava');
-    const code = searchParams.get('code');
+    const stravaStatus = searchParams.get('strava');
+    const reason = searchParams.get('reason');
 
-    if (fromStrava === 'true' && code) {
-      console.log('🔄 Processing OAuth code redirected from dashboard...');
+    if (fromStrava !== 'true') return;
 
-      // Clean URL parameters
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('from_strava');
-      newUrl.searchParams.delete('code');
-      newUrl.searchParams.delete('error');
-      newUrl.searchParams.delete('error_description');
-      newUrl.searchParams.delete('state');
-      newUrl.searchParams.delete('scope');
-      router.replace(newUrl.pathname + newUrl.search, { scroll: false });
+    // Clean URL parameters
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.delete('from_strava');
+    newUrl.searchParams.delete('strava');
+    newUrl.searchParams.delete('reason');
+    router.replace(newUrl.pathname + newUrl.search, { scroll: false });
 
-      // Process the OAuth code
-      if (user && !isAuthing) {
-        exchangeToken(code, {
-          onSuccess: async data => {
-            console.log(
-              '✅ Successfully connected to Strava on onboarding demo:',
-              data
-            );
+    if (!user) return;
 
-            // Update onboarding status to mark Strava as connected
-            try {
-              await fetch('/api/onboarding', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  strava_connected: true,
-                  current_step: 'complete',
-                }),
-              });
-            } catch (error) {
-              console.warn('Failed to update onboarding status:', error);
-            }
+    if (stravaStatus === 'connected') {
+      (async () => {
+        try {
+          await fetch('/api/onboarding', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              strava_connected: true,
+              current_step: 'complete',
+            }),
+          });
+        } catch (error) {
+          console.warn('Failed to update onboarding status:', error);
+        }
 
-            // Update cache immediately
-            queryClient.setQueryData([STRAVA_CONNECTION_QUERY_KEY, user.id], {
-              connected: true,
-              athlete: data.athlete
-                ? {
-                    id: data.athlete.id,
-                    firstname: data.athlete.firstname,
-                    lastname: data.athlete.lastname,
-                    profile: data.athlete.profile,
-                  }
-                : undefined,
-            });
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: [STRAVA_CONNECTION_QUERY_KEY, user.id],
+          }),
+          queryClient.invalidateQueries({
+            queryKey: [STRAVA_TOKEN_QUERY_KEY, user.id],
+          }),
+        ]);
 
-            // Invalidate queries to ensure fresh data
-            await Promise.all([
-              queryClient.invalidateQueries({
-                queryKey: [STRAVA_CONNECTION_QUERY_KEY, user.id],
-              }),
-              queryClient.invalidateQueries({
-                queryKey: [STRAVA_TOKEN_QUERY_KEY, user.id],
-              }),
-            ]);
-
-            // Show success message
-            alert(
-              'Successfully connected to Strava! Your onboarding is now complete.'
-            );
-          },
-          onError: error => {
-            console.error('❌ Failed to connect to Strava:', error);
-            alert('Failed to connect to Strava. Please try again.');
-          },
-        });
-      }
-    }
-  }, [searchParams, user, isAuthing, router, queryClient, exchangeToken]);
-
-  // Handle direct Strava OAuth callback (if somehow we get it directly)
-  useEffect(() => {
-    const code = searchParams.get('code');
-    const error = searchParams.get('error');
-
-    if (error) {
-      console.error('Strava OAuth error:', error);
+        alert(
+          'Successfully connected to Strava! Your onboarding is now complete.'
+        );
+      })();
       return;
     }
 
-    // Only process if we have a code and no from_strava parameter (direct callback)
-    if (code && !searchParams.get('from_strava') && user && !isAuthing) {
-      console.log('🔄 Processing direct OAuth code on onboarding demo...');
-
-      // Clean URL parameters immediately to prevent re-processing
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('code');
-      newUrl.searchParams.delete('error');
-      newUrl.searchParams.delete('error_description');
-      newUrl.searchParams.delete('state');
-      newUrl.searchParams.delete('scope');
-      router.replace(newUrl.pathname + newUrl.search, { scroll: false });
-
-      exchangeToken(code, {
-        onSuccess: async data => {
-          console.log(
-            '✅ Successfully connected to Strava on onboarding demo:',
-            data
-          );
-
-          // Update onboarding status to mark Strava as connected
-          try {
-            await fetch('/api/onboarding', {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                strava_connected: true,
-                current_step: 'complete',
-              }),
-            });
-          } catch (error) {
-            console.warn('Failed to update onboarding status:', error);
-          }
-
-          // Update cache immediately
-          queryClient.setQueryData([STRAVA_CONNECTION_QUERY_KEY, user.id], {
-            connected: true,
-            athlete: data.athlete
-              ? {
-                  id: data.athlete.id,
-                  firstname: data.athlete.firstname,
-                  lastname: data.athlete.lastname,
-                  profile: data.athlete.profile,
-                }
-              : undefined,
-          });
-
-          // Invalidate queries to ensure fresh data
-          await Promise.all([
-            queryClient.invalidateQueries({
-              queryKey: [STRAVA_CONNECTION_QUERY_KEY, user.id],
-            }),
-            queryClient.invalidateQueries({
-              queryKey: [STRAVA_TOKEN_QUERY_KEY, user.id],
-            }),
-          ]);
-
-          // Show success message
-          alert(
-            'Successfully connected to Strava! Your onboarding is now complete.'
-          );
-        },
-        onError: error => {
-          console.error('❌ Failed to connect to Strava:', error);
-          alert('Failed to connect to Strava. Please try again.');
-        },
-      });
+    if (stravaStatus === 'error') {
+      alert(
+        reason
+          ? `Failed to connect to Strava: ${reason}`
+          : 'Failed to connect to Strava. Please try again.'
+      );
     }
-  }, [searchParams, user, isAuthing, router, queryClient, exchangeToken]);
+  }, [searchParams, user, router, queryClient]);
 
   // Redirect to home in production
   if (process.env.NODE_ENV === 'production') {

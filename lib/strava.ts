@@ -1,4 +1,4 @@
-export function getStravaAuthUrl(baseUrl?: string) {
+export function getStravaAuthUrl(baseUrl?: string, state?: string) {
   try {
     const url = new URL('https://www.strava.com/oauth/authorize');
     const clientId = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID;
@@ -42,6 +42,9 @@ export function getStravaAuthUrl(baseUrl?: string) {
     url.searchParams.set('response_type', 'code');
     url.searchParams.set('scope', 'read,activity:read_all');
     url.searchParams.set('approval_prompt', 'auto');
+    if (state) {
+      url.searchParams.set('state', state);
+    }
 
     return url.toString();
   } catch (error) {

@@ -17,6 +17,7 @@ global.fetch = jest.fn();
 jest.mock('next/headers', () => ({
   cookies: jest.fn().mockResolvedValue({
     set: jest.fn(),
+    get: jest.fn().mockReturnValue({ value: 'test-state' }),
     getAll: jest.fn().mockReturnValue([]),
   }),
 }));
@@ -56,8 +57,11 @@ describe('Auth Token API (Refactored with Helpers)', () => {
         has_strava_tokens: true,
         athlete: {
           id: 12345,
-          name: 'John Doe',
+          firstname: 'John',
+          lastname: 'Doe',
+          profile: undefined,
         },
+        expires_at: '2024-01-01T00:00:00.000Z',
       });
     });
 
@@ -78,6 +82,7 @@ describe('Auth Token API (Refactored with Helpers)', () => {
         user_id: 'test-user-id',
         has_strava_tokens: false,
         athlete: null,
+        expires_at: null,
       });
     });
 
@@ -219,6 +224,7 @@ describe('Auth Token API (Refactored with Helpers)', () => {
       expect(data).toEqual({
         success: false,
         error: 'Failed to store refreshed tokens',
+        retryable: true,
       });
     });
   });
