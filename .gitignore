@@ -44,6 +44,7 @@ yarn-error.log*
 next-env.d.ts
 
 # internal documentation
+/docs/
 /docs/layout-guide.md
 /notes/learning-log/
 
