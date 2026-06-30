@@ -1,6 +1,6 @@
 # 🚴‍♂️ EnduroRevamp
 
-A modern, performance-focused web application for athletes to track, analyze, and optimize their training using Strava integration and advanced analytics. Built with Next.js 14, TypeScript, and a comprehensive testing strategy.
+A modern, performance-focused web application for athletes to track, analyze, and optimize their training using Strava integration and advanced analytics. Built with Next.js 15, TypeScript, and a comprehensive testing strategy.
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.2-black?logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)](https://www.typescriptlang.org/)
@@ -13,8 +13,8 @@ A modern, performance-focused web application for athletes to track, analyze, an
 - **🏃‍♀️ Strava Integration**: Seamless OAuth-based API connection for activity sync
 - **📊 Advanced Analytics**: Training load analysis, performance metrics, and trend visualization
 - **🎯 Dynamic Goal Management**: Adaptive training goals with progress tracking
-- **📱 Modern Architecture**: Built with Next.js 14 App Router and server/client component separation
-- **🧪 Comprehensive Testing**: 100% test coverage with Jest + React Testing Library
+- **📱 Modern Architecture**: Built with Next.js 15 App Router and server/client component separation
+- **🧪 Comprehensive Testing**: Extensive Jest + React Testing Library suite (95 test suites, 899 tests)
 - **🎨 Beautiful UI**: Modern design with Tailwind CSS, Framer Motion, and Radix UI
 - **📈 Real-time Data**: React Query for efficient data fetching and caching
 - **🔒 Secure Authentication**: Supabase Auth with role-based access control
@@ -68,6 +68,18 @@ endurorevamp/
 └── supabase/               # Database migrations and config
 ```
 
+## 🧭 Current Architecture
+
+A concise overview of how the app is put together today, so a new developer can orient quickly:
+
+- **Frontend — Next.js App Router**: All pages live under `app/` using the App Router. Server Components fetch data and enforce auth (`requireAuth` in `lib/auth/server.ts`); Client Components handle interactivity. Data fetching/caching is done with TanStack React Query, UI with Tailwind CSS v4 + Radix/Headless UI, and charts with Recharts.
+- **Auth & Database — Supabase**: Authentication uses Supabase Auth via `@supabase/ssr` (clients in `lib/supabase/`). `middleware.ts` protects `/dashboard`, gates `/dashboard/admin` + `/api/admin` behind an `is_admin` check, and blocks test/debug routes in production. Data is stored in Supabase PostgreSQL with Row Level Security (RLS) policies scoping every row to its owner (`auth.uid() = user_id`). Schema lives in `supabase/migrations/`.
+- **Strava integration**: Server-side OAuth (`app/api/auth/strava/{start,callback,token}`) stores tokens in `strava_tokens` with a shared refresh utility (`lib/strava/refresh-token.ts`). Activities are synced from the Strava API into the `activities` table (`lib/strava/sync-activities.ts`), with sync bookkeeping in `sync_state` and optional real-time updates via Strava webhooks.
+- **Training analytics**: Training load (TSS/CTL/ATL-style metrics) and HR/power zone analysis are computed in `lib/training/` and `lib/dashboard/metrics.ts` from the user's real activity data, surfaced on the Training and Analytics pages.
+- **Goals, planning & weather**: Goal creation/tracking with automatic progress (`lib/goals/`, `app/api/goals/*`), a rule-based weekly workout planner and "today's workout" recommendation (`lib/training/enhanced-workout-planning.ts`), and weather context via OpenWeather (`lib/weather/`). User training thresholds/preferences live in `user_training_profiles` / `user_training_preferences`.
+
+> Note: "smart"/"enhanced" planning and goal features are currently rule-based heuristics — there is no LLM/AI integration yet.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -97,31 +109,40 @@ endurorevamp/
    cp .env.example .env.local
    ```
 
-   Configure your environment variables:
+   Configure your environment variables (see `.env.example` for the full list):
 
    ```env
-   # Supabase
+   # Supabase (required)
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-   # Strava API
-   STRAVA_CLIENT_ID=your_strava_client_id
+   # Strava API (required for Strava integration)
+   NEXT_PUBLIC_STRAVA_CLIENT_ID=your_strava_client_id
    STRAVA_CLIENT_SECRET=your_strava_client_secret
+   NEXT_PUBLIC_STRAVA_REDIRECT_URI=http://localhost:3000/dashboard
 
-   # Email (Resend)
+   # Email (Resend, optional)
    RESEND_API_KEY=your_resend_api_key
    ```
 
 4. **Database Setup**
 
-   ```bash
-   # Start Supabase locally (if using local development)
-   npm run supabase:start
+   This project uses Supabase (hosted PostgreSQL). The SQL migrations live in
+   `supabase/migrations/`. Apply them to your Supabase project using either:
 
-   # Run migrations
-   npm run db:migrate
+   ```bash
+   # Option A: Supabase CLI (links to your project, then pushes migrations)
+   supabase link --project-ref <your-project-ref>
+   supabase db push
+
+   # Option B: Supabase Dashboard
+   # Open the SQL Editor and run each file in supabase/migrations/ in
+   # chronological (filename) order.
    ```
+
+   > Note: there are no `supabase:start` / `db:migrate` npm scripts. Use the
+   > Supabase CLI or Dashboard directly as shown above.
 
 5. **Start Development Server**
 
@@ -265,7 +286,7 @@ We welcome contributions! Please follow these steps:
 
 ### Development Guidelines
 
-- **Test Coverage**: Maintain 100% test coverage
+- **Test Coverage**: Maintain strong test coverage for new code
 - **Type Safety**: Use TypeScript for all new code
 - **Component Design**: Follow established component patterns
 - **Performance**: Consider bundle size and rendering performance

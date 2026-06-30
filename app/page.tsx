@@ -15,7 +15,6 @@ import {
   Shield,
   Smartphone,
   ChevronRight,
-  Star,
   Menu,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -23,7 +22,6 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import AnimatedStats from '@/components/AnimatedStats';
-import AnimatedTestimonials from '@/components/AnimatedTestimonials';
 import EnhancedFeaturesSection from '@/components/EnhancedFeaturesSection';
 
 export default async function Home() {
@@ -58,10 +56,10 @@ export default async function Home() {
                 Features
               </Link>
               <Link
-                href="#testimonials"
+                href="#how-it-works"
                 className="text-gray-600 hover:text-gray-900 transition-colors"
               >
-                Reviews
+                How it works
               </Link>
               <Link
                 href="#faq"
@@ -140,8 +138,8 @@ export default async function Home() {
                     Mobile Friendly
                   </div>
                   <div className="flex items-center">
-                    <Star className="h-4 w-4 mr-1 fill-current text-yellow-400" />
-                    4.9/5 Rating
+                    <Activity className="h-4 w-4 mr-1" />
+                    Read-only Strava access
                   </div>
                 </div>
               </div>
@@ -240,23 +238,59 @@ export default async function Home() {
         <EnhancedFeaturesSection />
       </section>
 
-      {/* Testimonials and CTA Section - Transition from white to blue */}
+      {/* How It Works and CTA Section - Transition from white to blue */}
       <section className="relative bg-gradient-to-b from-white via-blue-50 to-blue-100">
-        {/* Testimonial Content */}
-        <div id="testimonials" className="py-12 sm:py-16 lg:py-20">
+        {/* How It Works */}
+        <div id="how-it-works" className="py-12 sm:py-16 lg:py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Testimonials Title */}
             <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-                What Runners Are Saying
+                How It Works
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Join thousands of runners who have transformed their training
-                with Enduro Stats
+                Three steps from your Strava account to a clear picture of your
+                training.
               </p>
             </div>
 
-            <AnimatedTestimonials />
+            <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto">
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 mx-auto bg-indigo-100 rounded-full flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-indigo-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  1. Connect Strava
+                </h3>
+                <p className="text-gray-600">
+                  Sign in and authorize read-only access through Strava&apos;s
+                  secure OAuth. We never post or change anything on your account.
+                </p>
+              </div>
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+                  <Activity className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  2. Sync your activities
+                </h3>
+                <p className="text-gray-600">
+                  Your runs and rides are imported automatically so your
+                  dashboard stays up to date.
+                </p>
+              </div>
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 mx-auto bg-purple-100 rounded-full flex items-center justify-center">
+                  <BarChart3 className="h-6 w-6 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  3. See your insights
+                </h3>
+                <p className="text-gray-600">
+                  Explore training load, zones, personal bests, trends, and goal
+                  progress — all computed from your own data.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -264,23 +298,20 @@ export default async function Home() {
         <div className="py-12 sm:py-14 lg:py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              {/* Enhanced headline */}
               <div className="mb-6">
                 <div className="inline-flex items-center bg-indigo-100 text-indigo-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
                   <Zap className="w-4 h-4 mr-2" />
-                  Start training smarter today
+                  Understand your training
                 </div>
                 <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-                  Ready to Unlock Your Running Potential?
+                  Ready to Make Sense of Your Strava Data?
                 </h2>
                 <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                  Transform your training with data-driven insights. Connect
-                  your Strava account and discover what your running data
-                  reveals about your performance.
+                  Connect your Strava account and discover what your running data
+                  reveals about your training load, trends, and progress.
                 </p>
               </div>
 
-              {/* Enhanced CTA buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
                 <Link href="/auth/signup" className="w-full sm:w-auto">
                   <Button
@@ -288,7 +319,7 @@ export default async function Home() {
                     className="w-full sm:w-auto bg-indigo-600 text-white hover:bg-indigo-700 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
                   >
                     <Activity className="mr-2 h-4 sm:h-5 w-4 sm:w-5" />
-                    Start Your Free Trial
+                    Get Started
                   </Button>
                 </Link>
                 <Link href="#features" className="w-full sm:w-auto">
@@ -303,21 +334,14 @@ export default async function Home() {
                 </Link>
               </div>
 
-              {/* Honest trust signals */}
-              <div className="space-y-3">
-                <p className="text-gray-500 text-sm">
-                  ✓ 14-day free trial • ✓ No credit card required • ✓ Cancel
-                  anytime
-                </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <Shield className="h-4 w-4 text-green-500 mr-1" />
-                    <span>Secure & Private</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Activity className="h-4 w-4 text-blue-500 mr-1" />
-                    <span>Official Strava Integration</span>
-                  </div>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-sm text-gray-500">
+                <div className="flex items-center">
+                  <Shield className="h-4 w-4 text-green-500 mr-1" />
+                  <span>Secure &amp; private</span>
+                </div>
+                <div className="flex items-center">
+                  <Activity className="h-4 w-4 text-blue-500 mr-1" />
+                  <span>Read-only Strava integration</span>
                 </div>
               </div>
             </div>
@@ -377,12 +401,12 @@ export default async function Home() {
                 className="bg-white rounded-lg border-0 shadow-sm"
               >
                 <AccordionTrigger className="px-6 py-4 text-left font-semibold hover:no-underline">
-                  Is there a free trial?
+                  Do I need a Strava account?
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4 text-gray-600">
-                  Yes! We offer a 14-day free trial with full access to all
-                  features. No credit card required to start. After the trial,
-                  plans start at $9.99/month.
+                  Yes. Enduro Stats builds your dashboard from your Strava
+                  activity history, so you&apos;ll connect your existing Strava
+                  account to get started.
                 </AccordionContent>
               </AccordionItem>
 
@@ -405,13 +429,13 @@ export default async function Home() {
                 className="bg-white rounded-lg border-0 shadow-sm"
               >
                 <AccordionTrigger className="px-6 py-4 text-left font-semibold hover:no-underline">
-                  How accurate are the VO2 Max estimations?
+                  What metrics does Enduro Stats calculate?
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4 text-gray-600">
-                  Our VO2 Max estimations use scientifically-backed algorithms
-                  based on your pace, heart rate, and other metrics. While not
-                  as precise as lab testing, they provide reliable trends and
-                  relative improvements over time.
+                  Enduro Stats computes training load (TSS-style), heart rate and
+                  power zone analysis, weekly distance and consistency trends,
+                  personal bests, and goal progress — all derived from your own
+                  Strava activity data.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

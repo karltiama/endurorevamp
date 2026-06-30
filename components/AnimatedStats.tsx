@@ -4,10 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { TrendingUp, Zap, Target, Activity, BarChart3 } from 'lucide-react';
 
+// Example dashboard readouts that illustrate the metrics the app actually
+// computes from your Strava data (weekly distance, training load, goal progress,
+// totals, and activity streak). Values are illustrative, not aggregate claims.
 const stats = [
   {
     value: '+12%',
-    label: "This month's pace",
+    label: 'Weekly distance',
     icon: TrendingUp,
     color: 'green',
     bgColor: 'bg-green-100',
@@ -17,8 +20,8 @@ const stats = [
     exitTo: { x: -100, y: -50, opacity: 0 },
   },
   {
-    value: '2.3x',
-    label: 'Faster recovery',
+    value: '320',
+    label: 'Weekly training load (TSS)',
     icon: Zap,
     color: 'blue',
     bgColor: 'bg-blue-100',
@@ -29,7 +32,7 @@ const stats = [
   },
   {
     value: '85%',
-    label: 'Goal completion',
+    label: 'Goal progress',
     icon: Target,
     color: 'purple',
     bgColor: 'bg-purple-100',
@@ -40,7 +43,7 @@ const stats = [
   },
   {
     value: '3.2k',
-    label: 'Miles tracked',
+    label: 'Total km tracked',
     icon: Activity,
     color: 'indigo',
     bgColor: 'bg-indigo-100',
@@ -50,8 +53,8 @@ const stats = [
     exitTo: { x: -100, y: 50, opacity: 0 },
   },
   {
-    value: '24%',
-    label: 'VO2 Max increase',
+    value: '12 days',
+    label: 'Activity streak',
     icon: BarChart3,
     color: 'orange',
     bgColor: 'bg-orange-100',
