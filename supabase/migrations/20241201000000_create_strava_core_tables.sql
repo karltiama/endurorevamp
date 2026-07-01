@@ -1,230 +1,190 @@
--- Migration: Create Strava Core Tables (baseline)
--- Date: 2024-12-01 (intentionally ordered BEFORE the existing ALTER migrations
---   20250101_add_favorite_field.sql, 20250101_add_last_sync_new_activities.sql,
---   and 20250103_add_last_sync_at.sql so that a fresh project builds the base
---   tables first and those ALTERs can then add their columns cleanly).
+-- Migration: Strava Core Tables (production-derived baseline)
 --
--- Purpose: These three tables (strava_tokens, activities, sync_state) were
---   originally created directly in Supabase and never had a migration file, so a
---   fresh project could not be reproduced from migrations alone. This migration
---   closes that gap.
+-- Timestamp is intentionally early (2024-12-01) so the later ALTER migrations
+-- run AFTER this file during `supabase db reset`:
+--   20250101000000_add_favorite_field.sql
+--   20250101000001_add_last_sync_new_activities.sql
+--   20250103000000_add_last_sync_at.sql
 --
--- Safety: Fully idempotent. Uses CREATE TABLE/INDEX IF NOT EXISTS and
---   DROP POLICY IF EXISTS before CREATE POLICY, so it is a no-op against an
---   existing database (production/local) that already has these objects, and it
---   does NOT drop or alter any existing columns or data.
+-- Source of truth: production dump (sql/prod/schema.sql). strava_tokens,
+-- activities, and sync_state were originally created directly in the Supabase
+-- dashboard and never had a migration, so a fresh project could not be
+-- reproduced from migrations alone. This file closes that gap and matches the
+-- production column types/constraints EXACTLY (including legacy/quirky types).
 --
--- Note: Columns added by later migrations are intentionally omitted here:
---   - activities.is_favorite           (added by 20250101_add_favorite_field.sql)
---   - sync_state.last_sync_new_activities (added by 20250101_add_last_sync_new_activities.sql)
---   - strava_tokens.last_sync_at        (added by 20250103_add_last_sync_at.sql)
+-- Idempotency: CREATE TABLE/INDEX IF NOT EXISTS; DROP POLICY IF EXISTS before
+-- CREATE POLICY; ENABLE ROW LEVEL SECURITY is a no-op if already enabled. This
+-- is a safe no-op against an existing database (prod/local) that already has
+-- these objects, and never drops or alters existing columns/data.
+--
+-- Columns intentionally OMITTED here because later migrations ADD them. Those
+-- later ALTERs are NOT all idempotent (two lack IF NOT EXISTS), so including the
+-- columns here would break `db reset`. After the full migration chain runs, the
+-- local schema matches production (these columns are appended last, same as prod):
+--   - activities.is_favorite              -> 20250101000000_add_favorite_field.sql
+--   - sync_state.last_sync_new_activities -> 20250101000001_add_last_sync_new_activities.sql
+--   - strava_tokens.last_sync_at          -> 20250103000000_add_last_sync_at.sql
+-- The is_favorite index (idx_activities_is_favorite) is likewise created by the
+-- favorite-field migration and is intentionally omitted here.
+
+-- strava_tokens.id defaults to extensions.uuid_generate_v4() in production.
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 
 -- =============================================================================
 -- strava_tokens: OAuth tokens + cached athlete summary (one row per user)
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS strava_tokens (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-
-  access_token TEXT NOT NULL,
-  refresh_token TEXT NOT NULL,
-  token_type TEXT,
-  expires_at TIMESTAMP WITH TIME ZONE, -- stored as ISO timestamp
-  expires_in INTEGER,
-
-  strava_athlete_id BIGINT,
-  athlete_firstname TEXT,
-  athlete_lastname TEXT,
-  athlete_profile TEXT,
-
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-
-  UNIQUE(user_id)
+CREATE TABLE IF NOT EXISTS "public"."strava_tokens" (
+    "id" uuid DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "user_id" uuid NOT NULL,
+    "access_token" text NOT NULL,
+    "refresh_token" text NOT NULL,
+    "token_type" character varying(50) DEFAULT 'Bearer'::character varying,
+    "expires_at" timestamp with time zone NOT NULL,
+    "expires_in" integer NOT NULL,
+    "strava_athlete_id" bigint NOT NULL,
+    "athlete_firstname" character varying(100),
+    "athlete_lastname" character varying(100),
+    "athlete_profile" text,
+    "scope" text,
+    "created_at" timestamp with time zone DEFAULT now(),
+    "updated_at" timestamp with time zone DEFAULT now(),
+    CONSTRAINT "strava_tokens_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "strava_tokens_user_id_key" UNIQUE ("user_id"),
+    CONSTRAINT "strava_tokens_user_id_fkey" FOREIGN KEY ("user_id")
+        REFERENCES "auth"."users"("id") ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_strava_tokens_user_id ON strava_tokens(user_id);
+CREATE INDEX IF NOT EXISTS "idx_strava_tokens_expires_at" ON "public"."strava_tokens" USING btree ("expires_at");
+CREATE INDEX IF NOT EXISTS "idx_strava_tokens_strava_athlete_id" ON "public"."strava_tokens" USING btree ("strava_athlete_id");
+CREATE INDEX IF NOT EXISTS "idx_strava_tokens_user_id" ON "public"."strava_tokens" USING btree ("user_id");
 
-ALTER TABLE strava_tokens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."strava_tokens" ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Users can view own strava tokens" ON strava_tokens;
-CREATE POLICY "Users can view own strava tokens" ON strava_tokens
-  FOR SELECT USING (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can insert own strava tokens" ON strava_tokens;
-CREATE POLICY "Users can insert own strava tokens" ON strava_tokens
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can update own strava tokens" ON strava_tokens;
-CREATE POLICY "Users can update own strava tokens" ON strava_tokens
-  FOR UPDATE USING (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can delete own strava tokens" ON strava_tokens;
-CREATE POLICY "Users can delete own strava tokens" ON strava_tokens
-  FOR DELETE USING (auth.uid() = user_id);
-
-COMMENT ON TABLE strava_tokens IS 'Per-user Strava OAuth tokens and cached athlete summary';
+DROP POLICY IF EXISTS "strava_tokens_user_policy" ON "public"."strava_tokens";
+CREATE POLICY "strava_tokens_user_policy" ON "public"."strava_tokens"
+    USING (("user_id" = ( SELECT auth.uid() AS uid)))
+    WITH CHECK (("user_id" = ( SELECT auth.uid() AS uid)));
+COMMENT ON POLICY "strava_tokens_user_policy" ON "public"."strava_tokens" IS 'Optimized RLS policy: Users can only access their own Strava tokens. Uses subquery for performance.';
 
 -- =============================================================================
 -- activities: synced Strava activities + app-computed training metrics
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS activities (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  strava_activity_id BIGINT NOT NULL,
-
-  -- Core
-  name TEXT,
-  sport_type TEXT,
-  activity_type TEXT,
-  distance DOUBLE PRECISION DEFAULT 0,        -- meters
-  moving_time INTEGER DEFAULT 0,              -- seconds
-  elapsed_time INTEGER DEFAULT 0,             -- seconds
-  total_elevation_gain DOUBLE PRECISION DEFAULT 0, -- meters
-  start_date TIMESTAMP WITH TIME ZONE,
-  start_date_local TIMESTAMP WITH TIME ZONE,
-  timezone TEXT,
-
-  -- Performance metrics
-  average_speed DOUBLE PRECISION,            -- m/s
-  max_speed DOUBLE PRECISION,                -- m/s
-  has_heartrate BOOLEAN DEFAULT FALSE,
-  average_heartrate INTEGER,
-  max_heartrate INTEGER,
-  average_watts INTEGER,
-  max_watts INTEGER,
-  weighted_average_watts INTEGER,
-  average_cadence DOUBLE PRECISION,
-  kilojoules INTEGER,
-  calories INTEGER,
-
-  -- Location (stored as text, e.g. "lat,lng")
-  start_latlng TEXT,
-  end_latlng TEXT,
-
-  -- Characteristics
-  trainer BOOLEAN DEFAULT FALSE,
-  commute BOOLEAN DEFAULT FALSE,
-  manual BOOLEAN DEFAULT FALSE,
-  private BOOLEAN DEFAULT FALSE,
-  device_name TEXT,
-  device_watts BOOLEAN,
-  gear_id TEXT,
-
-  -- Social
-  kudos_count INTEGER DEFAULT 0,
-  comment_count INTEGER DEFAULT 0,
-  athlete_count INTEGER DEFAULT 0,
-  photo_count INTEGER DEFAULT 0,
-  achievement_count INTEGER DEFAULT 0,
-  pr_count INTEGER DEFAULT 0,
-
-  -- Free text (e.g. imported workout notes)
-  description TEXT,
-
-  -- Computed (by the app during sync)
-  week_number INTEGER,
-  month_number INTEGER,
-  year_number INTEGER,
-  day_of_week INTEGER,
-  average_pace DOUBLE PRECISION,             -- seconds per km
-  elevation_per_km DOUBLE PRECISION,
-  efficiency_score DOUBLE PRECISION,
-
-  -- Training metrics
-  relative_effort INTEGER,
-  perceived_exertion INTEGER,                -- user-entered RPE (1-10)
-  training_load_score DOUBLE PRECISION,
-  intensity_score DOUBLE PRECISION,
-  recovery_time INTEGER,
-  normalized_power INTEGER,
-  training_stress_score INTEGER DEFAULT 0,
-
-  -- Zone data
-  power_zones JSONB,
-  heart_rate_zones JSONB,
-  pace_zones JSONB,
-
-  last_synced_at TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-
-  -- One row per Strava activity per user (matches sync upsert logic)
-  UNIQUE(user_id, strava_activity_id)
+CREATE TABLE IF NOT EXISTS "public"."activities" (
+    "id" uuid DEFAULT gen_random_uuid() NOT NULL,
+    "user_id" uuid NOT NULL,
+    "strava_activity_id" bigint NOT NULL,
+    "name" text NOT NULL,
+    "sport_type" text NOT NULL,
+    "start_date" timestamp with time zone NOT NULL,
+    "start_date_local" timestamp with time zone NOT NULL,
+    "timezone" text,
+    "distance" numeric(10,2),
+    "moving_time" integer,
+    "elapsed_time" integer,
+    "total_elevation_gain" numeric(8,2),
+    "average_speed" numeric(8,4),
+    "max_speed" numeric(8,4),
+    "average_heartrate" integer,
+    "max_heartrate" integer,
+    "has_heartrate" boolean DEFAULT false,
+    "average_watts" integer,
+    "max_watts" integer,
+    "weighted_average_watts" integer,
+    "kilojoules" numeric(8,2),
+    "has_power" boolean DEFAULT false,
+    "trainer" boolean DEFAULT false,
+    "commute" boolean DEFAULT false,
+    "manual" boolean DEFAULT false,
+    "achievement_count" integer DEFAULT 0,
+    "kudos_count" integer DEFAULT 0,
+    "comment_count" integer DEFAULT 0,
+    "week_number" integer,
+    "month_number" integer,
+    "year_number" integer,
+    "day_of_week" integer,
+    "average_pace" numeric(6,2),
+    "elevation_per_km" numeric(6,2),
+    "efficiency_score" numeric(6,2),
+    "created_at" timestamp with time zone DEFAULT now(),
+    "updated_at" timestamp with time zone DEFAULT now(),
+    "relative_effort" integer,
+    "perceived_exertion" integer,
+    "training_load_score" double precision,
+    "intensity_score" double precision,
+    "recovery_time" integer,
+    "normalized_power" double precision,
+    "training_stress_score" double precision,
+    "power_zones" jsonb,
+    "heart_rate_zones" jsonb,
+    "pace_zones" jsonb,
+    "description" text,
+    "summary_polyline" text,
+    "polyline" text,
+    "start_latlng" text,
+    "end_latlng" text,
+    "map_id" text,
+    CONSTRAINT "activities_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "activities_user_strava_activity_unique" UNIQUE ("user_id", "strava_activity_id"),
+    CONSTRAINT "activities_user_id_fkey" FOREIGN KEY ("user_id")
+        REFERENCES "auth"."users"("id") ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_activities_user_id ON activities(user_id);
-CREATE INDEX IF NOT EXISTS idx_activities_start_date ON activities(start_date DESC);
-CREATE INDEX IF NOT EXISTS idx_activities_strava_activity_id ON activities(strava_activity_id);
+COMMENT ON COLUMN "public"."activities"."summary_polyline" IS 'Strava encoded polyline for route summary';
+COMMENT ON COLUMN "public"."activities"."polyline" IS 'Strava encoded polyline for detailed route';
+COMMENT ON COLUMN "public"."activities"."start_latlng" IS 'Start coordinates as "lat,lng" string';
+COMMENT ON COLUMN "public"."activities"."end_latlng" IS 'End coordinates as "lat,lng" string';
+COMMENT ON COLUMN "public"."activities"."map_id" IS 'Strava map ID for the activity';
 
-ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
+CREATE INDEX IF NOT EXISTS "idx_activities_description" ON "public"."activities" USING btree ("description") WHERE ("description" IS NOT NULL);
+CREATE INDEX IF NOT EXISTS "idx_activities_intensity" ON "public"."activities" USING btree ("user_id", "intensity_score");
+CREATE INDEX IF NOT EXISTS "idx_activities_route_data" ON "public"."activities" USING btree ("user_id", "start_latlng", "end_latlng") WHERE ("start_latlng" IS NOT NULL);
+CREATE INDEX IF NOT EXISTS "idx_activities_sport_type" ON "public"."activities" USING btree ("user_id", "sport_type", "start_date" DESC);
+CREATE INDEX IF NOT EXISTS "idx_activities_sport_type_date" ON "public"."activities" USING btree ("sport_type", "start_date");
+CREATE INDEX IF NOT EXISTS "idx_activities_training_load" ON "public"."activities" USING btree ("user_id", "training_load_score");
+CREATE INDEX IF NOT EXISTS "idx_activities_user_date" ON "public"."activities" USING btree ("user_id", "start_date" DESC);
+CREATE INDEX IF NOT EXISTS "idx_activities_user_strava" ON "public"."activities" USING btree ("user_id", "strava_activity_id");
+CREATE INDEX IF NOT EXISTS "idx_activities_week" ON "public"."activities" USING btree ("user_id", "year_number", "week_number");
+CREATE INDEX IF NOT EXISTS "idx_activities_year_month" ON "public"."activities" USING btree ("year_number", "month_number");
 
-DROP POLICY IF EXISTS "Users can view own activities" ON activities;
-CREATE POLICY "Users can view own activities" ON activities
-  FOR SELECT USING (auth.uid() = user_id);
+ALTER TABLE "public"."activities" ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Users can insert own activities" ON activities;
-CREATE POLICY "Users can insert own activities" ON activities
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can update own activities" ON activities;
-CREATE POLICY "Users can update own activities" ON activities
-  FOR UPDATE USING (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can delete own activities" ON activities;
-CREATE POLICY "Users can delete own activities" ON activities
-  FOR DELETE USING (auth.uid() = user_id);
-
-COMMENT ON TABLE activities IS 'Strava activities synced per user, plus app-computed training metrics';
+DROP POLICY IF EXISTS "activities_user_policy" ON "public"."activities";
+CREATE POLICY "activities_user_policy" ON "public"."activities"
+    USING (("user_id" = ( SELECT auth.uid() AS uid)))
+    WITH CHECK (("user_id" = ( SELECT auth.uid() AS uid)));
+COMMENT ON POLICY "activities_user_policy" ON "public"."activities" IS 'Optimized RLS policy: Users can only access their own activities. Uses subquery for performance.';
 
 -- =============================================================================
--- sync_state: per-user sync bookkeeping / rate-limit tracking (one row per user)
+-- sync_state: per-user Strava sync bookkeeping and rate-limit tracking
 -- =============================================================================
-CREATE TABLE IF NOT EXISTS sync_state (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-
-  last_activity_sync TIMESTAMP WITH TIME ZONE,
-  last_activity_id BIGINT,
-  last_sync_date DATE,
-  last_profile_sync TIMESTAMP WITH TIME ZONE,
-
-  sync_requests_today INTEGER DEFAULT 0,
-  requests_used_today INTEGER DEFAULT 0,
-  total_activities_synced INTEGER DEFAULT 0,
-  activities_synced_count INTEGER DEFAULT 0,
-
-  sync_enabled BOOLEAN DEFAULT TRUE,
-  consecutive_errors INTEGER DEFAULT 0,
-  last_error_message TEXT,
-  last_error_at TIMESTAMP WITH TIME ZONE,
-  last_sync_error JSONB,
-  rate_limit_reset_at TIMESTAMP WITH TIME ZONE,
-
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-
-  UNIQUE(user_id)
+CREATE TABLE IF NOT EXISTS "public"."sync_state" (
+    "id" uuid DEFAULT gen_random_uuid() NOT NULL,
+    "user_id" uuid NOT NULL,
+    "last_activity_sync" timestamp with time zone,
+    "last_full_sync" timestamp with time zone,
+    "earliest_activity_date" date,
+    "latest_activity_date" date,
+    "total_activities_synced" integer DEFAULT 0,
+    "full_sync_completed" boolean DEFAULT false,
+    "sync_enabled" boolean DEFAULT true,
+    "sync_requests_today" integer DEFAULT 0,
+    "last_sync_date" date DEFAULT CURRENT_DATE,
+    "consecutive_errors" integer DEFAULT 0,
+    "last_error_message" text,
+    "last_error_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT now(),
+    "updated_at" timestamp with time zone DEFAULT now(),
+    "last_sync_error" jsonb,
+    CONSTRAINT "sync_state_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "sync_state_user_id_key" UNIQUE ("user_id"),
+    CONSTRAINT "sync_state_user_id_fkey" FOREIGN KEY ("user_id")
+        REFERENCES "auth"."users"("id") ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_sync_state_user_id ON sync_state(user_id);
+ALTER TABLE "public"."sync_state" ENABLE ROW LEVEL SECURITY;
 
-ALTER TABLE sync_state ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Users can view own sync state" ON sync_state;
-CREATE POLICY "Users can view own sync state" ON sync_state
-  FOR SELECT USING (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can insert own sync state" ON sync_state;
-CREATE POLICY "Users can insert own sync state" ON sync_state
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can update own sync state" ON sync_state;
-CREATE POLICY "Users can update own sync state" ON sync_state
-  FOR UPDATE USING (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can delete own sync state" ON sync_state;
-CREATE POLICY "Users can delete own sync state" ON sync_state
-  FOR DELETE USING (auth.uid() = user_id);
-
-COMMENT ON TABLE sync_state IS 'Per-user Strava sync bookkeeping and rate-limit tracking';
+DROP POLICY IF EXISTS "sync_state_user_policy" ON "public"."sync_state";
+CREATE POLICY "sync_state_user_policy" ON "public"."sync_state"
+    USING (("user_id" = ( SELECT auth.uid() AS uid)))
+    WITH CHECK (("user_id" = ( SELECT auth.uid() AS uid)));
+COMMENT ON POLICY "sync_state_user_policy" ON "public"."sync_state" IS 'Optimized RLS policy: Users can only access their own sync state. Uses subquery for performance.';
