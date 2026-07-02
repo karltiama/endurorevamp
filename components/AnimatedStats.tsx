@@ -103,8 +103,11 @@ export default function AnimatedStats() {
           stiffness: 100,
           damping: 15,
         }}
-        className="absolute -bottom-6 -left-6 bg-white rounded-lg shadow-lg p-4 border"
+        className="absolute -bottom-6 -left-6 bg-white rounded-lg shadow-lg p-4 border max-w-[240px]"
       >
+        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">
+          Example metrics
+        </p>
         <div className="flex items-center space-x-3">
           <motion.div
             className={`w-12 h-12 ${currentStat.bgColor} rounded-full flex items-center justify-center`}

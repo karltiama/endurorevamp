@@ -1,10 +1,11 @@
 import { Badge } from '@/components/ui/badge';
 import {
   BarChart3,
-  TrendingUp,
   Activity,
   Target,
-  Award,
+  CloudSun,
+  UserCircle,
+  Sparkles,
   Smartphone,
   Zap,
 } from 'lucide-react';
@@ -12,99 +13,131 @@ import Image from 'next/image';
 import AnimatedLevelUp from './AnimatedLevelUp';
 import EnhancedPhoneMockup from './ui/EnhancedPhoneMockup';
 
-const features = [
+type FeatureStatus = 'live' | 'planned';
+
+const features: {
+  title: string;
+  description: string;
+  icon: typeof Activity;
+  iconColor: string;
+  screenshot: string | null;
+  alt: string;
+  bullets: string[];
+  status: FeatureStatus;
+  usePhoneMockup?: boolean;
+}[] = [
   {
-    title: 'Training Load Analysis',
+    title: 'Strava Activity Analytics',
     description:
-      'Track your training stress and recovery with advanced load metrics and trend analysis.',
-    icon: BarChart3,
-    iconColor: 'bg-indigo-100 text-indigo-600',
-    screenshot: '/images/features/training-load-dashboard.png',
-    alt: 'Training Load Dashboard showing weekly training stress and recovery metrics',
-    features: [
-      'Weekly training stress',
-      'Recovery tracking',
-      'Load balance analysis',
-      'Trend visualization',
-    ],
-  },
-  {
-    title: 'Performance Trends',
-    description:
-      'Visualize pace, heart rate, and cadence trends over weeks, months, and years.',
-    icon: TrendingUp,
-    iconColor: 'bg-blue-100 text-blue-600',
-    screenshot: '/images/features/performance-trends.png',
-    alt: 'Performance trends chart showing pace and heart rate improvements over time',
-    features: [
-      'Pace progression',
-      'Heart rate zones',
-      'Cadence analysis',
-      'Long-term trends',
-    ],
-  },
-  {
-    title: 'Activity Analytics',
-    description:
-      'Dive deep into your performance with detailed analytics, route visualization, and trend analysis.',
+      'Import runs and rides from Strava and explore pace, distance, elevation, heart rate, and training metrics in one dashboard.',
     icon: Activity,
     iconColor: 'bg-green-100 text-green-600',
     screenshot: '/images/features/activity-analytics.png',
-    alt: 'Activity Analytics Dashboard showing performance metrics and route data',
-    features: [
-      'Performance tracking',
-      'Route visualization (Coming Soon)',
-      'Trend analysis',
-      'Detailed insights',
+    alt: 'Activity analytics dashboard with performance metrics from synced Strava activities',
+    bullets: [
+      'Automatic Strava sync',
+      'Activity history and detail views',
+      'Personal bests and trend charts',
+      'Route data when Strava provides it',
     ],
+    status: 'live',
   },
   {
-    title: 'Smart Goal Tracking',
+    title: 'Training Load Insights',
     description:
-      'Set and monitor progress toward distance, pace, and consistency goals with smart insights.',
+      'See weekly training stress, intensity patterns, and load trends computed from your synced activities.',
+    icon: BarChart3,
+    iconColor: 'bg-indigo-100 text-indigo-600',
+    screenshot: '/images/features/training-load-dashboard.png',
+    alt: 'Training load dashboard showing weekly stress and recovery context',
+    bullets: [
+      'Weekly training load (TSS-style)',
+      'Intensity and load trends',
+      'Dashboard summaries from your data',
+      'Readiness context on the dashboard',
+    ],
+    status: 'live',
+  },
+  {
+    title: 'Goals & Progress Tracking',
+    description:
+      'Set distance, pace, and consistency goals, then track progress as new activities sync from Strava.',
     icon: Target,
     iconColor: 'bg-purple-100 text-purple-600',
     screenshot: '/images/features/goal-tracking.png',
     alt: 'Goal tracking dashboard showing progress toward running goals',
-    features: [
-      'Progress tracking',
-      'Smart suggestions',
-      'Milestone alerts',
-      'Adaptive goals',
+    bullets: [
+      'Goal types with automatic progress updates',
+      'Dynamic goal suggestions from your history',
+      'Achievements tied to goal milestones',
+      'Weekly and monthly progress views',
     ],
+    status: 'live',
   },
   {
-    title: 'Achievements & Streaks',
+    title: 'Onboarding & Training Profile',
     description:
-      'Earn badges, track running streaks, and celebrate milestones with gamified progress.',
-    icon: Award,
-    iconColor: 'bg-yellow-100 text-yellow-600',
-    screenshot: null, // Coming soon - no screenshot yet
-    alt: 'Achievements dashboard showing badges, streaks, and milestones',
-    features: [
-      'Running streaks',
-      'Achievement badges',
-      'Milestone tracking',
-      'Progress celebrations',
+      'Complete a guided setup flow, connect Strava, and configure training preferences and thresholds used across the app.',
+    icon: UserCircle,
+    iconColor: 'bg-blue-100 text-blue-600',
+    screenshot: '/images/features/performance-trends.png',
+    alt: 'Training profile and onboarding settings in the Enduro Stats dashboard',
+    bullets: [
+      'Step-by-step onboarding modal',
+      'Training profile and preferences',
+      'Threshold and zone configuration',
+      'Strava connection during setup',
     ],
-    comingSoon: true,
-    isLive: false,
+    status: 'live',
   },
   {
-    title: 'Mobile Dashboard',
+    title: 'Weather-Aware Workout Planning',
     description:
-      'Access your insights anywhere with a responsive, mobile-optimized interface.',
+      'Generate weekly workout plans and daily recommendations with weather context when your location is configured.',
+    icon: CloudSun,
+    iconColor: 'bg-sky-100 text-sky-600',
+    screenshot: '/images/features/training-load-dashboard.png',
+    alt: 'Workout planning view with training recommendations',
+    bullets: [
+      'Rule-based weekly workout plans',
+      "Today's workout recommendations",
+      'OpenWeather context for your area',
+      'Adjustments based on conditions',
+    ],
+    status: 'live',
+  },
+  {
+    title: 'AI Weekly Training Debrief',
+    description:
+      'A planned feature to summarize your week in plain language. Not available in the app yet — listed here for transparency.',
+    icon: Sparkles,
+    iconColor: 'bg-violet-100 text-violet-600',
+    screenshot: null,
+    alt: 'Planned AI weekly training debrief feature',
+    bullets: [
+      'Weekly summary in plain language',
+      'Highlights from your synced activities',
+      'Training context, not medical advice',
+      'Planned — not live today',
+    ],
+    status: 'planned',
+  },
+  {
+    title: 'Mobile-Friendly Dashboard',
+    description:
+      'Use the same dashboards on phone, tablet, or desktop. The web app is responsive — no separate native app required.',
     icon: Smartphone,
     iconColor: 'bg-red-100 text-red-600',
     screenshot: '/images/features/mobile-dashboard.png',
-    alt: 'Mobile dashboard showing responsive design on smartphone',
-    features: [
-      'Mobile optimized',
-      'Touch friendly',
-      'Offline access',
-      'Push notifications',
+    alt: 'Mobile-friendly dashboard layout on a smartphone',
+    bullets: [
+      'Responsive web layout',
+      'Touch-friendly navigation',
+      'Same features on mobile browsers',
+      'No app store download required',
     ],
-    isLive: false,
+    status: 'live',
+    usePhoneMockup: true,
   },
 ];
 
@@ -121,15 +154,15 @@ export default function EnhancedFeaturesSection() {
             className="bg-indigo-100 text-indigo-800 hover:bg-indigo-100 mb-4"
           >
             <Zap className="w-3 h-3 mr-1" />
-            Real Features, Real Results
+            What the app does today
           </Badge>
           <div className="mb-6">
             <AnimatedLevelUp />
           </div>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            These aren&apos;t mockups - they&apos;re actual screenshots from
-            your Enduro Stats dashboard. Experience the real features that
-            serious runners use every day.
+            Screenshots below come from the current Enduro Stats dashboard.
+            Features marked &ldquo;Planned&rdquo; are on the roadmap and are
+            not live yet.
           </p>
         </div>
 
@@ -141,7 +174,6 @@ export default function EnhancedFeaturesSection() {
                 index % 2 === 1 ? 'lg:grid-flow-col-dense' : ''
               }`}
             >
-              {/* Feature Card */}
               <div
                 className={`space-y-6 ${index % 2 === 1 ? 'lg:col-start-2' : ''}`}
               >
@@ -161,11 +193,8 @@ export default function EnhancedFeaturesSection() {
                 </p>
 
                 <div className="space-y-3">
-                  {feature.features.map((item, itemIndex) => (
-                    <div
-                      key={itemIndex}
-                      className="flex items-center space-x-3"
-                    >
+                  {feature.bullets.map(item => (
+                    <div key={item} className="flex items-center space-x-3">
                       <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
                       <span className="text-gray-700">{item}</span>
                     </div>
@@ -173,39 +202,35 @@ export default function EnhancedFeaturesSection() {
                 </div>
 
                 <div className="pt-4">
-                  {feature.comingSoon ? (
+                  {feature.status === 'planned' ? (
                     <Badge
                       variant="outline"
-                      className="border-yellow-200 text-yellow-700 bg-yellow-50"
+                      className="border-violet-200 text-violet-700 bg-violet-50"
                     >
-                      Coming Soon
+                      Planned — not live yet
                     </Badge>
                   ) : (
                     <Badge
                       variant="outline"
                       className="border-indigo-200 text-indigo-700"
                     >
-                      Live Feature
+                      Available today
                     </Badge>
                   )}
                 </div>
               </div>
 
-              {/* Screenshot */}
               <div
                 className={`relative ${index % 2 === 1 ? 'lg:col-start-1' : ''}`}
               >
-                {feature.title === 'Mobile Dashboard' ? (
-                  // Mobile dashboard - use professional iPhone mockup with enhanced styling
+                {feature.usePhoneMockup ? (
                   <EnhancedPhoneMockup
                     src="/images/features/iphone-mockup.png"
-                    alt="iPhone mockup showing mobile dashboard interface"
+                    alt="Smartphone showing the responsive Enduro Stats dashboard"
                   />
                 ) : (
-                  // Other features - with browser container
                   <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-4 shadow-xl border">
                     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                      {/* Mock Browser Header */}
                       <div className="bg-gray-100 p-3 flex items-center space-x-2">
                         <div className="flex space-x-2">
                           <div className="w-3 h-3 bg-red-400 rounded-full"></div>
@@ -219,27 +244,19 @@ export default function EnhancedFeaturesSection() {
                         </div>
                       </div>
 
-                      {/* Real Screenshot, Coming Soon, or Placeholder */}
-                      {feature.comingSoon ? (
-                        <div className="relative bg-gradient-to-br from-yellow-50 to-orange-50 p-8 text-center">
+                      {feature.status === 'planned' ? (
+                        <div className="relative bg-gradient-to-br from-violet-50 to-indigo-50 p-8 text-center">
                           <div className="max-w-md mx-auto">
-                            <div className="w-full h-64 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-lg border-2 border-dashed border-yellow-300 flex items-center justify-center">
-                              <div className="text-center">
-                                <Award className="h-12 w-12 text-yellow-500 mx-auto mb-3" />
-                                <p className="text-yellow-700 font-medium">
-                                  Coming Soon!
+                            <div className="w-full h-64 bg-gradient-to-br from-violet-100 to-indigo-100 rounded-lg border-2 border-dashed border-violet-300 flex items-center justify-center">
+                              <div className="text-center px-4">
+                                <Sparkles className="h-12 w-12 text-violet-500 mx-auto mb-3" />
+                                <p className="text-violet-800 font-medium">
+                                  Planned feature
                                 </p>
-                                <p className="text-yellow-600 text-sm">
-                                  Launching in the next few days
+                                <p className="text-violet-600 text-sm mt-2">
+                                  AI Weekly Training Debrief is on the roadmap
+                                  and is not available in the app yet.
                                 </p>
-                                <div className="mt-3">
-                                  <Badge
-                                    variant="outline"
-                                    className="border-yellow-300 text-yellow-700 bg-yellow-100"
-                                  >
-                                    🚀 In Development
-                                  </Badge>
-                                </div>
                               </div>
                             </div>
                           </div>
@@ -249,44 +266,12 @@ export default function EnhancedFeaturesSection() {
                           <Image
                             src={feature.screenshot}
                             alt={feature.alt}
-                            width={
-                              feature.title === 'Activity Analytics' ? 800 : 600
-                            }
-                            height={
-                              feature.title === 'Activity Analytics' ? 500 : 400
-                            }
-                            className={`w-full h-auto ${feature.title === 'Activity Analytics' ? 'rounded-lg shadow-lg' : ''}`}
+                            width={800}
+                            height={500}
+                            className="w-full h-auto rounded-lg shadow-lg"
                           />
                         </div>
-                      ) : (
-                        <div className="relative bg-gray-50 p-8 text-center">
-                          <div className="max-w-md mx-auto">
-                            <div className="w-full h-64 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg border-2 border-dashed border-indigo-200 flex items-center justify-center">
-                              <div className="text-center">
-                                <BarChart3 className="h-12 w-12 text-indigo-400 mx-auto mb-3" />
-                                <p className="text-indigo-600 font-medium">
-                                  Screenshot Placeholder
-                                </p>
-                                <p className="text-indigo-400 text-sm">
-                                  Add actual dashboard screenshots here
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Floating Elements */}
-                {feature.isLive && (
-                  <div className="absolute -top-2 -right-2 bg-white rounded-lg shadow-lg p-2 border">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-xs font-medium text-gray-700">
-                        Live
-                      </span>
+                      ) : null}
                     </div>
                   </div>
                 )}

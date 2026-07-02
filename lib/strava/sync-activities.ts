@@ -108,7 +108,8 @@ export async function syncStravaActivities(
       console.log('🔄 Token expired or expiring soon, refreshing...');
       const refreshResult = await refreshStravaToken(
         userId,
-        tokens.refresh_token
+        tokens.refresh_token,
+        tokens
       );
       if (!refreshResult.success) {
         result.errors.push('Failed to refresh Strava token');
@@ -147,8 +148,39 @@ export async function syncStravaActivities(
       activities = await fetchStravaActivities(tokens.access_token, 50);
     }
 
+    // Retry once after forced token refresh (handles stale tokens / 403 responses)
     if (!activities) {
-      result.errors.push('Failed to fetch activities from Strava');
+      console.log('🔄 Fetch failed, forcing token refresh and retrying...');
+      const refreshResult = await refreshStravaToken(
+        userId,
+        tokens.refresh_token,
+        tokens
+      );
+      if (refreshResult.success) {
+        result.tokenRefreshed = true;
+        const { data: refreshedTokens } = await supabase
+          .from('strava_tokens')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+
+        if (refreshedTokens) {
+          tokens = refreshedTokens;
+          activities =
+            syncType === 'full'
+              ? await fetchStravaActivitiesWithPagination(
+                  tokens.access_token,
+                  200
+                )
+              : await fetchStravaActivities(tokens.access_token, 50);
+        }
+      }
+    }
+
+    if (!activities) {
+      result.errors.push(
+        'Failed to fetch activities from Strava. Try reconnecting your Strava account in Settings.'
+      );
       return result;
     }
 
@@ -240,9 +272,17 @@ export async function syncStravaActivities(
   }
 }
 
+type StravaTokenRow = {
+  strava_athlete_id?: number | null;
+  athlete_firstname?: string | null;
+  athlete_lastname?: string | null;
+  athlete_profile?: string | null;
+};
+
 async function refreshStravaToken(
   userId: string,
-  refreshToken: string
+  refreshToken: string,
+  existingToken?: StravaTokenRow
 ): Promise<{ success: boolean }> {
   try {
     const supabase = await createClient();
@@ -250,6 +290,7 @@ async function refreshStravaToken(
       supabase,
       userId,
       refreshToken,
+      existingToken,
     });
 
     if (!refreshResult.success) {
@@ -282,10 +323,41 @@ async function fetchStravaActivities(
     );
 
     if (!response.ok) {
+      const errorBody = await response.text();
       console.error(
-        `❌ Strava API error: ${response.status} ${response.statusText}`
+        `❌ Strava API error: ${response.status} ${response.statusText}`,
+        errorBody
       );
-      throw new Error(`Failed to fetch activities: ${response.statusText}`);
+
+      let userMessage = `Failed to fetch activities: ${response.statusText}`;
+      if (response.status === 403) {
+        try {
+          const parsed = JSON.parse(errorBody) as {
+            message?: string;
+            errors?: Array<{ resource?: string; code?: string; field?: string }>;
+          };
+          const inactiveApp = parsed.errors?.find(
+            e => e.resource === 'Application' && e.code === 'Inactive'
+          );
+          const permissionError = parsed.errors?.find(
+            e => e.field?.includes('permission') || e.code === 'missing'
+          );
+          if (inactiveApp) {
+            userMessage =
+              'Strava API app is inactive. Visit strava.com/settings/api to reactivate your app, then disconnect and reconnect Strava here.';
+          } else if (permissionError) {
+            userMessage =
+              'Strava permission missing. Disconnect and reconnect your Strava account in Settings to grant activity access.';
+          } else if (parsed.message) {
+            userMessage = parsed.message;
+          }
+        } catch {
+          userMessage =
+            'Strava denied access (403). Try disconnecting and reconnecting your Strava account in Settings.';
+        }
+      }
+
+      throw new Error(userMessage);
     }
 
     const activities: StravaActivity[] = await response.json();

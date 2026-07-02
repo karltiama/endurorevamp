@@ -1,5 +1,140 @@
 CREATE SCHEMA IF NOT EXISTS "public";
 COMMENT ON SCHEMA "public" IS 'standard public schema';
+CREATE OR REPLACE FUNCTION "public"."calculate_goal_progress"("p_user_id" "uuid") RETURNS TABLE("goal_id" "uuid", "goal_type" "text", "target_value" numeric, "current_progress" numeric, "progress_percentage" numeric, "is_completed" boolean, "last_updated" timestamp with time zone)
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+  goal_rec RECORD;
+  progress_value DECIMAL := 0;
+  pct DECIMAL := 0;
+  completed BOOLEAN := false;
+BEGIN
+  FOR goal_rec IN
+    SELECT ug.id, gt.name AS goal_type, ug.target_value
+    FROM user_goals ug
+    JOIN goal_types gt ON ug.goal_type_id = gt.name
+    WHERE ug.user_id = p_user_id AND ug.is_active = true
+  LOOP
+    IF goal_rec.goal_type = 'weekly_distance' THEN
+      SELECT COALESCE(SUM(distance)/1000,0) INTO progress_value
+      FROM activities
+      WHERE user_id = p_user_id
+        AND sport_type = 'Run'
+        AND start_date >= date_trunc('week', now())
+        AND start_date < date_trunc('week', now()) + INTERVAL '1 week';
+    ELSIF goal_rec.goal_type = 'monthly_distance' THEN
+      SELECT COALESCE(SUM(distance)/1000,0) INTO progress_value
+      FROM activities
+      WHERE user_id = p_user_id
+        AND sport_type = 'Run'
+        AND start_date >= date_trunc('month', now())
+        AND start_date < date_trunc('month', now()) + INTERVAL '1 month';
+    ELSIF goal_rec.goal_type = 'long_run_distance' THEN
+      SELECT COALESCE(MAX(distance)/1000,0) INTO progress_value
+      FROM activities
+      WHERE user_id = p_user_id
+        AND sport_type = 'Run'
+        AND start_date >= date_trunc('month', now())
+        AND start_date < date_trunc('month', now()) + INTERVAL '1 month';
+    ELSIF goal_rec.goal_type = 'weekly_run_frequency' THEN
+      SELECT COUNT(*)::DECIMAL INTO progress_value
+      FROM activities
+      WHERE user_id = p_user_id
+        AND sport_type = 'Run'
+        AND start_date >= date_trunc('week', now())
+        AND start_date < date_trunc('week', now()) + INTERVAL '1 week';
+    ELSIF goal_rec.goal_type = 'monthly_run_frequency' THEN
+      SELECT COUNT(*)::DECIMAL INTO progress_value
+      FROM activities
+      WHERE user_id = p_user_id
+        AND sport_type = 'Run'
+        AND start_date >= date_trunc('month', now())
+        AND start_date < date_trunc('month', now()) + INTERVAL '1 month';
+    ELSIF goal_rec.goal_type = 'weekly_time_target' THEN
+      SELECT COALESCE(SUM(moving_time)/3600,0) INTO progress_value
+      FROM activities
+      WHERE user_id = p_user_id
+        AND sport_type = 'Run'
+        AND start_date >= date_trunc('week', now())
+        AND start_date < date_trunc('week', now()) + INTERVAL '1 week';
+    ELSIF goal_rec.goal_type = 'monthly_time_target' THEN
+      SELECT COALESCE(SUM(moving_time)/3600,0) INTO progress_value
+      FROM activities
+      WHERE user_id = p_user_id
+        AND sport_type = 'Run'
+        AND start_date >= date_trunc('month', now())
+        AND start_date < date_trunc('month', now()) + INTERVAL '1 month';
+    ELSIF goal_rec.goal_type = 'weekly_elevation_gain' THEN
+      SELECT COALESCE(SUM(total_elevation_gain),0) INTO progress_value
+      FROM activities
+      WHERE user_id = p_user_id
+        AND sport_type = 'Run'
+        AND start_date >= date_trunc('week', now())
+        AND start_date < date_trunc('week', now()) + INTERVAL '1 week';
+    ELSIF goal_rec.goal_type = 'monthly_elevation_gain' THEN
+      SELECT COALESCE(SUM(total_elevation_gain),0) INTO progress_value
+      FROM activities
+      WHERE user_id = p_user_id
+        AND sport_type = 'Run'
+        AND start_date >= date_trunc('month', now())
+        AND start_date < date_trunc('month', now()) + INTERVAL '1 month';
+    ELSIF goal_rec.goal_type = 'target_pace_5k' THEN
+      SELECT COALESCE(AVG(moving_time/NULLIF(distance,0)),0) INTO progress_value
+      FROM activities
+      WHERE user_id = p_user_id
+        AND sport_type = 'Run'
+        AND distance BETWEEN 4800 AND 5200
+        AND start_date >= now() - INTERVAL '30 days'
+        AND distance > 0 AND moving_time > 0;
+    ELSIF goal_rec.goal_type = 'target_pace_10k' THEN
+      SELECT COALESCE(AVG(moving_time/NULLIF(distance,0)),0) INTO progress_value
+      FROM activities
+      WHERE user_id = p_user_id
+        AND sport_type = 'Run'
+        AND distance BETWEEN 9500 AND 15000
+        AND start_date >= now() - INTERVAL '30 days'
+        AND distance > 0 AND moving_time > 0;
+    ELSIF goal_rec.goal_type = 'general_pace_improvement' THEN
+      SELECT COALESCE(AVG(moving_time/NULLIF(distance,0)),0) INTO progress_value
+      FROM activities
+      WHERE user_id = p_user_id
+        AND sport_type = 'Run'
+        AND start_date >= now() - INTERVAL '30 days'
+        AND distance > 0 AND moving_time > 0;
+    ELSE
+      progress_value := 0;
+    END IF;
+    IF goal_rec.goal_type IN ('target_pace_5k', 'target_pace_10k', 'general_pace_improvement') THEN
+      completed := (progress_value > 0 AND progress_value <= goal_rec.target_value);
+      IF progress_value > 0 THEN
+        pct := LEAST(100 * (goal_rec.target_value / progress_value), 100);
+      ELSE
+        pct := 0;
+      END IF;
+    ELSE
+      completed := (progress_value >= goal_rec.target_value);
+      IF goal_rec.target_value > 0 THEN
+        pct := LEAST(100 * (progress_value / goal_rec.target_value), 100);
+      ELSE
+        pct := 0;
+      END IF;
+    END IF;
+    UPDATE user_goals
+        is_completed = completed,
+        last_progress_update = now()
+    WHERE id = goal_rec.id;
+    goal_id := goal_rec.id;
+    goal_type := goal_rec.goal_type;
+    target_value := goal_rec.target_value;
+    current_progress := progress_value;
+    progress_percentage := pct;
+    is_completed := completed;
+    last_updated := now();
+    RETURN NEXT;
+  END LOOP;
+  RETURN;
+END;
+$$;
 CREATE OR REPLACE FUNCTION "public"."create_user_training_profile"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -152,6 +287,244 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+CREATE OR REPLACE FUNCTION "public"."update_all_goal_progress"("p_user_id" "uuid", "p_since_date" timestamp with time zone DEFAULT NULL::timestamp with time zone) RETURNS TABLE("goals_updated" integer, "activities_processed" integer, "errors" "text"[])
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+  activity_record RECORD;
+  goal_record RECORD;
+  progress_value DECIMAL;
+  contribution DECIMAL;
+  goals_updated_count INTEGER := 0;
+  activities_processed_count INTEGER := 0;
+  error_messages TEXT[] := ARRAY[]::TEXT[];
+  last_progress_update_time TIMESTAMP WITH TIME ZONE; -- Renamed variable
+BEGIN
+  SELECT MAX(last_progress_update) INTO last_progress_update_time
+  FROM user_goals
+  WHERE user_id = p_user_id;
+  IF p_since_date IS NULL THEN
+    p_since_date := COALESCE(last_progress_update_time, '1970-01-01'::TIMESTAMP WITH TIME ZONE);
+  END IF;
+  FOR activity_record IN
+    SELECT
+      a.id as activity_id,
+      a.strava_activity_id,
+      a.name,
+      a.sport_type,
+      a.distance,
+      a.moving_time,
+      a.elapsed_time,
+      a.total_elevation_gain,
+      a.average_pace,
+      a.average_heartrate,
+      a.start_date,
+      a.start_date_local,
+      a.timezone
+    FROM activities a
+    WHERE a.user_id = p_user_id
+      AND a.start_date >= p_since_date
+    ORDER BY a.start_date
+  LOOP
+    activities_processed_count := activities_processed_count + 1;
+    FOR goal_record IN
+      SELECT
+        ug.id as goal_id,
+        ug.target_value,
+        ug.current_progress,
+        ug.best_result,
+        ug.time_period,
+        gt.metric_type,
+        gt.calculation_method,
+        gt.unit
+      FROM user_goals ug
+      JOIN goal_types gt ON ug.goal_type_id = gt.name
+      WHERE ug.user_id = p_user_id
+        AND ug.is_active = true
+        AND NOT ug.is_completed
+    LOOP
+      progress_value := 0;
+      contribution := 0;
+      CASE goal_record.metric_type
+        WHEN 'total_distance' THEN
+          contribution := activity_record.distance / 1000.0; -- Convert to km
+        WHEN 'max_distance' THEN
+          IF activity_record.distance / 1000.0 > COALESCE(goal_record.best_result, 0) THEN
+            progress_value := activity_record.distance / 1000.0;
+            contribution := (activity_record.distance / 1000.0) - COALESCE(goal_record.best_result, 0);
+          END IF;
+        WHEN 'average_pace' THEN
+          IF activity_record.average_pace > 0 AND
+             (goal_record.best_result IS NULL OR activity_record.average_pace < goal_record.best_result) THEN
+            progress_value := activity_record.average_pace;
+            contribution := COALESCE(goal_record.best_result, 999) - activity_record.average_pace;
+          END IF;
+        WHEN 'run_count' THEN
+          IF LOWER(activity_record.sport_type) = 'run' THEN
+            contribution := 1; -- Each run counts as 1
+          END IF;
+        WHEN 'total_time' THEN
+          contribution := activity_record.moving_time / 3600.0; -- Convert seconds to hours
+        WHEN 'max_duration' THEN
+          IF activity_record.moving_time / 60.0 > COALESCE(goal_record.best_result, 0) THEN
+            progress_value := activity_record.moving_time / 60.0; -- Convert to minutes
+            contribution := (activity_record.moving_time / 60.0) - COALESCE(goal_record.best_result, 0);
+          END IF;
+        WHEN 'total_elevation' THEN
+          contribution := COALESCE(activity_record.total_elevation_gain, 0);
+        WHEN 'elevation_per_km' THEN
+          IF activity_record.distance > 0 THEN
+            progress_value := COALESCE(activity_record.total_elevation_gain, 0) / (activity_record.distance / 1000.0);
+          END IF;
+        ELSE
+          CONTINUE;
+      END CASE;
+      IF contribution > 0 OR progress_value > 0 THEN
+        BEGIN
+          INSERT INTO goal_progress (
+            user_goal_id,
+            activity_id,
+            activity_date,
+            value_achieved,
+            contribution_amount
+          ) VALUES (
+            goal_record.goal_id,
+            activity_record.strava_activity_id::TEXT,
+            activity_record.start_date::DATE,
+            COALESCE(progress_value, contribution),
+            contribution
+          );
+          IF goal_record.metric_type IN ('max_distance', 'max_duration', 'average_pace') THEN
+            UPDATE user_goals
+              best_result = GREATEST(COALESCE(best_result, 0), progress_value),
+              last_progress_update = now()
+            WHERE id = goal_record.goal_id AND progress_value > 0;
+          ELSE
+            UPDATE user_goals
+              current_progress = current_progress + contribution,
+              last_progress_update = now()
+            WHERE id = goal_record.goal_id;
+          END IF;
+          goals_updated_count := goals_updated_count + 1;
+        EXCEPTION
+          WHEN unique_violation THEN
+            CONTINUE;
+          WHEN OTHERS THEN
+            error_messages := array_append(error_messages,
+              format('Error updating goal %s for activity %s: %s',
+                     goal_record.goal_id, activity_record.strava_activity_id, SQLERRM));
+        END;
+      END IF;
+    END LOOP;
+  END LOOP;
+  UPDATE user_goals
+  WHERE user_id = p_user_id
+    AND NOT is_completed
+    AND target_value IS NOT NULL
+    AND (
+      (current_progress >= target_value) OR
+      (best_result IS NOT NULL AND best_result >= target_value)
+    );
+  RETURN QUERY SELECT
+    goals_updated_count,
+    activities_processed_count,
+    error_messages;
+END;
+$$;
+CREATE OR REPLACE FUNCTION "public"."update_goal_progress_from_activity"("p_user_id" "uuid", "p_activity_distance" numeric, "p_activity_date" "date", "p_activity_id" "text" DEFAULT NULL::"text") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+  goal_record RECORD;
+  progress_value NUMERIC;
+  week_start DATE;
+  month_start DATE;
+BEGIN
+  week_start := date_trunc('week', p_activity_date)::DATE;
+  month_start := date_trunc('month', p_activity_date)::DATE;
+  FOR goal_record IN
+    SELECT ug.*, gt.name as goal_type_name, gt.metric_type, gt.calculation_method
+    FROM user_goals ug
+    JOIN goal_types gt ON ug.goal_type_id = gt.name
+    WHERE ug.user_id = p_user_id
+      AND ug.is_active = true
+      AND ug.is_completed = false
+  LOOP
+    CASE goal_record.goal_type_name
+      WHEN 'total_distance' THEN
+        progress_value := COALESCE(p_activity_distance / 1000.0, 0);
+      WHEN 'run_count' THEN
+        progress_value := 1;
+      WHEN 'total_time' THEN
+        progress_value := 0;
+      ELSE
+        progress_value := 0;
+    END CASE;
+    IF progress_value > 0 THEN
+      INSERT INTO goal_progress (
+        user_goal_id,
+        activity_id,
+        activity_date,
+        value_achieved,
+        contribution_amount,
+        created_at
+      ) VALUES (
+        goal_record.id,
+        p_activity_id,
+        p_activity_date,
+        progress_value,
+        progress_value,
+        NOW()
+      );
+      IF goal_record.time_period = 'weekly' THEN
+        UPDATE user_goals
+          current_progress = (
+            SELECT COALESCE(SUM(gp.value_achieved), 0)
+            FROM goal_progress gp
+            WHERE gp.user_goal_id = goal_record.id
+              AND gp.activity_date >= week_start
+              AND gp.activity_date < week_start + INTERVAL '7 days'
+          ),
+          last_progress_update = NOW()
+        WHERE id = goal_record.id;
+      ELSIF goal_record.time_period = 'monthly' THEN
+        UPDATE user_goals
+          current_progress = (
+            SELECT COALESCE(SUM(gp.value_achieved), 0)
+            FROM goal_progress gp
+            WHERE gp.user_goal_id = goal_record.id
+              AND gp.activity_date >= month_start
+              AND gp.activity_date < month_start + INTERVAL '1 month'
+          ),
+          last_progress_update = NOW()
+        WHERE id = goal_record.id;
+      END IF;
+      UPDATE user_goals
+        is_completed = true,
+        completed_at = NOW()
+      WHERE id = goal_record.id
+        AND target_value IS NOT NULL
+        AND current_progress >= target_value
+        AND is_completed = false;
+    END IF;
+  END LOOP;
+END;
+$$;
+CREATE OR REPLACE FUNCTION "public"."update_goal_progress_since_last_sync"("p_user_id" "uuid") RETURNS TABLE("goals_updated" integer, "activities_processed" integer, "errors" "text"[])
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+  last_sync_time TIMESTAMP WITH TIME ZONE;
+BEGIN
+  SELECT last_activity_sync INTO last_sync_time
+  FROM sync_state
+  WHERE user_id = p_user_id;
+  IF last_sync_time IS NULL THEN
+    last_sync_time := now() - INTERVAL '30 days';
+  END IF;
+  RETURN QUERY SELECT * FROM update_all_goal_progress(p_user_id, last_sync_time);
+END;
+$$;
 CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -222,6 +595,16 @@ COMMENT ON COLUMN "public"."activities"."start_latlng" IS 'Start coordinates as 
 COMMENT ON COLUMN "public"."activities"."end_latlng" IS 'End coordinates as "lat,lng" string';
 COMMENT ON COLUMN "public"."activities"."map_id" IS 'Strava map ID for the activity';
 COMMENT ON COLUMN "public"."activities"."is_favorite" IS 'User can mark activities as favorites for quick access';
+CREATE OR REPLACE VIEW "public"."activity_type_metrics" WITH ("security_barrier"='true', "security_invoker"='on') AS
+ SELECT "activities"."user_id",
+    "activities"."sport_type",
+    "count"(*) AS "activity_count",
+    "avg"("activities"."distance") AS "avg_distance",
+    "avg"("activities"."moving_time") AS "avg_duration",
+    "avg"("activities"."average_heartrate") AS "avg_hr",
+    "avg"("activities"."training_load_score") AS "avg_load"
+   FROM "public"."activities"
+  GROUP BY "activities"."user_id", "activities"."sport_type";
 CREATE TABLE IF NOT EXISTS "public"."form_submissions" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "type" "text" NOT NULL,
@@ -243,6 +626,29 @@ CREATE TABLE IF NOT EXISTS "public"."form_submissions" (
 );
 COMMENT ON TABLE "public"."form_submissions" IS 'Form submissions with RLS enabled. Users can submit, admins can manage all submissions.';
 COMMENT ON COLUMN "public"."form_submissions"."user_id" IS 'References the user who submitted this form. Automatically set on insert.';
+CREATE TABLE IF NOT EXISTS "public"."goal_progress" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_goal_id" "uuid" NOT NULL,
+    "activity_id" character varying(50),
+    "activity_date" "date" NOT NULL,
+    "value_achieved" numeric,
+    "contribution_amount" numeric,
+    "notes" "text",
+    "created_at" timestamp with time zone DEFAULT "now"()
+);
+CREATE TABLE IF NOT EXISTS "public"."goal_types" (
+    "name" character varying(50) NOT NULL,
+    "display_name" character varying(100) NOT NULL,
+    "description" "text" NOT NULL,
+    "category" character varying(30) NOT NULL,
+    "metric_type" character varying(30) NOT NULL,
+    "unit" character varying(20),
+    "target_guidance" "text",
+    "calculation_method" "text" NOT NULL,
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
 CREATE TABLE IF NOT EXISTS "public"."strava_tokens" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "user_id" "uuid" NOT NULL,
@@ -298,6 +704,38 @@ CREATE TABLE IF NOT EXISTS "public"."threshold_calculation_history" (
     CONSTRAINT "threshold_calculation_history_confidence_score_check" CHECK ((("confidence_score" >= (0)::numeric) AND ("confidence_score" <= (1)::numeric)))
 );
 COMMENT ON TABLE "public"."threshold_calculation_history" IS 'History of threshold calculations for users';
+CREATE TABLE IF NOT EXISTS "public"."user_goals" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "target_value" numeric,
+    "target_unit" character varying(20),
+    "target_date" "date",
+    "time_period" character varying(20) DEFAULT 'weekly'::character varying,
+    "current_progress" numeric DEFAULT 0,
+    "best_result" numeric,
+    "streak_count" integer DEFAULT 0,
+    "goal_data" "jsonb" DEFAULT '{}'::"jsonb",
+    "is_active" boolean DEFAULT true,
+    "is_completed" boolean DEFAULT false,
+    "priority" integer DEFAULT 1,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "completed_at" timestamp with time zone,
+    "last_progress_update" timestamp with time zone,
+    "goal_type_id" character varying(50)
+);
+CREATE TABLE IF NOT EXISTS "public"."user_onboarding" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "goals_completed" boolean DEFAULT false,
+    "strava_connected" boolean DEFAULT false,
+    "current_step" character varying(20) DEFAULT 'goals'::character varying,
+    "completed_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "profile_completed" boolean DEFAULT false,
+    "first_sync_completed" boolean DEFAULT false
+);
 CREATE TABLE IF NOT EXISTS "public"."user_training_preferences" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "user_id" "uuid" NOT NULL,
@@ -369,6 +807,17 @@ CREATE TABLE IF NOT EXISTS "public"."user_training_profiles" (
     CONSTRAINT "user_training_profiles_tss_target_source_check" CHECK (("tss_target_source" = ANY (ARRAY['estimated'::"text", 'calculated'::"text", 'manual'::"text"])))
 );
 COMMENT ON TABLE "public"."user_training_profiles" IS 'User training profiles with thresholds and preferences';
+CREATE OR REPLACE VIEW "public"."weekly_training_load" WITH ("security_barrier"='true', "security_invoker"='true') AS
+ SELECT "activities"."user_id",
+    "activities"."year_number",
+    "activities"."week_number",
+    "count"(*) AS "activity_count",
+    "sum"("activities"."training_load_score") AS "total_load",
+    "avg"("activities"."intensity_score") AS "avg_intensity",
+    "sum"("activities"."moving_time") AS "total_time",
+    "sum"("activities"."distance") AS "total_distance"
+   FROM "public"."activities"
+  GROUP BY "activities"."user_id", "activities"."year_number", "activities"."week_number";
 CREATE TABLE IF NOT EXISTS "public"."workout_plan_workouts" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "plan_id" "uuid" NOT NULL,
@@ -413,6 +862,14 @@ ALTER TABLE ONLY "public"."activities"
     ADD CONSTRAINT "activities_user_strava_activity_unique" UNIQUE ("user_id", "strava_activity_id");
 ALTER TABLE ONLY "public"."form_submissions"
     ADD CONSTRAINT "form_submissions_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."goal_progress"
+    ADD CONSTRAINT "goal_progress_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."goal_progress"
+    ADD CONSTRAINT "goal_progress_unique_goal_activity" UNIQUE ("user_goal_id", "activity_id");
+ALTER TABLE ONLY "public"."goal_types"
+    ADD CONSTRAINT "goal_types_name_key" UNIQUE ("name");
+ALTER TABLE ONLY "public"."goal_types"
+    ADD CONSTRAINT "goal_types_pkey" PRIMARY KEY ("name");
 ALTER TABLE ONLY "public"."strava_tokens"
     ADD CONSTRAINT "strava_tokens_pkey" PRIMARY KEY ("id");
 ALTER TABLE ONLY "public"."strava_tokens"
@@ -423,6 +880,12 @@ ALTER TABLE ONLY "public"."sync_state"
     ADD CONSTRAINT "sync_state_user_id_key" UNIQUE ("user_id");
 ALTER TABLE ONLY "public"."threshold_calculation_history"
     ADD CONSTRAINT "threshold_calculation_history_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."user_goals"
+    ADD CONSTRAINT "user_goals_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."user_onboarding"
+    ADD CONSTRAINT "user_onboarding_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."user_onboarding"
+    ADD CONSTRAINT "user_onboarding_user_id_key" UNIQUE ("user_id");
 ALTER TABLE ONLY "public"."user_training_preferences"
     ADD CONSTRAINT "user_training_preferences_pkey" PRIMARY KEY ("id");
 ALTER TABLE ONLY "public"."user_training_preferences"
@@ -454,11 +917,16 @@ CREATE INDEX "idx_form_submissions_created_at" ON "public"."form_submissions" US
 CREATE INDEX "idx_form_submissions_status" ON "public"."form_submissions" USING "btree" ("status");
 CREATE INDEX "idx_form_submissions_type" ON "public"."form_submissions" USING "btree" ("type");
 CREATE INDEX "idx_form_submissions_user_id" ON "public"."form_submissions" USING "btree" ("user_id");
+CREATE INDEX "idx_goal_progress_date" ON "public"."goal_progress" USING "btree" ("activity_date");
+CREATE INDEX "idx_goal_progress_goal_id" ON "public"."goal_progress" USING "btree" ("user_goal_id");
 CREATE INDEX "idx_strava_tokens_expires_at" ON "public"."strava_tokens" USING "btree" ("expires_at");
 CREATE INDEX "idx_strava_tokens_strava_athlete_id" ON "public"."strava_tokens" USING "btree" ("strava_athlete_id");
 CREATE INDEX "idx_strava_tokens_user_id" ON "public"."strava_tokens" USING "btree" ("user_id");
 CREATE INDEX "idx_threshold_calculation_history_date" ON "public"."threshold_calculation_history" USING "btree" ("calculation_date" DESC);
 CREATE INDEX "idx_threshold_calculation_history_user_id" ON "public"."threshold_calculation_history" USING "btree" ("user_id");
+CREATE INDEX "idx_user_goals_active" ON "public"."user_goals" USING "btree" ("is_active") WHERE ("is_active" = true);
+CREATE INDEX "idx_user_goals_user_id" ON "public"."user_goals" USING "btree" ("user_id");
+CREATE INDEX "idx_user_onboarding_user_id" ON "public"."user_onboarding" USING "btree" ("user_id");
 CREATE INDEX "idx_user_training_preferences_user_id" ON "public"."user_training_preferences" USING "btree" ("user_id");
 CREATE INDEX "idx_user_training_profiles_user_id" ON "public"."user_training_profiles" USING "btree" ("user_id");
 CREATE INDEX "idx_workout_plan_workouts_day" ON "public"."workout_plan_workouts" USING "btree" ("day_of_week");
@@ -474,12 +942,16 @@ ALTER TABLE ONLY "public"."activities"
     ADD CONSTRAINT "activities_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 ALTER TABLE ONLY "public"."form_submissions"
     ADD CONSTRAINT "form_submissions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."goal_progress"
+    ADD CONSTRAINT "goal_progress_user_goal_id_fkey" FOREIGN KEY ("user_goal_id") REFERENCES "public"."user_goals"("id") ON DELETE CASCADE;
 ALTER TABLE ONLY "public"."strava_tokens"
     ADD CONSTRAINT "strava_tokens_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 ALTER TABLE ONLY "public"."sync_state"
     ADD CONSTRAINT "sync_state_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 ALTER TABLE ONLY "public"."threshold_calculation_history"
     ADD CONSTRAINT "threshold_calculation_history_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."user_goals"
+    ADD CONSTRAINT "user_goals_goal_type_id_fkey" FOREIGN KEY ("goal_type_id") REFERENCES "public"."goal_types"("name") ON DELETE CASCADE;
 ALTER TABLE ONLY "public"."user_training_preferences"
     ADD CONSTRAINT "user_training_preferences_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 ALTER TABLE ONLY "public"."user_training_profiles"
@@ -488,6 +960,7 @@ ALTER TABLE ONLY "public"."workout_plan_workouts"
     ADD CONSTRAINT "workout_plan_workouts_plan_id_fkey" FOREIGN KEY ("plan_id") REFERENCES "public"."workout_plans"("id") ON DELETE CASCADE;
 ALTER TABLE ONLY "public"."workout_plans"
     ADD CONSTRAINT "workout_plans_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+CREATE POLICY "Goal types are viewable by everyone" ON "public"."goal_types" FOR SELECT USING (true);
 CREATE POLICY "Only admins can delete submissions" ON "public"."form_submissions" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "auth"."users"
   WHERE (("users"."id" = "auth"."uid"()) AND (("users"."raw_user_meta_data" ->> 'role'::"text") = 'admin'::"text")))));
@@ -532,6 +1005,14 @@ ALTER TABLE "public"."activities" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "activities_user_policy" ON "public"."activities" USING (("user_id" = ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK (("user_id" = ( SELECT "auth"."uid"() AS "uid")));
 COMMENT ON POLICY "activities_user_policy" ON "public"."activities" IS 'Optimized RLS policy: Users can only access their own activities. Uses subquery for performance.';
 ALTER TABLE "public"."form_submissions" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."goal_progress" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "goal_progress_user_policy" ON "public"."goal_progress" USING ((EXISTS ( SELECT 1
+   FROM "public"."user_goals"
+  WHERE (("user_goals"."id" = "goal_progress"."user_goal_id") AND ("user_goals"."user_id" = ( SELECT "auth"."uid"() AS "uid")))))) WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."user_goals"
+  WHERE (("user_goals"."id" = "goal_progress"."user_goal_id") AND ("user_goals"."user_id" = ( SELECT "auth"."uid"() AS "uid"))))));
+COMMENT ON POLICY "goal_progress_user_policy" ON "public"."goal_progress" IS 'Optimized RLS policy: Users can only access progress for their own goals. Uses JOIN for security.';
+ALTER TABLE "public"."goal_types" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."strava_tokens" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "strava_tokens_user_policy" ON "public"."strava_tokens" USING (("user_id" = ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK (("user_id" = ( SELECT "auth"."uid"() AS "uid")));
 COMMENT ON POLICY "strava_tokens_user_policy" ON "public"."strava_tokens" IS 'Optimized RLS policy: Users can only access their own Strava tokens. Uses subquery for performance.';
@@ -539,6 +1020,12 @@ ALTER TABLE "public"."sync_state" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "sync_state_user_policy" ON "public"."sync_state" USING (("user_id" = ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK (("user_id" = ( SELECT "auth"."uid"() AS "uid")));
 COMMENT ON POLICY "sync_state_user_policy" ON "public"."sync_state" IS 'Optimized RLS policy: Users can only access their own sync state. Uses subquery for performance.';
 ALTER TABLE "public"."threshold_calculation_history" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."user_goals" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "user_goals_user_policy" ON "public"."user_goals" USING (("user_id" = ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK (("user_id" = ( SELECT "auth"."uid"() AS "uid")));
+COMMENT ON POLICY "user_goals_user_policy" ON "public"."user_goals" IS 'Optimized RLS policy: Users can only access their own goals. Uses subquery for performance.';
+ALTER TABLE "public"."user_onboarding" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "user_onboarding_user_policy" ON "public"."user_onboarding" USING (("user_id" = ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK (("user_id" = ( SELECT "auth"."uid"() AS "uid")));
+COMMENT ON POLICY "user_onboarding_user_policy" ON "public"."user_onboarding" IS 'Optimized RLS policy: Users can only access their own onboarding data. Uses subquery for performance.';
 ALTER TABLE "public"."user_training_preferences" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."user_training_profiles" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."workout_plan_workouts" ENABLE ROW LEVEL SECURITY;

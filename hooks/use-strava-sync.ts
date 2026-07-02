@@ -111,12 +111,17 @@ async function triggerSync(options: SyncOptions = {}): Promise<SyncResult> {
     body: JSON.stringify(options),
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Sync failed');
+    throw new Error(data.message || data.error || 'Sync failed');
   }
 
-  return response.json();
+  if (!data.success) {
+    throw new Error(data.errors?.[0] || data.message || 'Sync failed');
+  }
+
+  return data;
 }
 
 // Get sync status

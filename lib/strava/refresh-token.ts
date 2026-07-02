@@ -106,6 +106,7 @@ export async function refreshAndPersistStravaToken({
   );
 
   if (upsertError) {
+    console.error('Failed to store refreshed Strava tokens:', upsertError);
     return {
       success: false,
       error: 'Failed to store refreshed tokens',

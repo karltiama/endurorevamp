@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import EnhancedFeaturesSection from '@/components/EnhancedFeaturesSection';
 
-// Mock Next.js Image component
 jest.mock('next/image', () => ({
   __esModule: true,
   default: ({ src, alt, ...props }: any) => {
@@ -14,96 +13,74 @@ describe('EnhancedFeaturesSection', () => {
   it('renders the section header correctly', () => {
     render(<EnhancedFeaturesSection />);
 
-    expect(screen.getByText('Real Features, Real Results')).toBeInTheDocument();
+    expect(screen.getByText('What the app does today')).toBeInTheDocument();
     expect(screen.getByText('Everything You Need to')).toBeInTheDocument();
     expect(screen.getByText('Level')).toBeInTheDocument();
     expect(screen.getByText('Up')).toBeInTheDocument();
-    expect(screen.getByText(/These aren't mockups/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Features marked .*Planned.* are on the roadmap/)
+    ).toBeInTheDocument();
   });
 
-  it('renders all feature cards', () => {
+  it('renders live and planned feature cards', () => {
     render(<EnhancedFeaturesSection />);
 
-    expect(screen.getByText('Training Load Analysis')).toBeInTheDocument();
-    expect(screen.getByText('Performance Trends')).toBeInTheDocument();
-    expect(screen.getByText('Activity Analytics')).toBeInTheDocument();
-    expect(screen.getByText('Smart Goal Tracking')).toBeInTheDocument();
-    expect(screen.getByText('Achievements & Streaks')).toBeInTheDocument();
-    expect(screen.getByText('Mobile Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('Strava Activity Analytics')).toBeInTheDocument();
+    expect(screen.getByText('Training Load Insights')).toBeInTheDocument();
+    expect(screen.getByText('Goals & Progress Tracking')).toBeInTheDocument();
+    expect(
+      screen.getByText('Onboarding & Training Profile')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Weather-Aware Workout Planning')
+    ).toBeInTheDocument();
+    expect(screen.getByText('AI Weekly Training Debrief')).toBeInTheDocument();
+    expect(screen.getByText('Mobile-Friendly Dashboard')).toBeInTheDocument();
   });
 
-  it('renders feature descriptions', () => {
+  it('renders honest feature descriptions', () => {
     render(<EnhancedFeaturesSection />);
 
     expect(
-      screen.getByText(/Track your training stress and recovery/)
+      screen.getByText(/Import runs and rides from Strava/)
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Visualize pace, heart rate, and cadence trends/)
+      screen.getByText(/Complete a guided setup flow/)
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Dive deep into your performance/)
+      screen.getByText(/A planned feature to summarize your week/)
     ).toBeInTheDocument();
   });
 
   it('renders feature bullet points', () => {
     render(<EnhancedFeaturesSection />);
 
-    expect(screen.getByText('Weekly training stress')).toBeInTheDocument();
-    expect(screen.getByText('Recovery tracking')).toBeInTheDocument();
-    expect(screen.getByText('Pace progression')).toBeInTheDocument();
-    expect(screen.getByText('Progress tracking')).toBeInTheDocument();
+    expect(screen.getByText('Automatic Strava sync')).toBeInTheDocument();
+    expect(screen.getByText('Weekly training load (TSS-style)')).toBeInTheDocument();
+    expect(screen.getByText('OpenWeather context for your area')).toBeInTheDocument();
+    expect(screen.getByText('Planned — not live today')).toBeInTheDocument();
   });
 
-  it('renders feature badges correctly', () => {
+  it('renders status badges correctly', () => {
     render(<EnhancedFeaturesSection />);
 
-    // Check that live features have appropriate badges
-    expect(screen.getAllByText('Live Feature').length).toBeGreaterThan(0);
-    expect(screen.getByText('Coming Soon')).toBeInTheDocument();
+    expect(screen.getAllByText('Available today').length).toBeGreaterThan(0);
+    expect(screen.getByText('Planned — not live yet')).toBeInTheDocument();
   });
 
-  it('renders live feature badges', () => {
+  it('renders screenshots and the planned feature placeholder', () => {
     render(<EnhancedFeaturesSection />);
 
-    const liveBadges = screen.getAllByText('Live Feature');
-    expect(liveBadges.length).toBeGreaterThan(0); // At least one live feature
-  });
-
-  it('renders coming soon badge for achievements', () => {
-    render(<EnhancedFeaturesSection />);
-
-    const comingSoonBadge = screen.getByText('Coming Soon');
-    expect(comingSoonBadge).toBeInTheDocument();
-  });
-
-  it('renders all screenshots and coming soon features', () => {
-    render(<EnhancedFeaturesSection />);
-
-    // Check that all expected screenshots are displayed
     expect(
       screen.getByAltText(
-        'Performance trends chart showing pace and heart rate improvements over time'
+        'Activity analytics dashboard with performance metrics from synced Strava activities'
       )
     ).toBeInTheDocument();
     expect(
-      screen.getByAltText(
-        'Activity Analytics Dashboard showing performance metrics and route data'
-      )
+      screen.getByAltText('Smartphone showing the responsive Enduro Stats dashboard')
     ).toBeInTheDocument();
     expect(
-      screen.getByAltText(
-        'Goal tracking dashboard showing progress toward running goals'
-      )
-    ).toBeInTheDocument();
-    expect(
-      screen.getByAltText('iPhone mockup showing mobile dashboard interface')
-    ).toBeInTheDocument();
-
-    // Check that coming soon feature shows appropriate message
-    expect(screen.getByText('Coming Soon!')).toBeInTheDocument();
-    expect(
-      screen.getByText('Launching in the next few days')
+      screen.getByText(/AI Weekly Training Debrief is on the roadmap/)
     ).toBeInTheDocument();
   });
 });

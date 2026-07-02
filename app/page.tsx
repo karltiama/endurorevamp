@@ -96,13 +96,13 @@ export default async function Home() {
                     Powered by Strava Data
                   </Badge>
                   <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight text-center">
-                    Go Beyond the Basics –{' '}
-                    <span className="text-indigo-600">Know Your Run</span>
+                    Strava-powered training analytics{' '}
+                    <span className="text-indigo-600">you can trust</span>
                   </h1>
                   <p className="text-lg sm:text-xl text-gray-600 leading-relaxed text-center">
-                    Transform your Strava data into actionable insights. Track
-                    training load, analyze performance trends, and achieve your
-                    running goals with personalized analytics.
+                    Connect Strava, sync your activities, and explore training
+                    load, goals, onboarding, and weather-aware workout planning
+                    — built from your own data.
                   </p>
                 </div>
 
@@ -113,7 +113,7 @@ export default async function Home() {
                       className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold"
                     >
                       <Activity className="mr-2 h-4 sm:h-5 w-4 sm:w-5" />
-                      Get Started For Free
+                      Get Started
                     </Button>
                   </Link>
                   <Link href="/auth/login" className="w-full sm:w-auto">
@@ -181,26 +181,23 @@ export default async function Home() {
 
                   {/* Floating Elements */}
                   <div className="absolute -top-4 -right-4 bg-white rounded-lg shadow-lg p-3 border">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium text-gray-700">
-                        Live Data
-                      </span>
-                    </div>
+                    <span className="text-sm font-medium text-gray-700">
+                      Example dashboard
+                    </span>
                   </div>
                 </div>
 
                 <div className="space-y-6">
                   <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center">
-                    More than Miles.{' '}
+                    Your Strava data,{' '}
                     <span className="text-indigo-600">
-                      Real Performance Insights.
+                      organized for training decisions
                     </span>
                   </h2>
                   <p className="text-xl text-gray-600 leading-relaxed text-center">
-                    While Strava shows you what happened, Enduro Stats shows you
-                    why it matters. Get the deep analytics and personalized
-                    insights that serious runners need to improve.
+                    Enduro Stats adds dashboards for load, trends, goals, and
+                    planning on top of the activities you already record in
+                    Strava — without posting or changing anything on your behalf.
                   </p>
                   <div className="space-y-4 text-center">
                     <div className="flex items-center justify-center space-x-3">
@@ -224,7 +221,7 @@ export default async function Home() {
                         <Target className="h-4 w-4 text-purple-600" />
                       </div>
                       <span className="text-gray-700">
-                        Smart goal tracking & insights
+                        Goals, onboarding, and weather-aware planning
                       </span>
                     </div>
                   </div>
@@ -274,8 +271,9 @@ export default async function Home() {
                   2. Sync your activities
                 </h3>
                 <p className="text-gray-600">
-                  Your runs and rides are imported automatically so your
-                  dashboard stays up to date.
+                  Complete onboarding, connect Strava, and set up your training
+                  profile. Activities sync automatically so your dashboard stays
+                  current.
                 </p>
               </div>
               <div className="text-center space-y-3">
@@ -286,8 +284,8 @@ export default async function Home() {
                   3. See your insights
                 </h3>
                 <p className="text-gray-600">
-                  Explore training load, zones, personal bests, trends, and goal
-                  progress — all computed from your own data.
+                  Explore training load, trends, goals, workout planning, and
+                  weather context — all computed from your synced Strava data.
                 </p>
               </div>
             </div>
@@ -389,10 +387,10 @@ export default async function Home() {
                   What data do you analyze from my runs?
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4 text-gray-600">
-                  We analyze pace, distance, elevation, heart rate (if
-                  available), cadence, and training frequency to provide
-                  insights on training load, performance trends, and goal
-                  progress. All analysis is done securely and privately.
+                  We analyze distance, pace, elevation, moving time, heart rate
+                  and power when Strava provides them, plus derived metrics like
+                  training load and goal progress. All analysis stays private to
+                  your account.
                 </AccordionContent>
               </AccordionItem>
 
@@ -433,9 +431,23 @@ export default async function Home() {
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4 text-gray-600">
                   Enduro Stats computes training load (TSS-style), heart rate and
-                  power zone analysis, weekly distance and consistency trends,
-                  personal bests, and goal progress — all derived from your own
-                  Strava activity data.
+                  power zone analysis where data exists, weekly distance and
+                  consistency trends, personal bests, goal progress, and
+                  rule-based workout recommendations with optional weather
+                  context.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem
+                value="item-6"
+                className="bg-white rounded-lg border-0 shadow-sm"
+              >
+                <AccordionTrigger className="px-6 py-4 text-left font-semibold hover:no-underline">
+                  Is AI coaching available?
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4 text-gray-600">
+                  Not yet. An AI Weekly Training Debrief is planned for a future
+                  release. Today&apos;s app uses rule-based analytics and
+                  workout planning from your synced Strava data.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

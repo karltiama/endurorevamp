@@ -92,26 +92,46 @@ export function SyncButton() {
     !statusInfo.hasStravaTokens ||
     !statusInfo.canSync;
 
+  const syncErrorMessage =
+    syncError instanceof Error
+      ? syncError.message
+      : syncResult && !syncResult.success
+        ? syncResult.errors?.[0] || syncResult.message
+        : null;
+
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            onClick={handleSync}
-            disabled={isDisabled}
-            variant={getButtonVariant()}
-            className="w-full"
-          >
-            {getStatusIcon()}
-            <span className="ml-2">{getButtonText()}</span>
-          </Button>
-        </TooltipTrigger>
-        {isDisabled && (
-          <TooltipContent>
-            <p className="max-w-xs">{getUnavailableReason()}</p>
-          </TooltipContent>
-        )}
-      </Tooltip>
-    </TooltipProvider>
+    <div className="space-y-1">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={handleSync}
+              disabled={isDisabled}
+              variant={getButtonVariant()}
+              className="w-full"
+            >
+              {getStatusIcon()}
+              <span className="ml-2">{getButtonText()}</span>
+            </Button>
+          </TooltipTrigger>
+          {isDisabled && (
+            <TooltipContent>
+              <p className="max-w-xs">{getUnavailableReason()}</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
+      {syncErrorMessage && (
+        <p className="text-xs text-red-600" role="alert">
+          {syncErrorMessage}
+        </p>
+      )}
+      {syncResult?.success && syncResult.data && (
+        <p className="text-xs text-green-600">
+          Synced {syncResult.data.activitiesProcessed} activities (
+          {syncResult.data.newActivities} new)
+        </p>
+      )}
+    </div>
   );
 }
